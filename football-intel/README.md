@@ -1,0 +1,100 @@
+# footintel — Football Intelligence & Prediction System
+
+Plateforme personnelle de collecte de données football, de prédiction probabiliste
+et d'évaluation mesurable. Version 0.1 : premier parcours complet de bout en bout,
+sans interface graphique (CLI + API HTTP).
+
+> Aucun système ne prédit le football avec certitude. Les probabilités quantifient
+> l'incertitude ; leur qualité se mesure (log loss, Brier, calibration) et se compare
+> à des références (fréquences naïves, marché des bookmakers).
+
+## Ce qui fonctionne aujourd'hui (vérifié le 2026-10-21)
+
+- Import de 30 649 matchs réels (Premier League, Liga, Serie A, Bundesliga, 2005-06 à 2026-27)
+  depuis football-data.co.uk : résultats, tirs, cartons, corners, cotes avant clôture et de clôture.
+- Collecte idempotente (relancer ne crée aucun doublon), journal des collectes, verrous par tâche.
+- Features calculées sans fuite temporelle (Elo, forme, tirs, repos, cotes du marché).
+- Modèles : fréquences naïves, Elo-Poisson, régression logistique, Random Forest, XGBoost,
+  marché (cotes sans marge), composite 1X2 + buts.
+- Backtest chronologique par saison, comparaisons appariées avec intervalle de confiance bootstrap.
+- Registre de modèles : versions, empreinte SHA-256, promotion selon critères fixés à l'avance,
+  retour arrière.
+- Prédictions sauvegardées avec le snapshot des variables, la version du modèle et l'heure.
+- Pronostics personnels horodatés, refusés après le coup d'envoi.
+- Évaluation post-match, rapports pré-match et post-match (Markdown, HTML, CSV).
+- Planification (APScheduler, fuseau Africa/Lubumbashi), API HTTP, sauvegarde/restauration.
+- Mode dégradé sans clé API.
+
+Ce qui n'est **pas** encore fait est listé dans [PROGRESS.md](PROGRESS.md).
+
+## Installation (Linux / VPS)
+
+Prérequis : Python ≥ 3.12, PostgreSQL ≥ 14, [uv](https://docs.astral.sh/uv/) (ou pip).
+
+```bash
+cd football-intel
+uv venv .venv && uv pip install --python .venv/bin/python -e ".[dev]"
+
+# Base de données (adapter le mot de passe)
+sudo -u postgres psql -c "CREATE ROLE footintel LOGIN PASSWORD 'CHANGE_ME';"
+sudo -u postgres createdb -O footintel footintel
+sudo -u postgres createdb -O footintel footintel_test   # pour les tests
+
+cp .env.example .env        # puis remplir DATABASE_URL et ADMIN_TOKEN
+.venv/bin/footintel db upgrade      # migrations Alembic
+.venv/bin/footintel db seed         # sources et compétitions
+```
+
+## Premier démarrage
+
+```bash
+F=.venv/bin/footintel
+$F ingest history --first 2005          # ~2 min, télécharge 88 fichiers une seule fois
+$F ingest fixtures                       # matchs à venir + cotes
+$F backtest --seasons 5                  # évaluation chronologique
+$F models train logreg_market_goals      # crée une version candidate
+$F models promote <id> --seasons 3       # promue seulement si les critères sont remplis
+$F predict                               # prédit les matchs des 7 prochains jours
+$F report prematch
+```
+
+## Usage quotidien
+
+| Action | Commande |
+|---|---|
+| Matchs à venir | `footintel upcoming` |
+| Mon pronostic | `footintel user-predict <match_id> H 4 --score 2-1 --over25 yes --btts yes --reason "..."` |
+| Cycle du matin (fixtures, prédictions, rapport) | `footintel run morning` |
+| Cycle du soir (résultats, évaluation, rapport) | `footintel run evening` |
+| Contrôle qualité | `footintel run nightly` |
+| Réentraînement + validation | `footintel run weekly` |
+| État du système | `footintel status` |
+| Revenir au modèle précédent | `footintel models rollback` |
+| Sauvegarde | `footintel db backup` |
+| API HTTP | `footintel serve` (http://127.0.0.1:8000/docs) |
+| Planificateur | `footintel scheduler` |
+
+Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" data/backups/<fichier>.dump`.
+
+## Planification sur le VPS
+
+Le fichier [deploy/footintel-scheduler.service](deploy/footintel-scheduler.service) lance
+le planificateur avec systemd. Horaires par défaut (Africa/Lubumbashi) :
+matin 09:00, soir 23:30, nuit 03:00, lundi 04:00 (réentraînement).
+Modifiables avec `SCHEDULE_MORNING="0 8 * * *"` etc.
+
+## Tests
+
+```bash
+.venv/bin/pytest -m "not live"   # unitaires + intégration (base footintel_test, données synthétiques)
+.venv/bin/pytest -m live         # appelle les vraies sources pour vérifier les colonnes utilisées
+```
+
+## Documentation
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — composants et flux
+- [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) — sources testées, couverture, limites
+- [docs/FEATURES.md](docs/FEATURES.md) — définition de chaque variable
+- [docs/DECISIONS.md](docs/DECISIONS.md) — décisions techniques et hypothèses
+- [docs/RESULTS.md](docs/RESULTS.md) — résultats du backtest réel
+- [PROGRESS.md](PROGRESS.md) — état d'avancement par phase
