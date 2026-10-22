@@ -90,6 +90,12 @@ def evaluate_promotion(features: pd.DataFrame, candidate_name: str, reference_na
     preds = walk_forward(features, names, test_seasons)
     if candidate_name == reference_name:
         return PromotionDecision(False, "candidate and reference are the same configuration", {})
+    return decide(preds, candidate_name, reference_name, criteria)
+
+
+def decide(preds: pd.DataFrame, candidate_name: str, reference_name: str,
+           criteria: PromotionCriteria) -> PromotionDecision:
+    """Apply the fixed promotion rules to walk-forward predictions of both models."""
     cmp = paired_logloss(preds, candidate_name, reference_name, criteria.bootstrap_samples)
     if cmp["n"] < criteria.min_test_matches:
         return PromotionDecision(False, f"only {cmp['n']} test matches "

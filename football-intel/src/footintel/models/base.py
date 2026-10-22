@@ -18,18 +18,30 @@ def encode_result(df: pd.DataFrame) -> np.ndarray:
     return np.where(hg > ag, 0, np.where(hg == ag, 1, 2))
 
 
-def score_matrix(lam_home: float, lam_away: float) -> np.ndarray:
+def dixon_coles_tau(lam_home, lam_away, rho: float) -> np.ndarray:
+    """Dixon-Coles factors for the scores 0-0, 0-1, 1-0 and 1-1, in that order."""
+    return np.stack([1 - lam_home * lam_away * rho, 1 + lam_home * rho,
+                     1 + lam_away * rho, np.full_like(np.asarray(lam_home, float), 1 - rho)])
+
+
+def score_matrix(lam_home: float, lam_away: float, rho: float = 0.0) -> np.ndarray:
     goals = np.arange(MAX_GOALS + 1)
     m = np.outer(poisson.pmf(goals, lam_home), poisson.pmf(goals, lam_away))
+    if rho:
+        t00, t01, t10, t11 = dixon_coles_tau(lam_home, lam_away, rho)
+        m[0, 0] *= t00
+        m[0, 1] *= t01
+        m[1, 0] *= t10
+        m[1, 1] *= t11
     return m / m.sum()
 
 
-def markets_from_lambdas(lam_home: np.ndarray, lam_away: np.ndarray) -> pd.DataFrame:
+def markets_from_lambdas(lam_home: np.ndarray, lam_away: np.ndarray, rho: float = 0.0) -> pd.DataFrame:
     rows = []
     goals = np.arange(MAX_GOALS + 1)
     total = goals[:, None] + goals[None, :]
     for lh, la in zip(lam_home, lam_away, strict=True):
-        m = score_matrix(lh, la)
+        m = score_matrix(lh, la, rho)
         rows.append({
             "p_home": np.tril(m, -1).sum(),
             "p_draw": np.trace(m),

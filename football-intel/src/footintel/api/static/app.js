@@ -419,7 +419,7 @@ async function matchPage() {
     ${m.home_goals != null ? ` · <strong>résultat ${m.home_goals}-${m.away_goals}</strong>` : ""}</p></div>`;
   const pr = d.prediction;
   if (!pr) {
-    html += `<div class="card" style="margin-top:16px">${na("Probabilités du modèle", m.status === "scheduled" ? "Aucune prédiction enregistrée pour l'instant : elle sera produite par le cycle du matin." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi de ce match. Le système ne calcule pas de probabilité a posteriori : elle ne serait pas un vrai pronostic.")}</div>`;
+    html += `<div class="card" style="margin-top:16px">${na("Probabilités du modèle", m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Aucune prédiction enregistrée pour l'instant : elle sera produite par le cycle du matin." : m.status === "scheduled" ? "Date passée sans résultat publié par la source (match reporté, annulé ou non joué). Aucune prédiction possible." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi de ce match. Le système ne calcule pas de probabilité a posteriori : elle ne serait pas un vrai pronostic.")}</div>`;
   } else {
     const q = pr.data_quality || {};
     html += `<div class="grid two" style="margin-top:16px">
@@ -436,7 +436,8 @@ async function matchPage() {
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
         ${na("Compositions, absences, formations", "Aucune source autorisée connectée.")}</div></div>`;
   }
-  if (m.status === "scheduled") {
+  const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
+  if (m.status === "scheduled" && kickoff > new Date()) {
     html += `<div class="card" style="margin-top:16px"><h2>Mon pronostic</h2>
       <p class="question">Enregistré avec l'heure ; refusé après le coup d'envoi. Le dernier envoyé avant le match compte.</p>
       ${tokenBox()}
@@ -625,7 +626,8 @@ async function admin() {
     <div class="card"><h2>Modèles</h2>
       <table><tbody>${d.models.map((m) => `<tr><td>${esc(m.name)} v${m.version}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
       <p><button class="btn" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
-      <p class="small muted">Critères de promotion (fixés avant évaluation) : ${esc(JSON.stringify(d.promotion))}</p></div>
+      <p class="small muted">Critères de promotion (fixés avant évaluation) :</p>
+      <ul class="small muted">${Object.entries(d.promotion).map(([k, v]) => `<li><code>${esc(k)}</code> = ${esc(String(v))}</li>`).join("")}</ul></div>
     <div class="card"><h2>Sources</h2>
       <ul class="list">${d.sources.map((s) => `<li><span class="row-title">${esc(s.name)}</span> <span class="badge ${s.enabled ? "fact" : "na"}">${s.enabled ? "active" : "inactive"}</span><div class="small muted">${esc(s.terms_note)}</div><div class="small"><a href="${esc(s.terms_url)}" target="_blank" rel="noopener">conditions d'utilisation</a></div></li>`).join("")}</ul></div>
   </div>

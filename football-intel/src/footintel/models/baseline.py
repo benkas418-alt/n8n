@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import PoissonRegressor
 
-from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel, encode_result, markets_from_lambdas
+from footintel.models.base import (GOAL_COLS, PROB_COLS, ProbModel, dixon_coles_tau, encode_result,
+                                  markets_from_lambdas)
 
 
 class NaiveFrequency(ProbModel):
@@ -70,10 +71,12 @@ class PoissonFeatures(ProbModel):
     family = "poisson"
 
     def __init__(self, name: str, features: list[str], alpha: float = 1e-3,
-                 targets: tuple[str, str] = ("home_goals", "away_goals")):
+                 targets: tuple[str, str] = ("home_goals", "away_goals"), dixon_coles: bool = False):
         self.name, self.features, self.alpha = name, list(features), alpha
         # ("ht_home_goals", "ht_away_goals") gives a first-half goals model.
         self.targets = targets
+        # Low-score correction: one parameter rho, fitted on the training scores.
+        self.dixon_coles, self.rho_ = dixon_coles, 0.0
 
     def _pipe(self):
         from sklearn.impute import SimpleImputer
@@ -90,16 +93,43 @@ class PoissonFeatures(ProbModel):
         x = train[self.features]
         self.home_ = self._pipe().fit(x, train[self.targets[0]])
         self.away_ = self._pipe().fit(x, train[self.targets[1]])
+        if self.dixon_coles:
+            self.rho_ = fit_rho(self.home_.predict(x), self.away_.predict(x),
+                                train[self.targets[0]].to_numpy(), train[self.targets[1]].to_numpy())
         return self
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         x = df[self.features]
-        out = markets_from_lambdas(self.home_.predict(x), self.away_.predict(x))
+        out = markets_from_lambdas(self.home_.predict(x), self.away_.predict(x), self.rho_)
         out.index = df.index
         return out[PROB_COLS + GOAL_COLS]
 
     def params(self) -> dict:
-        return {"alpha": self.alpha, "features": self.features, "targets": list(self.targets)}
+        return {"alpha": self.alpha, "features": self.features, "targets": list(self.targets),
+                "dixon_coles": self.dixon_coles, "rho": self.rho_}
+
+
+def fit_rho(lam_h: np.ndarray, lam_a: np.ndarray, hg: np.ndarray, ag: np.ndarray) -> float:
+    """Maximum-likelihood Dixon-Coles rho, with the Poisson rates held fixed.
+
+    Only the four low scores carry tau; the normalising constant is kept so the
+    likelihood stays a proper distribution."""
+    from scipy.optimize import minimize_scalar
+
+    p00, p01 = np.exp(-lam_h - lam_a), np.exp(-lam_h - lam_a) * lam_a
+    p10, p11 = np.exp(-lam_h - lam_a) * lam_h, np.exp(-lam_h - lam_a) * lam_h * lam_a
+    idx = np.select([(hg == 0) & (ag == 0), (hg == 0) & (ag == 1), (hg == 1) & (ag == 0),
+                     (hg == 1) & (ag == 1)], [0, 1, 2, 3], -1)
+
+    def nll(rho: float) -> float:
+        tau = dixon_coles_tau(lam_h, lam_a, rho)
+        if (tau <= 0).any():
+            return np.inf
+        norm = 1 + (tau[0] - 1) * p00 + (tau[1] - 1) * p01 + (tau[2] - 1) * p10 + (tau[3] - 1) * p11
+        low = idx >= 0
+        return float(-np.log(tau[idx[low], np.flatnonzero(low)]).sum() + np.log(norm).sum())
+
+    return float(minimize_scalar(nll, bounds=(-0.2, 0.2), method="bounded").x)
 
 
 class MarketImplied(ProbModel):

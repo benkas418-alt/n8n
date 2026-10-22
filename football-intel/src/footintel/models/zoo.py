@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+import numpy as np
 import pandas as pd
 
 from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
@@ -73,7 +74,8 @@ class RoutedCompetitionAware(ProbModel):
 
     family = "routed"
 
-    def __init__(self, name: str, trend_groups: tuple[str, ...] = ()):
+    def __init__(self, name: str, trend_groups: tuple[str, ...] = (), dixon_coles: bool = False,
+                 calibrate_without_odds: bool = False):
         from footintel.analysis.ablation import COMPETITION, GOAL_TEAM
         from footintel.features.trend_features import group_columns
 
@@ -81,18 +83,52 @@ class RoutedCompetitionAware(ProbModel):
         extra = [c for g in trend_groups for c in group_columns(g)]
         self.with_odds = logistic(WITH_MARKET_FEATURES, f"{name}:with_odds")
         self.without_odds = logistic(COMPETITION + extra, f"{name}:without_odds")
-        self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM + extra)
+        self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM + extra,
+                                     dixon_coles=dixon_coles)
+        self.calibrate_without_odds, self.temperature_ = calibrate_without_odds, 1.0
         self.features = sorted(set(self.with_odds.features) | set(self.without_odds.features)
                                | set(self.goals.features))
 
     def fit(self, train: pd.DataFrame) -> "RoutedCompetitionAware":
         self.with_odds.fit(train[train["mkt_p_home"].notna()])
+        if self.calibrate_without_odds:
+            self.temperature_ = self._fit_temperature(train)
         self.without_odds.fit(train)
         self.goals.fit(train)
         return self
 
+    def _fit_temperature(self, train: pd.DataFrame) -> float:
+        """Temperature for matches without odds, fitted out of sample on the training window:
+        fit on the earliest 80 % of dates, score the matches without odds in the rest."""
+        import copy
+
+        from scipy.optimize import minimize_scalar
+
+        from footintel.models.base import encode_result
+
+        cut = train["kickoff_date"].quantile(0.8)
+        early, late = train[train["kickoff_date"] <= cut], train[train["kickoff_date"] > cut]
+        late = late[late["mkt_p_home"].isna() & late["home_goals"].notna()]
+        if len(late) < 100:
+            return 1.0
+        logp = np.log(copy.deepcopy(self.without_odds).fit(early).predict(late)[PROB_COLS]
+                      .to_numpy(float).clip(1e-12, 1))
+        y = encode_result(late)
+
+        def nll(t: float) -> float:
+            z = logp / t
+            z = z - z.max(axis=1, keepdims=True)
+            p = np.exp(z) / np.exp(z).sum(axis=1, keepdims=True)
+            return float(-np.log(p[np.arange(len(y)), y]).mean())
+
+        return float(minimize_scalar(nll, bounds=(0.5, 2.0), method="bounded").x)
+
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         out = self.without_odds.predict(df)[PROB_COLS].copy()
+        if self.temperature_ != 1.0:
+            z = np.log(out.to_numpy(float).clip(1e-12, 1)) / self.temperature_
+            z = np.exp(z - z.max(axis=1, keepdims=True))
+            out[PROB_COLS] = z / z.sum(axis=1, keepdims=True)
         has_odds = df["mkt_p_home"].notna()
         if has_odds.any():
             out.loc[has_odds, PROB_COLS] = self.with_odds.predict(df[has_odds])[PROB_COLS]
@@ -100,7 +136,8 @@ class RoutedCompetitionAware(ProbModel):
 
     def params(self) -> dict:
         return {"with_odds": self.with_odds.params(), "without_odds": self.without_odds.params(),
-                "goals": self.goals.params(), "trend_groups": list(self.trend_groups)}
+                "goals": self.goals.params(), "trend_groups": list(self.trend_groups),
+                "temperature_without_odds": self.temperature_}
 
 
 MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
@@ -109,6 +146,10 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     # (where it showed gains); the odds model is left unchanged.
     "routed_competition_scoring": lambda: RoutedCompetitionAware(
         "routed_competition_scoring", ("team_scoring_profile",)),
+    # Phase 6 candidates (D30, D31): cup calibration and low-score correction.
+    "routed_competition_cal": lambda: RoutedCompetitionAware(
+        "routed_competition_cal", calibrate_without_odds=True),
+    "routed_competition_dc": lambda: RoutedCompetitionAware("routed_competition_dc", dixon_coles=True),
     "routed_odds_elo": lambda: RoutedByOdds("routed_odds_elo"),
     "logreg_market_goals": lambda: Composite(
         "logreg_market_goals", logistic(WITH_MARKET_FEATURES, "logreg_market"), EloPoisson()),

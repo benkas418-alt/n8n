@@ -421,3 +421,43 @@ def test_hybrid_never_scores_a_pick_with_a_fit_that_saw_it():
     assert len(oos) == 300
     first_scored = oos["kickoff"].min()
     assert (df.sort_values("kickoff")["kickoff"].iloc[hybrid.MIN_TRAIN] == first_scored)
+
+
+def test_dixon_coles_rho_zero_is_plain_poisson_and_rho_is_recovered():
+    from footintel.models.base import score_matrix
+    from footintel.models.baseline import fit_rho
+
+    assert np.allclose(score_matrix(1.4, 1.1, 0.0), score_matrix(1.4, 1.1))
+    m = score_matrix(1.4, 1.1, -0.1)
+    assert m.sum() == pytest.approx(1.0) and m[0, 0] > score_matrix(1.4, 1.1)[0, 0]
+    rng = np.random.default_rng(3)
+    lh, la = rng.uniform(0.8, 2.0, 6000), rng.uniform(0.6, 1.6, 6000)
+    goals = []
+    for h, a in zip(lh, la, strict=True):
+        p = score_matrix(h, a, -0.12).ravel()
+        k = rng.choice(len(p), p=p)
+        goals.append(divmod(k, 11))
+    hg, ag = np.array(goals).T
+    assert fit_rho(lh, la, hg, ag) == pytest.approx(-0.12, abs=0.05)
+
+
+def test_temperature_calibration_softens_overconfident_cup_probabilities():
+    from footintel.models.base import GOAL_COLS, PROB_COLS
+    from footintel.models.zoo import RoutedCompetitionAware
+
+    class Fixed:
+        def __init__(self, cols, values):
+            self.cols, self.values = cols, values
+
+        def predict(self, df):
+            return pd.DataFrame([self.values] * len(df), columns=self.cols, index=df.index)
+
+    m = RoutedCompetitionAware("t", calibrate_without_odds=True)
+    m.without_odds = Fixed(PROB_COLS, [0.7, 0.2, 0.1])
+    m.with_odds = Fixed(PROB_COLS, [0.5, 0.3, 0.2])
+    m.goals = Fixed(GOAL_COLS, [1.0] * len(GOAL_COLS))
+    df = pd.DataFrame({"mkt_p_home": [np.nan, 0.5]})
+    m.temperature_ = 1.5
+    out = m.predict(df)[PROB_COLS].to_numpy()
+    assert out[0, 0] < 0.7 and out[0, 2] > 0.1 and out[0].sum() == pytest.approx(1.0)
+    assert np.allclose(out[1], [0.5, 0.3, 0.2])  # matches with odds are untouched
