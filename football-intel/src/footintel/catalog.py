@@ -14,6 +14,7 @@ FOOTBALL_DATA = "football_data_uk"
 API_FOOTBALL = "api_football"
 OPENFOOTBALL = "openfootball"
 OPENLIGADB = "openligadb"
+FOOTBALL_DATA_ORG = "football_data_org"
 
 
 @dataclass(frozen=True)
@@ -76,6 +77,19 @@ SOURCES = [
         ),
     ),
     SourceDef(
+        code=FOOTBALL_DATA_ORG,
+        name="football-data.org",
+        kind="api",
+        base_url="https://api.football-data.org/v4",
+        terms_url="https://www.football-data.org/about",
+        terms_note=(
+            "Free plan with a personal key (FOOTBALL_DATA_ORG_KEY): 12 competitions, scores "
+            "delayed, 10 requests per minute. Used to check Champions League results. Odds "
+            "and statistics are paid add-ons. Credit required: \"Data provided by "
+            "football-data.org\". After the account ends, its data may no longer be shown."
+        ),
+    ),
+    SourceDef(
         code=OPENLIGADB,
         name="OpenLigaDB",
         kind="api",
@@ -88,6 +102,14 @@ SOURCES = [
         ),
     ),
 ]
+
+# football-data.org codes. Free plan: CL only among the cups we follow. It checks the
+# OpenLigaDB results and never creates matches or teams (see ingestion/store.py).
+FOOTBALL_DATA_ORG_COMPETITIONS = {"UEFA-CL": "CL"}
+
+# When two sources give a different score, the higher rank wins and the disagreement
+# is logged. Volunteer-entered data rank lowest.
+OUTCOME_SOURCE_RANK = {FOOTBALL_DATA: 3, FOOTBALL_DATA_ORG: 3, OPENFOOTBALL: 2, OPENLIGADB: 1}
 
 # OpenLigaDB league shortcuts per season. They are chosen by hand: several community
 # leagues can cover one competition (e.g. "ucl2026" is an empty copy of "ucl").

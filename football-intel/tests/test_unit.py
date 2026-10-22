@@ -530,3 +530,31 @@ def test_openligadb_results_are_checked_against_the_goal_list():
     assert recs[3].issues[0][0] == "result_inconsistent"
     assert recs[4].outcome.home_goals == 3 and not recs[4].issues
     assert recs[5].round == "Final" and recs[5].neutral and recs[5].outcome is None
+
+
+def test_football_data_org_parse_keeps_only_safe_results():
+    from footintel.connectors.football_data_org import parse_matches
+
+    def m(mid, status, score=None, stage="LEAGUE_STAGE"):
+        return {"id": mid, "utcDate": "2026-09-16T19:00:00Z", "status": status, "matchday": 2,
+                "stage": stage, "homeTeam": {"name": "Synthetic FC A"},
+                "awayTeam": {"name": "Synthetic FC B"}, "score": score or {}}
+
+    data = {"matches": [
+        m(1, "FINISHED", {"duration": "REGULAR", "fullTime": {"home": 1, "away": 2},
+                          "halfTime": {"home": 0, "away": 1}}),
+        m(2, "FINISHED", {"duration": "PENALTY_SHOOTOUT", "fullTime": {"home": 2, "away": 2},
+                          "regularTime": {"home": 1, "away": 1}, "penalties": {"home": 5, "away": 4},
+                          "halfTime": {"home": 0, "away": 0}}, stage="LAST_16"),
+        # Extra time without the 90-minute score: no guessed result.
+        m(3, "FINISHED", {"duration": "EXTRA_TIME", "fullTime": {"home": 2, "away": 1}}),
+        m(4, "TIMED"),
+    ]}
+    recs = {int(r.external_id.split("|")[2]): r for r in parse_matches(data, "UEFA-CL", 2026)}
+    assert recs[1].outcome.result == "A" and recs[1].round == "League, Matchday 2"
+    assert recs[1].kickoff_date == date(2026, 9, 16)  # 21:00 in Paris
+    o = recs[2].outcome
+    assert (o.home_goals, o.aet_home_goals, o.pen_home, o.result) == (1, 2, 5, "D")
+    assert recs[2].round == "Round of 16"
+    assert recs[3].outcome is None and recs[3].issues[0][0] == "result_inconsistent"
+    assert recs[4].status == "scheduled" and recs[4].outcome is None

@@ -5,12 +5,14 @@ from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import Engine, func, select
 
-from footintel.catalog import (COMPETITIONS, FD_NEW, FOOTBALL_DATA, OPENFOOTBALL, OPENLIGADB,
+from footintel.catalog import (COMPETITIONS, FD_NEW, FOOTBALL_DATA, FOOTBALL_DATA_ORG,
+                               FOOTBALL_DATA_ORG_COMPETITIONS, OPENFOOTBALL, OPENLIGADB,
                                OPENLIGADB_LEAGUES, get_source)
 from footintel.config import Settings
 from footintel.connectors.base import season_start_for
 from footintel.connectors.football_data_uk import NEW_TO_COMPETITION, FootballDataUK
 from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
+from footintel.connectors.football_data_org import FootballDataOrg
 from footintel.connectors.openligadb import OpenLigaDB
 from footintel.connectors.http import SourceUnavailable
 from footintel.db.models import Match, MatchOutcome, OddsSnapshot, TeamMatchStatistics
@@ -182,6 +184,36 @@ def import_openligadb(engine: Engine, settings: Settings, seasons: list[int] | N
                         remove_stale_matches(s, source_id, f"{shortcut}|{y}|",
                                              {r.external_id for r in records}, stats)
                 log.info("OpenLigaDB %s %d: %d rows", comp, y, len(records))
+    return stats
+
+
+def check_football_data_org(engine: Engine, settings: Settings, seasons: list[int] | None = None,
+                            connector: FootballDataOrg | None = None) -> RunStats:
+    """Check and complete Champions League matches with football-data.org.
+
+    Runs after the OpenLigaDB import: it only attaches to matches that exist, fills
+    results that were missing or rejected, and logs every score disagreement."""
+    current = season_start_for(date.today())
+    seasons = seasons or [current]
+    source_id = _source_id(engine, FOOTBALL_DATA_ORG)
+    with tracked_run(engine, "check_football_data_org", source_id=source_id,
+                     params={"seasons": seasons}) as stats:
+        if connector is None and not settings.football_data_org_enabled:
+            stats.issue("info", "source_disabled", "FOOTBALL_DATA_ORG_KEY is not set: check skipped")
+            return stats
+        connector = connector or FootballDataOrg(settings)
+        for y in seasons:
+            for comp in FOOTBALL_DATA_ORG_COMPETITIONS:
+                try:
+                    records = connector.fetch(comp, y)
+                except SourceUnavailable as exc:
+                    stats.issue("warning", "source_unavailable", f"{comp} {y}: {exc}")
+                    continue
+                with session_scope(engine) as s:
+                    store = MatchStore(s, FOOTBALL_DATA_ORG)
+                    for rec in records:
+                        store.upsert(rec, stats)
+                log.info("football-data.org %s %d: %d rows", comp, y, len(records))
     return stats
 
 

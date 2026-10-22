@@ -65,6 +65,7 @@ $F ingest history --first 2005          # ~2 min, télécharge 88 fichiers une s
 $F ingest context --first 2005          # 13 championnats de contexte (~4 min)
 $F ingest european                      # C1, C3, C4 depuis 2011 (openfootball)
 $F ingest openligadb                    # saison en cours : C1, C3, C4, DFB-Pokal
+$F ingest football-data-org             # contrôle des résultats de C1 (clé FOOTBALL_DATA_ORG_KEY)
 $F ingest fixtures                       # matchs à venir + cotes
 $F backtest --seasons 5                  # évaluation chronologique
 $F models train routed_odds_elo          # crée une version candidate

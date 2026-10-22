@@ -6,10 +6,12 @@ from datetime import timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from footintel.catalog import COUNTRY_BY_CODE, OPENFOOTBALL, OPENLIGADB, get_source
+from footintel.catalog import (COUNTRY_BY_CODE, FOOTBALL_DATA_ORG, OPENFOOTBALL, OPENLIGADB,
+                               OUTCOME_SOURCE_RANK, get_source)
 from footintel.connectors.base import MatchRecord, season_label
 from footintel.db.models import (
     Competition,
+    DataSource,
     Match,
     MatchExternalRef,
     MatchOutcome,
@@ -33,10 +35,14 @@ class MatchStore:
         self.source = get_source(session, source_code)
         # Names from openfootball must be mapped onto the football-data.co.uk teams.
         self.resolver = TeamResolver(session, source_code) if source_code == OPENFOOTBALL else None
-        # OpenLigaDB names carry no country: only aliases checked by a human are used.
+        # Names without a safe automatic match: only aliases checked by a human are used.
         self.manual_only = (
             {a: t for (src, a), t in load_manual_aliases().items() if src == source_code}
-            if source_code == OPENLIGADB else None)
+            if source_code in (OPENLIGADB, FOOTBALL_DATA_ORG) else None)
+        # A checking source: it completes matches that exist, never creates teams or matches.
+        self.attach_only = source_code == FOOTBALL_DATA_ORG
+        self._ranks = {s.id: OUTCOME_SOURCE_RANK.get(s.code, 0)
+                       for s in session.scalars(select(DataSource))}
         self._competitions = {c.code: c for c in session.scalars(select(Competition))}
         self._seasons = {(x.competition_id, x.label): x for x in session.scalars(select(Season))}
         self._aliases = {
@@ -55,6 +61,14 @@ class MatchStore:
                  stats: RunStats) -> int:
         if name in self._aliases:
             return self._aliases[name]
+        if self.attach_only:
+            team = self.s.scalar(select(Team).where(Team.name == self.manual_only.get(name, "")))
+            if team is None:
+                stats.issue("warning", "unmapped_team", f"{name}: no manual alias, match skipped")
+                return None
+            self.s.add(TeamAlias(team_id=team.id, source_id=self.source.id, alias=name))
+            self._aliases[name] = team.id
+            return team.id
         canonical, country = name, competition.country
         if self.resolver is not None:
             m = re.search(r"\(([A-Z]{3})\)$", name)
@@ -97,6 +111,9 @@ class MatchStore:
         season = self._season(competition, rec.season_start_year)
         home_id = self._team_id(rec.home_team, rec, competition, stats)
         away_id = self._team_id(rec.away_team, rec, competition, stats)
+        if home_id is None or away_id is None:
+            stats.skipped += 1
+            return -1
         if home_id == away_id:
             stats.issue("error", "same_team", f"{rec.external_id}: both names map to one team")
             stats.skipped += 1
@@ -109,6 +126,12 @@ class MatchStore:
                 self.s.add(MatchExternalRef(match_id=match_id, source_id=self.source.id,
                                             external_id=rec.external_id))
                 self._refs[rec.external_id] = match_id
+        if match_id is None and self.attach_only:
+            stats.issue("warning", "match_not_found",
+                        f"{rec.external_id}: {rec.home_team} - {rec.away_team} {rec.kickoff_date} "
+                        "is in no other source; skipped")
+            stats.skipped += 1
+            return -1
         is_new = match_id is None
         changed = False
         if is_new:
@@ -184,11 +207,22 @@ class MatchStore:
         if existing is None:
             self.s.add(MatchOutcome(match_id=match_id, source_id=self.source.id, **values))
             return True
-        if (existing.home_goals, existing.away_goals) != (o.home_goals, o.away_goals):
+        diff = any(getattr(existing, k) != v for k, v in values.items())
+        if existing.source_id != self.source.id:
+            if diff:
+                stats.issue("warning", "sources_disagree",
+                            f"{rec.external_id}: {existing.home_goals}-{existing.away_goals} "
+                            f"(HT {existing.ht_home_goals}-{existing.ht_away_goals}) elsewhere, "
+                            f"{o.home_goals}-{o.away_goals} (HT {o.ht_home_goals}-{o.ht_away_goals}) here",
+                            match_id)
+            # A lower-ranked source never overwrites a result.
+            if self._ranks.get(self.source.id, 0) < self._ranks.get(existing.source_id, 0):
+                return False
+            existing.source_id = self.source.id
+        elif (existing.home_goals, existing.away_goals) != (o.home_goals, o.away_goals):
             stats.issue("warning", "outcome_changed",
                         f"{rec.external_id}: {existing.home_goals}-{existing.away_goals} -> "
                         f"{o.home_goals}-{o.away_goals}", match_id)
-        diff = any(getattr(existing, k) != v for k, v in values.items())
         for k, v in values.items():
             setattr(existing, k, v)
         return diff

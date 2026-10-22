@@ -174,3 +174,41 @@ openligadb,TSV 1860 München,Munich 1860
 openligadb,VfL Bochum,Bochum
 openligadb,VfL Osnabrück,Osnabruck
 openligadb,VfL Wolfsburg,Wolfsburg
+# football-data.org (CL 2026-27). Checked one by one on 2026-10-22. Automatic matching
+# would have mapped "Sporting Clube de Portugal" to Porto.
+football_data_org,AS Roma,Roma
+football_data_org,Arsenal FC,Arsenal
+football_data_org,Aston Villa FC,Aston Villa
+football_data_org,Borussia Dortmund,Dortmund
+football_data_org,Club Atlético de Madrid,Ath Madrid
+football_data_org,Club Brugge KV,Club Brugge
+football_data_org,Como 1907,Como
+football_data_org,FC Barcelona,Barcelona
+football_data_org,FC Bayern München,Bayern Munich
+football_data_org,FC Internazionale Milano,Inter
+football_data_org,FC Porto,Porto
+football_data_org,FK Bodø/Glimt,Bodo/Glimt
+football_data_org,FK Shakhtar Donetsk,Shakhtar Donetsk (UKR)
+football_data_org,Fenerbahçe SK,Fenerbahce
+football_data_org,Feyenoord Rotterdam,Feyenoord
+football_data_org,Galatasaray SK,Galatasaray
+football_data_org,LASK Linz,LASK
+football_data_org,Lille OSC,Lille
+football_data_org,Liverpool FC,Liverpool
+football_data_org,Manchester City FC,Man City
+football_data_org,Manchester United FC,Man United
+football_data_org,PAE AEK,AEK
+football_data_org,PSV,PSV Eindhoven
+football_data_org,Paris Saint-Germain FC,Paris SG
+football_data_org,RB Leipzig,RB Leipzig
+football_data_org,Racing Club de Lens,Lens
+football_data_org,Real Betis Balompié,Betis
+football_data_org,Real Madrid CF,Real Madrid
+football_data_org,SK Slavia Praha,Slavia Praha (CZE)
+football_data_org,SSC Napoli,Napoli
+football_data_org,Sabah FK,Sabah
+football_data_org,Sporting Clube de Portugal,Sp Lisbon
+football_data_org,VfB Stuttgart,Stuttgart
+football_data_org,Viking FK,Viking
+football_data_org,Villarreal CF,Villarreal
+football_data_org,ŠK Slovan Bratislava,Slovan Bratislava (SVK)

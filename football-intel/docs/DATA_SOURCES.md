@@ -42,6 +42,18 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Doublons | Un match déjà connu d'une autre source (même compétition, mêmes équipes, à deux jours près) est réutilisé, jamais recréé. |
 | Manque | Pas de cotes, pas de statistiques, pas de compositions. |
 
+### football-data.org — contrôle des résultats de la Ligue des champions
+
+| Élément | Constat (2026-10-22, clé gratuite) |
+|---|---|
+| Accès | `https://api.football-data.org/v4`, en-tête `X-Auth-Token`, clé en variable d'environnement `FOOTBALL_DATA_ORG_KEY` (jamais dans le dépôt). 10 requêtes par minute. |
+| Couverture gratuite | 13 compétitions dont la C1, les 5 grands championnats, Championship, Eredivisie, Primeira Liga. **Pas de C3, C4 ni de coupes nationales. Pas de cotes** (option payante : réponse « Activate Odds-Package »). |
+| Rôle | Source de contrôle de la C1 : elle se rattache aux matchs existants (OpenLigaDB), ne crée ni équipe ni match, complète un résultat manquant ou écarté, et journalise tout désaccord. |
+| Résultat réel | 144 matchs rattachés sur 144, 54 résultats identiques sur le score final. 1 désaccord à la mi-temps (OpenLigaDB 0-0, football-data.org 0-1) et 1 résultat écarté par OpenLigaDB (Viking–Bayern, deux scores de mi-temps) rétabli : 3-3. |
+| Noms d'équipes | Anglais complets avec pays (« Sporting Clube de Portugal », PRT). Alias manuels relus (36) : l'automatique aurait rattaché Sporting à Porto. |
+| Conditions | `football-data.org/about` : mention « Data provided by football-data.org » visible (ajoutée au tableau de bord et aux rapports) ; après résiliation du compte, ses données ne doivent plus être affichées. |
+| Priorité des scores | football-data.co.uk = football-data.org > openfootball > OpenLigaDB. Une source moins fiable n'écrase jamais un résultat. |
+
 ## Prévue, désactivée
 
 ### API-Football (api-sports.io)

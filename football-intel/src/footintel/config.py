@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://footintel:footintel_dev@localhost:5432/footintel"
     api_football_key: SecretStr | None = None
     api_football_base_url: str = "https://v3.football.api-sports.io"
+    # football-data.org free plan: 10 requests per minute, header X-Auth-Token.
+    football_data_org_key: SecretStr | None = None
     admin_token: SecretStr | None = None
 
     data_dir: Path = Path("./data")
@@ -53,6 +55,10 @@ class Settings(BaseSettings):
     telegram_chat_id: str | None = None
 
     promotion: PromotionCriteria = Field(default_factory=PromotionCriteria)
+
+    @property
+    def football_data_org_enabled(self) -> bool:
+        return bool(self.football_data_org_key and self.football_data_org_key.get_secret_value().strip())
 
     @property
     def api_football_enabled(self) -> bool:

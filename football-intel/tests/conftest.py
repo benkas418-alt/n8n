@@ -62,7 +62,8 @@ def db(engine):
 def settings(tmp_path):
     return Settings(database_url=TEST_DB, data_dir=tmp_path / "data",
                     artifacts_dir=tmp_path / "artifacts", reports_dir=tmp_path / "reports",
-                    admin_token="test-token", api_football_key=None, http_min_interval_seconds=0)
+                    admin_token="test-token", api_football_key=None, football_data_org_key=None,
+                    telegram_bot_token=None, telegram_chat_id=None, http_min_interval_seconds=0)
 
 
 def synthetic_season_records(start_year: int, n_teams: int = 8, seed: int = 0,

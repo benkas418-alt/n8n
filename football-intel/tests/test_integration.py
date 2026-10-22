@@ -357,7 +357,8 @@ def test_admin_endpoints_hide_secrets_and_protect_writes(db, settings, monkeypat
 
     r = client.get("/api/admin/overview")
     assert r.status_code == 200
-    assert r.json()["secrets"] == {"API_FOOTBALL_KEY": False, "ADMIN_TOKEN": True,
+    assert r.json()["secrets"] == {"API_FOOTBALL_KEY": False, "FOOTBALL_DATA_ORG_KEY": False,
+                                   "ADMIN_TOKEN": True,
                                    "TELEGRAM_BOT_TOKEN": True, "TELEGRAM_CHAT_ID": False}
     assert "S" * 35 not in r.text and "test-token" not in r.text
 
@@ -449,3 +450,63 @@ def test_openligadb_import_uses_manual_aliases_and_never_duplicates_a_match(db, 
     feed[0] = _oldb(12, "Synthetic Eins", "Synthetic Zwei", "2026-09-16", (2, 1))
     tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(feed))
     assert cl_matches() == rows
+
+
+class FakeFootballDataOrg:
+    def __init__(self, matches: list[dict]):
+        self.data = {"matches": matches}
+
+    def fetch(self, competition_code, season):
+        from footintel.connectors.football_data_org import parse_matches
+
+        return parse_matches(self.data, competition_code, season)
+
+
+def _fdo(mid, home, away, day, score, ht):
+    return {"id": mid, "utcDate": f"{day}T19:00:00Z", "status": "FINISHED", "matchday": 1,
+            "stage": "LEAGUE_STAGE", "homeTeam": {"name": home}, "awayTeam": {"name": away},
+            "score": {"duration": "REGULAR", "fullTime": {"home": score[0], "away": score[1]},
+                      "halfTime": {"home": ht[0], "away": ht[1]}}}
+
+
+def test_football_data_org_checks_results_without_creating_matches(db, settings, monkeypatch):
+    from footintel.ingestion import store as store_mod
+    from footintel.ingestion import teams as teams_mod
+
+    aliases = {("openligadb", "Synthetic Eins"): "Synthetic FC 1",
+               ("openligadb", "Synthetic Zwei"): "Synthetic FC 2",
+               ("openligadb", "Synthetic Drei"): "Synthetic FC 3",
+               ("football_data_org", "Synthetic One FC"): "Synthetic FC 1",
+               ("football_data_org", "Synthetic Two FC"): "Synthetic FC 2",
+               ("football_data_org", "Synthetic Three FC"): "Synthetic FC 3"}
+    monkeypatch.setattr(store_mod, "load_manual_aliases", lambda: aliases)
+    monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: aliases)
+    _load_synthetic_history(db, settings, seasons=(2025,))
+    oldb = [_oldb(10, "Synthetic Eins", "Synthetic Zwei", "2026-09-16", (1, 0)),
+            _oldb(11, "Synthetic Drei", "Synthetic Eins", "2026-09-30")]
+    tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(oldb))
+
+    fdo = [_fdo(1, "Synthetic One FC", "Synthetic Two FC", "2026-09-16", (2, 0), (1, 0)),  # disagrees
+           _fdo(2, "Synthetic Three FC", "Synthetic One FC", "2026-09-30", (1, 1), (0, 1)),  # fills
+           _fdo(3, "Synthetic Two FC", "Synthetic Three FC", "2026-10-07", (0, 0), (0, 0)),  # unknown
+           _fdo(4, "Nobody FC", "Synthetic One FC", "2026-10-21", (0, 3), (0, 1))]  # no alias
+    st = tasks.check_football_data_org(db, settings, [2026], connector=FakeFootballDataOrg(fdo))
+    codes = [i[1] for i in st.issues]
+    assert st.inserted == 0 and codes.count("sources_disagree") == 1
+    assert "match_not_found" in codes and "unmapped_team" in codes
+
+    def score(home, away):
+        with db.connect() as conn:
+            return conn.execute(text("""SELECT o.home_goals, o.away_goals, d.code FROM matches m
+                JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
+                JOIN match_outcomes o ON o.match_id = m.id JOIN data_sources d ON d.id = o.source_id
+                JOIN competitions c ON c.id = m.competition_id
+                WHERE c.code = 'UEFA-CL' AND th.name = :h AND ta.name = :a"""), {"h": home, "a": away}).one()
+
+    assert tuple(score("Synthetic FC 1", "Synthetic FC 2")) == (2, 0, "football_data_org")
+    assert tuple(score("Synthetic FC 3", "Synthetic FC 1")) == (1, 1, "football_data_org")
+    with db.connect() as conn:
+        assert conn.execute(text("SELECT count(*) FROM teams WHERE name = 'Nobody FC'")).scalar() == 0
+    # The volunteer source never overwrites the checked result.
+    tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(oldb))
+    assert tuple(score("Synthetic FC 1", "Synthetic FC 2")) == (2, 0, "football_data_org")

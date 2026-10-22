@@ -1,6 +1,6 @@
 # Suivi d'avancement
 
-Dernière mise à jour : 2026-10-22 (OpenLigaDB : saison en cours des coupes d'Europe et DFB-Pokal). Fichier à mettre à jour à la fin de chaque phase,
+Dernière mise à jour : 2026-10-22 (football-data.org : contrôle des résultats de la C1). Fichier à mettre à jour à la fin de chaque phase,
 pour reprendre le travail après une interruption.
 
 ## État par phase
@@ -11,14 +11,14 @@ pour reprendre le travail après une interruption.
 | 1 Architecture | ✅ | docs/ARCHITECTURE.md, docs/DECISIONS.md. |
 | 2 Fondations | ✅ | pyproject, config par variables d'environnement, 28 tables, migration Alembic 0001. |
 | 3 Données historiques | ✅ | 187 167 matchs réels : 30 649 (4 championnats cibles) + 153 128 (24 championnats et divisions de contexte) + 3 390 (C1 2011-26, C3 2020-25, C4 2021-25). Relances sans doublon vérifiées. |
-| 4 Collecte automatique | 🟡 | football-data et openfootball : fixtures, résultats, contexte, qualité, retry/backoff, cache disque, verrous, correspondance des noms relue. OpenLigaDB : C1, C3, C4 2026-27 et DFB-Pokal (444 matchs, contrôle des résultats). **Manquent** : FA Cup, EFL Cup, Copa del Rey, Coppa Italia, cotes des coupes, compositions, formations, blessures (clé API-Football absente). |
+| 4 Collecte automatique | 🟡 | football-data et openfootball : fixtures, résultats, contexte, qualité, retry/backoff, cache disque, verrous, correspondance des noms relue. OpenLigaDB : C1, C3, C4 2026-27 et DFB-Pokal (444 matchs, contrôle des résultats). football-data.org (clé gratuite) : contrôle et complément des résultats de la C1. **Manquent** : FA Cup, EFL Cup, Copa del Rey, Coppa Italia, cotes des coupes, compositions, formations, blessures. API-Football : l'offre gratuite existe encore (100 requêtes par jour) mais ses saisons sont limitées ; non retenue. |
 | 5 Baseline ML | ✅ | Naïf, Elo-Poisson, marché, régression logistique. |
 | 6 ML avancé | 🟡 | RF, XGBoost, modèle aiguillé (actif), walk-forward, comparaisons appariées, calibration stockée. Candidats testés et rejetés selon les règles : calibration par température des coupes, Dixon-Coles (docs/RESULTS.md). **Manquent** : Optuna (Elo de départ), ensemble. |
 | 7 Boucle post-match | 🟡 | Évaluation, registre, promotion, rollback, cycle hebdomadaire. Moteur de tendances par compétition et moteur de tendances statistiques (scores, équipes, fenêtres courte/moyenne/longue, statuts, persistance hors échantillon, apport par catégorie et par marché). Dérive des entrées (même fenêtre un an plus tôt, PSI + écart des moyennes) et des performances (à partir de 100 évaluations réelles). **Manque** : analyse des erreurs en direct (aucune prédiction réelle encore évaluée). |
 | 8 Contribution humaine | ✅ | Saisie CLI/API/tableau de bord horodatée et figée, évaluation en justesse, modèle hybride évalué par blocs chronologiques (`footintel hybrid`, seuil 200 pronostics, adoption selon D9). Aucune donnée réelle pour l'instant : 0 pronostic. |
 | 9 Dashboard | 🟡 | 5 espaces (vue générale, compétitions, équipes, pré-match, performance) sur `/dashboard/`, vérifiés dans Chromium en 1366 et 390 px. Pages « Mes pronostics » et « Administration » ajoutées et vérifiées dans Chromium (1366 et 390 px, sans erreur ni débordement). **Manque** : filtre par période infra-saison. |
 | 10 Automatisation et rapports | 🟡 | Planificateur, rapports pré/post-match MD/HTML/CSV, unité systemd. Rapport hebdomadaire, notifications Telegram (testées avec un transport simulé ; jeton absent, donc pas d'envoi réel). **Manque** : export PDF. |
-| 11 Validation finale | 🟡 | 51 tests hors ligne et 11 tests contre les vraies sources passent. |
+| 11 Validation finale | 🟡 | 53 tests hors ligne et 12 tests contre les vraies sources passent. |
 
 ## Critères d'acceptation
 

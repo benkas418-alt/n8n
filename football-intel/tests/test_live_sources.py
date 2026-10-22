@@ -81,3 +81,18 @@ def test_openligadb_current_leagues_have_the_fields_we_read(competition):
     finished = [x for x in records if x.outcome]
     # Most results pass the consistency checks; a few volunteer errors are expected.
     assert sum(1 for x in data if x["matchIsFinished"]) - len(finished) <= 3
+
+
+def test_football_data_org_champions_league_fields():
+    from footintel.connectors.football_data_org import API_BASE, parse_matches
+
+    settings = get_settings()
+    if not settings.football_data_org_enabled:
+        pytest.skip("FOOTBALL_DATA_ORG_KEY not set")
+    r = httpx.get(f"{API_BASE}/competitions/CL/matches", params={"season": 2026}, timeout=20,
+                  headers={"X-Auth-Token": settings.football_data_org_key.get_secret_value()})
+    assert r.status_code == 200
+    m = r.json()["matches"][0]
+    assert {"id", "utcDate", "status", "stage", "homeTeam", "awayTeam", "score"} <= set(m)
+    records = parse_matches(r.json(), "UEFA-CL", 2026)
+    assert len(records) >= 100
