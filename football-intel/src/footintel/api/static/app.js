@@ -85,6 +85,26 @@ async function get(path) {
   return r.json();
 }
 
+/* Admin token: asked on screen, kept for the browser session only. */
+function getToken() { try { return sessionStorage.getItem("fi_token") || ""; } catch { return ""; } }
+function setToken(t) { try { sessionStorage.setItem("fi_token", t); } catch { /* storage blocked */ } }
+async function send(method, url, body) {
+  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+    body: body ? JSON.stringify(body) : undefined });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || `${r.status}`);
+  return data;
+}
+function tokenBox() {
+  return `<div class="card" style="margin-bottom:16px"><label class="small">Jeton d'administration (ADMIN_TOKEN, gardé pour cette session seulement)
+    <input type="password" id="token" value="${esc(getToken())}" autocomplete="off" style="margin-top:4px;width:100%;max-width:420px"></label>
+    <button class="btn" id="token-save">Enregistrer</button> <span class="small muted" id="token-state">${getToken() ? "jeton saisi" : "aucun jeton : actions désactivées"}</span></div>`;
+}
+function bindToken() {
+  const b = document.getElementById("token-save");
+  if (b) b.onclick = () => { setToken(document.getElementById("token").value.trim()); document.getElementById("token-state").textContent = "jeton saisi"; };
+}
+
 const charts = [];
 function chart(id, config) {
   const el = document.getElementById(id);
@@ -416,6 +436,35 @@ async function matchPage() {
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
         ${na("Compositions, absences, formations", "Aucune source autorisée connectée.")}</div></div>`;
   }
+  if (m.status === "scheduled") {
+    html += `<div class="card" style="margin-top:16px"><h2>Mon pronostic</h2>
+      <p class="question">Enregistré avec l'heure ; refusé après le coup d'envoi. Le dernier envoyé avant le match compte.</p>
+      ${tokenBox()}
+      <form id="pick-form" class="controls">
+        <label>Choix 1X2<select name="pick" required><option value="H">1 — ${esc(m.home)}</option><option value="D">X — nul</option><option value="A">2 — ${esc(m.away)}</option></select></label>
+        <label>Confiance (1-5)<select name="confidence">${[1, 2, 3, 4, 5].map((c) => `<option ${c === 3 ? "selected" : ""}>${c}</option>`).join("")}</select></label>
+        <label>Score (facultatif)<span><input name="home_goals" type="number" min="0" max="20" style="min-width:0;width:60px"> - <input name="away_goals" type="number" min="0" max="20" style="min-width:0;width:60px"></span></label>
+        <label>Plus de 2,5 buts<select name="over_2_5"><option value="">—</option><option value="true">oui</option><option value="false">non</option></select></label>
+        <label>Les deux marquent<select name="btts"><option value="">—</option><option value="true">oui</option><option value="false">non</option></select></label>
+        <label style="flex:1 1 100%">Raisonnement<textarea name="reasoning" rows="3" maxlength="5000" style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px"></textarea></label>
+        <button class="btn" type="submit">Enregistrer le pronostic</button><span id="pick-state" class="small"></span>
+      </form></div>`;
+    setTimeout(() => {
+      bindToken();
+      document.getElementById("pick-form").onsubmit = async (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        const body = { match_id: m.id, pick: f.get("pick"), confidence: Number(f.get("confidence")) };
+        if (f.get("home_goals") !== "" && f.get("away_goals") !== "") { body.home_goals = Number(f.get("home_goals")); body.away_goals = Number(f.get("away_goals")); }
+        if (f.get("over_2_5")) body.over_2_5 = f.get("over_2_5") === "true";
+        if (f.get("btts")) body.btts = f.get("btts") === "true";
+        if (f.get("reasoning")) body.reasoning = f.get("reasoning");
+        const state = document.getElementById("pick-state");
+        try { const r = await send("POST", "/api/user-predictions", body); state.innerHTML = `<span class="badge fact">enregistré n° ${r.id}</span>`; }
+        catch (err) { state.innerHTML = `<span class="badge falling">refusé</span> ${esc(err.message)}`; }
+      };
+    });
+  }
   html += `<div class="grid two" style="margin-top:16px">${d.sheets.map((sh) => `<div class="card"><h2>${esc(sh.name)}</h2><p class="question">${sh.n_matches} derniers matchs observés avant le coup d'envoi.</p>
     <table><tbody>${Object.entries(sh.observed).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</tbody></table>
     ${sh.missing.length ? `<p class="small" style="margin-top:8px"><span class="badge na">non disponible</span> ${esc(sh.missing.join(" ; "))}</p>` : ""}</div>`).join("")}</div>`;
@@ -510,8 +559,84 @@ async function performance() {
   return html;
 }
 
+/* ---------------- 6. Personal predictions ---------------- */
+async function picks() {
+  const d = await (await fetch("/api/admin/user-predictions")).json();
+  const pickTxt = { H: "1", D: "X", A: "2" };
+  const done = d.rows.filter((r) => r.res_home != null);
+  let html = `<h1>Mes pronostics</h1>
+  <p class="muted">Pronostics horodatés et figés avant le coup d'envoi, comparés à la prédiction enregistrée du modèle et au résultat.</p>
+  <div class="grid kpis">
+    <div class="card"><div class="kpi-label">Pronostics enregistrés</div><div class="kpi-value">${d.rows.length}</div><div class="kpi-note">${done.length} matchs joués</div></div>
+    ${d.summary.filter((s) => s.market === "1X2").map((s) => `<div class="card"><div class="kpi-label">${s.predictor_kind === "user" ? "Mes choix 1X2" : "Modèle 1X2 (mêmes matchs)"}</div><div class="kpi-value">${pct(s.accuracy, 0)}</div><div class="kpi-note">de choix justes · n = ${s.n}${s.n < 100 ? " · échantillon trop petit pour conclure" : ""}</div></div>`).join("")}
+  </div>`;
+  if (!d.rows.length) {
+    return html + `<div class="card"><p class="muted">Aucun pronostic pour l'instant. Ouvrez un match programmé dans <a href="#/match">Analyse pré-match</a> pour en saisir un.</p>
+      <p class="small">L'apport de vos choix au modèle (modèle hybride) sera mesuré quand au moins 200 pronostics auront été évalués ; avant, toute comparaison serait du bruit.</p></div>`;
+  }
+  html += `<div class="card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Choix</th><th class="num">Confiance</th><th>Modèle avant match</th><th>Résultat</th><th>Raisonnement</th></tr></thead><tbody>
+    ${d.rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.match_id}})"><td>${fdate(r.kickoff_date)} · ${esc(r.competition)}<div>${esc(r.home)} – ${esc(r.away)}</div><div class="small muted">saisi le ${new Date(r.submitted_at).toLocaleString("fr-FR")}</div></td>
+      <td>${pickTxt[r.pick]}${r.home_goals != null ? ` (${r.home_goals}-${r.away_goals})` : ""}</td><td class="num">${r.confidence}/5</td>
+      <td class="small">${r.model ? `1 ${pct(r.model.p_home, 0)} · X ${pct(r.model.p_draw, 0)} · 2 ${pct(r.model.p_away, 0)}` : '<span class="badge na">aucune prédiction</span>'}</td>
+      <td>${r.res_home != null ? `${r.res_home}-${r.res_away} ${r.correct == null ? "" : r.correct ? '<span class="badge rising">juste</span>' : '<span class="badge falling">faux</span>'}` : '<span class="muted">à venir</span>'}</td>
+      <td class="small">${esc(r.reasoning || "")}</td></tr>`).join("")}</tbody></table></div></div>`;
+  return html;
+}
+
+/* ---------------- 7. Administration ---------------- */
+async function admin() {
+  const d = await (await fetch("/api/admin/overview")).json();
+  const yes = (b) => (b ? '<span class="badge fact">configurée</span>' : '<span class="badge na">absente</span>');
+  const html = `<h1>Administration</h1>
+  <p class="muted">Aucun secret n'est affiché : seule leur présence est indiquée. Les actions demandent le jeton d'administration.</p>
+  ${tokenBox()}
+  <div class="grid two">
+    <div class="card"><h2>Clés et configuration</h2>
+      <table><tbody>${Object.entries(d.secrets).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${yes(v)}</td></tr>`).join("")}
+      <tr><td>Fuseau horaire</td><td>${esc(d.timezone)}</td></tr></tbody></table>
+      ${d.secrets.API_FOOTBALL_KEY ? "" : '<p class="small">Sans API_FOOTBALL_KEY : mode dégradé (football-data.co.uk + openfootball). Coupes nationales, saison européenne en cours, compositions et formations indisponibles.</p>'}</div>
+    <div class="card"><h2>Planification</h2><p class="question">Heures en ${esc(d.timezone)} (format cron). Modifiables par les variables SCHEDULE_*.</p>
+      <table><tbody>${Object.entries(d.schedule).map(([k, v]) => `<tr><td>${esc(k)}</td><td><code>${esc(v)}</code></td>
+        <td><button class="btn" data-run="${esc(k)}">Lancer maintenant</button></td><td class="small" id="run-${esc(k)}">${esc(d.running[k]?.status || "")}</td></tr>`).join("")}</tbody></table>
+      <p class="small muted">Un cycle déjà en cours (manuel ou planifié) est refusé grâce aux verrous.</p></div>
+    <div class="card"><h2>Modèles</h2>
+      <table><tbody>${d.models.map((m) => `<tr><td>${esc(m.name)} v${m.version}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
+      <p><button class="btn" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
+      <p class="small muted">Critères de promotion (fixés avant évaluation) : ${esc(JSON.stringify(d.promotion))}</p></div>
+    <div class="card"><h2>Sources</h2>
+      <ul class="list">${d.sources.map((s) => `<li><span class="row-title">${esc(s.name)}</span> <span class="badge ${s.enabled ? "fact" : "na"}">${s.enabled ? "active" : "inactive"}</span><div class="small muted">${esc(s.terms_note)}</div><div class="small"><a href="${esc(s.terms_url)}" target="_blank" rel="noopener">conditions d'utilisation</a></div></li>`).join("")}</ul></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Compétitions</h2><p class="question">Désactiver une compétition l'exclut des prochaines collectes et prédictions ; son historique est conservé.</p>
+    <div class="table-wrap"><table><thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Rôle</th><th class="num">Matchs</th><th>Active</th></tr></thead><tbody>
+    ${d.competitions.map((c) => `<tr><td>${esc(c.code)}</td><td>${esc(c.name)}</td><td>${esc(c.type)}</td><td>${c.is_target ? "cible" : "contexte"}</td><td class="num">${c.matches}</td>
+      <td><input type="checkbox" data-comp="${esc(c.code)}" ${c.active ? "checked" : ""} style="min-width:0"></td></tr>`).join("")}</tbody></table></div></div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card"><h2>Journal des collectes</h2><div class="table-wrap"><table><thead><tr><th>Tâche</th><th>Statut</th><th>Début</th><th class="num">+</th><th class="num">~</th><th>Erreur</th></tr></thead><tbody>
+      ${d.runs.map((r) => `<tr><td>${esc(r.job_name)}</td><td><span class="badge ${r.status === "success" ? "rising" : r.status === "running" ? "emerging" : "falling"}">${esc(r.status)}</span></td><td class="small">${new Date(r.started_at).toLocaleString("fr-FR")}</td><td class="num">${r.rows_inserted}</td><td class="num">${r.rows_updated}</td><td class="small">${esc(r.error || "")}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="card"><h2>Anomalies de données récentes</h2><div class="table-wrap"><table><tbody>
+      ${d.issues.map((i) => `<tr><td><span class="badge ${i.severity === "error" ? "falling" : "stable"}">${esc(i.severity)}</span></td><td>${esc(i.code)}</td><td class="small">${esc(i.message)}</td></tr>`).join("")}</tbody></table></div></div>
+  </div>`;
+  setTimeout(() => {
+    bindToken();
+    document.querySelectorAll("[data-run]").forEach((b) => (b.onclick = async () => {
+      const cell = document.getElementById(`run-${b.dataset.run}`);
+      try { await send("POST", `/api/admin/run/${b.dataset.run}`); cell.textContent = "lancé"; } catch (e) { cell.textContent = `refusé : ${e.message}`; }
+    }));
+    document.getElementById("rollback").onclick = async () => {
+      if (!confirm("Revenir à la version de modèle précédente ?")) return;
+      const st = document.getElementById("rollback-state");
+      try { const r = await send("POST", "/api/admin/models/rollback"); st.textContent = `actif : ${r.active}`; } catch (e) { st.textContent = `refusé : ${e.message}`; }
+    };
+    document.querySelectorAll("[data-comp]").forEach((c) => (c.onchange = async () => {
+      try { await send("PATCH", `/api/admin/competitions/${c.dataset.comp}`, { active: c.checked }); }
+      catch (e) { c.checked = !c.checked; alert(`Refusé : ${e.message}`); }
+    }));
+  });
+  return html;
+}
+
 /* ---------------- Router ---------------- */
-const PAGES = { "": overview, competitions, teams, match: matchPage, performance };
+const PAGES = { "": overview, competitions, teams, match: matchPage, performance, picks, admin };
 async function route() {
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";

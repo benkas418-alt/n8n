@@ -3,15 +3,15 @@
 Bind to 127.0.0.1 (default) unless a reverse proxy with TLS is in front.
 """
 
-import secrets
 from datetime import UTC, datetime
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from footintel.config import get_settings
 from footintel.db.session import get_engine
+from footintel.api.security import require_admin
 from footintel.predictions.service import PredictionRefused, submit_user_prediction
 
 app = FastAPI(title="footintel", version="0.1.0")
@@ -21,9 +21,11 @@ from pathlib import Path  # noqa: E402
 from fastapi.responses import RedirectResponse  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
+from footintel.api.admin import router as admin_router  # noqa: E402
 from footintel.api.dashboard import router as dashboard_router  # noqa: E402
 
 app.include_router(dashboard_router)
+app.include_router(admin_router)
 app.mount("/dashboard", StaticFiles(directory=Path(__file__).parent / "static", html=True),
           name="dashboard")
 
@@ -33,13 +35,6 @@ def root() -> RedirectResponse:
     return RedirectResponse("/dashboard/")
 
 
-def require_admin(authorization: str = Header(default="")) -> None:
-    expected = get_settings().admin_token
-    if expected is None or not expected.get_secret_value():
-        raise HTTPException(503, "ADMIN_TOKEN is not configured: write endpoints are disabled")
-    given = authorization.removeprefix("Bearer ").strip()
-    if not secrets.compare_digest(given, expected.get_secret_value()):
-        raise HTTPException(401, "invalid token")
 
 
 class UserPredictionIn(BaseModel):

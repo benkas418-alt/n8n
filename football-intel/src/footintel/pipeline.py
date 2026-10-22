@@ -33,12 +33,22 @@ def _step(name: str, fn, results: dict) -> None:
         log.exception("Step %s failed", name)
 
 
+def _notify(settings: Settings, title: str, report_paths) -> None:
+    """Send a plain-text digest of a report to Telegram when it is configured."""
+    from footintel.notify.telegram import send, summary_from_markdown
+
+    md = report_paths["md"].read_text(encoding="utf-8")
+    send(settings, f"{title}\n\n{summary_from_markdown(md)}")
+
+
 def morning(engine: Engine, settings: Settings) -> dict:
     """Fixtures and odds, then predictions and the pre-match report."""
     results: dict = {}
     _step("sync_fixtures", lambda: tasks.sync_fixtures(engine, settings), results)
     _step("predict", lambda: predict_upcoming(engine, settings), results)
     _step("prematch_report", lambda: prematch_report(engine, settings).paths, results)
+    if isinstance(results.get("prematch_report"), dict):
+        _step("notify", lambda: _notify(settings, "Football Intel — avant-match", results["prematch_report"]), results)
     return results
 
 
@@ -57,6 +67,8 @@ def evening(engine: Engine, settings: Settings) -> dict:
     _step("postmatch_report",
           lambda: postmatch_report(engine, settings, yesterday - timedelta(days=6), date.today()).paths,
           results)
+    if isinstance(results.get("postmatch_report"), dict):
+        _step("notify", lambda: _notify(settings, "Football Intel — après-match", results["postmatch_report"]), results)
     return results
 
 
@@ -92,13 +104,20 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         from footintel.analysis.trend_engine import run_trends
         from footintel.evaluation.calibration import store_calibration
 
+        from footintel.analysis.drift import run_drift
+        from footintel.reports.weekly import weekly_report
+
         results["trends_run"] = run_trends(engine, feats)["run_id"]
+        results["drift_run"] = run_drift(engine, feats)
         results["calibration_run"] = store_calibration(
             engine, feats, [model_name, "market_implied", "naive_frequency"],
             list(range(current - 5, current)))
         results["analysis"] = {"run_id": analysis["run_id"],
                                "report": str(competition_report(engine, settings,
                                                                 analysis["run_id"]).paths["md"])}
+        weekly = weekly_report(engine, settings)
+        results["weekly_report"] = str(weekly.paths["md"])
+        _notify(settings, "Football Intel — rapport hebdomadaire", weekly.paths)
     except Exception:
         status = "failed"
         raise

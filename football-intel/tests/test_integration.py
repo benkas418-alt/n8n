@@ -196,7 +196,10 @@ def test_api_write_needs_the_admin_token(db, settings, monkeypatch):
     from footintel.db import session as session_module
 
     monkeypatch.setattr(config, "get_settings", lambda: settings)
+    from footintel.api import security
+
     monkeypatch.setattr(api_module, "get_settings", lambda: settings)
+    monkeypatch.setattr(security, "get_settings", lambda: settings)
     monkeypatch.setattr(api_module, "get_engine", lambda: db)
     monkeypatch.setattr(session_module, "get_engine", lambda url=None: db)
     client = TestClient(api_module.app)

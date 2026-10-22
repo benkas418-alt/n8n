@@ -118,3 +118,8 @@ td.num, th.num { text-align: right; }
 .vs .x { color: var(--muted); font-size: 1rem; }
 
 table.hide-stable tr.row-stable { display: none; }
+
+.btn { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--accent);
+  background: var(--accent); color: #fff; cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+code { font-size: 0.85rem; background: var(--bg); padding: 1px 4px; border-radius: 4px; }
