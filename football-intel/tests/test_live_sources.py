@@ -62,3 +62,22 @@ def test_openfootball_latest_cl_file_parses_completely():
     records = parse_txt(r.text, "cl.txt", 2025)
     assert len(records) == declared
     assert sum(1 for x in records if x.outcome) >= declared - 5
+
+
+@pytest.mark.parametrize("competition", ["UEFA-CL", "UEFA-EL", "UEFA-ECL", "GER-DFB"])
+def test_openligadb_current_leagues_have_the_fields_we_read(competition):
+    from footintel.catalog import OPENLIGADB_LEAGUES
+    from footintel.connectors.openligadb import API_BASE, parse_matches
+
+    season = max(OPENLIGADB_LEAGUES)
+    shortcut = OPENLIGADB_LEAGUES[season][competition]
+    r = _get(f"{API_BASE}/getmatchdata/{shortcut}/{season}")
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) >= 30, f"{shortcut} looks empty: check catalog.OPENLIGADB_LEAGUES"
+    assert {"matchID", "matchDateTime", "matchDateTimeUTC", "matchIsFinished", "group", "team1",
+            "team2", "matchResults", "goals"} <= set(data[0])
+    records = parse_matches(data, competition, season, shortcut)
+    finished = [x for x in records if x.outcome]
+    # Most results pass the consistency checks; a few volunteer errors are expected.
+    assert sum(1 for x in data if x["matchIsFinished"]) - len(finished) <= 3

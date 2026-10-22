@@ -1,11 +1,12 @@
 """Write normalized MatchRecords to the database. Idempotent by (source, external_id)."""
 
+import re
+from datetime import timedelta
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-import re
-
-from footintel.catalog import COUNTRY_BY_CODE, OPENFOOTBALL, get_source
+from footintel.catalog import COUNTRY_BY_CODE, OPENFOOTBALL, OPENLIGADB, get_source
 from footintel.connectors.base import MatchRecord, season_label
 from footintel.db.models import (
     Competition,
@@ -18,7 +19,7 @@ from footintel.db.models import (
     TeamAlias,
     TeamMatchStatistics,
 )
-from footintel.ingestion.teams import TeamResolver
+from footintel.ingestion.teams import TeamResolver, load_manual_aliases
 from footintel.jobs import RunStats
 
 _STAT_FIELDS = ("shots", "shots_on_target", "corners", "fouls", "yellow_cards", "red_cards", "xg")
@@ -32,6 +33,10 @@ class MatchStore:
         self.source = get_source(session, source_code)
         # Names from openfootball must be mapped onto the football-data.co.uk teams.
         self.resolver = TeamResolver(session, source_code) if source_code == OPENFOOTBALL else None
+        # OpenLigaDB names carry no country: only aliases checked by a human are used.
+        self.manual_only = (
+            {a: t for (src, a), t in load_manual_aliases().items() if src == source_code}
+            if source_code == OPENLIGADB else None)
         self._competitions = {c.code: c for c in session.scalars(select(Competition))}
         self._seasons = {(x.competition_id, x.label): x for x in session.scalars(select(Season))}
         self._aliases = {
@@ -61,6 +66,12 @@ class MatchStore:
                 stats.issue("info", "unmapped_team",
                             f"{name} ({rec.season_start_year}): no safe match"
                             + (f", closest {res.runner_up!r} at {res.score:.2f}" if res.runner_up else ""))
+        elif self.manual_only is not None:
+            if name in self.manual_only:
+                canonical = self.manual_only[name]
+            else:
+                stats.issue("info", "unmapped_team",
+                            f"{name} ({rec.season_start_year}): no manual alias, kept as a new team")
         team = self.s.scalar(select(Team).where(Team.name == canonical))
         if team is None:
             team = Team(name=canonical, country=country)
@@ -92,6 +103,12 @@ class MatchStore:
             return -1
 
         match_id = self._refs.get(rec.external_id)
+        if match_id is None and self.manual_only is not None:
+            match_id = self._same_match(competition.id, home_id, away_id, rec)
+            if match_id is not None:
+                self.s.add(MatchExternalRef(match_id=match_id, source_id=self.source.id,
+                                            external_id=rec.external_id))
+                self._refs[rec.external_id] = match_id
         is_new = match_id is None
         changed = False
         if is_new:
@@ -144,6 +161,16 @@ class MatchStore:
         else:
             stats.skipped += 1
         return match_id
+
+    def _same_match(self, competition_id: int, home_id: int, away_id: int,
+                    rec: MatchRecord) -> int | None:
+        """A match already imported from another source: same competition and teams,
+        kick-off within two days. Reused so that two sources never create two matches."""
+        return self.s.scalar(select(Match.id).where(
+            Match.competition_id == competition_id, Match.home_team_id == home_id,
+            Match.away_team_id == away_id,
+            Match.kickoff_date.between(rec.kickoff_date - timedelta(days=2),
+                                       rec.kickoff_date + timedelta(days=2))))
 
     def _upsert_outcome(self, match_id: int, rec: MatchRecord, is_new: bool, stats: RunStats) -> bool:
         o = rec.outcome
@@ -224,6 +251,15 @@ def remove_stale_matches(session: Session, source_id: int, prefix: str,
     stale = [(e, m) for e, m in rows if e not in seen_external_ids]
     removed = 0
     for external, match_id in stale:
+        # The match is also known from another source or under a new id: drop the old link only.
+        others = session.execute(text(
+            "SELECT count(*) FROM match_external_refs WHERE match_id = :m AND NOT "
+            "(source_id = :s AND external_id = :e)"), {"m": match_id, "s": source_id, "e": external}).scalar()
+        if others:
+            session.execute(text("DELETE FROM match_external_refs WHERE source_id = :s AND external_id = :e"),
+                            {"s": source_id, "e": external})
+            stats.issue("info", "stale_ref_removed", f"{external}: link removed, match kept")
+            continue
         protected = session.execute(text(
             "SELECT (SELECT count(*) FROM predictions WHERE match_id = :m)"
             " + (SELECT count(*) FROM user_predictions WHERE match_id = :m)"), {"m": match_id}).scalar()

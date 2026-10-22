@@ -36,3 +36,141 @@ openfootball,Raków Częstochowa (POL),Rakow
 openfootball,Real Betis (ESP),Betis
 openfootball,Stade Brestois 29 (FRA),Brest
 openfootball,West Ham United (ENG),West Ham
+# OpenLigaDB (German names, no country). Checked one by one on 2026-10-22 against the
+# clubs already in the database. Clubs missing here are created as new teams on purpose:
+# e.g. "Viktoria Köln" is NOT Viktoria Plzeň, and "FK Kauno Žalgiris" is NOT FK Žalgiris (Vilnius).
+openligadb,AEK Athen,AEK
+openligadb,AS Rom,Roma
+openligadb,Aston Villa,Aston Villa
+openligadb,Atletico Madrid,Ath Madrid
+openligadb,Borussia Dortmund,Dortmund
+openligadb,Como 1907,Como
+openligadb,FC Arsenal,Arsenal
+openligadb,FC Barcelona,Barcelona
+openligadb,FC Bayern München,Bayern Munich
+openligadb,FC Brügge,Club Brugge
+openligadb,FC Liverpool,Liverpool
+openligadb,FC Porto,Porto
+openligadb,FK Bodö/Glimt,Bodo/Glimt
+openligadb,Fenerbahçe SK,Fenerbahce
+openligadb,Feyenoord Rotterdam,Feyenoord
+openligadb,Galatasaray Istanbul,Galatasaray
+openligadb,Inter Mailand,Inter
+openligadb,LASK,LASK
+openligadb,Lille OSC,Lille
+openligadb,Manchester City,Man City
+openligadb,Manchester United FC,Man United
+openligadb,PSV Eindhoven,PSV Eindhoven
+openligadb,Paris St. Germain,Paris SG
+openligadb,RB Leipzig,RB Leipzig
+openligadb,RC Lens,Lens
+openligadb,Real Betis,Betis
+openligadb,Real Madrid,Real Madrid
+openligadb,SSC Napoli,Napoli
+openligadb,Shakhtar Donetsk,Shakhtar Donetsk (UKR)
+openligadb,Slavia Prag,Slavia Praha (CZE)
+openligadb,Slovan Bratislava,Slovan Bratislava (SVK)
+openligadb,Sporting CP,Sp Lisbon
+openligadb,VfB Stuttgart,Stuttgart
+openligadb,Viking,Viking
+openligadb,Villarreal CF,Villarreal
+openligadb,AC Mailand,Milan
+openligadb,AFC Bournemouth,Bournemouth
+openligadb,AZ Alkmaar,AZ Alkmaar
+openligadb,Bayer 04 Leverkusen,Leverkusen
+openligadb,Benfica Lissabon,Benfica
+openligadb,Besiktas Istanbul,Besiktas
+openligadb,Celta Vigo,Celta
+openligadb,Celtic Glasgow,Celtic
+openligadb,Crystal Palace FC,Crystal Palace
+openligadb,Dinamo Zagreb,Dinamo Zagreb (CRO)
+openligadb,Ferencváros Budapest,Ferencvárosi TC (HUN)
+openligadb,Hapoel Beer Scheva,Hapoel Be'er Sheva (ISR)
+openligadb,Jagiellonia Bialystok,Jagiellonia
+openligadb,Juventus Turin,Juventus
+openligadb,Lech Poznan,Lech Poznan
+openligadb,Lillestrøm SK,Lillestrom
+openligadb,NEC Nijmegen,Nijmegen
+openligadb,NK Celje,NK Celje (SVN)
+openligadb,OFI Kreta,OFI Crete
+openligadb,Olympiakos Piräus,Olympiakos
+openligadb,Olympique Lyon,Lyon
+openligadb,Olympique Marseille,Marseille
+openligadb,Omonia Nikosia,Omonia Nikosia (CYP)
+openligadb,RB Salzburg,Salzburg
+openligadb,RSC Anderlecht,Anderlecht
+openligadb,Real Sociedad,Sociedad
+openligadb,Sparta Prag,AC Sparta Praha (CZE)
+openligadb,Stade Rennes,Rennes
+openligadb,Sturm Graz,Sturm Graz
+openligadb,Sunderland AFC,Sunderland
+openligadb,TSG Hoffenheim,Hoffenheim
+openligadb,Union Saint-Gilloise,St. Gilloise
+openligadb,Viktoria Pilsen,Viktoria Plzeň (CZE)
+openligadb,AGF Aarhus,Aarhus
+openligadb,AS Monaco,Monaco
+openligadb,Ajax Amsterdam,Ajax
+openligadb,Atalanta Bergamo,Atalanta
+openligadb,Borac Banja Luka,Borac Banja Luka (BIH)
+openligadb,Brann,Brann
+openligadb,Brighton & Hove Albion F.C.,Brighton
+openligadb,FC Getafe,Getafe
+openligadb,FC Kopenhagen,FC Copenhagen
+openligadb,FC Lugano,Lugano
+openligadb,FC Midtjylland,Midtjylland
+openligadb,FC Nordsjaelland,Nordsjaelland
+openligadb,FC Thun,Thun
+openligadb,FC Twente Enschede,Twente
+openligadb,FK Jablonec,FK Jablonec (CZE)
+openligadb,FK Kairat,FK Kairat (KAZ)
+openligadb,Heart of Midlothian FC,Hearts
+openligadb,KAA Gent,Gent
+openligadb,Lincoln Red Imps,Lincoln Red Imps (GIB)
+openligadb,Mjällby AIF,Mjallby
+openligadb,Panathinaikos FC,Panathinaikos
+openligadb,Paphos FC,Paphos FC (CYP)
+openligadb,Roter Stern Belgrad,Crvena Zvezda (SRB)
+openligadb,SC Freiburg,Freiburg
+openligadb,Sporting Braga,Sp Braga
+openligadb,Trabzonspor,Trabzonspor
+openligadb,VV Sint-Truiden,St Truiden
+openligadb,ZSKA Sofia,CSKA Sofia (BUL)
+openligadb,1. FC Heidenheim 1846,Heidenheim
+openligadb,1. FC Kaiserslautern,Kaiserslautern
+openligadb,1. FC Köln,FC Koln
+openligadb,1. FC Magdeburg,Magdeburg
+openligadb,1. FC Nürnberg,Nurnberg
+openligadb,1. FC Saarbrücken,Saarbrucken
+openligadb,1. FC Union Berlin,Union Berlin
+openligadb,1. FSV Mainz 05,Mainz
+openligadb,Borussia Mönchengladbach,M'gladbach
+openligadb,DSC Arminia Bielefeld,Bielefeld
+openligadb,Dynamo Dresden,Dresden
+openligadb,Eintracht Braunschweig,Braunschweig
+openligadb,Eintracht Frankfurt,Ein Frankfurt
+openligadb,Energie Cottbus,Cottbus
+openligadb,Erzgebirge Aue,Erzgebirge Aue
+openligadb,FC Augsburg,Augsburg
+openligadb,FC Carl Zeiss Jena,CZ Jena
+openligadb,FC Schalke 04,Schalke 04
+openligadb,FC St. Pauli,St Pauli
+openligadb,Fortuna Düsseldorf,Fortuna Dusseldorf
+openligadb,Hamburger SV,Hamburg
+openligadb,Hannover 96,Hannover
+openligadb,Hansa Rostock,Hansa Rostock
+openligadb,Hertha BSC,Hertha
+openligadb,Holstein Kiel,Holstein Kiel
+openligadb,Karlsruher SC,Karlsruhe
+openligadb,MSV Duisburg,Duisburg
+openligadb,Preußen Münster,Preußen Münster
+openligadb,Rot-Weiss Essen,Essen
+openligadb,SC Paderborn 07,Paderborn
+openligadb,SV 07 Elversberg,Elversberg
+openligadb,SV Darmstadt 98,Darmstadt
+openligadb,SV Wehen Wiesbaden,Wehen
+openligadb,SV Werder Bremen,Werder Bremen
+openligadb,SpVgg Greuther Fürth,Greuther Furth
+openligadb,TSV 1860 München,Munich 1860
+openligadb,VfL Bochum,Bochum
+openligadb,VfL Osnabrück,Osnabruck
+openligadb,VfL Wolfsburg,Wolfsburg

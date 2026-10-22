@@ -1,7 +1,7 @@
 """Unit tests on pure functions. All inputs are synthetic."""
 
 import math
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 import numpy as np
 import pandas as pd
@@ -461,3 +461,72 @@ def test_temperature_calibration_softens_overconfident_cup_probabilities():
     out = m.predict(df)[PROB_COLS].to_numpy()
     assert out[0, 0] < 0.7 and out[0, 2] > 0.1 and out[0].sum() == pytest.approx(1.0)
     assert np.allclose(out[1], [0.5, 0.3, 0.2])  # matches with odds are untouched
+
+
+def test_models_saved_before_new_options_still_predict():
+    """Pickled versions lack attributes added later; they must predict as before."""
+    from footintel.models.base import GOAL_COLS, PROB_COLS
+    from footintel.models.zoo import RoutedCompetitionAware
+
+    class Fixed:
+        def __init__(self, cols, values):
+            self.cols, self.values = cols, values
+
+        def predict(self, df):
+            return pd.DataFrame([self.values] * len(df), columns=self.cols, index=df.index)
+
+    m = RoutedCompetitionAware("old")
+    del m.temperature_, m.calibrate_without_odds
+    m.without_odds = Fixed(PROB_COLS, [0.7, 0.2, 0.1])
+    m.with_odds = Fixed(PROB_COLS, [0.5, 0.3, 0.2])
+    m.goals = Fixed(GOAL_COLS, [1.0] * len(GOAL_COLS))
+    out = m.predict(pd.DataFrame({"mkt_p_home": [np.nan]}))
+    assert np.allclose(out[PROB_COLS].to_numpy()[0], [0.7, 0.2, 0.1])
+
+
+def _oldb_match(mid, home, away, finished, results=(), goals=(), group="1.Spieltag",
+                when="2026-09-16T21:00:00", when_utc="2026-09-16T19:00:00Z"):
+    """Same shape as a real /getmatchdata answer. Synthetic teams and scores."""
+    return {"matchID": mid, "matchDateTime": when, "matchDateTimeUTC": when_utc,
+            "matchIsFinished": finished, "group": {"groupName": group},
+            "team1": {"teamName": home}, "team2": {"teamName": away},
+            "matchResults": [{"resultTypeKind": k, "pointsTeam1": a, "pointsTeam2": b}
+                             for k, a, b in results],
+            "goals": [{"matchMinute": mi, "scoreTeam1": a, "scoreTeam2": b, "isPenalty": pen}
+                      for mi, a, b, pen in goals]}
+
+
+def test_openligadb_results_are_checked_against_the_goal_list():
+    from footintel.connectors.openligadb import parse_matches
+
+    data = [
+        _oldb_match(1, "Synthetic FC A ", "Synthetic FC B", True,
+                    [("HalfTime", 1, 0), ("After90Minutes", 2, 1)],
+                    [(10, 1, 0, False), (60, 1, 1, False), (88, 2, 1, False)]),
+        # Extra time and a shoot-out: the 1X2 result uses the 90-minute score.
+        _oldb_match(2, "Synthetic FC C", "Synthetic FC D", True,
+                    [("HalfTime", 0, 0), ("After90Minutes", 1, 1), ("AfterExtraTime", 1, 1),
+                     ("AfterPenalties", 4, 3)],
+                    [(50, 1, 0, False), (93, 1, 1, False), (None, 1, 1, True), (None, 2, 1, True)],
+                    group="Achtelfinale"),
+        # Result contradicts the goal list: no result is stored.
+        _oldb_match(3, "Synthetic FC E", "Synthetic FC F", True,
+                    [("HalfTime", 0, 0), ("After90Minutes", 0, 0)],
+                    [(20, 1, 0, False), (70, 2, 0, False)]),
+        # Goals without minutes: the number of goals must match.
+        _oldb_match(4, "Synthetic FC G", "Synthetic FC H", True,
+                    [("HalfTime", 1, 0), ("After90Minutes", 3, 0)],
+                    [(None, 0, 0, False)] * 3),
+        _oldb_match(5, "Synthetic FC A", "Synthetic FC C", False, group="Finale"),
+    ]
+    recs = {int(r.external_id.split("|")[2]): r for r in parse_matches(data, "UEFA-EL", 2026, "uel2026")}
+    a = recs[1]
+    assert a.home_team == "Synthetic FC A" and a.round == "League, Matchday 1"
+    assert (a.outcome.home_goals, a.outcome.away_goals, a.outcome.result) == (2, 1, "H")
+    assert a.kickoff_date == date(2026, 9, 16) and a.kickoff_utc == datetime(2026, 9, 16, 19, 0, tzinfo=UTC)
+    b = recs[2].outcome
+    assert recs[2].round == "Round of 16" and b.result == "D" and (b.pen_home, b.pen_away) == (4, 3)
+    assert recs[3].outcome is None and recs[3].status == "scheduled"
+    assert recs[3].issues[0][0] == "result_inconsistent"
+    assert recs[4].outcome.home_goals == 3 and not recs[4].issues
+    assert recs[5].round == "Final" and recs[5].neutral and recs[5].outcome is None

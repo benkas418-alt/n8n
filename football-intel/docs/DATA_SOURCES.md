@@ -28,6 +28,19 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Format | Score à 90 minutes, prolongation, tirs au but ; « [awarded] » et « [cancelled] » écartés ; finale sur terrain neutre. Heures en heure d'Europe centrale. |
 | Noms d'équipes | 224 noms. Correspondance avec football-data : automatique si sûre, sinon alias manuel relu (`reference/team_aliases.csv`, 35 alias). 2 erreurs automatiques trouvées à la relecture (PSG → Paris FC, Başakşehir → Istanbulspor) et corrigées. 72 clubs de pays non importés (Tchéquie, Serbie, Croatie, Chypre…) restent des équipes à part, avec peu d'historique. |
 
+### OpenLigaDB — saison en cours des coupes d'Europe et DFB-Pokal
+
+| Élément | Constat (2026-10-22) |
+|---|---|
+| Accès | `https://api.openligadb.de/getmatchdata/{ligue}/{saison}`. Sans clé, sans compte. Limite publiée : 60 requêtes par minute et par IP. |
+| Licence | Open Database License selon un site tiers ; **non confirmée sur le site officiel**. À vérifier avant toute publication des données. |
+| Ligues utilisées (2026) | `ucl` (C1), `uel2026` (C3), `uecl2026` (C4), `dfb` (DFB-Pokal). Choisies à la main : `ucl2026` est une copie vide de la C1. À revoir à chaque saison (`catalog.OPENLIGADB_LEAGUES`). |
+| Couverture réelle | 444 matchs : C1 144 (53 résultats retenus), C3 144 (35), C4 108 (17), DFB-Pokal 48 (32). Heures en UTC, score à la mi-temps, prolongation, tirs au but, liste des buts. |
+| Qualité | Saisie par des bénévoles. Chaque résultat est comparé à la liste des buts (score après le dernier but, ou nombre de buts quand les minutes manquent). 3 résultats contradictoires écartés sur 137, par exemple AZ Alkmaar–Hapoel Beer-Sheva saisi 0-0 avec trois buts. Un match écarté reste « programmé » jusqu'à correction. |
+| Noms d'équipes | En allemand, sans pays (« Inter Mailand », « FC Brügge »). Correspondance **uniquement par alias manuels relus** (135 alias). L'automatique aurait rattaché « Viktoria Köln » à « Viktoria Plzeň ». 30 clubs absents de la base restent des équipes à part (clubs amateurs de la DFB-Pokal, petits clubs européens). |
+| Doublons | Un match déjà connu d'une autre source (même compétition, mêmes équipes, à deux jours près) est réutilisé, jamais recréé. |
+| Manque | Pas de cotes, pas de statistiques, pas de compositions. |
+
 ## Prévue, désactivée
 
 ### API-Football (api-sports.io)
@@ -52,6 +65,8 @@ et les résultats de la C1.
 | Understat (xG) | HTTP 200. | `robots.txt` : `Disallow: /` pour tous les robots. |
 | FBref | HTTP 403. | Accès bloqué. |
 | TheSportsDB (clé publique « 3 ») | HTTP 403. | Clé publique refusée. |
+| Sofascore | HTTP 403 sur le site et l'API. | **Conditions d'utilisation** : « Using website content through embedding, aggregating, scraping, or reproducing without explicit consent is prohibited » ; requêtes automatiques interdites. Les bibliothèques qui y accèdent imitent le navigateur Chrome pour franchir la protection anti-robot. Non utilisée. |
+| FotMob | `robots.txt` : `Disallow: /api/*`. | API interdite aux robots. |
 | ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502. | Service indisponible lors des tests. À retester : il donnerait la force de tous les clubs européens. |
 | openfootball football.json | C1 2024-25 seulement, finale sans score. | Couverture trouée ; le dépôt `champions-league` est utilisé à la place. |
 

@@ -13,6 +13,7 @@ from footintel.db.models import Competition, CompetitionSourceCode, DataSource
 FOOTBALL_DATA = "football_data_uk"
 API_FOOTBALL = "api_football"
 OPENFOOTBALL = "openfootball"
+OPENLIGADB = "openligadb"
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,8 @@ class CompetitionDef:
     elo_prior: float = 1500.0
     # Three-letter code used by openfootball, e.g. "ENG" in "Arsenal FC (ENG)".
     country_code: str | None = None
+    # Domestic cups: starting Elo of a club seen in no imported league (lower divisions).
+    unknown_team_prior: float | None = None
 
 
 SOURCES = [
@@ -72,7 +75,26 @@ SOURCES = [
             "(Conference League). No current season, no odds, no statistics."
         ),
     ),
+    SourceDef(
+        code=OPENLIGADB,
+        name="OpenLigaDB",
+        kind="api",
+        base_url="https://api.openligadb.de",
+        terms_url="https://api.openligadb.de/index.html",
+        terms_note=(
+            "Free, no key, 60 requests per minute and IP. Results are entered by volunteers: "
+            "they can lag or contradict the goal list (checked at import). Used for the "
+            "current season of the UEFA cups and the DFB-Pokal. No odds, no statistics."
+        ),
+    ),
 ]
+
+# OpenLigaDB league shortcuts per season. They are chosen by hand: several community
+# leagues can cover one competition (e.g. "ucl2026" is an empty copy of "ucl").
+# Check https://api.openligadb.de/getavailableleagues before each new season.
+OPENLIGADB_LEAGUES: dict[int, dict[str, str]] = {
+    2026: {"UEFA-CL": "ucl", "UEFA-EL": "uel2026", "UEFA-ECL": "uecl2026", "GER-DFB": "dfb"},
+}
 
 # API-Football league ids are not listed here: they must be read from the
 # /leagues endpoint with a real key before use (see docs/DATA_SOURCES.md).
@@ -91,7 +113,10 @@ COMPETITIONS = [
     CompetitionDef("ITA-CI", "Coppa Italia", "Italy", "cup", {}, country_code="ITA"),
     CompetitionDef("GER-BL", "Bundesliga", "Germany", "league", {FOOTBALL_DATA: "D1"},
                    country_code="GER"),
-    CompetitionDef("GER-DFB", "DFB-Pokal", "Germany", "cup", {}, country_code="GER"),
+    # Clubs absent from the two imported German divisions play in the 3. Liga or lower:
+    # about two tiers below the 2. Bundesliga prior (1400), as in England (D37).
+    CompetitionDef("GER-DFB", "DFB-Pokal", "Germany", "cup", {}, country_code="GER",
+                   unknown_team_prior=1240),
     CompetitionDef("UEFA-CL", "UEFA Champions League", None, "continental",
                    {OPENFOOTBALL: "cl.txt"}),
     CompetitionDef("UEFA-EL", "UEFA Europa League", None, "continental",

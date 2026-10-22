@@ -21,7 +21,8 @@ from footintel.db.session import session_scope
 from footintel.features.builder import build_features
 from footintel.features.dataset import load_matches
 from footintel.ingestion import tasks
-from footintel.jobs import JobAlreadyRunning, acquire_lock, release_lock
+from footintel.ingestion.store import MatchStore
+from footintel.jobs import JobAlreadyRunning, RunStats, acquire_lock, release_lock
 from footintel.models import registry
 from footintel.postmatch.evaluate import evaluate_finished
 from footintel.predictions.service import (
@@ -385,3 +386,66 @@ def test_weekly_report_and_hybrid_run_are_stored(db, settings):
     rep = weekly_report(db, settings, end=date(2021, 6, 1))
     md = rep.paths["md"].read_text()
     assert md.startswith("#") and rep.paths["html"].exists() and rep.paths["csv"].exists()
+
+
+class FakeOpenLigaDB:
+    def __init__(self, matches: list[dict]):
+        self.matches = matches
+
+    def fetch(self, competition_code, season):
+        from footintel.connectors.openligadb import parse_matches
+
+        data = self.matches if competition_code == "UEFA-CL" else []
+        return parse_matches(data, competition_code, season, "ucl")
+
+
+def _oldb(mid, home, away, day, score=None):
+    return {"matchID": mid, "matchDateTime": f"{day}T21:00:00", "matchDateTimeUTC": f"{day}T19:00:00Z",
+            "matchIsFinished": score is not None, "group": {"groupName": "1.Spieltag"},
+            "team1": {"teamName": home}, "team2": {"teamName": away},
+            "matchResults": [{"resultTypeKind": "After90Minutes", "pointsTeam1": score[0],
+                              "pointsTeam2": score[1]}] if score else [],
+            "goals": []}
+
+
+def test_openligadb_import_uses_manual_aliases_and_never_duplicates_a_match(db, settings, monkeypatch):
+    from footintel.catalog import OPENFOOTBALL
+    from footintel.ingestion import store as store_mod
+    from footintel.ingestion import teams as teams_mod
+
+    aliases = {("openligadb", "Synthetic Eins"): "Synthetic FC 1",
+               ("openligadb", "Synthetic Zwei"): "Synthetic FC 2"}
+    monkeypatch.setattr(store_mod, "load_manual_aliases", lambda: aliases)
+    monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: aliases)
+    _load_synthetic_history(db, settings, seasons=(2025,))
+    # The same match, already known from openfootball.
+    with session_scope(db) as s:
+        MatchStore(s, OPENFOOTBALL).upsert(MatchRecord(
+            source_code=OPENFOOTBALL, external_id="cl.txt|2026|2026-09-16|1|2",
+            competition_code="UEFA-CL", season_start_year=2026, kickoff_date=date(2026, 9, 16),
+            kickoff_utc=None, home_team="Synthetic FC 1 (ENG)", away_team="Synthetic FC 2 (ENG)",
+            status="scheduled"), RunStats())
+
+    def cl_matches():
+        with db.connect() as conn:
+            return conn.execute(text("""SELECT m.id, count(r.id) FROM matches m
+                JOIN competitions c ON c.id = m.competition_id
+                JOIN match_external_refs r ON r.match_id = m.id
+                WHERE c.code = 'UEFA-CL' GROUP BY m.id ORDER BY m.id""")).all()
+
+    feed = [_oldb(10, "Synthetic Eins", "Synthetic Zwei", "2026-09-16", (2, 1)),
+            _oldb(11, "Unknown Club", "Synthetic Eins", "2026-10-01")]
+    st = tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(feed))
+    rows = cl_matches()
+    assert len(rows) == 2 and rows[0][1] == 2  # first match: one match, two sources
+    assert st.inserted == 1 and st.updated == 1
+    assert any(i[1] == "unmapped_team" and "Unknown Club" in i[2] for i in st.issues)
+    with db.connect() as conn:
+        assert conn.execute(text("SELECT home_goals FROM match_outcomes WHERE match_id = :m"),
+                            {"m": rows[0][0]}).scalar() == 2
+    # Re-run: nothing new.
+    assert tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(feed)).inserted == 0
+    # A volunteer re-creates the first match under a new id: same match, old link dropped.
+    feed[0] = _oldb(12, "Synthetic Eins", "Synthetic Zwei", "2026-09-16", (2, 1))
+    tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(feed))
+    assert cl_matches() == rows

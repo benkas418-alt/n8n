@@ -5,11 +5,13 @@ from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import Engine, func, select
 
-from footintel.catalog import COMPETITIONS, FD_NEW, FOOTBALL_DATA, OPENFOOTBALL, get_source
+from footintel.catalog import (COMPETITIONS, FD_NEW, FOOTBALL_DATA, OPENFOOTBALL, OPENLIGADB,
+                               OPENLIGADB_LEAGUES, get_source)
 from footintel.config import Settings
 from footintel.connectors.base import season_start_for
 from footintel.connectors.football_data_uk import NEW_TO_COMPETITION, FootballDataUK
 from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
+from footintel.connectors.openligadb import OpenLigaDB
 from footintel.connectors.http import SourceUnavailable
 from footintel.db.models import Match, MatchOutcome, OddsSnapshot, TeamMatchStatistics
 from footintel.db.session import session_scope
@@ -136,6 +138,42 @@ def import_european(engine: Engine, settings: Settings, first_season: int = 2011
                         remove_stale_matches(s, source_id, f"{filename}|{y}|",
                                              {r.external_id for r in records}, stats)
                 log.info("%s %d: %d rows", comp, y, len(records))
+    return stats
+
+
+def import_openligadb(engine: Engine, settings: Settings, seasons: list[int] | None = None,
+                      connector: OpenLigaDB | None = None) -> RunStats:
+    """Current-season UEFA cups and DFB-Pokal from OpenLigaDB (fixtures and results)."""
+    current = season_start_for(date.today())
+    seasons = seasons or [current]
+    connector = connector or OpenLigaDB(settings)
+    source_id = _source_id(engine, OPENLIGADB)
+    with tracked_run(engine, "import_openligadb", source_id=source_id,
+                     params={"seasons": seasons}) as stats:
+        with session_scope(engine) as s:
+            merged = apply_manual_aliases(s, source_id, OPENLIGADB)
+            if merged:
+                stats.issue("info", "aliases_merged", f"{merged} team(s) merged from manual aliases")
+        for y in seasons:
+            leagues = OPENLIGADB_LEAGUES.get(y)
+            if not leagues:
+                stats.issue("warning", "league_not_mapped",
+                            f"OpenLigaDB {y}: no league shortcut chosen (catalog.OPENLIGADB_LEAGUES)")
+                continue
+            for comp, shortcut in leagues.items():
+                try:
+                    records = connector.fetch(comp, y)
+                except SourceUnavailable as exc:
+                    stats.issue("warning", "source_unavailable", f"{comp} {y}: {exc}")
+                    continue
+                with session_scope(engine) as s:
+                    store = MatchStore(s, OPENLIGADB)
+                    for rec in records:
+                        store.upsert(rec, stats)
+                    if records:
+                        remove_stale_matches(s, source_id, f"{shortcut}|{y}|",
+                                             {r.external_id for r in records}, stats)
+                log.info("OpenLigaDB %s %d: %d rows", comp, y, len(records))
     return stats
 
 

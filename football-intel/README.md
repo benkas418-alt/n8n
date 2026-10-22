@@ -63,7 +63,8 @@ cp .env.example .env        # puis remplir DATABASE_URL et ADMIN_TOKEN
 F=.venv/bin/footintel
 $F ingest history --first 2005          # ~2 min, télécharge 88 fichiers une seule fois
 $F ingest context --first 2005          # 13 championnats de contexte (~4 min)
-$F ingest european                      # C1, C3, C4 depuis 2011
+$F ingest european                      # C1, C3, C4 depuis 2011 (openfootball)
+$F ingest openligadb                    # saison en cours : C1, C3, C4, DFB-Pokal
 $F ingest fixtures                       # matchs à venir + cotes
 $F backtest --seasons 5                  # évaluation chronologique
 $F models train routed_odds_elo          # crée une version candidate

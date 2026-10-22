@@ -131,7 +131,9 @@ def build_features(matches: pd.DataFrame, params: elo_mod.EloParams | None = Non
                 prior = _prior(competition)
                 start = prior if season == first_season.get(competition) else prior + params.newcomer_offset
             else:
-                prior = start = params.unknown_foreign
+                cdef = COMPETITION_BY_CODE.get(competition)
+                prior = start = (cdef.unknown_team_prior if cdef and cdef.unknown_team_prior
+                                 else params.unknown_foreign)
             st = teams[team_id] = TeamState(elo=start, prior=prior, season=season)
         else:
             if ctype == "league":
