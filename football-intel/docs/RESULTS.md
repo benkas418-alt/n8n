@@ -1,5 +1,28 @@
 # Résultats du backtest réel
 
+## Candidats phase 6 — calibration des coupes et Dixon-Coles (2026-10-22)
+
+Walk-forward sur 2023-24, 2024-25 et 2025-26 (5 465 matchs testés, dont 1 127 de coupes
+d'Europe). Référence : `routed_competition` v1 (actif). Écart = candidat − référence
+(négatif = mieux), IC 95 % bootstrap apparié.
+
+| Candidat | Segment | 1X2 | Plus/moins 2,5 | BTTS | Décision |
+|---|---|---|---|---|---|
+| `routed_competition_cal` (température, branche sans cotes) | coupes | +0.0006 [−0.0001 ; +0.0013] | 0 | 0 | rejeté |
+| | championnats | 0 (non concernés) | 0 | 0 | |
+| `routed_competition_dc` (Dixon-Coles) | coupes | 0 | 0 | −0.0001 [−0.0007 ; +0.0004] | rejeté |
+| | championnats | 0 | 0 | −0.0004 [−0.0006 ; −0.0001] | |
+
+Lecture :
+1. **La calibration par température n'aide pas** : ajustée sur la fin de chaque fenêtre
+   d'entraînement, elle dégrade légèrement les coupes. L'écart de calibration observé (ECE
+   0.03-0.044) n'est pas un simple excès ou défaut de confiance global.
+2. **Dixon-Coles** : gain réel mais minime sur BTTS en championnat, sous le seuil de 0.002
+   fixé à l'avance (D9/D19). Plus/moins 2,5 est inchangé par construction : la correction
+   déplace des probabilités entre 0-0, 1-0, 0-1 et 1-1, qui ont tous au plus 2 buts.
+3. Le modèle actif reste `routed_competition` v1. Les deux candidats restent disponibles
+   pour une réévaluation avec plus de données.
+
 ## Run 13 — moteur de tendances statistiques (2026-10-22)
 
 8 076 tendances (compétitions et 78 équipes des compétitions cibles), fenêtres courte /

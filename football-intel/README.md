@@ -1,8 +1,8 @@
 # footintel — Football Intelligence & Prediction System
 
 Plateforme personnelle de collecte de données football, de prédiction probabiliste
-et d'évaluation mesurable. Version 0.1 : premier parcours complet de bout en bout,
-sans interface graphique (CLI + API HTTP).
+et d'évaluation mesurable. Version 0.2 : parcours complet de bout en bout,
+CLI, API HTTP et tableau de bord web.
 
 > Aucun système ne prédit le football avec certitude. Les probabilités quantifient
 > l'incertitude ; leur qualité se mesure (log loss, Brier, calibration) et se compare
@@ -30,6 +30,12 @@ sans interface graphique (CLI + API HTTP).
 - Évaluation post-match, rapports pré-match et post-match (Markdown, HTML, CSV).
 - Planification (APScheduler, fuseau Africa/Lubumbashi), API HTTP, sauvegarde/restauration.
 - Mode dégradé sans clé API.
+- Tableau de bord : 5 espaces d'analyse, plus « Mes pronostics » (saisie avant le coup d'envoi, historique,
+  modèle hybride) et « Administration » (clés présentes ou absentes, planification, lancement manuel
+  des cycles, retour arrière, activation des compétitions, journaux, anomalies).
+- Rapport hebdomadaire : performance réelle, versions, décision de réentraînement, calibration,
+  dérive des entrées et des performances, tendances, anomalies.
+- Notifications Telegram après les cycles du matin, du soir et de la semaine (si configurées).
 
 Ce qui n'est **pas** encore fait est listé dans [PROGRESS.md](PROGRESS.md).
 
@@ -82,6 +88,7 @@ $F report prematch
 | Apport des tendances par marché | `footintel trends evaluate` (~15 min) |
 | État du système | `footintel status` |
 | Revenir au modèle précédent | `footintel models rollback` |
+| Apport de mes pronostics (modèle hybride) | `footintel hybrid` (calculé à partir de 200 pronostics évalués) |
 | Sauvegarde | `footintel db backup` |
 | API HTTP | `footintel serve` (http://127.0.0.1:8000/docs) |
 | Planificateur | `footintel scheduler` |
@@ -103,6 +110,15 @@ Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" d
 Les données non collectées (minutes des buts, xG, tactique, compositions) apparaissent comme
 telles, jamais comme zéro. Le serveur écoute sur 127.0.0.1 par défaut : passer par un reverse
 proxy avec TLS pour un accès distant.
+
+## Notifications Telegram
+
+1. Créer un bot avec @BotFather et récupérer son jeton.
+2. Envoyer un message au bot, puis lire l'identifiant de la discussion dans
+   `https://api.telegram.org/bot<JETON>/getUpdates` (champ `chat.id`).
+3. Dans `.env` du VPS (jamais dans le dépôt) : `TELEGRAM_BOT_TOKEN=...` et `TELEGRAM_CHAT_ID=...`.
+
+Sans ces deux variables, aucun message n'est envoyé ; les rapports restent dans `reports/`.
 
 ## Planification sur le VPS
 

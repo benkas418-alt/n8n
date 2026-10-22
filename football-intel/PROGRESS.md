@@ -1,6 +1,6 @@
 # Suivi d'avancement
 
-Dernière mise à jour : 2026-10-22 (tableau de bord). Fichier à mettre à jour à la fin de chaque phase,
+Dernière mise à jour : 2026-10-22 (compléments : hybride, dérive, administration, Telegram, candidats phase 6). Fichier à mettre à jour à la fin de chaque phase,
 pour reprendre le travail après une interruption.
 
 ## État par phase
@@ -13,12 +13,12 @@ pour reprendre le travail après une interruption.
 | 3 Données historiques | ✅ | 187 167 matchs réels : 30 649 (4 championnats cibles) + 153 128 (24 championnats et divisions de contexte) + 3 390 (C1 2011-26, C3 2020-25, C4 2021-25). Relances sans doublon vérifiées. |
 | 4 Collecte automatique | 🟡 | football-data et openfootball : fixtures, résultats, contexte, qualité, retry/backoff, cache disque, verrous, correspondance des noms relue. **Manquent** : saison en cours des coupes d'Europe, coupes nationales, compositions, formations, blessures (API-Football non branché, clé absente). |
 | 5 Baseline ML | ✅ | Naïf, Elo-Poisson, marché, régression logistique. |
-| 6 ML avancé | 🟡 | RF, XGBoost, modèle aiguillé cotes/Elo (actif), backtest walk-forward, comparaisons appariées. **Manquent** : calibration explicite (isotonique/Platt), Optuna, MLflow, Dixon-Coles, ensemble. |
-| 7 Boucle post-match | 🟡 | Évaluation, registre, promotion, rollback, cycle hebdomadaire. Moteur de tendances par compétition et moteur de tendances statistiques (scores, équipes, fenêtres courte/moyenne/longue, statuts, persistance hors échantillon, apport par catégorie et par marché). **Manquent** : détection de dérive, analyse des erreurs du modèle en direct (pas encore de prédictions réelles évaluées). |
-| 8 Contribution humaine | 🟡 | Saisie CLI/API horodatée et figée, évaluation en justesse. **Manque** : modèle hybride (stacking temporel) et évaluation de l'apport du choix humain. |
-| 9 Dashboard | 🟡 | 5 espaces (vue générale, compétitions, équipes, pré-match, performance) sur `/dashboard/`, vérifiés dans Chromium en 1366 et 390 px. **Manquent** : saisie des pronostics personnels dans l'interface (API prête), page administration, filtre par période infra-saison. |
-| 10 Automatisation et rapports | 🟡 | Planificateur, rapports pré/post-match MD/HTML/CSV, unité systemd. **Manquent** : rapport hebdomadaire, notification Telegram, PDF. |
-| 11 Validation finale | 🟡 | 46 tests passent (39 hors ligne, 7 contre les vraies sources). |
+| 6 ML avancé | 🟡 | RF, XGBoost, modèle aiguillé (actif), walk-forward, comparaisons appariées, calibration stockée. Candidats testés et rejetés selon les règles : calibration par température des coupes, Dixon-Coles (docs/RESULTS.md). **Manquent** : Optuna (Elo de départ), ensemble. |
+| 7 Boucle post-match | 🟡 | Évaluation, registre, promotion, rollback, cycle hebdomadaire. Moteur de tendances par compétition et moteur de tendances statistiques (scores, équipes, fenêtres courte/moyenne/longue, statuts, persistance hors échantillon, apport par catégorie et par marché). Dérive des entrées (même fenêtre un an plus tôt, PSI + écart des moyennes) et des performances (à partir de 100 évaluations réelles). **Manque** : analyse des erreurs en direct (aucune prédiction réelle encore évaluée). |
+| 8 Contribution humaine | ✅ | Saisie CLI/API/tableau de bord horodatée et figée, évaluation en justesse, modèle hybride évalué par blocs chronologiques (`footintel hybrid`, seuil 200 pronostics, adoption selon D9). Aucune donnée réelle pour l'instant : 0 pronostic. |
+| 9 Dashboard | 🟡 | 5 espaces (vue générale, compétitions, équipes, pré-match, performance) sur `/dashboard/`, vérifiés dans Chromium en 1366 et 390 px. Pages « Mes pronostics » et « Administration » ajoutées et vérifiées dans Chromium (1366 et 390 px, sans erreur ni débordement). **Manque** : filtre par période infra-saison. |
+| 10 Automatisation et rapports | 🟡 | Planificateur, rapports pré/post-match MD/HTML/CSV, unité systemd. Rapport hebdomadaire, notifications Telegram (testées avec un transport simulé ; jeton absent, donc pas d'envoi réel). **Manque** : export PDF. |
+| 11 Validation finale | 🟡 | 48 tests hors ligne passent, plus 7 tests contre les vraies sources. |
 
 ## Critères d'acceptation
 
@@ -53,8 +53,8 @@ pour reprendre le travail après une interruption.
 
 ## Prochaine étape concrète
 
-1. Fournir une clé API-Football gratuite, puis brancher `/leagues`, `/fixtures`, `/odds`,
-   `/injuries`, `/fixtures/lineups`, `/fixtures/statistics` après vérification des vraies
-   réponses : calendrier des coupes 2026-27, coupes nationales, formations, absences.
-2. Phase 6 : calibration dédiée aux coupes d'Europe (ECE 0.03-0.044), Dixon-Coles, optimisation des Elo de départ (D14, D22).
-3. Phase 9 : dashboard.
+1. Définir sur le VPS, en variables d'environnement : `API_FOOTBALL_KEY` (calendrier des coupes
+   2026-27, coupes nationales, compositions, formations, absences, après vérification des vraies
+   réponses), `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID`.
+2. Saisir les pronostics personnels avant chaque match : le modèle hybride se calcule à 200.
+3. Optimisation des Elo de départ sur les matchs européens (D14, D22).
