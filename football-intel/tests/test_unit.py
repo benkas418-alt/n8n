@@ -325,3 +325,99 @@ def test_team_trend_features_use_earlier_matches_only():
     bb = team_trend_features(b)
     assert np.allclose(a.iloc[:91].fillna(-1), bb.iloc[:91].fillna(-1))
     assert a["tt_conversion_38_h"].iloc[0] == pytest.approx(0.30)  # first match gets the prior
+
+
+def test_telegram_splits_long_text_and_hides_the_token(caplog):
+    import httpx
+
+    from footintel.config import Settings
+    from footintel.notify import telegram
+
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        return httpx.Response(200 if len(seen) == 1 else 403, json={"ok": len(seen) == 1})
+
+    token = "123456:" + "S" * 35  # real tokens have this shape
+    s = Settings(telegram_bot_token=token, telegram_chat_id="42")
+    text = "\n".join(f"ligne {i} " + "x" * 90 for i in range(100))  # ~10 000 characters
+    assert telegram.send(Settings(telegram_bot_token=None, telegram_chat_id=None), text) == 0
+    with caplog.at_level("INFO"):
+        sent = telegram.send(s, text, transport=httpx.MockTransport(handler))
+    assert sent == 1 and len(seen) == 2  # stops at the first refusal
+    assert all(len(r.read()) < 4300 for r in seen)
+    own = "".join(r.getMessage() for r in caplog.records if r.name.startswith("footintel"))
+    assert token not in own
+    # httpx prints the URL; the production log handler masks it.
+    assert token not in mask_secrets(caplog.text)
+    digest = telegram.summary_from_markdown("# Titre\n\n| a | b |\n|---|---|\n- point\n")
+    assert digest == "Titre\n- point"
+
+
+def test_drift_levels_need_psi_and_mean_shift_together():
+    from footintel.analysis import drift
+
+    rng = np.random.default_rng(0)
+    same = rng.normal(0, 1, 2000)
+    assert drift.psi(same, rng.normal(0, 1, 2000)) < 0.05
+    assert drift.psi(same, rng.normal(1, 1, 2000)) > 0.25
+    assert drift.level(0.5, 0.05) != "strong"  # shape change without a mean shift
+    assert drift.level(0.5, 0.6) == "strong"
+
+
+def test_input_drift_compares_with_the_same_window_one_year_earlier():
+    from footintel.analysis import drift
+
+    days = pd.date_range("2023-01-01", "2024-12-31", freq="D")
+    month = days.month.to_numpy()
+    # Seasonal pattern repeated each year, plus a real shift in the last 60 days.
+    goals = 2.5 + 0.5 * np.sin(month / 12 * 2 * np.pi)
+    goals = np.where(days > days[-1] - pd.Timedelta(days=60), goals + 1.0, goals)
+    rng = np.random.default_rng(1)
+    f = pd.DataFrame({"kickoff_date": days, "is_target": True,
+                      "comp_goals_mean": goals + rng.normal(0, 0.2, len(days)),
+                      "shots5_for_h": 12 + 3 * np.sin(month / 12 * 2 * np.pi) + rng.normal(0, 1, len(days))})
+    out = drift.input_drift(f).set_index("feature")
+    assert out.loc["comp_goals_mean", "level"] == "strong"
+    assert out.loc["shots5_for_h", "level"] == "stable"  # seasonal only: not flagged
+    assert out.loc["shots5_for_h", "n_reference"] == 60
+
+
+def _synthetic_picks(n: int, informative: bool, seed: int = 0) -> pd.DataFrame:
+    """Picks on synthetic matches. The model ignores a hidden factor; an informed user sees it."""
+    rng = np.random.default_rng(seed)
+    base = rng.dirichlet([4, 3, 3], size=n)
+    hidden = rng.normal(0, 1.2, n)
+    logits = np.log(base) + np.stack([hidden, np.zeros(n), -hidden], axis=1)
+    true_p = np.exp(logits) / np.exp(logits).sum(axis=1, keepdims=True)
+    result = np.array([rng.choice(3, p=p) for p in true_p])
+    signal = hidden if informative else rng.normal(0, 1.2, n)
+    pick = np.where(signal > 0.4, "H", np.where(signal < -0.4, "A", "D"))
+    return pd.DataFrame({"kickoff": pd.date_range("2025-01-01", periods=n, freq="6h"),
+                         "p_home": base[:, 0], "p_draw": base[:, 1], "p_away": base[:, 2],
+                         "pick": pick, "confidence": np.clip(np.abs(signal) * 2 + 1, 1, 5).round(),
+                         "result": np.array(list("HDA"))[result]})
+
+
+def test_hybrid_needs_200_picks_and_only_adopts_a_reliable_gain():
+    from footintel.analysis import hybrid
+
+    assert hybrid.evaluate(_synthetic_picks(150, True))["status"] == "insufficient_data"
+    informed = hybrid.evaluate(_synthetic_picks(1500, True))
+    assert informed["status"] == "evaluated" and informed["verdict"] == "adopt"
+    assert informed["n_test"] == 1400 and informed["ci_high"] < 0
+    noise = hybrid.evaluate(_synthetic_picks(1500, False))
+    assert noise["verdict"] == "no_reliable_gain"
+    small = hybrid.evaluate(_synthetic_picks(300, True))
+    assert small["n_test"] == 200 and small["verdict"] in ("too_few_test_picks", "no_reliable_gain")
+
+
+def test_hybrid_never_scores_a_pick_with_a_fit_that_saw_it():
+    from footintel.analysis import hybrid
+
+    df = _synthetic_picks(400, True)
+    oos = hybrid.out_of_sample(df)
+    assert len(oos) == 300
+    first_scored = oos["kickoff"].min()
+    assert (df.sort_values("kickoff")["kickoff"].iloc[hybrid.MIN_TRAIN] == first_scored)

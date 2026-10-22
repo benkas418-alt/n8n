@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from footintel.config import PromotionCriteria
 from footintel.connectors.base import MatchRecord, OddsRecord, OutcomeRecord
@@ -337,3 +337,51 @@ def test_dashboard_endpoints(db, settings, monkeypatch):
     if match:
         assert match["prediction"] is None and len(match["sheets"]) == 2
     assert "versions" in client.get("/api/dash/performance").json()
+
+
+def test_admin_endpoints_hide_secrets_and_protect_writes(db, settings, monkeypatch):
+    from footintel.api import admin, dashboard, security
+    from footintel.api import app as api_module
+
+    _load_synthetic_history(db, settings, seasons=(2020,))
+    from pydantic import SecretStr
+
+    settings = settings.model_copy(update={"telegram_bot_token": SecretStr("123456:" + "S" * 35)})
+    for mod in (admin, security):
+        monkeypatch.setattr(mod, "get_settings", lambda: settings)
+    for mod in (admin, dashboard):
+        monkeypatch.setattr(mod, "get_engine", lambda: db)
+    client = TestClient(api_module.app)
+    auth = {"Authorization": "Bearer test-token"}
+
+    r = client.get("/api/admin/overview")
+    assert r.status_code == 200
+    assert r.json()["secrets"] == {"API_FOOTBALL_KEY": False, "ADMIN_TOKEN": True,
+                                   "TELEGRAM_BOT_TOKEN": True, "TELEGRAM_CHAT_ID": False}
+    assert "S" * 35 not in r.text and "test-token" not in r.text
+
+    assert client.post("/api/admin/run/weekly").status_code == 401
+    assert client.post("/api/admin/run/unknown", headers=auth).status_code == 404
+    assert client.patch("/api/admin/competitions/ENG-PL", json={"active": False}).status_code == 401
+    assert client.patch("/api/admin/competitions/ENG-PL", json={"active": False},
+                        headers=auth).json() == {"code": "ENG-PL", "active": False}
+    with db.connect() as conn:
+        assert conn.execute(text("SELECT active FROM competitions WHERE code = 'ENG-PL'")).scalar() is False
+    assert client.patch("/api/admin/competitions/NOPE", json={"active": True}, headers=auth).status_code == 404
+    assert client.post("/api/admin/models/rollback", headers=auth).status_code == 409  # nothing to roll back
+
+    picks = client.get("/api/admin/user-predictions").json()
+    assert picks["rows"] == [] and picks["hybrid"]["status"] == "not_run"
+
+
+def test_weekly_report_and_hybrid_run_are_stored(db, settings):
+    from footintel.analysis.hybrid import latest, run_hybrid
+    from footintel.reports.weekly import weekly_report
+
+    _load_synthetic_history(db, settings, seasons=(2020,))
+    res = run_hybrid(db, "me", settings.promotion)
+    assert res["status"] == "insufficient_data" and res["n_picks"] == 0
+    assert latest(db, "me")["training_run_id"] == res["training_run_id"]
+    rep = weekly_report(db, settings, end=date(2021, 6, 1))
+    md = rep.paths["md"].read_text()
+    assert md.startswith("#") and rep.paths["html"].exists() and rep.paths["csv"].exists()

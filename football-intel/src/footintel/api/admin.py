@@ -143,4 +143,7 @@ def user_predictions(user_label: str = "me") -> dict:
         SELECT e.predictor_kind, e.market, count(*) AS n, avg(e.correct::int) AS accuracy
         FROM prediction_evaluations e WHERE e.match_id IN (SELECT match_id FROM user_predictions
           WHERE user_label = :u) GROUP BY 1, 2 ORDER BY 1, 2""", u=user_label)
-    return {"rows": rows, "summary": summary}
+    from footintel.analysis.hybrid import MIN_PICKS, latest
+
+    return {"rows": rows, "summary": summary,
+            "hybrid": latest(get_engine(), user_label) or {"status": "not_run", "min_picks": MIN_PICKS}}

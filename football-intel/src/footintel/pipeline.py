@@ -105,8 +105,10 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         from footintel.evaluation.calibration import store_calibration
 
         from footintel.analysis.drift import run_drift
+        from footintel.analysis.hybrid import run_hybrid
         from footintel.reports.weekly import weekly_report
 
+        results["hybrid"] = run_hybrid(engine, criteria=settings.promotion)
         results["trends_run"] = run_trends(engine, feats)["run_id"]
         results["drift_run"] = run_drift(engine, feats)
         results["calibration_run"] = store_calibration(

@@ -570,9 +570,9 @@ async function picks() {
     <div class="card"><div class="kpi-label">Pronostics enregistrés</div><div class="kpi-value">${d.rows.length}</div><div class="kpi-note">${done.length} matchs joués</div></div>
     ${d.summary.filter((s) => s.market === "1X2").map((s) => `<div class="card"><div class="kpi-label">${s.predictor_kind === "user" ? "Mes choix 1X2" : "Modèle 1X2 (mêmes matchs)"}</div><div class="kpi-value">${pct(s.accuracy, 0)}</div><div class="kpi-note">de choix justes · n = ${s.n}${s.n < 100 ? " · échantillon trop petit pour conclure" : ""}</div></div>`).join("")}
   </div>`;
+  html += hybridCard(d.hybrid);
   if (!d.rows.length) {
-    return html + `<div class="card"><p class="muted">Aucun pronostic pour l'instant. Ouvrez un match programmé dans <a href="#/match">Analyse pré-match</a> pour en saisir un.</p>
-      <p class="small">L'apport de vos choix au modèle (modèle hybride) sera mesuré quand au moins 200 pronostics auront été évalués ; avant, toute comparaison serait du bruit.</p></div>`;
+    return html + `<div class="card"><p class="muted">Aucun pronostic pour l'instant. Ouvrez un match programmé dans <a href="#/match">Analyse pré-match</a> pour en saisir un.</p></div>`;
   }
   html += `<div class="card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Choix</th><th class="num">Confiance</th><th>Modèle avant match</th><th>Résultat</th><th>Raisonnement</th></tr></thead><tbody>
     ${d.rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.match_id}})"><td>${fdate(r.kickoff_date)} · ${esc(r.competition)}<div>${esc(r.home)} – ${esc(r.away)}</div><div class="small muted">saisi le ${new Date(r.submitted_at).toLocaleString("fr-FR")}</div></td>
@@ -581,6 +581,29 @@ async function picks() {
       <td>${r.res_home != null ? `${r.res_home}-${r.res_away} ${r.correct == null ? "" : r.correct ? '<span class="badge rising">juste</span>' : '<span class="badge falling">faux</span>'}` : '<span class="muted">à venir</span>'}</td>
       <td class="small">${esc(r.reasoning || "")}</td></tr>`).join("")}</tbody></table></div></div>`;
   return html;
+}
+
+function hybridCard(h) {
+  const verdicts = {
+    adopt: ["rising", "gain fiable : critères de promotion remplis"],
+    too_few_test_picks: ["stable", "pas assez de pronostics hors échantillon pour conclure (minimum 300)"],
+    no_reliable_gain: ["stable", "aucun gain fiable : le modèle seul reste la référence"],
+  };
+  let body;
+  if (h.status === "evaluated") {
+    const [cls, txt] = verdicts[h.verdict] || ["na", h.verdict];
+    body = `<p><span class="badge ${cls}">${esc(txt)}</span></p>
+      <table><tbody><tr><td>Log loss modèle seul</td><td class="num">${num(h.logloss_model, 4)}</td></tr>
+      <tr><td>Log loss hybride (hors échantillon)</td><td class="num">${num(h.logloss_hybrid, 4)}</td></tr>
+      <tr><td>Écart (négatif = l'hybride est meilleur)</td><td class="num">${num(h.diff, 4)} <span class="small muted">IC 95 % [${num(h.ci_low, 4)} ; ${num(h.ci_high, 4)}]</span></td></tr></tbody></table>
+      <p class="small muted">n = ${h.n_test} pronostics testés sur ${h.n_picks} · calcul du ${fdate(h.computed_at)}</p>`;
+  } else {
+    const n = h.n_picks ?? 0;
+    body = `<p><span class="badge na">données insuffisantes</span></p>
+      <p class="small">${h.status === "not_run" ? "Pas encore calculé." : `${n} pronostics évalués sur ${h.min_picks} nécessaires.`} Avant ${h.min_picks} pronostics, toute mesure de l'apport de vos choix serait du bruit.</p>`;
+  }
+  return `<div class="card" style="margin-bottom:16px"><h2>Modèle hybride (vos choix + modèle)</h2>
+    <p class="question">Vos choix et votre confiance améliorent-ils les probabilités du modèle ? Chaque bloc de pronostics est prédit par un ajustement sur les blocs précédents seulement.</p>${body}</div>`;
 }
 
 /* ---------------- 7. Administration ---------------- */

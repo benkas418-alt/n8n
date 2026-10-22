@@ -232,6 +232,12 @@ def cmd_trends(args, settings, engine):
         _print({k: str(v) for k, v in rep.paths.items()})
 
 
+def cmd_hybrid(args, settings, engine):
+    from footintel.analysis.hybrid import run_hybrid
+
+    _print(run_hybrid(engine, args.user, settings.promotion))
+
+
 def cmd_scheduler(args, settings, engine):
     from footintel.scheduler import run_scheduler
 
@@ -323,6 +329,10 @@ def build_parser() -> argparse.ArgumentParser:
     tr_.add_argument("--team", help="team name as in the database, e.g. 'Man City'")
     tr_.add_argument("--category", choices=["score", "team", "competition", "tactical"])
     tr_.set_defaults(fn=cmd_trends)
+
+    hy = sub.add_parser("hybrid", help="evaluate the human + model hybrid (needs 200 picks)")
+    hy.add_argument("--user", default="me")
+    hy.set_defaults(fn=cmd_hybrid)
 
     sub.add_parser("scheduler", help="start the scheduler").set_defaults(fn=cmd_scheduler)
 
