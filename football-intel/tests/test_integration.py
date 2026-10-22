@@ -290,3 +290,21 @@ def test_competition_analysis_stores_profiles_and_patterns(db, settings):
     report = competition_report(db, settings)
     assert "Premier League" in report.markdown and "FA Cup" in report.markdown
     assert "Aucune donnée" in report.markdown  # uncovered competitions are stated, not filled
+
+
+def test_trend_run_and_report(db, settings):
+    from footintel.analysis.trend_engine import run_trends
+    from footintel.db.models import Trend
+    from footintel.reports.trends import trends_report
+
+    _load_synthetic_history(db, settings, seasons=(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022))
+    feats = build_features(load_matches(db))
+    first = run_trends(db, feats)
+    second = run_trends(db, feats)
+    with session_scope(db) as s:
+        counts = dict(s.execute(select(Trend.training_run_id, func.count())
+                                .group_by(Trend.training_run_id)).all())
+    assert counts[first["run_id"]] == counts[second["run_id"]] > 0  # insert-only snapshots
+    rep = trends_report(db, settings, category="team")
+    assert "[Fait]" in rep.markdown and "Non collecté" in rep.markdown
+    assert "Changements tactiques documentés" in rep.markdown

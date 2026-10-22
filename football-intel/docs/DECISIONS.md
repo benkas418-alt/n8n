@@ -25,3 +25,7 @@
 | D21 | Statut « validé hors échantillon » seulement si significatif après Benjamini-Hochberg sur 2006-2020 **et** de même signe avec un IC sans 0 sur 2021-2026 ; minimum 30 matchs par segment. | 2 758 tests : sans correction, des dizaines de « tendances » seraient du hasard. | — |
 | D22 | Divisions inférieures importées (Angleterre 2 à 5, Espagne 2, Italie 2, Allemagne 2, France 2, Écosse 2 à 4), Elo de départ posé a priori. | +90 688 matchs d'entraînement ; les montées et descentes relient les forces ; adversaires futurs des coupes nationales. | ClubElo disponible. |
 | D23 | Profils de compétition en ajout seulement (une ligne par analyse). | Les valeurs connues à une date passée restent lisibles telles quelles. | — |
+| D24 | Fenêtres de tendance : compétition 60 / 380 / 1 900 matchs, équipe 6 / 19 / 76 ; lissage vers la référence (poids 150 et 10). | Tailles adaptées au rythme des données ; un petit échantillon reste proche de la référence. | — |
+| D25 | Tests petits échantillons : Fisher exact (taux, n < 30), Welch t avec variance plancher égale à celle de la référence (moyennes, n < 30). | L'approximation normale donnait p = 0 pour 6 défaites. | — |
+| D26 | Tendances en ajout seulement, avec statut relatif au calcul précédent (« non confirmée »). | Lisibles à n'importe quelle date passée. | — |
+| D27 | Aucune tendance d'équipe intégrée au modèle actif : gains réels mais sous les seuils D9/D19. | Règle de promotion fixée à l'avance. | Réévaluation à chaque cycle hebdomadaire avec plus de données. |

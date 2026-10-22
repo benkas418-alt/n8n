@@ -86,8 +86,30 @@ def parse_score(text: str) -> tuple[OutcomeRecord | None, str | None]:
     return None, f"unparsed score {text!r}"
 
 
+_RANGE = re.compile(r"^# Date\s+\w{3} (\w{3}) (\d{1,2}) (\d{4}) - \w{3} (\w{3}) (\d{1,2}) (\d{4})")
+
+
+def _year_in_range(month: int, day: int, date_range: tuple[date, date] | None,
+                   start_year: int) -> int:
+    """Pick the year that puts the date inside the file's declared date range.
+
+    Files are grouped by stage, not sorted by date, so the order of lines cannot be
+    used. A fixed July cut-off put the August 2020 finals of 2019-20 in August 2019."""
+    if date_range:
+        for year in (date_range[0].year, date_range[1].year):
+            if date_range[0] <= date(year, month, day) <= date_range[1]:
+                return year
+    return start_year if month >= 7 else start_year + 1
+
+
 def parse_txt(text: str, filename: str, start_year: int) -> list[MatchRecord]:
     comp = FILE_TO_COMPETITION[filename]
+    date_range = None
+    for line in text.splitlines()[:10]:
+        rm = _RANGE.match(line)
+        if rm:
+            date_range = (date(int(rm[3]), _MONTHS[rm[1]], int(rm[2])),
+                          date(int(rm[6]), _MONTHS[rm[4]], int(rm[5])))
     records: list[MatchRecord] = []
     stage: str | None = None
     current_date: date | None = None
@@ -98,9 +120,12 @@ def parse_txt(text: str, filename: str, start_year: int) -> list[MatchRecord]:
             continue
         dm = _DATE.match(line)
         if dm:
-            month = _MONTHS[dm[2]]
-            year = int(dm[4]) if dm[4] else (start_year if month >= 7 else start_year + 1)
-            current_date, last_time = date(year, month, int(dm[3])), None
+            month, day = _MONTHS[dm[2]], int(dm[3])
+            if dm[4]:
+                year = int(dm[4])
+            else:
+                year = _year_in_range(month, day, date_range, start_year)
+            current_date, last_time = date(year, month, day), None
             continue
         mm = _MATCH.match(line)
         if not mm or current_date is None:

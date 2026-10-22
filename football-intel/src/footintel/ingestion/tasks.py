@@ -13,7 +13,7 @@ from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
 from footintel.connectors.http import SourceUnavailable
 from footintel.db.models import Match, MatchOutcome, OddsSnapshot, TeamMatchStatistics
 from footintel.db.session import session_scope
-from footintel.ingestion.store import MatchStore
+from footintel.ingestion.store import MatchStore, remove_stale_matches
 from footintel.ingestion.teams import apply_manual_aliases, backfill_team_countries
 from footintel.jobs import RunStats, tracked_run
 
@@ -131,6 +131,10 @@ def import_european(engine: Engine, settings: Settings, first_season: int = 2011
                     store = MatchStore(s, OPENFOOTBALL)
                     for rec in records:
                         store.upsert(rec, stats)
+                    # Only when the file was read completely: never on an empty answer.
+                    if records:
+                        remove_stale_matches(s, source_id, f"{filename}|{y}|",
+                                             {r.external_id for r in records}, stats)
                 log.info("%s %d: %d rows", comp, y, len(records))
     return stats
 
@@ -199,6 +203,15 @@ def check_data_quality(engine: Engine) -> RunStats:
             for match_id in future_results:
                 stats.issue("error", "result_before_kickoff",
                             f"match {match_id} has a result but kicks off in the future", match_id)
+
+            ht_over_ft = s.execute(
+                select(MatchOutcome.match_id).where(
+                    (MatchOutcome.ht_home_goals > MatchOutcome.home_goals)
+                    | (MatchOutcome.ht_away_goals > MatchOutcome.away_goals))
+            ).scalars().all()
+            for match_id in ht_over_ft:
+                stats.issue("error", "ht_exceeds_ft",
+                            f"match {match_id}: half-time score above the 90-minute score", match_id)
 
             # An overround below 1 means the 1X2 prices are inconsistent.
             rows = s.execute(

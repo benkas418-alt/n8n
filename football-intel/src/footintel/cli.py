@@ -207,6 +207,31 @@ def cmd_analyze(args, settings, engine):
     _print({k: str(v) for k, v in rep.paths.items()})
 
 
+def cmd_trends(args, settings, engine):
+    from footintel.reports.trends import trends_report
+
+    if args.action == "run":
+        from footintel.analysis.trend_engine import run_trends
+
+        res = run_trends(engine, _features(engine))
+        print(f"Trend run {res['run_id']}: {len(res['rows'])} rows")
+        print(res["rows"].groupby(["population_type", "status"]).size().to_string())
+    elif args.action == "evaluate":
+        from footintel.analysis.trend_ablation import (compare_variants, run_trend_ablation,
+                                                       store_trend_ablation)
+
+        feats = _features(engine)
+        last = int(feats.loc[feats["home_goals"].notna(), "season"].max()) - 1
+        cmp = compare_variants(run_trend_ablation(feats, list(range(last - 4, last + 1))))
+        print(f"Stored as run {store_trend_ablation(engine, cmp)}")
+        print(cmp[cmp["verdict"] != "no demonstrated effect"].round(4).to_string(index=False))
+    else:
+        rep = trends_report(engine, settings, on=date.fromisoformat(args.date) if args.date else None,
+                            competition=args.competition, team=args.team, category=args.category)
+        print(rep.markdown)
+        _print({k: str(v) for k, v in rep.paths.items()})
+
+
 def cmd_scheduler(args, settings, engine):
     from footintel.scheduler import run_scheduler
 
@@ -290,6 +315,14 @@ def build_parser() -> argparse.ArgumentParser:
                     help="effects are estimated before this season and checked from it on")
     an.add_argument("--skip-levels", action="store_true", help="skip the level study (faster)")
     an.set_defaults(fn=cmd_analyze)
+
+    tr_ = sub.add_parser("trends", help="trend engine: run | evaluate | report")
+    tr_.add_argument("action", choices=["run", "evaluate", "report"])
+    tr_.add_argument("--date", help="report as of this date (YYYY-MM-DD)")
+    tr_.add_argument("--competition", help="e.g. ENG-PL")
+    tr_.add_argument("--team", help="team name as in the database, e.g. 'Man City'")
+    tr_.add_argument("--category", choices=["score", "team", "competition", "tactical"])
+    tr_.set_defaults(fn=cmd_trends)
 
     sub.add_parser("scheduler", help="start the scheduler").set_defaults(fn=cmd_scheduler)
 

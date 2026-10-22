@@ -78,6 +78,8 @@ $F report prematch
 | Réentraînement + validation | `footintel run weekly` |
 | Fiche pré-match | `footintel report fiche --match-id <id>` |
 | Tendances par compétition + apport de chaque niveau | `footintel analyze` (~10 min) |
+| Tendances statistiques (scores, équipes) | `footintel trends run` puis `footintel trends report --competition ENG-PL` (ou `--team`, `--category`, `--date`) |
+| Apport des tendances par marché | `footintel trends evaluate` (~15 min) |
 | État du système | `footintel status` |
 | Revenir au modèle précédent | `footintel models rollback` |
 | Sauvegarde | `footintel db backup` |

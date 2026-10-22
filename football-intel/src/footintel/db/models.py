@@ -554,6 +554,52 @@ class CompetitionProfileMetric(Base):
     computed_at: Mapped[datetime] = _now_col()
 
 
+class Trend(Base):
+    """One trend measured in one analysis run. Insert-only: a run never edits an older row,
+    so the trends known on any past date can be listed exactly."""
+
+    __tablename__ = "trends"
+    __table_args__ = (
+        UniqueConstraint("training_run_id", "trend_key", "window"),
+        Index("ix_trends_lookup", "category", "population_type", "population", "metric"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    training_run_id: Mapped[int] = mapped_column(ForeignKey("training_runs.id"), index=True)
+    trend_key: Mapped[str] = mapped_column(String(250))  # stable identifier across runs
+    category: Mapped[str] = mapped_column(String(30))  # score | team | competition | tactical
+    population_type: Mapped[str] = mapped_column(String(20))  # competition | team
+    population: Mapped[str] = mapped_column(String(200))
+    competition: Mapped[str | None] = mapped_column(String(30))
+    metric: Mapped[str] = mapped_column(String(60))
+    definition: Mapped[str] = mapped_column(Text)
+    window: Mapped[str] = mapped_column(String(10))  # short | medium | long
+    period_start: Mapped[date | None] = mapped_column(Date)
+    period_end: Mapped[date | None] = mapped_column(Date)
+    n: Mapped[int] = mapped_column(Integer)
+    observed: Mapped[float] = mapped_column(Float)
+    # Shrunk toward the reference: what the data supports once sample size is accounted for.
+    smoothed: Mapped[float | None] = mapped_column(Float)
+    reference: Mapped[float | None] = mapped_column(Float)
+    reference_kind: Mapped[str | None] = mapped_column(String(60))
+    abs_diff: Mapped[float | None] = mapped_column(Float)
+    rel_diff: Mapped[float | None] = mapped_column(Float)
+    ci_low: Mapped[float | None] = mapped_column(Float)
+    ci_high: Mapped[float | None] = mapped_column(Float)
+    p_value: Mapped[float | None] = mapped_column(Float)
+    adjusted_p_value: Mapped[float | None] = mapped_column(Float)
+    previous_window_value: Mapped[float | None] = mapped_column(Float)
+    # emerging | rising | stable | falling | disappeared | unconfirmed | insufficient_data
+    status: Mapped[str] = mapped_column(String(20))
+    confidence: Mapped[str] = mapped_column(String(10))  # high | medium | low
+    limitations: Mapped[str | None] = mapped_column(Text)
+    out_of_sample: Mapped[dict | None] = mapped_column(JSON)
+    predictive_contribution: Mapped[dict | None] = mapped_column(JSON)
+    sources: Mapped[list | None] = mapped_column(JSON)
+    coverage: Mapped[float | None] = mapped_column(Float)  # share of matches with the data
+    computed_at: Mapped[datetime] = _now_col()
+
+
 class DetectedPattern(Base):
     __tablename__ = "detected_patterns"
 

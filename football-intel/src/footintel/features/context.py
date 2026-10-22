@@ -77,39 +77,48 @@ def _cumulative_before(events: pd.DataFrame, days: pd.Series, keys: list[str]) -
     return daily.cumsum().shift(1).fillna(0.0), daily.cumsum()
 
 
-def _trends(df: pd.DataFrame) -> pd.DataFrame:
-    """Competition rates over the TREND_DAYS before each match day, shrunk toward the
-    competition's long-run rate (itself shrunk toward all football in the data)."""
-    played = df["home_goals"].notna()
-    hg, ag = df["home_goals"], df["away_goals"]
-    ev = pd.DataFrame({
-        "home": (hg > ag).astype(float), "draw": (hg == ag).astype(float),
-        "goals": hg + ag, "btts": ((hg > 0) & (ag > 0)).astype(float),
-        "over25": ((hg + ag) > 2.5).astype(float), "home_goal_adv": hg - ag,
-    }).where(played, 0.0)
-    ev["n"] = played.astype(float)
-    keys = [c for c in ev.columns if c != "n"]
-
-    g_prev, _ = _cumulative_before(ev, df["kickoff_date"], keys + ["n"])
-    global_rate = {k: (g_prev[k] / g_prev["n"]).where(g_prev["n"] > 0) for k in keys}
-
-    out = pd.DataFrame(index=df.index, columns=TREND_FEATURES, dtype=float)
+def rolling_competition_rates(df: pd.DataFrame, events: dict[str, pd.Series]) -> pd.DataFrame:
+    """For each event (NaN = unknown for that match): competition rate over the TREND_DAYS
+    before each match day, shrunk toward the competition's long-run rate, itself shrunk
+    toward all football in the data. Each event has its own count of known matches."""
+    cols = list(events)
+    vals = pd.DataFrame({k: v.fillna(0.0).astype(float) for k, v in events.items()})
+    cnts = pd.DataFrame({f"{k}__n": v.notna().astype(float) for k, v in events.items()})
+    frame = pd.concat([vals, cnts], axis=1)
+    keys = list(frame.columns)
+    g_prev, _ = _cumulative_before(frame, df["kickoff_date"], keys)
+    global_rate = {k: (g_prev[k] / g_prev[f"{k}__n"]).where(g_prev[f"{k}__n"] > 0) for k in cols}
+    out = pd.DataFrame(index=df.index, columns=cols, dtype=float)
     window = pd.Timedelta(days=TREND_DAYS)
     for _, idx in df.groupby("competition").groups.items():
         days = df.loc[idx, "kickoff_date"]
-        prev, cum = _cumulative_before(ev.loc[idx], days, keys + ["n"])
+        prev, cum = _cumulative_before(frame.loc[idx], days, keys)
         day_index = prev.index.to_numpy()
         # Last day strictly before the window start, for each match day.
         j = np.searchsorted(day_index, day_index - window, side="left") - 1
         start = np.where((j >= 0)[:, None], cum.to_numpy()[np.maximum(j, 0)], 0.0)
         win = pd.DataFrame(prev.to_numpy() - start, index=prev.index, columns=prev.columns)
-        for k, col in zip(keys, TREND_FEATURES, strict=True):
+        for k in cols:
             glob = global_rate[k].reindex(prev.index)
-            long_run = (prev[k] + SHRINK_WEIGHT * glob) / (prev["n"] + SHRINK_WEIGHT)
+            long_run = (prev[k] + SHRINK_WEIGHT * glob) / (prev[f"{k}__n"] + SHRINK_WEIGHT)
             long_run = long_run.fillna(glob)
-            rate = (win[k] + SHRINK_WEIGHT * long_run) / (win["n"] + SHRINK_WEIGHT)
-            out.loc[idx, col] = days.map(rate).to_numpy()
+            rate = (win[k] + SHRINK_WEIGHT * long_run) / (win[f"{k}__n"] + SHRINK_WEIGHT)
+            out.loc[idx, k] = days.map(rate).to_numpy()
     return out
+
+
+def _trends(df: pd.DataFrame) -> pd.DataFrame:
+    hg, ag = df["home_goals"], df["away_goals"]
+    played = hg.notna() & ag.notna()
+    events = {
+        "comp_home_rate": (hg > ag).astype(float).where(played),
+        "comp_draw_rate": (hg == ag).astype(float).where(played),
+        "comp_goals_mean": (hg + ag).where(played),
+        "comp_btts_rate": ((hg > 0) & (ag > 0)).astype(float).where(played),
+        "comp_over25_rate": ((hg + ag) > 2.5).astype(float).where(played),
+        "comp_home_goal_adv": (hg - ag).where(played),
+    }
+    return rolling_competition_rates(df, events)[TREND_FEATURES]
 
 
 def _season_progress(df: pd.DataFrame) -> pd.Series:

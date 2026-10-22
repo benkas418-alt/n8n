@@ -206,3 +206,39 @@ class MatchStore:
                 row.price = odd.price
                 changed = True
         return changed
+
+
+def remove_stale_matches(session: Session, source_id: int, prefix: str,
+                         seen_external_ids: set[str], stats: RunStats) -> int:
+    """Delete matches of one source file that the latest read no longer contains
+    (e.g. a date fixed by a parser correction, which changes the identity key).
+
+    A match that carries a model or user prediction is never deleted: it is
+    reported for a human decision instead."""
+    from sqlalchemy import text
+
+    rows = session.execute(text(
+        "SELECT external_id, match_id FROM match_external_refs "
+        "WHERE source_id = :s AND external_id LIKE :p"),
+        {"s": source_id, "p": prefix + "%"}).all()
+    stale = [(e, m) for e, m in rows if e not in seen_external_ids]
+    removed = 0
+    for external, match_id in stale:
+        protected = session.execute(text(
+            "SELECT (SELECT count(*) FROM predictions WHERE match_id = :m)"
+            " + (SELECT count(*) FROM user_predictions WHERE match_id = :m)"), {"m": match_id}).scalar()
+        if protected:
+            stats.issue("error", "stale_match_with_predictions",
+                        f"{external}: no longer in the source but has predictions; kept", match_id)
+            continue
+        for table in ("match_outcomes", "team_match_statistics", "odds_snapshots", "match_events",
+                      "lineups", "team_match_tactics", "player_match_statistics",
+                      "prediction_evaluations", "match_external_refs"):
+            session.execute(text(f"DELETE FROM {table} WHERE match_id = :m"), {"m": match_id})
+        for table in ("data_quality_issues", "injuries", "suspensions"):
+            session.execute(text(f"UPDATE {table} SET match_id = NULL WHERE match_id = :m"),
+                            {"m": match_id})
+        session.execute(text("DELETE FROM matches WHERE id = :m"), {"m": match_id})
+        stats.issue("warning", "stale_match_removed", f"{external}: removed, not in the latest file")
+        removed += 1
+    return removed

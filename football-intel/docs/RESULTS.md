@@ -1,5 +1,49 @@
 # Résultats du backtest réel
 
+## Run 13 — moteur de tendances statistiques (2026-10-22)
+
+8 076 tendances (compétitions et 78 équipes des compétitions cibles), fenêtres courte /
+moyenne / longue, tests adaptés aux petits échantillons (Fisher, Welch t), Benjamini-Hochberg.
+Commandes : `footintel trends run`, `footintel trends evaluate`, `footintel trends report`.
+
+### Persistance hors échantillon (as-of 1er janvier et 1er août, 2010-2025)
+
+Part d'un écart mesuré qui se retrouve dans la fenêtre suivante (pente, IC 95 %) :
+
+| Indicateur | Compétitions (380 matchs) | Équipes (19 matchs) |
+|---|---|---|
+| Buts par match | +0.52 [+0.46 ; +0.58] | buts marqués +0.35, encaissés +0.37 |
+| Plus de 2,5 buts | +0.45 [+0.39 ; +0.52] | +0.29 [+0.28 ; +0.30] |
+| Tirs / tirs cadrés | — | +0.53 / +0.52 |
+| Points | — | +0.37 [+0.36 ; +0.39] |
+| Résultat moins attente Elo | — | **+0.14** [+0.12 ; +0.15] |
+
+Lecture : les indicateurs de jeu (tirs) persistent plus que les résultats ; une série
+« au-dessus de son niveau Elo » est surtout du bruit. Avec des tests corrects pour 6 et 19
+matchs, aucune tendance d'équipe n'est significative après correction ; 38 signaux émergents
+du calcul précédent (tests trop permissifs, corrigés) sont passés « non confirmés ».
+
+### Apport au modèle actif, par catégorie (2021-22 à 2025-26, 9 168 matchs)
+
+| Catégorie | Effet démontré (IC 95 % sous 0) |
+|---|---|
+| Profil offensif/défensif des équipes | score exact −0.0034, plus/moins 2,5 −0.0013, plus/moins 3,5 −0.0017, BTTS −0.0009, mi-temps 1X2 −0.0011 ; 1X2 coupes −0.0025 |
+| Sur/sous-performance vs Elo | très faible (score exact −0.0011) |
+| État à la mi-temps | score exact −0.0008 ; **dégrade** le 1X2 en championnat (+0.0003) |
+| Profil de scores de la compétition | quasi nul |
+
+Promotion officielle du candidat `routed_competition_scoring` contre l'actif (2023-2025,
+5 465 matchs) : **rejetée**. 1X2 −0.0008 [−0.0013 ; −0.0003] et plus/moins 2,5 −0.0014
+[−0.0024 ; −0.0004] : gains réels mais sous les seuils fixés (0.002). 2026-27 (283 matchs) :
+−0.0014 [−0.0055 ; +0.0025]. Le modèle actif reste `routed_competition` v1.
+
+### Correction de données trouvée pendant ce travail
+
+openfootball : 11 matchs de la C1 2019-20 joués en août 2020 (tournoi de Lisbonne) étaient
+datés d'août 2019. L'année est maintenant déduite de la plage de dates déclarée par le
+fichier ; les 11 lignes fausses ont été supprimées (journalisé) et remplacées.
+
+
 ## Run 8 — tendances par compétition et apport de chaque niveau (2026-10-22)
 
 Base : 187 167 matchs réels (4 championnats cibles, 24 championnats et divisions de

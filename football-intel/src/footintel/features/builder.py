@@ -181,7 +181,9 @@ def build_features(matches: pd.DataFrame, params: elo_mod.EloParams | None = Non
                     st.last_european = day
 
     feats = pd.DataFrame(feature_rows)
-    return add_context(df.merge(feats, on="match_id", how="left"))
+    from footintel.features.trend_features import add_trend_features
+
+    return add_trend_features(add_context(df.merge(feats, on="match_id", how="left")))
 
 
 def result_label(home_goals: float, away_goals: float) -> str | None:

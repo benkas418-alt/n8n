@@ -266,3 +266,62 @@ def test_second_leg_knows_the_first_leg_score_only():
     # Team 2 hosts the second leg and lost the first 2-0: first-leg difference is -2.
     assert out.loc[2, "first_leg_gd"] == -2
     assert out.loc[1, "is_knockout"] == 1 and out.loc[3, "is_knockout"] == 0
+
+
+# --- Trend engine ----------------------------------------------------------------
+
+from footintel.analysis import events as EV  # noqa: E402
+from footintel.analysis.trend_engine import _test as trend_test, classify  # noqa: E402
+from footintel.features.trend_features import team_trend_features  # noqa: E402
+
+
+def test_unknown_data_is_not_zero():
+    d = pd.DataFrame({"home_goals": [1.0, 0.0], "away_goals": [0.0, 0.0],
+                      "ht_home_goals": [np.nan, 0.0], "ht_away_goals": [np.nan, 0.0],
+                      "home_shots": [np.nan, np.nan], "away_shots": [np.nan, np.nan]})
+    ind = {i.name: i for i in EV.MATCH_INDICATORS}
+    assert EV.evaluate(ind["nil_nil"], d).tolist() == [0.0, 1.0]
+    fh = EV.evaluate(ind["first_half_goals"], d)
+    assert np.isnan(fh.iloc[0]) and fh.iloc[1] == 0.0  # unknown half time stays unknown
+    assert EV.evaluate(ind["shots"], d).isna().all()  # not provided: never 0
+
+
+def test_small_windows_do_not_look_significant():
+    rng = np.random.default_rng(0)
+    ref = rng.choice([0.0, 1.0, 3.0], 76, p=[0.37, 0.27, 0.36])
+    assert trend_test("mean", np.zeros(6), ref) > 0.01  # six defeats: not overwhelming evidence
+    assert trend_test("rate", np.ones(6), np.r_[np.ones(30), np.zeros(46)]) > 0.001
+
+
+def test_status_rules():
+    def row(window, diff, p):
+        return {"trend_key": "k", "window": window, "abs_diff": diff, "status": None,
+                "p_value": p, "n": 400}
+    rows = [row("short", 0.1, 1e-6), row("medium", 0.08, 1e-6)]
+    classify(rows, {})
+    assert rows[0]["status"] == "rising"
+    rows = [row("short", 0.1, 1e-6), row("medium", 0.0, 0.9)]
+    classify(rows, {})
+    assert rows[0]["status"] == "emerging"
+    rows = [row("short", 0.0, 0.9), row("medium", 0.0, 0.9)]
+    classify(rows, {"k": "emerging"})
+    assert rows[0]["status"] == "unconfirmed"
+
+
+def test_team_trend_features_use_earlier_matches_only():
+    rng = np.random.default_rng(1)
+    n = 120
+    df = pd.DataFrame({"match_id": range(n), "kickoff_date": pd.date_range("2030-01-01", periods=n, freq="3D"),
+                       "home_team_id": rng.integers(1, 6, n), "competition": "X", "season": 2030,
+                       "competition_type": "league", "elo_home": 1500.0, "elo_away": 1500.0,
+                       "neutral_venue": False, "home_team": "Synthetic FC A", "away_team": "Synthetic FC B"})
+    df["away_team_id"] = (df.home_team_id % 5) + 1
+    for c in ["home_goals", "away_goals", "home_sot", "away_sot"]:
+        df[c] = rng.integers(0, 4, n).astype(float)
+    df["ht_home_goals"], df["ht_away_goals"] = np.minimum(df.home_goals, 1), np.minimum(df.away_goals, 1)
+    a = team_trend_features(df)
+    b = df.copy()
+    b.loc[b.match_id >= 90, ["home_goals", "away_goals"]] = [9.0, 0.0]
+    bb = team_trend_features(b)
+    assert np.allclose(a.iloc[:91].fillna(-1), bb.iloc[:91].fillna(-1))
+    assert a["tt_conversion_38_h"].iloc[0] == pytest.approx(0.30)  # first match gets the prior

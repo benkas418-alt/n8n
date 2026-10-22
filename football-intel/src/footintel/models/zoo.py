@@ -73,13 +73,15 @@ class RoutedCompetitionAware(ProbModel):
 
     family = "routed"
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, trend_groups: tuple[str, ...] = ()):
         from footintel.analysis.ablation import COMPETITION, GOAL_TEAM
+        from footintel.features.trend_features import group_columns
 
-        self.name = name
+        self.name, self.trend_groups = name, tuple(trend_groups)
+        extra = [c for g in trend_groups for c in group_columns(g)]
         self.with_odds = logistic(WITH_MARKET_FEATURES, f"{name}:with_odds")
-        self.without_odds = logistic(COMPETITION, f"{name}:without_odds")
-        self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM)
+        self.without_odds = logistic(COMPETITION + extra, f"{name}:without_odds")
+        self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM + extra)
         self.features = sorted(set(self.with_odds.features) | set(self.without_odds.features)
                                | set(self.goals.features))
 
@@ -98,11 +100,15 @@ class RoutedCompetitionAware(ProbModel):
 
     def params(self) -> dict:
         return {"with_odds": self.with_odds.params(), "without_odds": self.without_odds.params(),
-                "goals": self.goals.params()}
+                "goals": self.goals.params(), "trend_groups": list(self.trend_groups)}
 
 
 MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     "routed_competition": lambda: RoutedCompetitionAware("routed_competition"),
+    # Candidate from the trend study: team scoring profile on goal markets and cup 1X2
+    # (where it showed gains); the odds model is left unchanged.
+    "routed_competition_scoring": lambda: RoutedCompetitionAware(
+        "routed_competition_scoring", ("team_scoring_profile",)),
     "routed_odds_elo": lambda: RoutedByOdds("routed_odds_elo"),
     "logreg_market_goals": lambda: Composite(
         "logreg_market_goals", logistic(WITH_MARKET_FEATURES, "logreg_market"), EloPoisson()),

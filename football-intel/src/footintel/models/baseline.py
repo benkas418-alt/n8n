@@ -69,8 +69,11 @@ class PoissonFeatures(ProbModel):
 
     family = "poisson"
 
-    def __init__(self, name: str, features: list[str], alpha: float = 1e-3):
+    def __init__(self, name: str, features: list[str], alpha: float = 1e-3,
+                 targets: tuple[str, str] = ("home_goals", "away_goals")):
         self.name, self.features, self.alpha = name, list(features), alpha
+        # ("ht_home_goals", "ht_away_goals") gives a first-half goals model.
+        self.targets = targets
 
     def _pipe(self):
         from sklearn.impute import SimpleImputer
@@ -83,9 +86,10 @@ class PoissonFeatures(ProbModel):
                          ("glm", PoissonRegressor(alpha=self.alpha, max_iter=2000))])
 
     def fit(self, train: pd.DataFrame) -> "PoissonFeatures":
+        train = train[train[list(self.targets)].notna().all(axis=1)]
         x = train[self.features]
-        self.home_ = self._pipe().fit(x, train["home_goals"])
-        self.away_ = self._pipe().fit(x, train["away_goals"])
+        self.home_ = self._pipe().fit(x, train[self.targets[0]])
+        self.away_ = self._pipe().fit(x, train[self.targets[1]])
         return self
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -95,7 +99,7 @@ class PoissonFeatures(ProbModel):
         return out[PROB_COLS + GOAL_COLS]
 
     def params(self) -> dict:
-        return {"alpha": self.alpha, "features": self.features}
+        return {"alpha": self.alpha, "features": self.features, "targets": list(self.targets)}
 
 
 class MarketImplied(ProbModel):

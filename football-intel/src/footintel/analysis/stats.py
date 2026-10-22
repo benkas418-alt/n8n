@@ -20,12 +20,16 @@ def wilson(successes: float, n: int, z: float = Z95) -> tuple[float, float]:
 
 
 def mean_ci(values: np.ndarray) -> tuple[float, float]:
+    """Student t interval: correct width for small windows (e.g. 6 matches)."""
+    from scipy.stats import t as student
+
     values = values[~np.isnan(values)]
     if len(values) < 2:
         return float("nan"), float("nan")
     se = values.std(ddof=1) / math.sqrt(len(values))
+    q = float(student.ppf(0.975, len(values) - 1))
     m = values.mean()
-    return m - Z95 * se, m + Z95 * se
+    return m - q * se, m + q * se
 
 
 def residual_test(observed: np.ndarray, expected_p: np.ndarray) -> dict[str, float]:
