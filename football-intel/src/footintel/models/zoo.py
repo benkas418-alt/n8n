@@ -125,8 +125,10 @@ class RoutedCompetitionAware(ProbModel):
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         out = self.without_odds.predict(df)[PROB_COLS].copy()
-        if self.temperature_ != 1.0:
-            z = np.log(out.to_numpy(float).clip(1e-12, 1)) / self.temperature_
+        # Versions saved before calibration existed have no temperature: 1.0 keeps them unchanged.
+        temperature = getattr(self, "temperature_", 1.0)
+        if temperature != 1.0:
+            z = np.log(out.to_numpy(float).clip(1e-12, 1)) / temperature
             z = np.exp(z - z.max(axis=1, keepdims=True))
             out[PROB_COLS] = z / z.sum(axis=1, keepdims=True)
         has_odds = df["mkt_p_home"].notna()
@@ -137,7 +139,7 @@ class RoutedCompetitionAware(ProbModel):
     def params(self) -> dict:
         return {"with_odds": self.with_odds.params(), "without_odds": self.without_odds.params(),
                 "goals": self.goals.params(), "trend_groups": list(self.trend_groups),
-                "temperature_without_odds": self.temperature_}
+                "temperature_without_odds": getattr(self, "temperature_", 1.0)}
 
 
 MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {

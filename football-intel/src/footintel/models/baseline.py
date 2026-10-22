@@ -100,13 +100,15 @@ class PoissonFeatures(ProbModel):
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         x = df[self.features]
-        out = markets_from_lambdas(self.home_.predict(x), self.away_.predict(x), self.rho_)
+        # Versions saved before the Dixon-Coles option have no rho: 0 keeps them unchanged.
+        out = markets_from_lambdas(self.home_.predict(x), self.away_.predict(x),
+                                   getattr(self, "rho_", 0.0))
         out.index = df.index
         return out[PROB_COLS + GOAL_COLS]
 
     def params(self) -> dict:
         return {"alpha": self.alpha, "features": self.features, "targets": list(self.targets),
-                "dixon_coles": self.dixon_coles, "rho": self.rho_}
+                "dixon_coles": getattr(self, "dixon_coles", False), "rho": getattr(self, "rho_", 0.0)}
 
 
 def fit_rho(lam_h: np.ndarray, lam_a: np.ndarray, hg: np.ndarray, ag: np.ndarray) -> float:
