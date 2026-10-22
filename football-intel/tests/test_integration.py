@@ -210,6 +210,12 @@ def test_api_write_needs_the_admin_token(db, settings, monkeypatch):
     r = client.post("/api/user-predictions", json=body,
                     headers={"Authorization": "Bearer test-token"})
     assert r.status_code == 409 and "does not exist" in r.json()["detail"]
+    # The dashboard header works next to a proxy password in Authorization.
+    r = client.post("/api/user-predictions", json=body,
+                    headers={"X-Admin-Token": "test-token", "Authorization": "Basic dXNlcjpwYXNz"})
+    assert r.status_code == 409
+    assert client.post("/api/user-predictions", json=body,
+                       headers={"Authorization": "Basic dGVzdC10b2tlbg=="}).status_code == 401
     assert client.get("/api/status").json()["api_football_configured"] is False
 
 

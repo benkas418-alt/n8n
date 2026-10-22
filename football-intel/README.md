@@ -110,8 +110,8 @@ Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" d
 | Performance | Log loss, Brier, comparaisons appariées, log loss par compétition, courbes de calibration, apport mesuré des niveaux et tendances, historique des versions, résultats réels. |
 
 Les données non collectées (minutes des buts, xG, tactique, compositions) apparaissent comme
-telles, jamais comme zéro. Le serveur écoute sur 127.0.0.1 par défaut : passer par un reverse
-proxy avec TLS pour un accès distant.
+telles, jamais comme zéro. Le serveur écoute sur 127.0.0.1 par défaut : pour un accès distant,
+voir « Accès depuis le téléphone ».
 
 ## Notifications Telegram
 
@@ -121,6 +121,46 @@ proxy avec TLS pour un accès distant.
 3. Dans `.env` du VPS (jamais dans le dépôt) : `TELEGRAM_BOT_TOKEN=...` et `TELEGRAM_CHAT_ID=...`.
 
 Sans ces deux variables, aucun message n'est envoyé ; les rapports restent dans `reports/`.
+
+## Accès depuis le téléphone (HTTPS + mot de passe)
+
+Le tableau de bord écoute seulement sur le VPS (127.0.0.1). Caddy le rend accessible en HTTPS,
+avec un certificat gratuit renouvelé tout seul, et demande un identifiant et un mot de passe
+avant toute page. Testé avec Caddy 2.8.4 : sans mot de passe 401, avec 200 ; les actions
+demandent en plus le jeton ADMIN_TOKEN saisi dans la page.
+
+Prérequis : un nom de domaine qui pointe vers l'adresse IP du VPS (enregistrement DNS « A »).
+Sans domaine, un nom gratuit comme `monfoot.duckdns.org` (duckdns.org) suffit.
+
+Sur le VPS (Debian/Ubuntu), depuis le dossier `/opt/football-intel` :
+
+```bash
+# 1. Le tableau de bord tourne en permanence (redémarre tout seul)
+sudo cp deploy/footintel-api.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now footintel-api
+curl -s http://127.0.0.1:8000/health          # attendu : {"status":"ok",...}
+
+# 2. Installer Caddy (procédure officielle : https://caddyserver.com/docs/install)
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update && sudo apt install -y caddy
+
+# 3. Choisir le mot de passe (il n'est affiché nulle part ; on copie seulement son empreinte)
+caddy hash-password
+
+# 4. Remplir deploy/Caddyfile (domaine, identifiant, empreinte), puis l'activer
+sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+sudo systemctl reload caddy
+
+# 5. Ouvrir les ports web si un pare-feu est actif
+sudo ufw allow 80,443/tcp
+```
+
+Ouvrir ensuite `https://<ton-domaine>/` sur le téléphone : le navigateur demande l'identifiant
+et le mot de passe, puis affiche le tableau de bord. Pour saisir un pronostic ou lancer un
+cycle, coller le jeton ADMIN_TOKEN dans le champ prévu (gardé pour la session seulement).
 
 ## Planification sur le VPS
 

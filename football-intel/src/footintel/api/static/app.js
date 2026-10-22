@@ -89,7 +89,7 @@ async function get(path) {
 function getToken() { try { return sessionStorage.getItem("fi_token") || ""; } catch { return ""; } }
 function setToken(t) { try { sessionStorage.setItem("fi_token", t); } catch { /* storage blocked */ } }
 async function send(method, url, body) {
-  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", "X-Admin-Token": getToken() },
     body: body ? JSON.stringify(body) : undefined });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.detail || `${r.status}`);
