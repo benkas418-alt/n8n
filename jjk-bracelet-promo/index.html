@@ -6,439 +6,547 @@
 <meta name="viewport" content="width=1080">
 <style>
   @font-face { font-family: 'JJK'; src: url('assets/fonts/jjk.ttf') format('truetype'); }
+  @font-face { font-family: 'Poppins'; font-weight: 300; src: url('assets/fonts/Poppins-Light.ttf'); }
+  @font-face { font-family: 'Poppins'; font-weight: 500; src: url('assets/fonts/Poppins-Medium.ttf'); }
+  @font-face { font-family: 'Poppins'; font-weight: 600; src: url('assets/fonts/Poppins-SemiBold.ttf'); }
+  @font-face { font-family: 'Poppins'; font-weight: 700; src: url('assets/fonts/Poppins-Bold.ttf'); }
+  @font-face { font-family: 'Instrument Serif'; font-style: italic; src: url('assets/fonts/InstrumentSerif-Italic.ttf'); }
 
   :root {
-    --ink: #0a0a0b;
-    --paper: #f1efe9;
-    --red: #c8141f;
-    --violet: #6a2c91;
-    --cyan: #49c6ff;
-    --grey: #8d8a85;
+    --ink: #060607;
+    --paper: #f3f1ec;
+    --red: #d3172a;
+    --violet: #8a4dff;
+    --cyan: #58d8ff;
+    --grey: #8e8b86;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #000; overflow: hidden; }
   #stage {
     position: relative; width: 1080px; height: 1920px; overflow: hidden;
-    background: var(--ink); color: var(--paper);
-    font-family: 'Inter', 'Inter Display', sans-serif;
+    background: var(--ink); color: var(--paper); font-family: 'Poppins', sans-serif;
   }
+  #world { position: absolute; inset: 0; }
   .layer { position: absolute; inset: 0; }
   .scene { position: absolute; inset: 0; opacity: 0; }
   .abs { position: absolute; }
-  .center-x { left: 50%; transform: translateX(-50%); }
   img { display: block; }
 
-  /* Manga screen tone, paper grain, vignette: always on top of every scene */
-  #tone {
-    background: repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 2px, transparent 2px 7px);
-    mix-blend-mode: screen; pointer-events: none;
-  }
-  #grain {
-    inset: -200px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
-    opacity: .09; mix-blend-mode: overlay; pointer-events: none;
-  }
-  #vignette { background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.75) 100%); pointer-events: none; }
-  #flash { background: #fff; opacity: 0; pointer-events: none; }
-  .shutter { position: absolute; left: 0; width: 100%; height: 50%; background: #000; z-index: 50; }
-  #shTop { top: 0; transform: translateY(-100%); }
-  #shBot { bottom: 0; transform: translateY(100%); }
-
-  /* Typography */
-  .jjk { font-family: 'JJK', sans-serif; line-height: .9; letter-spacing: .02em; text-transform: uppercase; }
-  .word { display: inline-block; white-space: nowrap; }
-  .kanji { font-family: 'IPAGothic', 'IPAPGothic', sans-serif; font-weight: 700; }
+  /* Type system: JJK for names, Poppins for information, Instrument Serif for the voice */
+  .disp { font-family: 'JJK', sans-serif; text-transform: uppercase; line-height: .86; letter-spacing: .01em; }
+  .lab { font-weight: 500; font-size: 22px; letter-spacing: .38em; text-transform: uppercase; }
+  .serif { font-family: 'Instrument Serif', serif; font-style: italic; letter-spacing: -.01em; }
+  .kanji { font-family: 'IPAGothic', sans-serif; font-weight: 700; }
   .vertical { writing-mode: vertical-rl; text-orientation: upright; }
-  .label { font-weight: 600; font-size: 26px; letter-spacing: .55em; text-transform: uppercase; }
-  .outline { color: transparent; -webkit-text-stroke: 3px currentColor; }
+  .outline { color: transparent; -webkit-text-stroke: 2.5px currentColor; }
+  .line { overflow: hidden; padding: .06em 0; vertical-align: top; }
+  .w { display: inline-block; }
+  .word { display: inline-block; white-space: nowrap; }
   .char { display: inline-block; }
 
-  .panel { position: absolute; overflow: hidden; border: 8px solid var(--paper); background: #000; }
-  .panel img { width: 100%; height: 100%; object-fit: cover; }
-  .bw { filter: grayscale(1) contrast(1.15); }
+  /* Overlays on top of every scene */
+  #tone { background: repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 2px, transparent 2px 7px); pointer-events: none; }
+  #grain {
+    inset: -200px; pointer-events: none; opacity: .08; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  }
+  #vignette { background: radial-gradient(ellipse at 50% 46%, transparent 48%, rgba(0,0,0,.78) 100%); pointer-events: none; }
+  #flash { background: #fff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+  #tint { opacity: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 50% 46%, #b06bff, #3a0b6e 70%); }
+  #fadeOut { background: #000; opacity: 0; }
+
+  #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; opacity: 0; }
+
+  /* Manga page */
+  .panel { position: absolute; overflow: hidden; border: 6px solid var(--paper); background: #000; }
+  .panel img { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; }
+  .manga { filter: grayscale(1) contrast(1.45) brightness(1.04); }
+  .halftone::after {
+    content: ''; position: absolute; inset: 0; mix-blend-mode: multiply; opacity: .35;
+    background: radial-gradient(circle, rgba(0,0,0,.55) 1.1px, transparent 1.6px) 0 0 / 7px 7px;
+  }
   .chip {
-    display: inline-block; border: 3px solid var(--paper); padding: 16px 26px;
-    font-weight: 700; font-size: 26px; letter-spacing: .2em; margin: 8px; text-transform: uppercase;
-  }
-  .speed {
-    inset: -40%;
-    background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.10) 0deg 1.2deg, transparent 1.2deg 7deg);
-    -webkit-mask-image: radial-gradient(circle, transparent 18%, #000 60%);
-    mask-image: radial-gradient(circle, transparent 18%, #000 60%);
-  }
-  .glint {
-    position: absolute; inset: 0;
-    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%);
-    background-size: 300% 100%; background-position: 120% 0;
-    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    display: inline-block; border: 1.5px solid rgba(243,241,236,.55); padding: 14px 24px; border-radius: 100px;
+    font-weight: 500; font-size: 22px; letter-spacing: .22em; text-transform: uppercase; margin: 8px;
   }
   canvas.seq { position: absolute; }
+  canvas.fx { position: absolute; inset: 0; }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute">
+  <!-- Directional blur for whip moves; the timeline animates stdDeviation -->
+  <filter id="mbx" x="-20%" y="-5%" width="140%" height="110%"><feGaussianBlur id="mbxB" stdDeviation="0 0"/></filter>
+  <filter id="mby" x="-5%" y="-20%" width="110%" height="140%"><feGaussianBlur id="mbyB" stdDeviation="0 0"/></filter>
+</svg>
+
 <div id="stage">
-  <!-- ============ S0 — intro (silence before the riff) ============ -->
-  <section class="scene" id="s0">
-    <div class="abs kanji outline" id="s0Kanji" style="font-size:820px;left:0;right:0;top:420px;text-align:center;color:rgba(200,20,31,.45)">呪</div>
-    <div class="abs" id="s0Line" style="left:160px;top:958px;width:760px;height:4px;background:var(--red);transform-origin:left;transform:scaleX(0)"></div>
-    <div class="abs label split" id="s0Top" style="left:0;right:0;top:880px;text-align:center">Cursed Collection</div>
-    <div class="abs label" id="s0Bot" style="left:0;right:0;top:1000px;text-align:center;font-size:22px;color:var(--grey)">Bracelets silicone gravés</div>
+ <div id="world">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+
+  <!-- ============ A — intro ============ -->
+  <section class="scene" id="sA">
+    <div class="abs kanji" id="aKanji" style="font-size:760px;left:0;right:0;top:470px;text-align:center;color:transparent;-webkit-text-stroke:2px rgba(211,23,42,.5)">呪</div>
+    <div class="abs" style="left:0;right:0;top:820px;text-align:center">
+      <div class="lab" id="aLab" style="color:var(--grey)">Cursed Collection · 2026</div>
+      <div class="serif words" id="aSerif" style="font-size:96px;line-height:1.02;margin-top:34px">Deux légendes.<br>Gravées.</div>
+    </div>
+    <div class="abs" id="aLine" style="left:340px;top:1150px;width:400px;height:2px;background:var(--red);transform:scaleX(0)"></div>
   </section>
 
-  <!-- ============ S1 — domain expansion hit ============ -->
-  <section class="scene" id="s1">
-    <img id="s1Hands" class="abs bw" src="assets/img/domain_hands.jpg" style="width:1000px;left:40px;top:300px">
-    <div class="abs" style="left:0;right:0;top:1180px;text-align:center">
-      <div id="s1T1" class="jjk split" style="font-size:150px">Domain</div>
-      <div id="s1T2" class="jjk split" style="font-size:150px">Expansion</div>
-      <div id="s1K" class="kanji" style="font-size:60px;letter-spacing:.4em;color:var(--red);margin-top:30px">領域展開</div>
+  <!-- ============ B — domain expansion ============ -->
+  <section class="scene" id="sB">
+    <img id="bHands" class="abs manga" src="assets/img/domain_hands.jpg" style="width:1080px;left:0;top:250px">
+    <div class="abs" style="left:0;right:0;top:1150px;text-align:center">
+      <div class="disp chars" id="bT1" style="font-size:150px">Domain</div>
+      <div class="disp chars" id="bT2" style="font-size:150px">Expansion</div>
+      <div class="serif" id="bS" style="font-size:54px;margin-top:34px;color:var(--grey)">l'extension du territoire</div>
     </div>
-    <div class="abs" id="s1B" style="left:0;right:0;top:1180px;text-align:center;opacity:0">
-      <div class="jjk" style="font-size:170px">2 bracelets</div>
-      <div class="jjk" style="font-size:170px;color:var(--red)">2 legends</div>
-    </div>
+    <div class="abs kanji vertical chars" id="bK" style="right:64px;top:180px;font-size:64px;color:var(--red)">領域展開</div>
   </section>
 
-  <!-- ============ S2 — Satoru Gojo ============ -->
-  <section class="scene" id="s2">
-    <div class="layer" style="background:radial-gradient(circle at 50% 42%, rgba(106,44,145,.55), transparent 62%)"></div>
-    <div class="abs speed" id="s2Speed" style="opacity:.35"></div>
-
-    <div id="s2a" class="layer">
-      <div class="abs jjk outline" id="s2Name" style="font-size:330px;top:360px;left:-40px;white-space:nowrap;color:var(--violet)">Satoru</div>
-      <canvas class="seq" data-seq="gojo_hands" data-start="G" width="702" height="900" style="height:1360px;left:50%;transform:translateX(-50%);bottom:180px"></canvas>
-      <div class="abs kanji vertical split" id="s2Kanji" style="font-size:120px;right:50px;top:240px;color:var(--paper)">五条悟</div>
-      <div class="abs label" style="left:60px;top:120px;font-size:24px">01 — Modèle Gojo</div>
-    </div>
-
-    <div id="s2b" class="layer" style="opacity:0">
-      <div class="panel" id="s2p1" style="left:40px;top:150px;width:1000px;height:560px"><img class="bw" src="assets/img/gojo_manga.jpg"></div>
-      <div class="panel" id="s2p2" style="left:40px;top:740px;width:560px;height:700px"><img src="assets/img/gojo_hand_up.jpg" style="filter:saturate(.35) contrast(1.1)"></div>
-      <div class="panel" id="s2p3" style="left:630px;top:740px;width:410px;height:1030px"><img src="assets/img/gojo_glasses_up.jpg" style="object-position:30% 50%;filter:saturate(.4) contrast(1.1)"></div>
-      <div class="abs kanji" id="s2pK" style="left:70px;top:1480px;font-size:110px;color:var(--red)">無下限</div>
-      <div class="abs label" id="s2pL" style="left:74px;top:1620px;font-size:22px;color:var(--grey)">Limitless</div>
-    </div>
-
-    <div id="s2c" class="layer" style="opacity:0">
-      <canvas class="seq" data-seq="gojo_walk" data-start="G3" width="702" height="900" style="height:1400px;left:-260px;bottom:0;opacity:.16;filter:grayscale(1)"></canvas>
-      <div class="abs" id="s2Ring" style="width:1000px;left:40px;top:640px">
-        <img src="assets/img/gojo_ring.png" style="width:100%">
-        <div class="glint" id="s2Glint" style="-webkit-mask-image:url(assets/img/gojo_ring.png);mask-image:url(assets/img/gojo_ring.png)"></div>
-      </div>
-      <div class="abs" id="s2Title" style="left:0;right:0;top:1090px;text-align:center">
-        <div class="label" style="color:var(--cyan);font-size:24px">Modèle 01</div>
-        <div class="jjk" style="font-size:140px;margin-top:20px">Satoru Gojo</div>
-        <div style="font-size:30px;color:var(--grey);margin-top:24px;letter-spacing:.12em">Silicone premium · Gravure en creux</div>
-      </div>
-      <div class="abs" id="s2Quote" style="left:70px;right:70px;top:1180px;opacity:0">
-        <div class="label" style="color:var(--red);font-size:22px">Gravure intérieure</div>
-        <div class="type" style="font-family:'Inter Display';font-weight:500;font-size:52px;line-height:1.2;margin-top:28px">“Throughout heaven and earth, I alone am honored.”</div>
-        <div style="font-size:28px;color:var(--grey);margin-top:26px;font-style:italic">Entre le ciel et la terre, je suis le seul à être honoré.</div>
-      </div>
-      <img class="abs" id="s2Strip" src="assets/img/gojo_strip.jpg" style="width:1000px;left:40px;top:960px;opacity:0;border-radius:10px">
+  <!-- ============ C — Toji intro ============ -->
+  <section class="scene" id="sC">
+    <div class="layer" style="background:radial-gradient(circle at 50% 50%, rgba(211,23,42,.22), transparent 65%)"></div>
+    <div class="abs disp outline" id="cBig" style="font-size:470px;top:250px;left:0;white-space:nowrap;color:rgba(211,23,42,.75)">Toji</div>
+    <canvas class="seq" data-seq="toji" data-start="T0" width="720" height="900" id="cClip" style="height:1420px;left:50%;transform:translateX(-46%);bottom:120px"></canvas>
+    <div class="abs kanji vertical chars" id="cK" style="left:58px;top:250px;font-size:96px">禪院甚爾</div>
+    <div class="abs" style="left:70px;right:70px;top:1530px">
+      <div class="lab" id="cLab" style="color:var(--red)">Modèle 01 — Sorcerer killer</div>
+      <div class="serif words" id="cSerif" style="font-size:72px;margin-top:18px">Né sans énergie occulte.</div>
     </div>
   </section>
 
-  <!-- ============ S3 — the sorcerer killer ============ -->
-  <section class="scene" id="s3">
-    <div class="layer" style="background:radial-gradient(circle at 50% 40%, rgba(200,20,31,.28), transparent 60%)"></div>
-    <img class="abs" id="s3Blade" src="assets/img/toji_blade_chain.jpg" style="width:820px;left:130px;top:-60px;transform-origin:50% 0">
-    <div class="abs" style="left:0;right:0;top:1390px;text-align:center">
-      <div class="kanji split" id="s3K" style="font-size:120px;color:var(--red);letter-spacing:.15em">術師殺し</div>
-      <div class="label" id="s3L" style="margin-top:30px">The sorcerer killer</div>
+  <!-- 3D captions (text that sits over the WebGL bracelets) -->
+  <section class="scene" id="sCap">
+    <div class="abs" id="capTop" style="left:70px;right:70px;top:170px;opacity:0">
+      <div class="lab" id="capLab"></div>
+      <div class="serif" id="capSerif" style="font-size:66px;margin-top:16px;line-height:1.05"></div>
     </div>
-    <svg class="layer" viewBox="0 0 1080 1920" style="pointer-events:none">
-      <path id="s3Slash" d="M -80 1500 C 300 1180, 700 820, 1160 420" fill="none" stroke="#c8141f" stroke-width="70" stroke-linecap="round"/>
-    </svg>
-  </section>
-
-  <!-- ============ S4 — Toji Zen'in ============ -->
-  <section class="scene" id="s4">
-    <div class="layer" style="background:radial-gradient(circle at 50% 42%, rgba(120,120,118,.32), transparent 62%)"></div>
-    <div class="abs speed" id="s4Speed" style="opacity:.25"></div>
-
-    <div id="s4a" class="layer">
-      <div class="abs jjk outline" id="s4Name" style="font-size:400px;top:300px;left:60px;white-space:nowrap;color:var(--red)">Toji</div>
-      <canvas class="seq" data-seq="toji" data-start="J" width="720" height="900" style="height:1400px;left:50%;transform:translateX(-46%);bottom:160px"></canvas>
-      <div class="abs kanji vertical split" id="s4Kanji" style="font-size:110px;left:50px;top:260px;color:var(--paper)">禪院甚爾</div>
-      <div class="abs label" style="right:60px;top:120px;font-size:24px;text-align:right">02 — Modèle Toji</div>
-    </div>
-
-    <div id="s4b" class="layer" style="opacity:0">
-      <div class="panel" id="s4p1" style="left:40px;top:140px;width:1000px;height:260px"><img class="bw" src="assets/img/toji_eyes.jpg"></div>
-      <div class="panel" id="s4p2" style="left:40px;top:430px;width:500px;height:1100px"><img class="bw" src="assets/img/toji_manga_roof.jpg" style="object-position:50% 40%"></div>
-      <div class="panel" id="s4p3" style="left:570px;top:430px;width:470px;height:530px"><img src="assets/img/toji_glow.jpg" style="filter:contrast(1.1)"></div>
-      <div class="panel" id="s4p4" style="left:570px;top:990px;width:470px;height:540px"><img src="assets/img/toji_chain_fight.jpg" style="object-position:50% 62%;filter:saturate(.25) contrast(1.15) brightness(.9)"></div>
-      <div class="abs kanji" id="s4pK" style="left:70px;top:1570px;font-size:110px;color:var(--red)">天与呪縛</div>
-      <div class="abs label" id="s4pL" style="left:74px;top:1710px;font-size:22px;color:var(--grey)">Heavenly restriction</div>
-    </div>
-
-    <div id="s4c" class="layer" style="opacity:0">
-      <img class="abs bw" src="assets/img/toji_back.jpg" style="height:1300px;right:-200px;bottom:0;opacity:.10;filter:invert(1) grayscale(1)">
-      <div class="panel" id="s4Panel" style="left:60px;top:470px;width:960px;height:623px;border-color:var(--paper)">
-        <img src="assets/img/toji_panel.jpg" style="filter:brightness(.82) contrast(1.12)">
-        <div class="glint" id="s4Glint" style="mix-blend-mode:soft-light"></div>
-      </div>
-      <div class="abs" id="s4Title" style="left:0;right:0;top:1170px;text-align:center">
-        <div class="label" style="color:var(--red);font-size:24px">Modèle 02</div>
-        <div class="jjk" style="font-size:140px;margin-top:20px">Toji Zen'in</div>
-        <div style="font-size:30px;color:var(--grey);margin-top:24px;letter-spacing:.12em">Silicone premium · Gravure en creux</div>
-      </div>
-      <img class="abs" id="s4StripOut" src="assets/img/toji_strip_out.jpg" style="width:1000px;left:40px;top:930px;opacity:0;border-radius:8px">
-      <img class="abs" id="s4StripIn" src="assets/img/toji_strip_in.jpg" style="width:1000px;left:40px;top:1020px;opacity:0;border-radius:8px">
-      <div class="abs" id="s4Quote" style="left:70px;right:70px;top:1180px;opacity:0">
-        <div class="label" style="color:var(--red);font-size:22px">Gravure intérieure</div>
-        <div class="type" style="font-family:'Inter Display';font-weight:500;font-size:48px;line-height:1.2;margin-top:28px">“A monkey like me, incapable of using occult energy, has just surpassed all the chosen ones.”</div>
-        <div style="font-size:28px;color:var(--grey);margin-top:26px;font-style:italic">Un singe comme moi, incapable d'utiliser l'énergie occulte, vient de surpasser tous les élus.</div>
-      </div>
+    <div class="abs" id="capHero" style="left:0;right:0;top:1340px;text-align:center;opacity:0">
+      <div class="lab" id="heroLab" style="color:var(--grey)"></div>
+      <div class="disp" id="heroName" style="font-size:132px;margin-top:22px"></div>
+      <div class="lab" id="heroSpec" style="margin-top:34px;font-size:18px;color:var(--grey)">Silicone premium · 202 × 12 × 2 mm · Gravure en creux</div>
     </div>
   </section>
 
-  <!-- ============ S5 — the pair ============ -->
-  <section class="scene" id="s5">
-    <div class="layer" id="s5Top" style="background:radial-gradient(circle at 50% 30%, rgba(106,44,145,.6), #0a0a0b 70%);clip-path:polygon(0 0,100% 0,100% 44%,0 56%)"></div>
-    <div class="layer" id="s5Bot" style="background:radial-gradient(circle at 50% 75%, rgba(140,138,133,.35), #0a0a0b 70%);clip-path:polygon(0 56%,100% 44%,100% 100%,0 100%)"></div>
-    <svg class="layer" viewBox="0 0 1080 1920"><line id="s5Line" x1="0" y1="1075" x2="1080" y2="845" stroke="#c8141f" stroke-width="10"/></svg>
-    <div class="abs label" id="s5Head" style="left:0;right:0;top:110px;text-align:center">La collection</div>
-    <img class="abs" id="s5Gojo" src="assets/img/gojo_ring.png" style="width:900px;left:90px;top:240px">
-    <div class="abs jjk" id="s5GojoT" style="left:90px;top:620px;font-size:80px">Gojo</div>
-    <div class="panel" id="s5Toji" style="left:200px;top:1000px;width:800px;height:519px;border-width:6px"><img src="assets/img/toji_panel.jpg" style="filter:brightness(.82) contrast(1.12)"></div>
-    <div class="abs jjk" id="s5TojiT" style="right:90px;top:1540px;font-size:80px;text-align:right">Toji</div>
-    <div class="abs" id="s5Chips" style="left:0;right:0;top:1660px;text-align:center">
+  <!-- ============ D — the fight, as one manga page ============ -->
+  <section class="scene" id="sD">
+    <div class="abs" id="page" style="left:0;top:0;width:1080px;height:2640px;background:#0b0b0b">
+      <div class="panel halftone" id="p1" style="left:40px;top:70px;width:1000px;height:300px"><img class="manga" src="assets/img/toji_eyes.jpg"></div>
+      <div class="panel halftone" id="p2" style="left:40px;top:394px;width:480px;height:900px"><img class="manga" src="assets/img/toji_manga_roof.jpg" style="object-position:50% 40%"></div>
+      <div class="panel halftone" id="p3" style="left:544px;top:394px;width:496px;height:430px"><img class="manga" src="assets/img/gojo_glasses_up.jpg" style="object-position:35% 50%"></div>
+      <div class="panel halftone" id="p4" style="left:544px;top:848px;width:496px;height:446px"><img class="manga" src="assets/img/gojo_manga.jpg" style="object-position:30% 50%"></div>
+      <div class="panel halftone" id="p5" style="left:40px;top:1318px;width:1000px;height:620px"><img class="manga" src="assets/img/gojo_hand_up.jpg" style="object-position:50% 40%"></div>
+      <div class="panel halftone" id="p6" style="left:40px;top:1962px;width:600px;height:640px"><img class="manga" src="assets/img/toji_back.jpg"></div>
+      <div class="panel" id="p7" style="left:664px;top:1962px;width:376px;height:640px"><img class="manga" src="assets/img/toji_blade_chain.jpg" style="object-position:50% 35%"></div>
+    </div>
+    <div class="abs" id="dCap" style="left:70px;right:70px;top:1660px;opacity:0">
+      <div class="lab" style="color:var(--red)">Gojo vs Toji</div>
+      <div class="serif" style="font-size:66px;margin-top:14px">Le combat qui a tout changé.</div>
+    </div>
+  </section>
+
+  <!-- ============ E — Hollow Purple ============ -->
+  <section class="scene" id="sE">
+    <canvas class="fx" id="hp" width="1080" height="1920"></canvas>
+    <div class="abs kanji" id="eRed" style="left:150px;top:600px;font-size:84px;color:#ff4a4a;opacity:0">赫</div>
+    <div class="abs kanji" id="eBlue" style="right:150px;top:600px;font-size:84px;color:#58b8ff;opacity:0">蒼</div>
+    <div class="abs" style="left:0;right:0;top:1380px;text-align:center">
+      <div class="lab" id="eLab" style="color:var(--grey);opacity:0">Technique inversée · 虚式</div>
+      <div class="disp chars" id="eT" style="font-size:150px;margin-top:20px">Hollow Purple</div>
+    </div>
+  </section>
+
+  <!-- ============ F — Gojo intro ============ -->
+  <section class="scene" id="sF">
+    <div class="layer" style="background:radial-gradient(circle at 50% 45%, rgba(138,77,255,.38), transparent 66%)"></div>
+    <div class="abs disp outline" id="fBig" style="font-size:330px;top:300px;left:0;white-space:nowrap;color:rgba(138,77,255,.8)">Satoru</div>
+    <canvas class="seq" data-seq="gojo_hands" data-start="G0" width="702" height="900" id="fClip" style="height:1380px;left:50%;transform:translateX(-50%);bottom:170px"></canvas>
+    <div class="abs kanji vertical chars" id="fK" style="right:58px;top:250px;font-size:110px">五条悟</div>
+    <div class="abs" style="left:70px;right:70px;top:1560px">
+      <div class="lab" id="fLab" style="color:var(--cyan)">Modèle 02 — The strongest</div>
+      <div class="serif words" id="fSerif" style="font-size:72px;margin-top:18px">Seul au sommet.</div>
+    </div>
+  </section>
+
+  <!-- ============ Pair ============ -->
+  <section class="scene" id="sPair">
+    <div class="abs" style="left:0;right:0;top:150px;text-align:center">
+      <div class="lab" id="pairLab" style="color:var(--grey)">La collection</div>
+      <div class="serif" id="pairSerif" style="font-size:80px;margin-top:18px">Deux légendes, liées.</div>
+    </div>
+    <div class="abs" style="left:40px;right:40px;top:1600px;text-align:center" id="chips">
       <span class="chip">Résistant</span><span class="chip">Étanche</span><span class="chip">Durable</span><span class="chip">Confortable</span>
     </div>
   </section>
 
-  <!-- ============ S6 — call to action ============ -->
-  <section class="scene" id="s6">
-    <div class="abs" id="s6Pattern" style="left:-60px;right:-60px;top:0;height:3840px;background:url(assets/img/chibi_pattern.jpg) 0 0/400px auto repeat;filter:invert(1);opacity:.07"></div>
-    <div class="abs" style="left:0;right:0;top:560px;text-align:center">
-      <div class="label" id="s6Pre" style="color:var(--grey);font-size:24px">Bracelets silicone · gravure en creux</div>
-      <div class="jjk" id="s6Brand" style="font-size:150px;margin-top:40px"></div>
-      <div class="abs" id="s6Line" style="left:240px;width:600px;height:4px;background:var(--red);margin-top:40px;transform:scaleX(0)"></div>
-    </div>
-    <div class="abs" id="s6Cta" style="left:0;right:0;top:1060px;text-align:center">
-      <div style="display:inline-block;background:var(--red);padding:30px 56px;font-weight:800;font-size:46px;letter-spacing:.12em" id="s6CtaText"></div>
-      <div id="s6Contact" style="font-size:44px;font-weight:600;margin-top:40px;letter-spacing:.08em"></div>
-      <div id="s6Next" class="label" style="font-size:22px;color:var(--grey);margin-top:80px"></div>
+  <!-- ============ G — call to action ============ -->
+  <section class="scene" id="sG">
+    <div class="abs" style="left:0;right:0;top:1120px;text-align:center">
+      <div class="disp chars" id="gBrand" style="font-size:140px"></div>
+      <div class="serif" id="gTag" style="font-size:60px;margin-top:26px;color:var(--grey)">Porte ta malédiction.</div>
+      <div id="gCta" style="margin-top:70px">
+        <span style="display:inline-block;background:var(--paper);color:#000;padding:26px 52px;border-radius:100px;font-weight:600;font-size:34px;letter-spacing:.06em" id="gCtaText"></span>
+        <div id="gContact" style="font-size:36px;font-weight:500;margin-top:32px;letter-spacing:.08em"></div>
+      </div>
+      <div class="lab" id="gNext" style="font-size:18px;color:var(--grey);margin-top:90px"></div>
     </div>
   </section>
+ </div>
 
+  <div class="layer" id="tint"></div>
   <div class="layer" id="tone"></div>
   <div class="abs" id="grain"></div>
   <div class="layer" id="vignette"></div>
   <div class="layer" id="flash"></div>
-  <div class="shutter" id="shTop"></div>
-  <div class="shutter" id="shBot"></div>
-  <div class="layer" id="fadeOut" style="background:#000;opacity:0"></div>
+  <div class="layer" id="fadeOut"></div>
 </div>
 
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
 <script src="node_modules/gsap/dist/gsap.min.js"></script>
-<script>
+<script type="module">
+import { createStudio } from './bracelet3d.js';
+
 /* ---------- Edit these texts before you render ---------- */
 const CONFIG = {
   brand: 'VOTRE MARQUE',
-  cta: 'COMMANDE SUR WHATSAPP',
+  cta: 'Commande sur WhatsApp',
   contact: '+243 XX XXX XXXX',
   next: "D'autres personnages arrivent",
 };
 
 /* ---------- Beat grid of "Kaikai Kitan" from 0:00 (~123 BPM) ---------- */
 const BEAT = 0.4876, BAR = BEAT * 4;
-const HIT = 2.76;                 // first riff hit
-const G = 5.97;                   // drop: Gojo chapter starts
-const G1 = G + BAR, G2 = G + 2 * BAR, G3 = G + 3 * BAR;
-const X = G + 4 * BAR;            // transition
-const J = X + BAR;                // Toji chapter starts
-const J1 = J + BAR, J2 = J + 2 * BAR, J3 = J + 3 * BAR;
-const D = J + 4 * BAR;            // pair
-const C = D + 2 * BAR;            // call to action
-const END = 32.5;
+const HIT = 2.76;                                   // first riff hit
+const T0 = 5.97, T1 = T0 + BAR, T2 = T0 + 2 * BAR, T3 = T0 + 3 * BAR;   // Toji
+const F0 = T0 + 4 * BAR, F1 = F0 + BAR;             // the fight, then Hollow Purple
+const G0 = F0 + 2 * BAR, G1 = G0 + BAR, G2 = G0 + 2 * BAR, G3 = G0 + 3 * BAR; // Gojo
+const P0 = G0 + 4 * BAR;                            // the pair
+const C0 = P0 + 2 * BAR;                            // call to action
+const END = C0 + 4.6;
 window.DURATION = END;
-const MARKS = { G, G3, J };
-
-document.getElementById('s6Brand').textContent = CONFIG.brand;
-document.getElementById('s6CtaText').textContent = CONFIG.cta;
-document.getElementById('s6Contact').textContent = CONFIG.contact;
-document.getElementById('s6Next').textContent = CONFIG.next;
-
-// Wrap each character so it can animate on its own.
-document.querySelectorAll('.split, .type').forEach((el) => {
-  // Group characters by word so a line never breaks inside a word.
-  el.innerHTML = el.textContent.split(' ')
-    .map((w) => `<span class="word">${[...w].map((c) => `<span class="char">${c}</span>`).join('')}</span>`)
-    .join(' ');
-});
+const MARKS = { T0, G0 };
 
 const $ = (s) => document.querySelector(s);
-const chars = (s) => document.querySelectorAll(`${s} .char`);
-const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+$('#gBrand').textContent = CONFIG.brand;
+$('#gCtaText').textContent = CONFIG.cta;
+$('#gContact').textContent = CONFIG.contact;
+$('#gNext').textContent = CONFIG.next;
 
-function show(id, at, until) {
-  tl.set(id, { opacity: 1 }, at);
-  if (until !== undefined) tl.set(id, { opacity: 0 }, until);
+function splitChars(el) {
+  el.innerHTML = el.textContent.split(' ')
+    .map((w) => `<span class="word">${[...w].map((c) => `<span class="char">${c}</span>`).join('')}</span>`).join(' ');
 }
-function flash(at, amount = 0.35) {
-  tl.fromTo('#flash', { opacity: amount }, { opacity: 0, duration: 0.18, ease: 'power1.out', immediateRender: false }, at);
+// Each word sits in a mask so it can rise into view.
+function splitWords(el) {
+  el.innerHTML = el.innerHTML.split(/(<br>)/).map((part) => part === '<br>' ? part
+    : part.split(' ').filter(Boolean).map((w) => `<span class="line" style="display:inline-block"><span class="w">${w}</span></span>`).join(' ')).join('');
 }
-function shake(at, power = 14) {
+document.querySelectorAll('.chars').forEach(splitChars);
+document.querySelectorAll('.words').forEach(splitWords);
+
+/* ---------- 3D shot state, tweened by the timeline ---------- */
+const ring = () => ({ visible: 0, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 });
+const S3 = {
+  gojo: ring(), toji: ring(),
+  cam: { theta: 0, phi: 0.2, dist: 200, tx: 0, ty: 0, tz: 0, fov: 28, roll: 0 },
+  focus: 0, aperture: 0.00004, floor: 0, rimA: '#ff2a3a', rimB: 0, backdrop: 'rgba(170,20,32,.32)',
+};
+// Feature positions around the band, in mm from the start of the artwork.
+const turn = (mm) => -(mm / 202) * Math.PI * 2;          // brings an outer feature to the camera
+const turnIn = (mm) => -(1 - mm / 202) * Math.PI * 2;    // same for the inside quote
+const R_OUT = 202 / (2 * Math.PI) + 1;
+const R_IN = R_OUT - 2;
+
+const tl = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } });
+
+/* ---------- Motion helpers ---------- */
+const chars = (s) => document.querySelectorAll(`${s} .char`);
+function show(sel, at, until) {
+  tl.set(sel, { opacity: 1 }, at);
+  if (until !== undefined) tl.set(sel, { opacity: 0 }, until);
+}
+function charsIn(sel, at, { dur = 0.9, stagger = 0.028, y = 60 } = {}) {
+  tl.fromTo(chars(sel), { opacity: 0, yPercent: y, filter: 'blur(14px)' },
+    { opacity: 1, yPercent: 0, filter: 'blur(0px)', duration: dur, stagger, ease: 'expo.out', immediateRender: false }, at);
+}
+function charsOut(sel, at, { dur = 0.45, stagger = 0.012 } = {}) {
+  tl.to(chars(sel), { opacity: 0, yPercent: -40, filter: 'blur(10px)', duration: dur, stagger, ease: 'power3.in' }, at);
+}
+function wordsIn(sel, at, { dur = 1.0, stagger = 0.07 } = {}) {
+  tl.fromTo(`${sel} .w`, { yPercent: 105, opacity: 0, rotate: 4 },
+    { yPercent: 0, opacity: 1, rotate: 0, duration: dur, stagger, ease: 'expo.out', immediateRender: false }, at);
+}
+function fadeUp(sel, at, dur = 0.8) {
+  tl.fromTo(sel, { opacity: 0, y: 26, filter: 'blur(8px)' },
+    { opacity: 1, y: 0, filter: 'blur(0px)', duration: dur, ease: 'expo.out', immediateRender: false }, at);
+}
+function fadeOut(sel, at, dur = 0.35) {
+  tl.to(sel, { opacity: 0, y: -18, filter: 'blur(8px)', duration: dur, ease: 'power2.in' }, at);
+}
+function flash(at, amount = 0.3, dur = 0.35) {
+  tl.fromTo('#flash', { opacity: amount }, { opacity: 0, duration: dur, ease: 'power2.out', immediateRender: false }, at);
+}
+// Beat pulse: a short push-in of the whole picture, the "edit" feel.
+function pulse(at, amount = 0.035) {
+  tl.fromTo('#world', { scale: 1 + amount }, { scale: 1, duration: BEAT * 0.9, ease: 'power3.out', immediateRender: false }, at);
+}
+function shake(at, power = 12) {
   tl.to('#stage', { keyframes: [
-    { x: power, y: -power * .6, duration: .03 }, { x: -power * .8, y: power * .5, duration: .03 },
-    { x: power * .4, y: -power * .3, duration: .03 }, { x: 0, y: 0, duration: .04 },
+    { x: power, y: -power * .5, duration: .025 }, { x: -power * .7, y: power * .4, duration: .025 },
+    { x: power * .35, y: -power * .2, duration: .025 }, { x: 0, y: 0, duration: .04 },
   ], ease: 'none' }, at);
 }
-function shutterClose(at, dur = 0.3) {
-  tl.to('#shTop', { yPercent: 0, duration: dur, ease: 'power4.in' }, at);
-  tl.to('#shBot', { yPercent: 0, duration: dur, ease: 'power4.in' }, at);
+// Whip transition: the outgoing scene leaves with horizontal motion blur, the next arrives.
+function whip(outSel, inSel, at, dir = 1, dur = 0.42) {
+  const h = dur / 2;
+  tl.to(outSel, { x: -dir * 520, duration: h, ease: 'power3.in' }, at - h);
+  tl.set(outSel, { opacity: 0, x: 0 }, at);
+  tl.set('#world', { filter: 'url(#mbx)' }, at - h);
+  tl.fromTo('#mbxB', { attr: { stdDeviation: '0 0' } }, { attr: { stdDeviation: '70 0' }, duration: h, ease: 'power3.in', immediateRender: false }, at - h);
+  tl.fromTo(inSel, { x: dir * 520 }, { x: 0, duration: h * 1.6, ease: 'expo.out', immediateRender: false }, at);
+  tl.to('#mbxB', { attr: { stdDeviation: '0 0' }, duration: h * 1.4, ease: 'expo.out' }, at);
+  tl.set('#world', { filter: 'none' }, at + h * 1.4);
 }
-function shutterOpen(at, dur = 0.35) {
-  tl.to('#shTop', { yPercent: -100, duration: dur, ease: 'expo.out' }, at);
-  tl.to('#shBot', { yPercent: 100, duration: dur, ease: 'expo.out' }, at);
-}
-function slam(sel, at) {
-  tl.fromTo(sel, { clipPath: 'inset(0 100% 0 0)', scale: 1.08 },
-    { clipPath: 'inset(0 0% 0 0)', scale: 1, duration: .32, ease: 'expo.out', immediateRender: false }, at);
-  tl.fromTo(`${sel} img`, { scale: 1.35 }, { scale: 1.08, duration: BAR, ease: 'power2.out', immediateRender: false }, at);
-}
-function typeOn(sel, at, dur) {
-  const c = chars(sel);
-  tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: .01, stagger: dur / c.length, ease: 'none', immediateRender: false }, at);
+// Vertical blur that settles: used when the camera jumps inside the band.
+function dropIn(at) {
+  tl.set('#gl', { filter: 'url(#mby)' }, at);
+  tl.fromTo('#mbyB', { attr: { stdDeviation: '0 50' } }, { attr: { stdDeviation: '0 0' }, duration: 0.45, ease: 'expo.out', immediateRender: false }, at);
+  tl.set('#gl', { filter: 'none' }, at + 0.45);
 }
 
-gsap.set('#shTop', { yPercent: -100 });
-gsap.set('#shBot', { yPercent: 100 });
-gsap.set('.type .char, .split .char', { opacity: 0 });
-// Panels stay hidden until their own beat.
-gsap.set('#s2b .panel, #s4b .panel', { clipPath: 'inset(0 100% 0 0)' });
+gsap.set('.char', { opacity: 0 });
+gsap.set('.words .w', { opacity: 0 });
+gsap.set('#sD .panel', { clipPath: 'inset(0 0 100% 0)' });
 
-/* S0 — intro */
-show('#s0', 0, HIT);
-tl.fromTo('#s0Kanji', { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: HIT, ease: 'power2.out' }, 0);
-tl.to('#s0Line', { scaleX: 1, duration: 1.1, ease: 'expo.inOut' }, .3);
-tl.fromTo(chars('#s0Top'), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .3, stagger: .05 }, .7);
-tl.fromTo('#s0Bot', { opacity: 0 }, { opacity: 1, duration: .6 }, 1.5);
-tl.to('#s0', { keyframes: [{ x: 18, duration: .04 }, { x: -12, duration: .04 }, { x: 0, duration: .04 }], ease: 'none' }, HIT - .3);
+/* ================= A — intro (0 → HIT) ================= */
+show('#sA', 0, HIT);
+tl.fromTo('#aKanji', { opacity: 0, scale: 1.18, filter: 'blur(20px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: HIT, ease: 'power2.out' }, 0);
+fadeUp('#aLab', 0.35);
+wordsIn('#aSerif', 0.7, { stagger: 0.16 });
+tl.to('#aLine', { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, 1.2);
+tl.to('#sA', { scale: 2.6, filter: 'blur(18px)', duration: 0.35, ease: 'power3.in' }, HIT - 0.35);
 
-/* S1 — domain expansion */
-show('#s1', HIT, G);
-flash(HIT, .5); shake(HIT, 20);
-tl.fromTo('#s1Hands', { scale: 1.3, opacity: 0 }, { scale: 1.05, opacity: 1, duration: G - HIT, ease: 'power2.out' }, HIT);
-tl.fromTo(chars('#s1T1'), { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: .35, stagger: .03 }, HIT + .05);
-tl.fromTo(chars('#s1T2'), { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: .35, stagger: .03 }, HIT + .25);
-tl.fromTo('#s1K', { opacity: 0, letterSpacing: '1em' }, { opacity: 1, letterSpacing: '.4em', duration: .8 }, HIT + .5);
-tl.to(['#s1T1', '#s1T2', '#s1K'], { opacity: 0, y: -40, duration: .2, ease: 'power2.in' }, 4.55);
-tl.fromTo('#s1B', { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: .3, ease: 'expo.out' }, 4.71);
-flash(4.71, .2);
-shutterClose(G - .3, .3);
+/* ================= B — domain expansion (HIT → T0) ================= */
+show('#sB', HIT, T0);
+flash(HIT, 0.45); shake(HIT, 18); pulse(HIT, 0.06);
+tl.fromTo('#bHands', { scale: 1.55, filter: 'blur(16px)' }, { scale: 1.0, filter: 'blur(0px)', duration: 1.2, ease: 'expo.out' }, HIT);
+tl.to('#bHands', { scale: 1.08, duration: T0 - HIT - 1.8, ease: 'none' }, HIT + 1.2);
+charsIn('#bT1', HIT + 0.1);
+charsIn('#bT2', HIT + 0.25);
+charsIn('#bK', HIT + 0.4, { stagger: 0.08 });
+fadeUp('#bS', HIT + 0.8);
+pulse(4.71, 0.03);
+// Into the gap between the hands.
+tl.to('#bHands', { scale: 5, y: 260, filter: 'blur(10px)', duration: 0.6, ease: 'power4.in' }, T0 - 0.6);
+charsOut('#bT1', T0 - 0.75); charsOut('#bT2', T0 - 0.7);
+fadeOut(['#bS', '#bK'], T0 - 0.6);
 
-/* S2 — Gojo */
-show('#s2', G, X);
-shutterOpen(G);
-flash(G, .45); shake(G, 22);
-tl.fromTo('#s2Speed', { rotate: 0 }, { rotate: 25, duration: X - G, ease: 'none' }, G);
-tl.fromTo('#s2Name', { x: 120 }, { x: -220, duration: BAR, ease: 'none' }, G);
-tl.fromTo(chars('#s2Kanji'), { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: .3, stagger: BEAT / 2 }, G + .2);
+/* ================= C — Toji (T0 → F0) ================= */
+show('#sC', T0);
+flash(T0, 0.5, 0.5); shake(T0, 22); pulse(T0, 0.07);
+tl.fromTo('#cBig', { x: 160 }, { x: -260, duration: BAR, ease: 'none' }, T0);
+tl.fromTo('#cClip', { scale: 1.12 }, { scale: 1, duration: BAR, ease: 'power2.out' }, T0);
+charsIn('#cK', T0 + 0.2, { stagger: 0.1 });
+fadeUp('#cLab', T0 + 0.35);
+wordsIn('#cSerif', T0 + 0.5);
+[1, 2, 3].forEach((b) => pulse(T0 + b * BEAT, 0.018));
 
-tl.set('#s2a', { opacity: 0 }, G1);
-show('#s2b', G1, G2);
-slam('#s2p1', G1); slam('#s2p2', G1 + BEAT); slam('#s2p3', G1 + 2 * BEAT);
-[G1, G1 + BEAT, G1 + 2 * BEAT].forEach((t) => shake(t, 8));
-tl.fromTo('#s2pK', { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: .3 }, G1 + 3 * BEAT);
-tl.fromTo('#s2pL', { opacity: 0 }, { opacity: 1, duration: .3 }, G1 + 3 * BEAT + .1);
+// 3D: the camera skims the outside engraving.
+show('#sCap', T1, F0);
+whip('#sC', '#gl', T1, 1);
+tl.set('#gl', { opacity: 1 }, T1);
+tl.set('#gl', { opacity: 0 }, F0);
+tl.set(S3.toji, { visible: 1, x: 0, y: 0, z: 0, rx: 0, ry: turn(20), rz: 0 }, T1);
+tl.set(S3.gojo, { visible: 0 }, T1);
+tl.set(S3.cam, { theta: 1.05, phi: 0.2, dist: 64, tx: 0, ty: 0, tz: R_OUT, fov: 24, roll: -0.24 }, T1);
+tl.set(S3, { aperture: 0.0011, floor: 0, rimA: '#ff2a3a', rimB: 600, backdrop: 'rgba(170,20,32,.30)' }, T1);
+tl.to(S3.toji, { ry: turn(104), duration: BAR + 0.2, ease: 'sine.inOut' }, T1);
+tl.to(S3.cam, { theta: 0.8, phi: 0.1, dist: 56, roll: -0.12, duration: BAR, ease: 'sine.inOut' }, T1);
+tl.set('#capLab', { textContent: 'Gravure en creux' }, T1);
+tl.set('#capSerif', { textContent: 'Chaque lettre, sculptée.' }, T1);
+fadeUp('#capTop', T1 + 0.25);
 
-show('#s2c', G2, X);
-flash(G2, .3);
-tl.fromTo('#s2Ring', { scale: .55, rotate: -10, y: 260, opacity: 0 }, { scale: 1, rotate: 0, y: 0, opacity: 1, duration: .7, ease: 'expo.out' }, G2);
-tl.to('#s2Ring', { y: -18, duration: BAR, ease: 'sine.inOut', yoyo: true, repeat: 1 }, G2 + .7);
-tl.to('#s2Glint', { backgroundPosition: '-20% 0', duration: 1, ease: 'power2.inOut' }, G2 + .5);
-tl.fromTo('#s2Title', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: .5 }, G2 + .3);
-tl.to('#s2Title', { opacity: 0, y: -30, duration: .25, ease: 'power2.in' }, G3 - .2);
-tl.to('#s2Ring', { scale: .78, y: -330, duration: .5, ease: 'expo.inOut' }, G3 - .15);
-tl.fromTo('#s2Strip', { opacity: 0, x: 700 }, { opacity: 1, x: 0, duration: .5, ease: 'expo.out' }, G3);
-tl.set('#s2Quote', { opacity: 1 }, G3 + .2);
-typeOn('#s2Quote .type', G3 + .25, 1.2);
-shutterClose(X - .18, .18);
+// 3D: inside the band, along the quote.
+flash(T2, 0.18, 0.3); dropIn(T2);
+tl.set(S3.cam, { theta: Math.PI + 0.85, phi: 0.05, dist: 40, tx: 0, ty: 0, tz: R_IN, fov: 30, roll: 0 }, T2);
+tl.set(S3, { aperture: 0.0009 }, T2);
+tl.set(S3.toji, { ry: turnIn(58) }, T2);
+tl.to(S3.toji, { ry: turnIn(126), duration: BAR, ease: 'sine.inOut' }, T2);
+tl.fromTo(S3.cam, { phi: 0.3 }, { phi: 0.05, duration: 0.6, ease: 'expo.out', immediateRender: false }, T2);
+fadeOut('#capTop', T2 - 0.3, 0.3);
+tl.set('#capLab', { textContent: 'Gravure intérieure' }, T2);
+tl.set('#capSerif', { textContent: '« Un singe comme moi a surpassé tous les élus. »' }, T2);
+fadeUp('#capTop', T2 + 0.2);
 
-/* S3 — the sorcerer killer */
-show('#s3', X, J);
-shutterOpen(X, .25);
-flash(X, .4); shake(X, 24);
-const slashLen = $('#s3Slash').getTotalLength();
-gsap.set('#s3Slash', { strokeDasharray: slashLen, strokeDashoffset: slashLen });
-tl.to('#s3Slash', { strokeDashoffset: 0, duration: .22, ease: 'power4.out' }, X);
-tl.to('#s3Slash', { opacity: 0, duration: .3 }, X + .45);
-tl.fromTo('#s3Blade', { y: -1300, rotate: 0 }, { y: 0, duration: .55, ease: 'power3.in' }, X + .15);
-tl.to('#s3Blade', { keyframes: [{ rotate: 7, duration: .35 }, { rotate: -4, duration: .4 }, { rotate: 1.5, duration: .4 }], ease: 'sine.inOut' }, X + .7);
-tl.fromTo(chars('#s3K'), { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: .25, stagger: BEAT / 4, ease: 'expo.out' }, X + .7);
-tl.fromTo('#s3L', { opacity: 0, letterSpacing: '1em' }, { opacity: 1, letterSpacing: '.55em', duration: .7 }, X + 1.0);
-shutterClose(J - .25, .25);
+// 3D: hero turntable.
+flash(T3, 0.16, 0.3);
+tl.set(S3.cam, { theta: 0, phi: 0.36, dist: 300, tx: 0, ty: -2, tz: 0, fov: 28, roll: 0 }, T3);
+tl.set(S3, { aperture: 0.00004, floor: 1 }, T3);
+tl.set(S3.toji, { rx: 0.08, ry: turn(70) }, T3);
+tl.fromTo(S3.cam, { dist: 170, phi: 0.12 }, { dist: 300, phi: 0.36, duration: 0.9, ease: 'expo.out', immediateRender: false }, T3);
+tl.to(S3.toji, { ry: turn(98), duration: BAR, ease: 'none' }, T3);
+fadeOut('#capTop', T3 - 0.3, 0.3);
+tl.set('#heroLab', { textContent: 'Modèle 01' }, T3);
+tl.set('#heroName', { textContent: "Toji Zen'in" }, T3);
+tl.set('#capHero', { opacity: 1 }, T3);
+fadeUp('#heroLab', T3 + 0.15);
+fadeUp('#heroName', T3 + 0.25, 0.9);
+fadeUp('#heroSpec', T3 + 0.45);
+fadeOut('#capHero', F0 - 0.25, 0.25);
 
-/* S4 — Toji */
-show('#s4', J, D);
-shutterOpen(J);
-flash(J, .35); shake(J, 22);
-tl.fromTo('#s4Speed', { rotate: 0 }, { rotate: -25, duration: D - J, ease: 'none' }, J);
-tl.fromTo('#s4Name', { x: -160 }, { x: 120, duration: BAR, ease: 'none' }, J);
-tl.fromTo(chars('#s4Kanji'), { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: .3, stagger: BEAT / 2 }, J + .2);
+/* ================= D — the fight (F0 → F1) ================= */
+show('#sD', F0, F1 + 0.5);
+flash(F0, 0.35); shake(F0, 16); pulse(F0, 0.05);
+tl.fromTo('#page', { y: 0, scale: 1.04 }, { y: -720, scale: 1, duration: BAR + 0.5, ease: 'sine.inOut' }, F0);
+['#p1', '#p2', '#p3', '#p4', '#p5', '#p6', '#p7'].forEach((p, i) => {
+  const at = F0 + i * BEAT * 0.5;
+  tl.fromTo(p, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.5, ease: 'expo.out', immediateRender: false }, at);
+  tl.fromTo(`${p} img`, { scale: 1.35 }, { scale: 1.06, duration: 1.6, ease: 'power3.out', immediateRender: false }, at);
+});
+[1, 2, 3].forEach((b) => pulse(F0 + b * BEAT, 0.02));
+fadeUp('#dCap', F0 + 0.6);
+fadeOut('#dCap', F1 - 0.1, 0.2);
 
-tl.set('#s4a', { opacity: 0 }, J1);
-show('#s4b', J1, J2);
-slam('#s4p1', J1); slam('#s4p2', J1 + BEAT); slam('#s4p3', J1 + 2 * BEAT); slam('#s4p4', J1 + 3 * BEAT);
-[J1, J1 + BEAT, J1 + 2 * BEAT, J1 + 3 * BEAT].forEach((t) => shake(t, 8));
-tl.fromTo('#s4pK', { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: .25 }, J1 + 3 * BEAT + .15);
-tl.fromTo('#s4pL', { opacity: 0 }, { opacity: 1, duration: .25 }, J1 + 3 * BEAT + .25);
+/* ================= E — Hollow Purple (F1 → G0) ================= */
+const HP = { t: 0 };
+show('#sE', F1, G0 + 0.4);
+tl.to('#sD', { filter: 'blur(12px)', scale: 1.15, duration: 0.5, ease: 'power3.in' }, F1 - 0.1);
+tl.fromTo(HP, { t: 0 }, { t: 1, duration: G0 - F1, ease: 'none', immediateRender: false }, F1);
+tl.fromTo('#eRed', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, immediateRender: false }, F1 + 0.1);
+tl.fromTo('#eBlue', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, immediateRender: false }, F1 + BEAT + 0.1);
+tl.to(['#eRed', '#eBlue'], { opacity: 0, duration: 0.3 }, F1 + 3 * BEAT);
+tl.fromTo('#eLab', { opacity: 0 }, { opacity: 1, duration: 0.6, immediateRender: false }, F1 + 0.3);
+charsIn('#eT', G0 - 0.45, { stagger: 0.02, dur: 0.6 });
+tl.fromTo('#tint', { opacity: 0 }, { opacity: 1, duration: 0.12, ease: 'power2.in', immediateRender: false }, G0 - 0.12);
+tl.to('#tint', { opacity: 0, duration: 0.9, ease: 'power2.out' }, G0);
+shake(G0, 26); pulse(G0, 0.08);
+tl.to('#sE', { opacity: 0, duration: 0.35 }, G0 + 0.05);
 
-show('#s4c', J2, D);
-flash(J2, .25);
-tl.fromTo('#s4Panel', { clipPath: 'inset(50% 0 50% 0)', rotate: -6, scale: .9 }, { clipPath: 'inset(0% 0 0% 0)', rotate: -2, scale: 1, duration: .6, ease: 'expo.out' }, J2);
-tl.fromTo('#s4Glint', { backgroundPosition: '120% 0' }, { backgroundPosition: '-20% 0', duration: 1, ease: 'power2.inOut' }, J2 + .5);
-tl.fromTo('#s4Title', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: .5 }, J2 + .3);
-tl.to('#s4Title', { opacity: 0, y: -30, duration: .25, ease: 'power2.in' }, J3 - .2);
-tl.to('#s4Panel', { scale: .72, y: -330, rotate: 0, duration: .5, ease: 'expo.inOut' }, J3 - .15);
-tl.fromTo('#s4StripOut', { opacity: 0, x: -700 }, { opacity: 1, x: 0, duration: .45, ease: 'expo.out' }, J3);
-tl.fromTo('#s4StripIn', { opacity: 0, x: 700 }, { opacity: 1, x: 0, duration: .45, ease: 'expo.out' }, J3 + BEAT / 2);
-tl.set('#s4Quote', { opacity: 1 }, J3 + .3);
-typeOn('#s4Quote .type', J3 + .3, 1.0);
-shutterClose(D - .25, .25);
+/* ================= F — Gojo (G0 → P0) ================= */
+show('#sF', G0);
+tl.fromTo('#fBig', { x: -120 }, { x: -520, duration: BAR, ease: 'none' }, G0);
+tl.fromTo('#fClip', { scale: 1.1 }, { scale: 1, duration: BAR, ease: 'power2.out' }, G0);
+charsIn('#fK', G0 + 0.25, { stagger: 0.1 });
+fadeUp('#fLab', G0 + 0.4);
+wordsIn('#fSerif', G0 + 0.55);
+[1, 2, 3].forEach((b) => pulse(G0 + b * BEAT, 0.018));
 
-/* S5 — the pair */
-show('#s5', D, C);
-shutterOpen(D);
-flash(D, .3); shake(D, 16);
-tl.fromTo('#s5Top', { xPercent: -100 }, { xPercent: 0, duration: .5, ease: 'expo.out' }, D);
-tl.fromTo('#s5Bot', { xPercent: 100 }, { xPercent: 0, duration: .5, ease: 'expo.out' }, D);
-tl.fromTo('#s5Line', { attr: { x2: 0, y2: 1075 } }, { attr: { x2: 1080, y2: 845 }, duration: .4, ease: 'expo.out' }, D + .15);
-tl.fromTo('#s5Head', { opacity: 0, letterSpacing: '1.2em' }, { opacity: 1, letterSpacing: '.55em', duration: .6 }, D + .1);
-tl.fromTo('#s5Gojo', { x: -500, opacity: 0, rotate: -6 }, { x: 0, opacity: 1, rotate: 0, duration: .6, ease: 'expo.out' }, D + .2);
-tl.fromTo('#s5Toji', { x: 500, opacity: 0, rotate: 4 }, { x: 0, opacity: 1, rotate: -2, duration: .6, ease: 'expo.out' }, D + BEAT);
-tl.fromTo('#s5GojoT', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .3 }, D + .5);
-tl.fromTo('#s5TojiT', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .3 }, D + BEAT + .3);
-tl.to('#s5Gojo', { y: -14, duration: BAR, ease: 'sine.inOut', yoyo: true, repeat: 1 }, D + .8);
-tl.fromTo('#s5Chips .chip', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .25, stagger: BEAT / 2, ease: 'back.out(2)' }, D + 2 * BEAT);
-shutterClose(C - .25, .25);
+show('#sCap', G1, P0);
+whip('#sF', '#gl', G1, -1);
+tl.set('#gl', { opacity: 1 }, G1);
+tl.set(S3.toji, { visible: 0 }, G1);
+tl.set(S3.gojo, { visible: 1, x: 0, y: 0, z: 0, rx: 0, ry: turn(18), rz: 0 }, G1);
+tl.set(S3.cam, { theta: -1.05, phi: 0.2, dist: 64, tx: 0, ty: 0, tz: R_OUT, fov: 24, roll: 0.24 }, G1);
+tl.set(S3, { aperture: 0.0011, floor: 0, rimA: '#8a4dff', rimB: 0, backdrop: 'rgba(106,44,170,.5)' }, G1);
+tl.to(S3.gojo, { ry: turn(150), duration: BAR + 0.2, ease: 'sine.inOut' }, G1);
+tl.to(S3.cam, { theta: -0.8, phi: 0.1, dist: 56, roll: 0.12, duration: BAR, ease: 'sine.inOut' }, G1);
+tl.set('#capHero', { opacity: 0 }, G1);
+tl.set('#capLab', { textContent: 'Détails néon' }, G1);
+tl.set('#capSerif', { textContent: 'Le signe, le nom, le sceau.' }, G1);
+fadeUp('#capTop', G1 + 0.25);
 
-/* S6 — call to action */
-show('#s6', C, END);
-shutterOpen(C);
-flash(C, .25);
-tl.fromTo('#s6Pattern', { y: 0 }, { y: -500, duration: END - C, ease: 'none' }, C);
-tl.fromTo('#s6Pre', { opacity: 0 }, { opacity: 1, duration: .5 }, C + .2);
-tl.fromTo('#s6Brand', { opacity: 0, scale: 1.3 }, { opacity: 1, scale: 1, duration: .45, ease: 'expo.out' }, C + .35);
-tl.to('#s6Line', { scaleX: 1, duration: .8, ease: 'expo.inOut' }, C + .6);
-tl.fromTo('#s6Cta', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: .5 }, C + 1.1);
-tl.fromTo('#s6Next', { opacity: 0 }, { opacity: 1, duration: .6 }, C + 1.8);
-tl.to('#fadeOut', { opacity: 1, duration: .8, ease: 'power1.in' }, END - .8);
+flash(G2, 0.18, 0.3); dropIn(G2);
+tl.set(S3.cam, { theta: Math.PI + 0.85, phi: 0.05, dist: 40, tx: 0, ty: 0, tz: R_IN, fov: 30, roll: 0 }, G2);
+tl.set(S3, { aperture: 0.0009 }, G2);
+tl.set(S3.gojo, { ry: turnIn(62) }, G2);
+tl.to(S3.gojo, { ry: turnIn(122), duration: BAR, ease: 'sine.inOut' }, G2);
+tl.fromTo(S3.cam, { phi: -0.3 }, { phi: 0.05, duration: 0.6, ease: 'expo.out', immediateRender: false }, G2);
+fadeOut('#capTop', G2 - 0.3, 0.3);
+tl.set('#capLab', { textContent: 'Gravure intérieure' }, G2);
+tl.set('#capSerif', { textContent: '« Entre le ciel et la terre, je suis le seul à être honoré. »' }, G2);
+fadeUp('#capTop', G2 + 0.2);
+
+flash(G3, 0.16, 0.3);
+tl.set(S3.cam, { theta: 0, phi: 0.36, dist: 300, tx: 0, ty: -2, tz: 0, fov: 28, roll: 0 }, G3);
+tl.set(S3, { aperture: 0.00004, floor: 1 }, G3);
+tl.set(S3.gojo, { rx: 0.08, ry: turn(70) }, G3);
+tl.fromTo(S3.cam, { dist: 170, phi: 0.12 }, { dist: 300, phi: 0.36, duration: 0.9, ease: 'expo.out', immediateRender: false }, G3);
+tl.to(S3.gojo, { ry: turn(98), duration: BAR, ease: 'none' }, G3);
+fadeOut('#capTop', G3 - 0.3, 0.3);
+tl.set('#heroLab', { textContent: 'Modèle 02' }, G3);
+tl.set('#heroName', { textContent: 'Satoru Gojo' }, G3);
+tl.set('#capHero', { opacity: 1 }, G3);
+fadeUp('#heroLab', G3 + 0.15);
+fadeUp('#heroName', G3 + 0.25, 0.9);
+fadeUp('#heroSpec', G3 + 0.45);
+fadeOut('#capHero', P0 - 0.25, 0.25);
+
+/* ================= Pair — two linked rings (P0 → C0), then CTA ================= */
+show('#sPair', P0, C0);
+flash(P0, 0.3); shake(P0, 14); pulse(P0, 0.05);
+tl.set(S3.gojo, { visible: 1, x: -16, y: 0, z: 0, rx: 0, ry: turn(84) + 0.9, rz: 0 }, P0);
+tl.set(S3.toji, { visible: 1, x: 16, y: 0, z: 0, rx: Math.PI / 2, ry: 0, rz: 0.4 }, P0);
+tl.set(S3, { aperture: 0.00005, floor: 0, rimA: '#8a4dff', rimB: 900, backdrop: 'rgba(120,40,150,.42)' }, P0);
+tl.fromTo(S3.cam, { theta: 0.9, phi: 0.5, dist: 220, tx: 0, ty: 0, tz: 0, fov: 30, roll: 0 },
+  { theta: -0.35, phi: 0.28, dist: 330, duration: C0 - P0 + 0.6, ease: 'sine.inOut', immediateRender: false }, P0);
+tl.to(S3.toji, { rz: 0.15, duration: C0 - P0, ease: 'sine.inOut' }, P0);
+fadeUp('#pairLab', P0 + 0.15);
+fadeUp('#pairSerif', P0 + 0.3, 1);
+tl.fromTo('#chips .chip', { opacity: 0, y: 30, filter: 'blur(8px)' },
+  { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, stagger: BEAT / 2, ease: 'expo.out', immediateRender: false }, P0 + 2 * BEAT);
+[1, 2, 3, 4, 5, 6, 7].forEach((b) => pulse(P0 + b * BEAT, b % 2 ? 0.012 : 0.022));
+fadeOut(['#chips', '#pairLab', '#pairSerif'], C0 - 0.3, 0.3);
+
+show('#sG', C0, END);
+tl.to(S3.cam, { ty: -48, dist: 400, theta: -0.6, duration: 1.4, ease: 'expo.inOut' }, C0 - 0.3);
+tl.to(S3.cam, { theta: -1.1, duration: END - C0 - 1.1, ease: 'none' }, C0 + 1.1);
+charsIn('#gBrand', C0 + 0.3, { stagger: 0.035 });
+fadeUp('#gTag', C0 + 0.7, 1);
+fadeUp('#gCta', C0 + 1.2, 1);
+fadeUp('#gNext', C0 + 1.9, 1);
+tl.to('#fadeOut', { opacity: 1, duration: 0.9, ease: 'power1.in' }, END - 0.9);
 tl.set({}, {}, END);
 
-/* ---------- Frame sequences (keyed green-screen clips) ---------- */
-const SEQ_FRAMES = { toji: 57, gojo_hands: 61, gojo_walk: 61, gojo_punch: 60 };
+/* ---------- Hollow Purple, drawn per frame ---------- */
+const hp = $('#hp').getContext('2d');
+function orb(x, y, r, inner, outer, glow, t, seed) {
+  const g = hp.createRadialGradient(x, y, 0, x, y, r * 3.2);
+  g.addColorStop(0, inner); g.addColorStop(0.18, outer); g.addColorStop(1, 'rgba(0,0,0,0)');
+  hp.fillStyle = g;
+  hp.beginPath(); hp.arc(x, y, r * 3.2, 0, Math.PI * 2); hp.fill();
+  // Swirling energy strands.
+  hp.save(); hp.translate(x, y); hp.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 14; i++) {
+    const a = seed * 7 + i * 0.45 + t * (3 + (i % 4));
+    const rr = r * (1.1 + ((i * 37) % 10) / 9);
+    hp.strokeStyle = glow; hp.globalAlpha = 0.18 + (i % 3) * 0.08; hp.lineWidth = 1.5 + (i % 3);
+    hp.beginPath(); hp.ellipse(0, 0, rr, rr * 0.42, a, a * 0.7, a * 0.7 + 2.2); hp.stroke();
+  }
+  hp.restore(); hp.globalAlpha = 1;
+}
+const mergeEase = gsap.parseEase('power3.in');
+function drawHollowPurple() {
+  const t = HP.t;
+  hp.clearRect(0, 0, 1080, 1920);
+  if (t <= 0 || t >= 1) return;
+  const cx = 540, cy = 860;
+  const spread = 330 * (1 - mergeEase(Math.min(1, t / 0.86)));
+  const spin = t * 6;
+  if (t < 0.88) {
+    orb(cx - spread * Math.cos(spin * 0.2), cy - spread * 0.25 * Math.sin(spin * 0.3), 70 * Math.min(1, t * 5),
+      '#fff2f2', 'rgba(255,40,50,.95)', '#ff5a5a', t, 1);
+    if (t > 0.25) {
+      orb(cx + spread * Math.cos(spin * 0.2), cy + spread * 0.25 * Math.sin(spin * 0.3), 70 * Math.min(1, (t - 0.25) * 5),
+        '#f2f8ff', 'rgba(40,140,255,.95)', '#5ab8ff', t, 2);
+    }
+  } else {
+    const k = (t - 0.88) / 0.12;
+    orb(cx, cy, 90 + 520 * k * k, '#ffffff', 'rgba(150,70,255,.95)', '#c08bff', t, 3);
+  }
+}
+
+/* ---------- Frame sequences (keyed clips) ---------- */
+const SEQ_FRAMES = { toji: 57, gojo_hands: 61 };
 const bitmaps = {};
 async function loadSeq(name) {
-  const n = SEQ_FRAMES[name];
   const frames = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < SEQ_FRAMES[name]; i++) {
     const src = `assets/seq/${name}/${String(i + 1).padStart(3, '0')}.webp`;
-    // Retry: a burst of parallel requests can drop a file on a local server.
+    // Retry: a burst of requests can drop a file on a local server.
     for (let attempt = 0; ; attempt++) {
       const img = new Image();
       img.src = attempt ? `${src}?r=${attempt}` : src;
@@ -452,33 +560,35 @@ async function loadSeq(name) {
 function drawSeqs(t) {
   document.querySelectorAll('canvas.seq').forEach((cv) => {
     const frames = bitmaps[cv.dataset.seq];
-    if (!frames) return;
-    const local = t - MARKS[cv.dataset.start];
-    const i = Math.max(0, Math.min(frames.length - 1, Math.floor(local * 30)));
+    const i = Math.max(0, Math.min(frames.length - 1, Math.floor((t - MARKS[cv.dataset.start]) * 30)));
     const ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.drawImage(frames[i], 0, 0, cv.width, cv.height);
   });
 }
 
+let studio;
 function seek(t) {
   tl.seek(t, false);
   drawSeqs(t);
-  // Film grain moves every frame.
+  drawHollowPurple();
+  if (parseFloat($('#gl').style.opacity || '0') > 0) studio.render(S3);
   const f = Math.floor(t * 30);
   $('#grain').style.transform = `translate(${(f * 73) % 160 - 80}px, ${(f * 131) % 160 - 80}px)`;
 }
 
 window.__ready = (async () => {
-  const used = [...new Set([...document.querySelectorAll('canvas.seq')].map((c) => c.dataset.seq))];
-  await Promise.all([document.fonts.ready, ...used.map(loadSeq),
+  await Promise.all([
+    document.fonts.load('100px JJK'), document.fonts.load('500 20px Poppins'), document.fonts.load('300 20px Poppins'),
+    document.fonts.load('600 20px Poppins'), document.fonts.load('italic 40px "Instrument Serif"'),
+  ]);
+  await Promise.all([...Object.keys(SEQ_FRAMES).map(loadSeq),
     ...[...document.images].map((im) => im.decode().catch(() => {}))]);
-  await document.fonts.load('100px JJK');
+  studio = await createStudio($('#gl'), { width: 1080, height: 1920 });
   seek(0);
 })();
 window.__seek = seek;
 
-// Live preview when the page is opened in a browser (not while rendering).
 if (!navigator.webdriver) {
   window.__ready.then(() => {
     const t0 = performance.now();

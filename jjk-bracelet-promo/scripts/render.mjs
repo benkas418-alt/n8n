@@ -1,5 +1,5 @@
 // Render index.html frame by frame and encode it to MP4 with the music.
-// Usage: node scripts/render.mjs [--fps 30] [--from 0] [--to <seconds>] [--out out/promo.mp4] [--music <file>] [--stills 1,6.5,...]
+// Usage: node scripts/render.mjs [--fps 60] [--from 0] [--to <seconds>] [--out out/promo.mp4] [--music <file>] [--stills 1,6.5,...]
 import { spawn } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
@@ -12,7 +12,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) =>
   if (a.startsWith('--')) acc.push([a.slice(2), all[i + 1]]);
   return acc;
 }, []));
-const fps = Number(args.fps ?? 30);
+const fps = Number(args.fps ?? 60);
 const out = path.resolve(root, args.out ?? 'out/promo.mp4');
 const music = args.music ? path.resolve(args.music) : null;
 const chrome = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
@@ -31,7 +31,11 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.once('listening', r));
 const url = `http://127.0.0.1:${server.address().port}/index.html`;
 
-const browser = await chromium.launch({ executablePath: chrome });
+// SwiftShader gives WebGL in a container without a GPU.
+const browser = await chromium.launch({
+  executablePath: chrome,
+  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
+});
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
 page.on('pageerror', (e) => console.error('page error:', e.message));
 await page.goto(url);
