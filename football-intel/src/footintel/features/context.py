@@ -123,20 +123,19 @@ def _trends(df: pd.DataFrame) -> pd.DataFrame:
 
 def _season_progress(df: pd.DataFrame) -> pd.Series:
     """Share of the league season already played by the home team (0 at kick-off of round 1)."""
-    progress = pd.Series(np.nan, index=df.index)
     leagues = df[df["competition_type"] == "league"]
-    for _, idx in leagues.groupby(["competition", "season"]).groups.items():
-        sub = df.loc[idx].sort_values(["kickoff_date", "match_id"])
-        n_teams = len(set(sub["home_team_id"]) | set(sub["away_team_id"]))
-        rounds = max(2 * (n_teams - 1), 1)
-        counts: dict[int, int] = {}
-        for day, g in sub.groupby("kickoff_date", sort=True):
-            for i, r in g.iterrows():
-                progress.at[i] = counts.get(r.home_team_id, 0) / rounds
-            for r in g.itertuples():
-                for t in (r.home_team_id, r.away_team_id):
-                    counts[t] = counts.get(t, 0) + 1
-    return progress.clip(upper=1.0)
+    keys = ["competition", "season"]
+    sides = pd.concat([
+        leagues[keys + ["kickoff_date", "match_id"]].assign(team=leagues["home_team_id"], home=True),
+        leagues[keys + ["kickoff_date", "match_id"]].assign(team=leagues["away_team_id"], home=False),
+    ]).rename_axis("row").reset_index().sort_values(["kickoff_date", "match_id"], kind="stable")
+    # Games already played on strictly earlier days: same-day games share the lowest count.
+    sides["played"] = sides.groupby(keys + ["team"]).cumcount()
+    sides["played"] = sides.groupby(keys + ["team", "kickoff_date"])["played"].transform("min")
+    n_teams = sides.groupby(keys)["team"].transform("nunique")
+    sides["progress"] = sides["played"] / (2 * (n_teams - 1)).clip(lower=1)
+    home = sides[sides["home"]].set_index("row")["progress"]
+    return home.reindex(df.index).clip(upper=1.0)
 
 
 def add_context(df: pd.DataFrame) -> pd.DataFrame:
