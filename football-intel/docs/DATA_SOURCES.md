@@ -33,7 +33,8 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Élément | Constat (2026-10-22) |
 |---|---|
 | Accès | `https://api.openligadb.de/getmatchdata/{ligue}/{saison}`. Sans clé, sans compte. Limite publiée : 60 requêtes par minute et par IP. |
-| Licence | Open Database License selon un site tiers ; **non confirmée sur le site officiel**. À vérifier avant toute publication des données. |
+| Licence | **ODbL 1.0, confirmée sur le site officiel** (`openligadb.de/lizenz`, 2026-10-22) : usage, copie, modification et diffusion permis, y compris commercial, avec trois conditions : citer « Daten von OpenLigaDB (www.openligadb.de), lizenziert unter ODbL 1.0 » ; redistribuer une base dérivée sous la même licence (un affichage ou un rapport n'en est pas une) ; pas de verrou technique. Noms de clubs, logos et images liées ne sont pas couverts : le système ne les utilise pas. |
+| Usage équitable | `openligadb.de/nutzungsbedingungen` : peu de requêtes par jour hors matchs, départ décalé au hasard, cache local, attente croissante sur 429 et 5xx. Appliqué : 1 requête par compétition, 2 fois par jour (8 au total), départ décalé de 0 à 90 s, réponse brute gardée dans `data/raw/openligadb/`. |
 | Ligues utilisées (2026) | `ucl` (C1), `uel2026` (C3), `uecl2026` (C4), `dfb` (DFB-Pokal). Choisies à la main : `ucl2026` est une copie vide de la C1. À revoir à chaque saison (`catalog.OPENLIGADB_LEAGUES`). |
 | Couverture réelle | 444 matchs : C1 144 (53 résultats retenus), C3 144 (35), C4 108 (17), DFB-Pokal 48 (32). Heures en UTC, score à la mi-temps, prolongation, tirs au but, liste des buts. |
 | Qualité | Saisie par des bénévoles. Chaque résultat est comparé à la liste des buts (score après le dernier but, ou nombre de buts quand les minutes manquent). 3 résultats contradictoires écartés sur 137, par exemple AZ Alkmaar–Hapoel Beer-Sheva saisi 0-0 avec trois buts. Un match écarté reste « programmé » jusqu'à correction. |

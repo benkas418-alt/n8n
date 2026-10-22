@@ -142,8 +142,16 @@ def import_european(engine: Engine, settings: Settings, first_season: int = 2011
 
 
 def import_openligadb(engine: Engine, settings: Settings, seasons: list[int] | None = None,
-                      connector: OpenLigaDB | None = None) -> RunStats:
-    """Current-season UEFA cups and DFB-Pokal from OpenLigaDB (fixtures and results)."""
+                      connector: OpenLigaDB | None = None, jitter_seconds: float = 0.0) -> RunStats:
+    """Current-season UEFA cups and DFB-Pokal from OpenLigaDB (fixtures and results).
+
+    Fair use (openligadb.de/nutzungsbedingungen): one full request per league, twice a
+    day, started at a random second, with backoff on 429 and 5xx (HttpClient)."""
+    if jitter_seconds:
+        import random
+        import time
+
+        time.sleep(random.uniform(0, jitter_seconds))
     current = season_start_for(date.today())
     seasons = seasons or [current]
     connector = connector or OpenLigaDB(settings)

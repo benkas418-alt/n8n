@@ -46,7 +46,8 @@ def morning(engine: Engine, settings: Settings) -> dict:
     results: dict = {}
     _step("sync_fixtures", lambda: tasks.sync_fixtures(engine, settings), results)
     # Current-season UEFA cups and DFB-Pokal: no other authorised free source has them.
-    _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings), results)
+    _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings, jitter_seconds=90),
+          results)
     _step("predict", lambda: predict_upcoming(engine, settings), results)
     _step("prematch_report", lambda: prematch_report(engine, settings).paths, results)
     if isinstance(results.get("prematch_report"), dict):
@@ -61,7 +62,8 @@ def evening(engine: Engine, settings: Settings) -> dict:
     results: dict = {}
     current = season_start_for(date.today())
     _step("sync_results", lambda: tasks.sync_results(engine, settings), results)
-    _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings), results)
+    _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings, jitter_seconds=90),
+          results)
     # Foreign clubs' domestic form, used to rate opponents in European cups.
     _step("sync_context_leagues",
           lambda: tasks.import_context_leagues(engine, settings, current - 1, current), results)
