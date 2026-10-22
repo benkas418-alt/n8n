@@ -1,6 +1,6 @@
 # Suivi d'avancement
 
-Dernière mise à jour : 2026-10-22 (moteur de tendances statistiques). Fichier à mettre à jour à la fin de chaque phase,
+Dernière mise à jour : 2026-10-22 (tableau de bord). Fichier à mettre à jour à la fin de chaque phase,
 pour reprendre le travail après une interruption.
 
 ## État par phase
@@ -16,9 +16,9 @@ pour reprendre le travail après une interruption.
 | 6 ML avancé | 🟡 | RF, XGBoost, modèle aiguillé cotes/Elo (actif), backtest walk-forward, comparaisons appariées. **Manquent** : calibration explicite (isotonique/Platt), Optuna, MLflow, Dixon-Coles, ensemble. |
 | 7 Boucle post-match | 🟡 | Évaluation, registre, promotion, rollback, cycle hebdomadaire. Moteur de tendances par compétition et moteur de tendances statistiques (scores, équipes, fenêtres courte/moyenne/longue, statuts, persistance hors échantillon, apport par catégorie et par marché). **Manquent** : détection de dérive, analyse des erreurs du modèle en direct (pas encore de prédictions réelles évaluées). |
 | 8 Contribution humaine | 🟡 | Saisie CLI/API horodatée et figée, évaluation en justesse. **Manque** : modèle hybride (stacking temporel) et évaluation de l'apport du choix humain. |
-| 9 Dashboard | ❌ | Non commencé. API HTTP prête (`/api/status`, `/api/matches/upcoming`, `/api/matches/{id}/predictions`, `/api/metrics/backtest`, `POST /api/user-predictions`). |
+| 9 Dashboard | 🟡 | 5 espaces (vue générale, compétitions, équipes, pré-match, performance) sur `/dashboard/`, vérifiés dans Chromium en 1366 et 390 px. **Manquent** : saisie des pronostics personnels dans l'interface (API prête), page administration, filtre par période infra-saison. |
 | 10 Automatisation et rapports | 🟡 | Planificateur, rapports pré/post-match MD/HTML/CSV, unité systemd. **Manquent** : rapport hebdomadaire, notification Telegram, PDF. |
-| 11 Validation finale | 🟡 | 45 tests passent (38 hors ligne, 7 contre les vraies sources). |
+| 11 Validation finale | 🟡 | 46 tests passent (39 hors ligne, 7 contre les vraies sources). |
 
 ## Critères d'acceptation
 

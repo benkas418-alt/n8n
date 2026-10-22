@@ -16,6 +16,22 @@ from footintel.predictions.service import PredictionRefused, submit_user_predict
 
 app = FastAPI(title="footintel", version="0.1.0")
 
+from pathlib import Path  # noqa: E402
+
+from fastapi.responses import RedirectResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+from footintel.api.dashboard import router as dashboard_router  # noqa: E402
+
+app.include_router(dashboard_router)
+app.mount("/dashboard", StaticFiles(directory=Path(__file__).parent / "static", html=True),
+          name="dashboard")
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse("/dashboard/")
+
 
 def require_admin(authorization: str = Header(default="")) -> None:
     expected = get_settings().admin_token

@@ -308,3 +308,29 @@ def test_trend_run_and_report(db, settings):
     rep = trends_report(db, settings, category="team")
     assert "[Fait]" in rep.markdown and "Non collecté" in rep.markdown
     assert "Changements tactiques documentés" in rep.markdown
+
+
+def test_dashboard_endpoints(db, settings, monkeypatch):
+    from footintel.api import app as api_module
+    from footintel.api import dashboard
+
+    _load_synthetic_history(db, settings, seasons=(2019, 2020, 2021))
+    monkeypatch.setattr(dashboard, "get_engine", lambda: db)
+    client = TestClient(api_module.app)
+    assert client.get("/dashboard/").status_code == 200
+    ov = client.get("/api/dash/overview").json()
+    assert ov["counts"]["matches"] == 270 and "not_collected" in ov
+    comp = client.get("/api/dash/competition/ENG-PL").json()
+    assert comp["available"] and sum(s["n"] for s in comp["seasons"]) == 270
+    assert all(0 <= s["over_2_5_ci"][0] <= s["over_2_5"] <= s["over_2_5_ci"][1] <= 1 for s in comp["seasons"])
+    assert "goals_by_period" in comp["unavailable"]  # shown as missing, never as zero
+    assert client.get("/api/dash/competition/ENG-FAC").json()["available"] is False
+    cell = client.get("/api/dash/matches", params={"competition": "ENG-PL", "home_goals": 1, "away_goals": 1}).json()
+    assert all(r["home_goals"] == 1 and r["away_goals"] == 1 for r in cell)
+    team_id = client.get("/api/dash/teams", params={"competition": "ENG-PL"}).json()[0]["id"]
+    team = client.get(f"/api/dash/team/{team_id}").json()
+    assert team["series"] and team["tactics_available"] is False
+    match = client.get(f"/api/dash/match/{cell[0]['id']}").json() if cell else None
+    if match:
+        assert match["prediction"] is None and len(match["sheets"]) == 2
+    assert "versions" in client.get("/api/dash/performance").json()

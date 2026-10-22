@@ -88,6 +88,22 @@ $F report prematch
 
 Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" data/backups/<fichier>.dump`.
 
+## Tableau de bord
+
+`footintel serve` puis ouvrir http://127.0.0.1:8000/ (redirige vers `/dashboard/`).
+
+| Espace | Question à laquelle il répond |
+|---|---|
+| Vue générale | Qu'est-ce qui change, qu'est-ce qui est confirmé, que vaut le modèle, que manque-t-il ? |
+| Compétitions | Évolution par saison avec intervalle de confiance, saison récente contre référence, matrice des scores (cliquable → matchs), distribution des buts, mi-temps, indicateurs de jeu, tendances et particularités. |
+| Équipes | Production offensive et défensive sur 6 matchs contre la référence de l'équipe, tirs, tendances significatives, derniers matchs. |
+| Analyse pré-match | Probabilités 1X2 contre le marché, scores classés par probabilité, facteurs, fiabilité, fiches des deux équipes. |
+| Performance | Log loss, Brier, comparaisons appariées, log loss par compétition, courbes de calibration, apport mesuré des niveaux et tendances, historique des versions, résultats réels. |
+
+Les données non collectées (minutes des buts, xG, tactique, compositions) apparaissent comme
+telles, jamais comme zéro. Le serveur écoute sur 127.0.0.1 par défaut : passer par un reverse
+proxy avec TLS pour un accès distant.
+
 ## Planification sur le VPS
 
 Le fichier [deploy/footintel-scheduler.service](deploy/footintel-scheduler.service) lance

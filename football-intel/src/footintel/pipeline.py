@@ -88,6 +88,14 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         from footintel.reports.competitions import competition_report
 
         analysis = run_analysis(engine, feats, current - 5, current - 1)
+        # Trends and calibration feed the dashboard.
+        from footintel.analysis.trend_engine import run_trends
+        from footintel.evaluation.calibration import store_calibration
+
+        results["trends_run"] = run_trends(engine, feats)["run_id"]
+        results["calibration_run"] = store_calibration(
+            engine, feats, [model_name, "market_implied", "naive_frequency"],
+            list(range(current - 5, current)))
         results["analysis"] = {"run_id": analysis["run_id"],
                                "report": str(competition_report(engine, settings,
                                                                 analysis["run_id"]).paths["md"])}

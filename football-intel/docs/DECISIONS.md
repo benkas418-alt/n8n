@@ -29,3 +29,5 @@
 | D25 | Tests petits échantillons : Fisher exact (taux, n < 30), Welch t avec variance plancher égale à celle de la référence (moyennes, n < 30). | L'approximation normale donnait p = 0 pour 6 défaites. | — |
 | D26 | Tendances en ajout seulement, avec statut relatif au calcul précédent (« non confirmée »). | Lisibles à n'importe quelle date passée. | — |
 | D27 | Aucune tendance d'équipe intégrée au modèle actif : gains réels mais sous les seuils D9/D19. | Règle de promotion fixée à l'avance. | Réévaluation à chaque cycle hebdomadaire avec plus de données. |
+| D28 | Tableau de bord servi par FastAPI : API en lecture seule `/api/dash/*` et interface HTML/JS sans étape de compilation, Chart.js 4.4.1 figé. | Rien à installer ni à compiler sur le VPS ; chaque chiffre vient d'une requête sur les tables existantes. | Besoin de comptes utilisateurs ou d'édition riche : passer à React + TypeScript. |
+| D29 | Calibration stockée (tranches de probabilité par modèle, marché et périmètre) au lieu d'être recalculée à l'affichage. | Le backtest prend plusieurs minutes ; la page doit répondre en moins d'une seconde. | — |
