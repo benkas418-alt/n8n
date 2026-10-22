@@ -1,0 +1,12 @@
+{
+  "name": "jjk-bracelet-promo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "node scripts/render.mjs"
+  },
+  "dependencies": {
+    "gsap": "3.12.5",
+    "playwright-core": "1.56.1"
+  }
+}
