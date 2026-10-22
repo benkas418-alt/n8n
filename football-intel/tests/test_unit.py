@@ -139,3 +139,82 @@ def test_secrets_are_masked_in_logs(raw):
     masked = mask_secrets(raw)
     assert "abc123" not in masked and "ABCDEFGHIJKLMNOPQRSTUVWX" not in masked
     assert "hunter2" not in masked
+
+
+# --- European cups (synthetic text in the real openfootball format) -------------
+
+from footintel.connectors.football_data_uk import parse_new_csv  # noqa: E402
+from footintel.connectors.openfootball import parse_score, parse_txt  # noqa: E402
+from footintel.ingestion.teams import normalize, similarity  # noqa: E402
+
+OPENFOOTBALL_SAMPLE = """= UEFA Champions League 2030/31
+
+▪ League, Matchday 1
+  Tue Sep 16 2030
+    18:45  Synthetic FC A (ENG)    v Synthetic FC B (ESP)     2-1 (1-0)
+           Synthetic FC C (ITA)    v Synthetic FC D (GER)     0-0
+▪ Finals, Round of 16
+  Wed Mar 11
+    21:00  Synthetic FC A (ENG)    v Synthetic FC D (GER)     4-2 pen. 1-1 a.e.t. (1-1, 0-1)
+           Synthetic FC B (ESP)    v Synthetic FC C (ITA)     3-0    [awarded]
+▪ Final
+  Sat May 30
+    21:00  Synthetic FC A (ENG)    v Synthetic FC C (ITA)     1-0 (0-0)
+"""
+
+
+def test_openfootball_parser_reads_cup_specifics():
+    recs = parse_txt(OPENFOOTBALL_SAMPLE, "cl.txt", 2030)
+    assert len(recs) == 5
+    first, ko, awarded, final = recs[0], recs[2], recs[3], recs[4]
+    assert first.competition_code == "UEFA-CL" and first.kickoff_date.year == 2030
+    assert first.kickoff_utc.hour == 16  # 18:45 CEST
+    assert recs[1].outcome.ht_home_goals == 0  # 0-0 has no half-time score written
+    # Year is inferred: March belongs to the second calendar year of the season.
+    assert ko.kickoff_date.year == 2031 and ko.round == "Finals, Round of 16"
+    assert (ko.outcome.home_goals, ko.outcome.away_goals, ko.outcome.result) == (1, 1, "D")
+    assert (ko.outcome.pen_home, ko.outcome.pen_away) == (4, 2)
+    assert awarded.outcome is None and awarded.status == "cancelled"
+    assert final.neutral and not first.neutral
+
+
+def test_openfootball_score_without_half_time_after_extra_time():
+    out, problem = parse_score("8-7 pen. 0-0 a.e.t. (0-0)")
+    assert problem is None and out.result == "D" and out.ht_home_goals == 0 and out.pen_home == 8
+
+
+def test_context_league_identity_includes_the_date():
+    text = ("Country,League,Season,Date,Time,Home,Away,HG,AG,Res,AvgCH,AvgCD,AvgCA\n"
+            "Synthetia,League,2030/2031,01/08/2030,15:00,Synthetic FC A,Synthetic FC B,1,0,H,2,3,4\n"
+            "Synthetia,League,2030/2031,01/12/2030,15:00,Synthetic FC A,Synthetic FC B,2,2,D,2,3,4\n")
+    from footintel.connectors import football_data_uk as fd
+    fd.NEW_TO_COMPETITION.setdefault("SYN", "SUI-SL")
+    recs = parse_new_csv(text, "SYN")
+    assert len({r.external_id for r in recs}) == 2  # same pairing twice in one season
+    assert all(o.snapshot_label == "closing" for r in recs for o in r.odds)
+
+
+def test_team_name_similarity_is_conservative():
+    assert normalize("Manchester City FC (ENG)") == "man city"
+    assert similarity("FC Bayern München (GER)", "Bayern Munich") == 1.0
+    # Two clubs of one city must not look identical.
+    assert similarity("Real Madrid CF (ESP)", "Ath Madrid") < similarity("Real Madrid CF (ESP)", "Real Madrid")
+
+
+def test_routed_model_uses_odds_only_where_they_exist():
+    from footintel.features.builder import ALL_FEATURES
+    from footintel.models.zoo import build
+
+    rng = np.random.default_rng(0)
+    n = 400
+    df = pd.DataFrame({c: rng.normal(size=n) for c in ALL_FEATURES})
+    df["elo_diff"] = rng.normal(0, 100, n)
+    df["home_goals"] = rng.poisson(1.4, n).astype(float)
+    df["away_goals"] = rng.poisson(1.1, n).astype(float)
+    df.loc[: n // 2, ["mkt_p_home", "mkt_p_draw", "mkt_p_away", "mkt_overround"]] = np.nan
+    model = build("routed_odds_elo").fit(df)
+    out = model.predict(df)
+    assert np.allclose(out[["p_home", "p_draw", "p_away"]].sum(axis=1), 1.0)
+    no_odds = df["mkt_p_home"].isna()
+    elo_only = model.without_odds.predict(df[no_odds])
+    assert np.allclose(out.loc[no_odds, "p_home"], elo_only["p_home"])

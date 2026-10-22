@@ -207,3 +207,63 @@ def test_api_write_needs_the_admin_token(db, settings, monkeypatch):
                     headers={"Authorization": "Bearer test-token"})
     assert r.status_code == 409 and "does not exist" in r.json()["detail"]
     assert client.get("/api/status").json()["api_football_configured"] is False
+
+
+class FakeOpenFootball:
+    def __init__(self, files: dict[tuple[int, str], str]):
+        self.files = files
+
+    def fetch(self, start_year, filename, *, current_season):
+        from footintel.connectors.http import SourceUnavailable
+        from footintel.connectors.openfootball import parse_txt
+
+        if (start_year, filename) not in self.files:
+            raise SourceUnavailable("404")
+        return parse_txt(self.files[(start_year, filename)], filename, start_year)
+
+
+def test_european_import_maps_names_and_merges_manual_aliases(db, settings, monkeypatch, tmp_path):
+    from footintel.db.models import Team
+    from footintel.ingestion import teams as teams_mod
+
+    # Domestic history gives the canonical names "Synthetic FC 0" ... "Synthetic FC 9".
+    _load_synthetic_history(db, settings, seasons=(2020,))
+    txt = """= UEFA Champions League 2020/21
+
+▪ League, Matchday 1
+  Tue Sep 15 2020
+    21:00  Synthetic FC 1 (ENG)    v Synthetic Rovers (ENG)   2-0 (1-0)
+"""
+    conn = FakeOpenFootball({(2020, "cl.txt"): txt})
+    alias_file = tmp_path / "aliases.csv"
+    alias_file.write_text("source,alias,team\n", encoding="utf-8")
+    monkeypatch.setattr(teams_mod, "ALIAS_FILE", alias_file)
+    monkeypatch.setattr(teams_mod.load_manual_aliases, "__defaults__", (alias_file,))
+
+    st = tasks.import_european(db, settings, 2020, 2020, connector=conn)
+    assert st.inserted == 1
+    assert any(code == "unmapped_team" for _, code, *_ in st.issues)
+    assert any(code == "season_not_published" for _, code, *_ in st.issues)
+    with session_scope(db) as s:
+        assert s.scalars(select(Team).where(Team.name == "Synthetic Rovers (ENG)")).one()
+
+    # A human adds the alias: the next run merges the placeholder into the real team.
+    alias_file.write_text("source,alias,team\nopenfootball,Synthetic Rovers (ENG),Synthetic FC 7\n",
+                          encoding="utf-8")
+    st2 = tasks.import_european(db, settings, 2020, 2020, connector=conn)
+    assert st2.inserted == 0
+    with session_scope(db) as s:
+        assert s.scalars(select(Team).where(Team.name == "Synthetic Rovers (ENG)")).first() is None
+        m = s.scalars(select(Match).where(Match.competition.has(code="UEFA-CL"))).one()
+        assert m.away_team.name == "Synthetic FC 7" and m.home_team.name == "Synthetic FC 1"
+
+
+def test_prematch_sheet_lists_missing_data_instead_of_inventing_it(db, settings):
+    from footintel.reports.fiche import match_sheet_markdown
+
+    _load_synthetic_history(db, settings, seasons=(2020,))
+    with session_scope(db) as s:
+        match_id = s.scalars(select(Match.id).order_by(Match.kickoff_date.desc())).first()
+    md = match_sheet_markdown(db, match_id)
+    assert "Non disponible" in md and "formations" in md and "xG" in md
+    assert "pressing haut" not in md.lower()

@@ -1,40 +1,60 @@
 # Sources de données
 
-Tout ce qui suit a été vérifié par de vrais appels le 2026-10-21.
+Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10-22.
 
-## football-data.co.uk — active
+## Actives
+
+### football-data.co.uk — championnats
 
 | Élément | Constat |
 |---|---|
-| Accès | Libre, sans clé. `https://www.football-data.co.uk/mmz4281/{yyYY}/{DIV}.csv` (redirection 302 vers `football-data.co.uk`). |
-| Couverture testée | E0 (Premier League), SP1 (Liga), I1 (Serie A), D1 (Bundesliga) : saisons 2005-06 à 2026-27 en HTTP 200. |
-| Coupes et UEFA | **Non couvertes** (FA Cup, EFL Cup, Copa del Rey, Coppa Italia, DFB-Pokal, C1, C3). |
-| Colonnes | Doc : `notes.txt`. Résultat (FTHG, FTAG, FTR, mi-temps), tirs (HS/AS), tirs cadrés (HST/AST), fautes, corners, cartons, arbitre, cotes 1X2, plus/moins de 2,5 buts, handicap asiatique. |
-| Heure | Colonne `Time` à partir de 2019-20 seulement. Fuseau non documenté : hypothèse Europe/London. |
-| Cotes | « Pre-closing » (collecte avant le match, heure exacte non fournie) et « closing » (suffixe `C`). Moyenne du marché : `Avg*` depuis 2019-20, `BbAv*` avant. |
-| xG, compositions, blessures | **Absents.** Aucune feature n'est construite sur ces données. |
-| Matchs à venir | `fixtures.csv` : quelques jours à l'avance seulement. Le 2026-10-21 (mercredi), aucun match des 4 ligues suivies. |
-| Conditions | Page `disclaimer.php` : pas de restriction d'usage personnel trouvée ; site financé par des bookmakers ; rappel de la loi locale sur les paris et de l'âge légal. À relire avant tout usage commercial. |
+| Accès | Libre, sans clé. `/mmz4281/{yyYY}/{DIV}.csv` (format complet) et `/new/{PAYS}.csv` (un fichier par pays, toutes saisons). |
+| Cibles | E0, SP1, I1, D1 : 2005-06 à 2026-27. Résultats, mi-temps, tirs, tirs cadrés, fautes, corners, cartons, cotes avant clôture et de clôture. |
+| Contexte (format complet) | F1, N1, P1, B1, T1, SC0, G1 : 2005-06 à 2026-27, mêmes colonnes. |
+| Contexte (`/new/`) | AUT, SWZ, DNK, NOR, SWE, POL : depuis 2012. **Résultats et cotes de clôture seulement**, pas de statistiques ni de cotes avant match. |
+| Heure | Colonne `Time` à partir de 2019-20 ; fuseau non documenté (hypothèse Europe/London). |
+| Matchs répétés | En Écosse, Suisse, Autriche, au Danemark, une affiche se rejoue sur le même terrain dans la saison : la clé des championnats de contexte inclut la date. |
+| xG, compositions, blessures | **Absents.** |
+| Conditions | `disclaimer.php` : pas de restriction d'usage personnel trouvée. À relire avant tout usage commercial. |
 
-## API-Football (api-sports.io) — connecteur prévu, désactivé
+### openfootball / champions-league — coupes d'Europe
 
-- `GET https://v3.football.api-sports.io/status` sans clé : **HTTP 403**, corps
-  `{"get","parameters","errors":{"token":"Missing application key..."},"results","paging","response"}`.
-- Une clé gratuite est nécessaire (inscription : https://dashboard.api-football.com/register).
-  Les quotas et la couverture du plan gratuit (saisons accessibles, cotes) n'ont pas pu être
-  vérifiés sans clé : à confirmer dès qu'une clé est fournie.
-- Les identifiants de ligues ne sont **pas** codés en dur : ils seront lus via `/leagues`.
-- C'est la seule source testée qui pourrait couvrir les coupes nationales, la C1 et la C3,
-  les compositions, les événements et les blessures.
+| Élément | Constat |
+|---|---|
+| Licence | Domaine public. |
+| Couverture | C1 2011-12 à 2025-26 (15 saisons) ; C3 2020-21 à 2024-25 ; C4 2021-22 à 2024-25. 3 390 matchs importés, nombre identique à l'en-tête de chaque fichier. |
+| Manque | **Saison en cours 2026-27 absente.** C3 2025-26 et C4 2025-26 absentes. Aucune cote, aucune statistique, aucune composition. |
+| Format | Score à 90 minutes, prolongation, tirs au but ; « [awarded] » et « [cancelled] » écartés ; finale sur terrain neutre. Heures en heure d'Europe centrale. |
+| Noms d'équipes | 224 noms. Correspondance avec football-data : automatique si sûre, sinon alias manuel relu (`reference/team_aliases.csv`, 35 alias). 2 erreurs automatiques trouvées à la relecture (PSG → Paris FC, Başakşehir → Istanbulspor) et corrigées. 72 clubs de pays non importés (Tchéquie, Serbie, Croatie, Chypre…) restent des équipes à part, avec peu d'historique. |
 
-## openfootball (football.json) — écartée pour l'instant
+## Prévue, désactivée
 
-- Domaine public (README du projet).
-- `2024-25/uefa.cl.json` existe (189 matchs) mais le score de la finale manque ;
-  `2025-26/uefa.cl.json`, `uefa.el.json`, `en.facup.json`, `de.cup.json` : HTTP 404.
-- Couverture trop lacunaire pour les coupes. Peut servir plus tard de calendrier secondaire.
+### API-Football (api-sports.io)
+
+Sans clé : HTTP 403, enveloppe `{get, parameters, errors, results, paging, response}`.
+C'est la **seule source testée légalement utilisable** qui pourrait fournir : la saison en cours
+des coupes d'Europe, les coupes nationales, les compositions, les formations, les événements,
+les statistiques par joueur, les blessures et suspensions. Couverture et quotas du plan gratuit
+non vérifiables sans clé. Inscription : https://dashboard.api-football.com/register
+
+### football-data.org
+
+Sans clé : HTTP 403 (« restricted »). Clé gratuite à l'inscription (https://www.football-data.org/client/register).
+Couverture du plan gratuit non vérifiée sans clé. Candidat de secours pour le calendrier
+et les résultats de la C1.
+
+## Écartées
+
+| Source | Test | Raison |
+|---|---|---|
+| ESPN (`site.api.espn.com`) | HTTP 200 sans clé ; C1 depuis 2005 avec compositions, formations depuis ~2010, 28 statistiques d'équipe, cotes. | **Conditions d'utilisation Disney/ESPN** : interdiction d'extraire les contenus « using a robot, spider, script, or other automated means […] compiling, building […] any collection of data, data set or database ». Non utilisée malgré sa richesse. |
+| Understat (xG) | HTTP 200. | `robots.txt` : `Disallow: /` pour tous les robots. |
+| FBref | HTTP 403. | Accès bloqué. |
+| TheSportsDB (clé publique « 3 ») | HTTP 403. | Clé publique refusée. |
+| ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502. | Service indisponible lors des tests. À retester : il donnerait la force de tous les clubs européens. |
+| openfootball football.json | C1 2024-25 seulement, finale sans score. | Couverture trouée ; le dépôt `champions-league` est utilisé à la place. |
 
 ## Mode dégradé
 
-Sans `API_FOOTBALL_KEY`, le système fonctionne entièrement sur football-data.co.uk et
-les données déjà en base. `footintel status` et `/api/status` l'indiquent explicitement.
+Sans clé API, le système fonctionne sur football-data.co.uk et openfootball, plus les données
+déjà en base. `footintel status` et `/api/status` l'indiquent explicitement.

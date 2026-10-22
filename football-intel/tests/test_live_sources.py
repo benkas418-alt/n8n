@@ -49,3 +49,16 @@ def test_api_football_envelope():
     assert {"get", "parameters", "errors", "results", "paging", "response"} <= set(body)
     if not settings.api_football_enabled:
         assert r.status_code == 403 and "token" in body["errors"]
+
+
+def test_openfootball_latest_cl_file_parses_completely():
+    import re
+
+    from footintel.connectors.openfootball import RAW_BASE, parse_txt
+
+    r = _get(f"{RAW_BASE}/2025-26/cl.txt")
+    assert r.status_code == 200
+    declared = int(re.search(r"# Matches\s+(\d+)", r.text)[1])
+    records = parse_txt(r.text, "cl.txt", 2025)
+    assert len(records) == declared
+    assert sum(1 for x in records if x.outcome) >= declared - 5

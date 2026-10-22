@@ -18,7 +18,7 @@ from footintel.reports.daily import postmatch_report, prematch_report
 
 log = logging.getLogger(__name__)
 
-DEFAULT_DEPLOY_MODEL = "logreg_market_goals"
+DEFAULT_DEPLOY_MODEL = "routed_odds_elo"
 
 
 def _step(name: str, fn, results: dict) -> None:
@@ -47,7 +47,11 @@ def evening(engine: Engine, settings: Settings) -> dict:
 
     Results files are re-downloaded at every run, so late statistics are picked up."""
     results: dict = {}
+    current = season_start_for(date.today())
     _step("sync_results", lambda: tasks.sync_results(engine, settings), results)
+    # Foreign clubs' domestic form, used to rate opponents in European cups.
+    _step("sync_context_leagues",
+          lambda: tasks.import_context_leagues(engine, settings, current - 1, current), results)
     _step("evaluate", lambda: evaluate_finished(engine), results)
     yesterday = date.today() - timedelta(days=1)
     _step("postmatch_report",
@@ -58,6 +62,9 @@ def evening(engine: Engine, settings: Settings) -> dict:
 
 def nightly(engine: Engine, settings: Settings) -> dict:
     results: dict = {}
+    current = season_start_for(date.today())
+    _step("sync_european",
+          lambda: tasks.import_european(engine, settings, current - 1, current), results)
     _step("check_data_quality", lambda: tasks.check_data_quality(engine), results)
     return results
 

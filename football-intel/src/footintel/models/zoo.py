@@ -31,7 +31,41 @@ class Composite(ProbModel):
                 "goals": self.goals.name, "goals_params": self.goals.params()}
 
 
+class RoutedByOdds(ProbModel):
+    """Use the odds model where pre-match odds exist, the Elo model elsewhere.
+
+    Backtest 2021-2025 (docs/RESULTS.md): one logistic model trained on every match
+    learned a weak odds weight (many rows without odds) and lost to the market in
+    domestic leagues; training it only on rows with odds removed that loss. Cups have
+    no odds in our sources, so they go to the Elo-Poisson model."""
+
+    family = "routed"
+
+    def __init__(self, name: str):
+        self.name = name
+        self.with_odds = logistic(WITH_MARKET_FEATURES, f"{name}:with_odds")
+        self.without_odds = EloPoisson()
+        self.features = sorted(set(self.with_odds.features) | set(self.without_odds.features))
+
+    def fit(self, train: pd.DataFrame) -> "RoutedByOdds":
+        self.with_odds.fit(train[train["mkt_p_home"].notna()])
+        self.without_odds.fit(train)
+        return self
+
+    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+        goals = self.without_odds.predict(df)
+        out = goals[PROB_COLS].copy()
+        has_odds = df["mkt_p_home"].notna()
+        if has_odds.any():
+            out.loc[has_odds, PROB_COLS] = self.with_odds.predict(df[has_odds])[PROB_COLS]
+        return pd.concat([out, goals[GOAL_COLS]], axis=1)
+
+    def params(self) -> dict:
+        return {"with_odds": self.with_odds.params(), "without_odds": self.without_odds.params()}
+
+
 MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
+    "routed_odds_elo": lambda: RoutedByOdds("routed_odds_elo"),
     "logreg_market_goals": lambda: Composite(
         "logreg_market_goals", logistic(WITH_MARKET_FEATURES, "logreg_market"), EloPoisson()),
     "logreg_core_goals": lambda: Composite(

@@ -8,8 +8,11 @@ class EloParams:
     k: float = 20.0
     home_advantage: float = 60.0
     initial: float = 1500.0
-    # Rating for a team that first appears after the first season (usually promoted).
-    newcomer: float = 1420.0
+    # A team that joins a league after that league's first season (usually promoted)
+    # starts this far below the league's prior.
+    newcomer_offset: float = -80.0
+    # Club seen first in a European cup, with no domestic league in the data.
+    unknown_foreign: float = 1380.0
     # Share of the distance to the mean kept between seasons.
     season_carry: float = 0.8
 
@@ -28,8 +31,8 @@ def goal_multiplier(goal_diff: int) -> float:
 
 
 def update(elo_home: float, elo_away: float, home_goals: int, away_goals: int,
-           params: EloParams) -> tuple[float, float]:
+           params: EloParams, neutral: bool = False) -> tuple[float, float]:
     score = 1.0 if home_goals > away_goals else 0.5 if home_goals == away_goals else 0.0
-    exp = expected_home(elo_home, elo_away, params.home_advantage)
+    exp = expected_home(elo_home, elo_away, 0.0 if neutral else params.home_advantage)
     delta = params.k * goal_multiplier(home_goals - away_goals) * (score - exp)
     return elo_home + delta, elo_away - delta

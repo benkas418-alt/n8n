@@ -8,10 +8,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
-from footintel.features.builder import ELO_FEATURES, MARKET_FEATURES, side_features
+from footintel.features.builder import CONTEXT_FEATURES, ELO_FEATURES, MARKET_FEATURES, side_features
 from footintel.models.base import PROB_COLS, ProbModel, encode_result
 
-CORE_FEATURES = ELO_FEATURES + side_features("h") + side_features("a")
+CORE_FEATURES = ELO_FEATURES + side_features("h") + side_features("a") + CONTEXT_FEATURES
 WITH_MARKET_FEATURES = CORE_FEATURES + MARKET_FEATURES
 
 

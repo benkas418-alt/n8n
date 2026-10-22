@@ -18,7 +18,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from footintel.catalog import COMPETITIONS, FOOTBALL_DATA
+from footintel.catalog import COMPETITION_BY_CODE, COMPETITIONS, FD_NEW, FOOTBALL_DATA
 from footintel.config import Settings
 from footintel.connectors.base import (
     MatchRecord,
@@ -35,7 +35,13 @@ BASE_URL = "https://www.football-data.co.uk"
 SOURCE_TZ = ZoneInfo("Europe/London")
 
 DIV_TO_COMPETITION = {
-    c.source_codes[FOOTBALL_DATA]: c.code for c in COMPETITIONS if FOOTBALL_DATA in c.source_codes
+    c.source_codes[FOOTBALL_DATA]: c.code for c in COMPETITIONS
+    if FOOTBALL_DATA in c.source_codes and not c.source_codes[FOOTBALL_DATA].startswith(FD_NEW)
+}
+# Country files under /new/ (all seasons in one file), e.g. "AUT" -> "AUT-BL".
+NEW_TO_COMPETITION = {
+    c.source_codes[FOOTBALL_DATA].removeprefix(FD_NEW): c.code for c in COMPETITIONS
+    if FOOTBALL_DATA in c.source_codes and c.source_codes[FOOTBALL_DATA].startswith(FD_NEW)
 }
 
 # (bookmaker, snapshot_label, market, selection) -> candidate columns, first present wins.
@@ -67,10 +73,18 @@ def season_url(start_year: int, div: str) -> str:
     return f"{BASE_URL}/mmz4281/{season_code(start_year)}/{div}.csv"
 
 
-def external_id(div: str, start_year: int, home: str, away: str) -> str:
-    # A league pairing happens once per season and venue, so this key is stable
-    # even when the match is rescheduled.
+def external_id(div: str, start_year: int, home: str, away: str,
+                kickoff: date | None = None) -> str:
+    """Target leagues: a pairing happens once per season and venue, so the key survives
+    a rescheduled date. Context leagues (Scotland, Switzerland, play-off formats) can
+    repeat a pairing at the same venue, so their key includes the date."""
+    if kickoff is not None:
+        return f"{div}|{start_year}|{kickoff:%Y-%m-%d}|{home}|{away}"
     return f"{div}|{start_year}|{home}|{away}"
+
+
+def _is_target(competition_code: str) -> bool:
+    return COMPETITION_BY_CODE[competition_code].is_target
 
 
 def _decode(raw: bytes) -> str:
@@ -167,11 +181,13 @@ def parse_csv(text: str, *, season_start_year: int | None = None) -> list[MatchR
                     odds.append(OddsRecord(bookmaker, market, selection, price, label))
                 break
 
+        comp_code = DIV_TO_COMPETITION[div]
         records.append(
             MatchRecord(
                 source_code=FOOTBALL_DATA,
-                external_id=external_id(div, start_year, home, away),
-                competition_code=DIV_TO_COMPETITION[div],
+                external_id=external_id(div, start_year, home, away,
+                                        None if _is_target(comp_code) else d),
+                competition_code=comp_code,
                 season_start_year=start_year,
                 kickoff_date=d,
                 kickoff_utc=kickoff,
@@ -185,6 +201,44 @@ def parse_csv(text: str, *, season_start_year: int | None = None) -> list[MatchR
                 issues=issues,
             )
         )
+    return records
+
+
+def parse_new_csv(text: str, country: str, first_season: int = 0) -> list[MatchRecord]:
+    """Parse a /new/{COUNTRY}.csv file: results and closing odds only, all seasons.
+
+    Season is "2012/2013" or "2012" (calendar-year leagues such as Norway)."""
+    comp_code = NEW_TO_COMPETITION[country]
+    records = []
+    for row in csv.DictReader(io.StringIO(text)):
+        home, away = (row.get("Home") or "").strip(), (row.get("Away") or "").strip()
+        season = (row.get("Season") or "").strip()
+        if not home or not away or not season:
+            continue
+        start_year = int(season.split("/")[0])
+        if start_year < first_season:
+            continue
+        d = _parse_date(row["Date"])
+        hg, ag = _int(row.get("HG")), _int(row.get("AG"))
+        outcome, issues = None, []
+        if hg is not None and ag is not None:
+            res = "H" if hg > ag else "A" if hg < ag else "D"
+            if (row.get("Res") or "").strip() not in ("", res):
+                issues.append(("result_mismatch", f"Res={row.get('Res')} but score {hg}-{ag}"))
+            outcome = OutcomeRecord(home_goals=hg, away_goals=ag, result=res)
+        odds = []
+        for sel in ("H", "D", "A"):
+            price = _float(row.get(f"AvgC{sel}"))
+            if price is not None and price > 1.0:
+                # Closing prices are not known at prediction time: stored, never used as features.
+                odds.append(OddsRecord("market_avg", "1X2", sel, price, "closing"))
+        records.append(MatchRecord(
+            source_code=FOOTBALL_DATA,
+            external_id=external_id(FD_NEW + country, start_year, home, away, d),
+            competition_code=comp_code, season_start_year=start_year, kickoff_date=d,
+            kickoff_utc=_parse_kickoff(d, row.get("Time")), home_team=home, away_team=away,
+            status="finished" if outcome else "scheduled", outcome=outcome, odds=odds,
+            issues=issues))
     return records
 
 
@@ -214,10 +268,16 @@ class FootballDataUK:
         )
         return parse_csv(text, season_start_year=start_year)
 
+    def fetch_country(self, country: str, first_season: int) -> list[MatchRecord]:
+        path = self.raw_dir / "new" / f"{country}.csv"
+        text = self._cached_download(f"{BASE_URL}/new/{country}.csv", path, 6 * 3600)
+        return parse_new_csv(text, country, first_season)
+
     def fetch_fixtures(self) -> list[MatchRecord]:
         path = self.raw_dir / "fixtures.csv"
         text = self._cached_download(f"{BASE_URL}/fixtures.csv", path, 3600)
-        records = parse_csv(text)
+        # Only predicted competitions: context leagues are imported from results files.
+        records = [r for r in parse_csv(text) if _is_target(r.competition_code)]
         # Each download is a distinct odds snapshot, so odds movement is kept over time.
         captured = datetime.fromtimestamp(path.stat().st_mtime, UTC).replace(microsecond=0)
         for rec in records:

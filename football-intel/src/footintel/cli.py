@@ -50,6 +50,10 @@ def cmd_ingest(args, settings, engine):
 
     if args.what == "history":
         st = tasks.import_history(engine, settings, args.first, args.last, args.competition)
+    elif args.what == "context":
+        st = tasks.import_context_leagues(engine, settings, args.first, args.last)
+    elif args.what == "european":
+        st = tasks.import_european(engine, settings, max(args.first, 2011), args.last)
     elif args.what == "fixtures":
         st = tasks.sync_fixtures(engine, settings)
     elif args.what == "results":
@@ -129,6 +133,11 @@ def cmd_evaluate(args, settings, engine):
 def cmd_report(args, settings, engine):
     from footintel.reports.daily import postmatch_report, prematch_report
 
+    if args.kind == "fiche":
+        from footintel.reports.fiche import match_sheet_markdown
+
+        print(match_sheet_markdown(engine, args.match_id))
+        return
     if args.kind == "prematch":
         rep = prematch_report(engine, settings, args.horizon)
     else:
@@ -202,7 +211,8 @@ def build_parser() -> argparse.ArgumentParser:
     db.set_defaults(fn=cmd_db)
 
     ing = sub.add_parser("ingest", help="collect data")
-    ing.add_argument("what", choices=["history", "fixtures", "results", "quality"])
+    ing.add_argument("what", choices=["history", "context", "european", "fixtures", "results",
+                                      "quality"])
     ing.add_argument("--first", type=int, default=2005, help="first season start year")
     ing.add_argument("--last", type=int, default=None, help="last season start year")
     ing.add_argument("--competition", action="append", help="e.g. ENG-PL (repeatable)")
@@ -243,7 +253,8 @@ def build_parser() -> argparse.ArgumentParser:
         fn=cmd_evaluate)
 
     rp = sub.add_parser("report", help="generate a report")
-    rp.add_argument("kind", choices=["prematch", "postmatch"])
+    rp.add_argument("kind", choices=["prematch", "postmatch", "fiche"])
+    rp.add_argument("--match-id", type=int, help="match for the pre-match sheet")
     rp.add_argument("--horizon", type=int, default=7)
     rp.add_argument("--start", default=str(date.today()))
     rp.add_argument("--end", default=str(date.today()))

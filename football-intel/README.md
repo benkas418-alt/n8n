@@ -12,6 +12,9 @@ sans interface graphique (CLI + API HTTP).
 
 - Import de 30 649 matchs réels (Premier League, Liga, Serie A, Bundesliga, 2005-06 à 2026-27)
   depuis football-data.co.uk : résultats, tirs, cartons, corners, cotes avant clôture et de clôture.
+- Coupes d'Europe : 3 390 matchs (C1 2011-26, C3 2020-25, C4 2021-25) depuis openfootball,
+  plus 13 championnats de contexte (62 440 matchs) pour estimer la force des clubs étrangers.
+- Fiche pré-match : indicateurs observés seulement, liste explicite des données manquantes.
 - Collecte idempotente (relancer ne crée aucun doublon), journal des collectes, verrous par tâche.
 - Features calculées sans fuite temporelle (Elo, forme, tirs, repos, cotes du marché).
 - Modèles : fréquences naïves, Elo-Poisson, régression logistique, Random Forest, XGBoost,
@@ -50,9 +53,11 @@ cp .env.example .env        # puis remplir DATABASE_URL et ADMIN_TOKEN
 ```bash
 F=.venv/bin/footintel
 $F ingest history --first 2005          # ~2 min, télécharge 88 fichiers une seule fois
+$F ingest context --first 2005          # 13 championnats de contexte (~4 min)
+$F ingest european                      # C1, C3, C4 depuis 2011
 $F ingest fixtures                       # matchs à venir + cotes
 $F backtest --seasons 5                  # évaluation chronologique
-$F models train logreg_market_goals      # crée une version candidate
+$F models train routed_odds_elo          # crée une version candidate
 $F models promote <id> --seasons 3       # promue seulement si les critères sont remplis
 $F predict                               # prédit les matchs des 7 prochains jours
 $F report prematch
@@ -68,6 +73,7 @@ $F report prematch
 | Cycle du soir (résultats, évaluation, rapport) | `footintel run evening` |
 | Contrôle qualité | `footintel run nightly` |
 | Réentraînement + validation | `footintel run weekly` |
+| Fiche pré-match | `footintel report fiche --match-id <id>` |
 | État du système | `footintel status` |
 | Revenir au modèle précédent | `footintel models rollback` |
 | Sauvegarde | `footintel db backup` |

@@ -22,6 +22,10 @@ class OutcomeRecord:
     result: str  # H | D | A
     ht_home_goals: int | None = None
     ht_away_goals: int | None = None
+    aet_home_goals: int | None = None
+    aet_away_goals: int | None = None
+    pen_home: int | None = None
+    pen_away: int | None = None
     is_final: bool = True
 
 
@@ -50,6 +54,8 @@ class MatchRecord:
     home_stats: TeamStatsRecord | None = None
     away_stats: TeamStatsRecord | None = None
     odds: list[OddsRecord] = field(default_factory=list)
+    round: str | None = None
+    neutral: bool = False
     # Problems found while parsing: (code, message). Stored as data quality issues.
     issues: list[tuple[str, str]] = field(default_factory=list)
 

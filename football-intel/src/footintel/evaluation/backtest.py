@@ -36,12 +36,15 @@ def finished(df: pd.DataFrame) -> pd.DataFrame:
 
 def walk_forward(features: pd.DataFrame, model_names: list[str],
                  test_seasons: list[int]) -> pd.DataFrame:
+    """Train on every finished match before season S (context leagues included);
+    test only on target competitions of season S."""
     data = finished(features)
     first = int(data["season"].min())
+    target = data["is_target"].fillna(True).astype(bool) if "is_target" in data else True
     out = []
     for season in test_seasons:
         train = data[(data["season"] > first) & (data["season"] < season)]
-        test = data[data["season"] == season]
+        test = data[(data["season"] == season) & target]
         if train.empty or test.empty:
             log.warning("Skip season %s: train=%d test=%d", season, len(train), len(test))
             continue

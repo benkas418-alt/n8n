@@ -8,7 +8,8 @@ from sqlalchemy import Engine, text
 
 _MATCHES_SQL = text("""
 SELECT m.id AS match_id, m.kickoff_date, m.kickoff_utc, m.status,
-       c.code AS competition, se.start_year AS season,
+       c.code AS competition, c.type AS competition_type, c.is_target, m.neutral_venue,
+       m.round, se.start_year AS season,
        m.home_team_id, m.away_team_id, th.name AS home_team, ta.name AS away_team,
        o.home_goals, o.away_goals,
        sh.shots AS home_shots, sa.shots AS away_shots,

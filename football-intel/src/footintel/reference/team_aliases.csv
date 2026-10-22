@@ -1,0 +1,38 @@
+# Manual team aliases, checked by a human. One row per (source, alias).
+# team = canonical name already used in the database (football-data.co.uk spelling).
+source,alias,team
+openfootball,Paris Saint-Germain FC (FRA),Paris SG
+openfootball,Paris Saint-Germain (FRA),Paris SG
+openfootball,İstanbul Başakşehir (TUR),Buyuksehyr
+openfootball,FC Internazionale Milano (ITA),Inter
+openfootball,Lazio Roma (ITA),Lazio
+openfootball,Athletic Club (ESP),Ath Bilbao
+openfootball,AEK Athen (GRE),AEK
+openfootball,Cercle Brugge (BEL),Cercle Brugge
+openfootball,FC København (DEN),FC Copenhagen
+openfootball,Heart of Midlothian (SCO),Hearts
+openfootball,PSV (NED),PSV Eindhoven
+openfootball,Royale Union Saint-Gilloise (BEL),St. Gilloise
+openfootball,Sporting CP (POR),Sp Lisbon
+openfootball,Sporting Clube de Portugal (POR),Sp Lisbon
+openfootball,Stade Rennais (FRA),Rennes
+openfootball,AS Monaco FC (MCO),Monaco
+openfootball,FK Crvena Zvezda (SRB),Crvena Zvezda (SRB)
+openfootball,GNK Dinamo Zagreb (CRO),Dinamo Zagreb (CRO)
+openfootball,FCSB (ROU),FC Steaua Bucureşti (ROU)
+openfootball,Qarabağ Ağdam FK (AZE),Qarabağ FK (AZE)
+openfootball,FK Shakhtar Donetsk (UKR),Shakhtar Donetsk (UKR)
+openfootball,SK Slavia Praha (CZE),Slavia Praha (CZE)
+openfootball,ŠK Slovan Bratislava (SVK),Slovan Bratislava (SVK)
+openfootball,Olympiakos Piraeus (GRE),Olympiakos
+openfootball,Brighton & Hove Albion (ENG),Brighton
+openfootball,Feyenoord Rotterdam (NED),Feyenoord
+openfootball,Legia Warszawa (POL),Legia
+openfootball,Newcastle United FC (ENG),Newcastle
+openfootball,PAE Olympiakos SFP (GRE),Olympiakos
+openfootball,PAOK Saloniki (GRE),PAOK
+openfootball,Racing Club de Lens (FRA),Lens
+openfootball,Raków Częstochowa (POL),Rakow
+openfootball,Real Betis (ESP),Betis
+openfootball,Stade Brestois 29 (FRA),Brest
+openfootball,West Ham United (ENG),West Ham

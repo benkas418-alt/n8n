@@ -3,7 +3,9 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from footintel.catalog import get_source
+import re
+
+from footintel.catalog import COUNTRY_BY_CODE, OPENFOOTBALL, get_source
 from footintel.connectors.base import MatchRecord, season_label
 from footintel.db.models import (
     Competition,
@@ -16,6 +18,7 @@ from footintel.db.models import (
     TeamAlias,
     TeamMatchStatistics,
 )
+from footintel.ingestion.teams import TeamResolver
 from footintel.jobs import RunStats
 
 _STAT_FIELDS = ("shots", "shots_on_target", "corners", "fouls", "yellow_cards", "red_cards", "xg")
@@ -27,6 +30,8 @@ class MatchStore:
     def __init__(self, session: Session, source_code: str):
         self.s = session
         self.source = get_source(session, source_code)
+        # Names from openfootball must be mapped onto the football-data.co.uk teams.
+        self.resolver = TeamResolver(session, source_code) if source_code == OPENFOOTBALL else None
         self._competitions = {c.code: c for c in session.scalars(select(Competition))}
         self._seasons = {(x.competition_id, x.label): x for x in session.scalars(select(Season))}
         self._aliases = {
@@ -41,14 +46,28 @@ class MatchStore:
             ).all()
         )
 
-    def _team_id(self, name: str) -> int:
+    def _team_id(self, name: str, rec: MatchRecord, competition: Competition,
+                 stats: RunStats) -> int:
         if name in self._aliases:
             return self._aliases[name]
-        team = self.s.scalar(select(Team).where(Team.name == name))
+        canonical, country = name, competition.country
+        if self.resolver is not None:
+            m = re.search(r"\(([A-Z]{3})\)$", name)
+            country = COUNTRY_BY_CODE.get(m[1]) if m else None
+            res = self.resolver.resolve(name, rec.season_start_year)
+            if res.team_name:
+                canonical = res.team_name
+            else:
+                stats.issue("info", "unmapped_team",
+                            f"{name} ({rec.season_start_year}): no safe match"
+                            + (f", closest {res.runner_up!r} at {res.score:.2f}" if res.runner_up else ""))
+        team = self.s.scalar(select(Team).where(Team.name == canonical))
         if team is None:
-            team = Team(name=name)
+            team = Team(name=canonical, country=country)
             self.s.add(team)
             self.s.flush()
+        elif team.country is None and country:
+            team.country = country
         self.s.add(TeamAlias(team_id=team.id, source_id=self.source.id, alias=name))
         self._aliases[name] = team.id
         return team.id
@@ -65,7 +84,12 @@ class MatchStore:
     def upsert(self, rec: MatchRecord, stats: RunStats) -> int:
         competition = self._competitions[rec.competition_code]
         season = self._season(competition, rec.season_start_year)
-        home_id, away_id = self._team_id(rec.home_team), self._team_id(rec.away_team)
+        home_id = self._team_id(rec.home_team, rec, competition, stats)
+        away_id = self._team_id(rec.away_team, rec, competition, stats)
+        if home_id == away_id:
+            stats.issue("error", "same_team", f"{rec.external_id}: both names map to one team")
+            stats.skipped += 1
+            return -1
 
         match_id = self._refs.get(rec.external_id)
         is_new = match_id is None
@@ -79,6 +103,8 @@ class MatchStore:
                 kickoff_date=rec.kickoff_date,
                 kickoff_utc=rec.kickoff_utc,
                 status=rec.status,
+                round=rec.round,
+                neutral_venue=rec.neutral,
             )
             self.s.add(match)
             self.s.flush()
@@ -96,8 +122,8 @@ class MatchStore:
                 match.kickoff_date = rec.kickoff_date
                 match.kickoff_utc = rec.kickoff_utc or match.kickoff_utc
                 changed = True
-            if match.status != rec.status and rec.status == "finished":
-                match.status = "finished"
+            if match.status != rec.status and rec.status in ("finished", "cancelled"):
+                match.status = rec.status
                 changed = True
 
         for code, message in rec.issues:
@@ -126,7 +152,8 @@ class MatchStore:
         )
         values = dict(home_goals=o.home_goals, away_goals=o.away_goals, result=o.result,
                       ht_home_goals=o.ht_home_goals, ht_away_goals=o.ht_away_goals,
-                      is_final=o.is_final)
+                      aet_home_goals=o.aet_home_goals, aet_away_goals=o.aet_away_goals,
+                      pen_home=o.pen_home, pen_away=o.pen_away, is_final=o.is_final)
         if existing is None:
             self.s.add(MatchOutcome(match_id=match_id, source_id=self.source.id, **values))
             return True

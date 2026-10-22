@@ -92,7 +92,9 @@ def predict_upcoming(engine: Engine, settings: Settings, horizon_days: int = 7,
     feats = build_features(load_matches(engine, as_of=now))
     feats["deadline"] = [kickoff_deadline(None if pd.isna(k) else k.to_pydatetime(), d)
                          for k, d in zip(feats["kickoff_utc"], feats["kickoff_date"], strict=True)]
-    upcoming = feats[(feats["status"] == "scheduled") & (feats["deadline"] > now)
+    # Context leagues are never predicted: they only rate clubs met in European cups.
+    upcoming = feats[(feats["status"] == "scheduled") & feats["is_target"].fillna(True).astype(bool)
+                     & (feats["deadline"] > now)
                      & (feats["deadline"] <= now + timedelta(days=horizon_days))]
     if upcoming.empty:
         log.info("No upcoming match within %d days", horizon_days)

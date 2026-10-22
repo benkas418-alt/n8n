@@ -108,6 +108,8 @@ class Competition(Base):
     country: Mapped[str | None] = mapped_column(String(100))
     type: Mapped[str] = mapped_column(String(20))  # league | cup | continental
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # False for leagues imported only to rate foreign clubs (e.g. Portugal for Benfica).
+    is_target: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 
 class CompetitionSourceCode(Base):
@@ -196,6 +198,34 @@ class Match(Base):
     season: Mapped[Season] = relationship()
 
 
+class TeamMatchTactics(Base):
+    """Formation and organisation of one team in one match, from a named source.
+
+    Stays empty until a source that provides formations is connected. A formation
+    is a starting shape; it does not describe the shape with or without the ball."""
+
+    __tablename__ = "team_match_tactics"
+    __table_args__ = (UniqueConstraint("match_id", "team_id", "source_id", "kind"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"), index=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
+    source_id: Mapped[int] = mapped_column(ForeignKey("data_sources.id"))
+    kind: Mapped[str] = mapped_column(String(20))  # predicted | official | in_match_change
+    formation: Mapped[str | None] = mapped_column(String(20))
+    possession_pct: Mapped[float | None] = mapped_column(Float)
+    passes: Mapped[int | None] = mapped_column(Integer)
+    passes_accurate: Mapped[int | None] = mapped_column(Integer)
+    crosses: Mapped[int | None] = mapped_column(Integer)
+    long_balls: Mapped[int | None] = mapped_column(Integer)
+    tackles: Mapped[int | None] = mapped_column(Integer)
+    interceptions: Mapped[int | None] = mapped_column(Integer)
+    ppda: Mapped[float | None] = mapped_column(Float)
+    extra: Mapped[dict | None] = mapped_column(JSON)
+    known_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    collected_at: Mapped[datetime] = _now_col()
+
+
 class MatchExternalRef(Base):
     """Identity of a match in one source. This key makes ingestion idempotent."""
 
@@ -219,6 +249,11 @@ class MatchOutcome(Base):
     ht_home_goals: Mapped[int | None] = mapped_column(Integer)
     ht_away_goals: Mapped[int | None] = mapped_column(Integer)
     result: Mapped[str] = mapped_column(String(1))  # H | D | A (after 90 minutes)
+    # Cup matches: score after extra time and penalty shoot-out, when played.
+    aet_home_goals: Mapped[int | None] = mapped_column(Integer)
+    aet_away_goals: Mapped[int | None] = mapped_column(Integer)
+    pen_home: Mapped[int | None] = mapped_column(Integer)
+    pen_away: Mapped[int | None] = mapped_column(Integer)
     is_final: Mapped[bool] = mapped_column(Boolean, default=True)
     collected_at: Mapped[datetime] = _now_col()
     updated_at: Mapped[datetime] = mapped_column(
