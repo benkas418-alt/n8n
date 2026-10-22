@@ -95,6 +95,14 @@ def evaluate_promotion(features: pd.DataFrame, candidate_name: str, reference_na
         return PromotionDecision(False, f"only {cmp['n']} test matches "
                                  f"(< {criteria.min_test_matches})", cmp)
     if -cmp["mean_diff"] < criteria.min_logloss_improvement:
+        if criteria.goals_secondary and cmp["mean_diff"] <= criteria.max_1x2_degradation:
+            g = paired_goal_logloss(preds, candidate_name, reference_name, criteria.bootstrap_samples)
+            cmp["goals_ou25"] = g
+            if g.get("n", 0) >= criteria.min_test_matches and \
+                    -g["mean_diff"] >= criteria.min_goal_improvement and g["ci_high"] < 0:
+                return PromotionDecision(True, f"1X2 not degraded ({cmp['mean_diff']:+.4f}); "
+                                         f"over/under 2.5 log loss gain {-g['mean_diff']:.4f}, CI "
+                                         f"[{g['ci_low']:.4f}, {g['ci_high']:.4f}]", cmp)
         return PromotionDecision(False, f"log loss gain {-cmp['mean_diff']:.4f} below "
                                  f"{criteria.min_logloss_improvement}", cmp)
     if criteria.require_ci_below_zero and not cmp["ci_high"] < 0:
@@ -102,6 +110,23 @@ def evaluate_promotion(features: pd.DataFrame, candidate_name: str, reference_na
                                  f"{cmp['ci_high']:.4f}] includes 0", cmp)
     return PromotionDecision(True, f"log loss gain {-cmp['mean_diff']:.4f}, CI "
                              f"[{cmp['ci_low']:.4f}, {cmp['ci_high']:.4f}]", cmp)
+
+
+def paired_goal_logloss(preds: pd.DataFrame, candidate: str, reference: str,
+                        samples: int) -> dict:
+    """Paired over/under 2.5 log loss difference on matches both models priced."""
+    from footintel.evaluation import metrics as M
+
+    a = preds[preds["model"] == candidate].dropna(subset=["p_over_2_5"]).set_index("match_id")
+    b = preds[preds["model"] == reference].dropna(subset=["p_over_2_5"]).set_index("match_id")
+    common = a.index.intersection(b.index)
+    if len(common) == 0:
+        return {"n": 0}
+    y = ((a.loc[common, "home_goals"] + a.loc[common, "away_goals"]) > 2.5).astype(float).to_numpy()
+    diff = (M.binary_log_loss(a.loc[common, "p_over_2_5"].to_numpy(), y)
+            - M.binary_log_loss(b.loc[common, "p_over_2_5"].to_numpy(), y))
+    lo, hi = M.bootstrap_mean_ci(diff, samples=samples)
+    return {"n": int(len(common)), "mean_diff": float(diff.mean()), "ci_low": lo, "ci_high": hi}
 
 
 def promote(engine: Engine, features: pd.DataFrame, version_id: int, test_seasons: list[int],

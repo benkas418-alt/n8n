@@ -218,3 +218,51 @@ def test_routed_model_uses_odds_only_where_they_exist():
     no_odds = df["mkt_p_home"].isna()
     elo_only = model.without_odds.predict(df[no_odds])
     assert np.allclose(out.loc[no_odds, "p_home"], elo_only["p_home"])
+
+
+# --- Competition analysis --------------------------------------------------------
+
+from footintel.analysis import stats as AS  # noqa: E402
+from footintel.features.context import add_context, stage_of  # noqa: E402
+
+
+def test_small_sample_statistics():
+    lo, hi = AS.wilson(0, 10)
+    assert lo == 0 and 0.2 < hi < 0.35  # no zero-width interval at 0 %
+    adj = AS.benjamini_hochberg([0.01, 0.04, 0.03, 0.5])
+    assert adj[0] == pytest.approx(0.04) and adj[3] == pytest.approx(0.5)
+    assert all(a >= p for a, p in zip(adj, [0.01, 0.04, 0.03, 0.5], strict=True))
+    r = AS.residual_test(np.array([1.0] * 60 + [0.0] * 40), np.full(100, 0.5))
+    assert r["diff"] == pytest.approx(0.1) and r["ci_low"] > 0
+
+
+def test_stage_names_from_both_file_formats():
+    assert stage_of("Finals, Round of 16", "continental") == "round_of_16"
+    assert stage_of("Round of 16", "continental") == "round_of_16"
+    assert stage_of("Final", "continental") == "final"
+    assert stage_of("Finals, Final", "continental") == "final"
+    assert stage_of("Gruppe K", "continental") == "group"
+    assert stage_of("League, Matchday 3", "continental") == "league"
+    assert stage_of(None, "league") == "league"
+
+
+def _cup_tie():
+    rows = [  # synthetic two-legged tie between teams 1 and 2, plus a league filler
+        (1, "2031-02-10", 1, 2, 2.0, 0.0, "Finals, Round of 16", "continental"),
+        (2, "2031-03-10", 2, 1, np.nan, np.nan, "Finals, Round of 16", "continental"),
+        (3, "2031-02-12", 3, 4, 1.0, 1.0, None, "league"),
+    ]
+    df = pd.DataFrame(rows, columns=["match_id", "kickoff_date", "home_team_id", "away_team_id",
+                                     "home_goals", "away_goals", "round", "competition_type"])
+    df["kickoff_date"] = pd.to_datetime(df["kickoff_date"])
+    df["season"] = 2030
+    df["competition"] = np.where(df["competition_type"] == "league", "L", "C")
+    return df
+
+
+def test_second_leg_knows_the_first_leg_score_only():
+    out = add_context(_cup_tie()).set_index("match_id")
+    assert out.loc[1, "is_second_leg"] == 0 and out.loc[2, "is_second_leg"] == 1
+    # Team 2 hosts the second leg and lost the first 2-0: first-leg difference is -2.
+    assert out.loc[2, "first_leg_gd"] == -2
+    assert out.loc[1, "is_knockout"] == 1 and out.loc[3, "is_knockout"] == 0

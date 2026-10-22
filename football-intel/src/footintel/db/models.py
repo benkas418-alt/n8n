@@ -526,6 +526,34 @@ class PredictionEvaluation(Base):
     evaluated_at: Mapped[datetime] = _now_col()
 
 
+class CompetitionProfileMetric(Base):
+    """One indicator of one competition, season and segment, for one analysis run.
+
+    Insert-only: every run adds rows with its own `training_run_id`, so the values
+    known at any past date can be read back unchanged."""
+
+    __tablename__ = "competition_profile_metrics"
+    __table_args__ = (
+        UniqueConstraint("training_run_id", "competition_id", "season", "segment", "metric"),
+        Index("ix_profile_lookup", "competition_id", "metric", "segment"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    training_run_id: Mapped[int] = mapped_column(ForeignKey("training_runs.id"))
+    competition_id: Mapped[int] = mapped_column(ForeignKey("competitions.id"))
+    season: Mapped[int | None] = mapped_column(Integer)  # null = all seasons
+    segment: Mapped[str] = mapped_column(String(80))  # all | phase:late | stage:R16 | leg:2 ...
+    metric: Mapped[str] = mapped_column(String(60))
+    value: Mapped[float] = mapped_column(Float)
+    n: Mapped[int] = mapped_column(Integer)
+    ci_low: Mapped[float | None] = mapped_column(Float)
+    ci_high: Mapped[float | None] = mapped_column(Float)
+    # Value expected by a reference model that ignores the competition (residual analysis).
+    expected: Mapped[float | None] = mapped_column(Float)
+    data_until: Mapped[date | None] = mapped_column(Date)
+    computed_at: Mapped[datetime] = _now_col()
+
+
 class DetectedPattern(Base):
     __tablename__ = "detected_patterns"
 

@@ -267,3 +267,26 @@ def test_prematch_sheet_lists_missing_data_instead_of_inventing_it(db, settings)
     md = match_sheet_markdown(db, match_id)
     assert "Non disponible" in md and "formations" in md and "xG" in md
     assert "pressing haut" not in md.lower()
+
+
+def test_competition_analysis_stores_profiles_and_patterns(db, settings):
+    from footintel.analysis.competitions import run_analysis
+    from footintel.db.models import CompetitionProfileMetric, DetectedPattern
+    from footintel.reports.competitions import competition_report
+
+    _load_synthetic_history(db, settings, seasons=(2016, 2017, 2018, 2019, 2020, 2021, 2022))
+    feats = build_features(load_matches(db))
+    res = run_analysis(db, feats, split_season=2021, last_complete_season=2022, min_train=100)
+    assert len(res["tests"]) > 0
+    with session_scope(db) as s:
+        n_rows = s.scalar(select(func.count()).select_from(CompetitionProfileMetric))
+        statuses = set(s.scalars(select(DetectedPattern.status)).all())
+    assert n_rows > 100 and statuses <= {"hypothesis", "robust", "robust_not_confirmed",
+                                         "validated_out_of_sample"}
+    # A second run adds rows; it never rewrites the first run's values.
+    run_analysis(db, feats, split_season=2021, last_complete_season=2022, min_train=100)
+    with session_scope(db) as s:
+        assert s.scalar(select(func.count()).select_from(CompetitionProfileMetric)) == 2 * n_rows
+    report = competition_report(db, settings)
+    assert "Premier League" in report.markdown and "FA Cup" in report.markdown
+    assert "Aucune donnée" in report.markdown  # uncovered competitions are stated, not filled

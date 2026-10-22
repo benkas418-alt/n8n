@@ -21,6 +21,7 @@ import pandas as pd
 
 from footintel.catalog import COMPETITION_BY_CODE
 from footintel.features import elo as elo_mod
+from footintel.features.context import PHASE_FEATURES, TREND_FEATURES, add_context
 
 FORM_FEATURES = [
     "form5_ppg", "form10_ppg", "gf5", "ga5", "venue5_ppg",
@@ -37,7 +38,7 @@ def side_features(prefix: str) -> list[str]:
 
 
 ALL_FEATURES = (ELO_FEATURES + side_features("h") + side_features("a") + CONTEXT_FEATURES
-                + MARKET_FEATURES)
+                + TREND_FEATURES + PHASE_FEATURES + MARKET_FEATURES)
 
 REST_CAP_DAYS = 30
 
@@ -180,7 +181,7 @@ def build_features(matches: pd.DataFrame, params: elo_mod.EloParams | None = Non
                     st.last_european = day
 
     feats = pd.DataFrame(feature_rows)
-    return df.merge(feats, on="match_id", how="left")
+    return add_context(df.merge(feats, on="match_id", how="left"))
 
 
 def result_label(home_goals: float, away_goals: float) -> str | None:

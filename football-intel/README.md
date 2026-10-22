@@ -15,6 +15,9 @@ sans interface graphique (CLI + API HTTP).
 - Coupes d'Europe : 3 390 matchs (C1 2011-26, C3 2020-25, C4 2021-25) depuis openfootball,
   plus 13 championnats de contexte (62 440 matchs) pour estimer la force des clubs étrangers.
 - Fiche pré-match : indicateurs observés seulement, liste explicite des données manquantes.
+- Tendances par compétition : profils par saison et segment, écarts à une référence qui ignore
+  la compétition, évolutions, correction des tests multiples, validation hors échantillon,
+  et mesure de l'apport prédictif de chaque niveau d'analyse. Voir docs/RESULTS.md.
 - Collecte idempotente (relancer ne crée aucun doublon), journal des collectes, verrous par tâche.
 - Features calculées sans fuite temporelle (Elo, forme, tirs, repos, cotes du marché).
 - Modèles : fréquences naïves, Elo-Poisson, régression logistique, Random Forest, XGBoost,
@@ -74,6 +77,7 @@ $F report prematch
 | Contrôle qualité | `footintel run nightly` |
 | Réentraînement + validation | `footintel run weekly` |
 | Fiche pré-match | `footintel report fiche --match-id <id>` |
+| Tendances par compétition + apport de chaque niveau | `footintel analyze` (~10 min) |
 | État du système | `footintel status` |
 | Revenir au modèle précédent | `footintel models rollback` |
 | Sauvegarde | `footintel db backup` |

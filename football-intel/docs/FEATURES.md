@@ -20,8 +20,16 @@ Suffixe `_h` = équipe à domicile, `_a` = équipe à l'extérieur.
 | `europe_7d` | 1 si l'équipe a joué un match de coupe d'Europe dans les 7 jours précédents. | 0. |
 | `is_european`, `is_domestic_cup` | Type de la compétition du match. | — |
 | `neutral` | 1 pour une finale sur terrain neutre ; l'avantage du terrain Elo vaut alors 0. | 0. |
+| `comp_home_rate`, `comp_draw_rate`, `comp_btts_rate`, `comp_over25_rate` | Taux de la compétition sur les 730 jours avant la veille du match, rapprochés du taux de long terme de la compétition avec 150 matchs fictifs de poids (lui-même rapproché du taux de tout le football en base). | Taux de long terme, puis taux global. |
+| `comp_goals_mean`, `comp_home_goal_adv` | Buts par match et écart de buts domicile-extérieur, même fenêtre et même rapprochement. | Idem. |
+| `season_progress` | Part de la saison de championnat déjà jouée par l'équipe à domicile (0 à 1). | NaN en coupe. |
+| `is_knockout`, `is_final_stage` | Tour à élimination directe ; finale. | 0. |
+| `is_second_leg`, `first_leg_gd` | Match retour ; écart de buts du match aller vu par l'équipe qui reçoit au retour (connu avant le match). | 0. |
 | `mkt_p_home/draw/away` | Probabilités implicites des cotes 1X2, marge retirée proportionnellement : `(1/cote) / Σ(1/cote)`. Cote utilisée : dernier relevé `fixtures@` antérieur à l'heure de prédiction, sinon moyenne du marché avant clôture, sinon Bet365 avant clôture. | NaN si une des trois cotes manque. |
 | `mkt_overround` | `Σ(1/cote)` : la marge brute du bookmaker. | Idem. |
+
+Tests de non-fuite : `test_features_ignore_same_day_and_future_results` et la vérification
+manuelle des tendances (résultats modifiés le jour même et après : valeurs inchangées).
 
 Traitement dans les modèles ML : imputation par la médiane du pli d'entraînement **et**
 colonne indicatrice de valeur manquante, puis standardisation bornée à ±5 écarts-types.

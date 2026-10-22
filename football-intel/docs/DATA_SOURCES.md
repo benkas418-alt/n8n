@@ -11,6 +11,7 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Accès | Libre, sans clé. `/mmz4281/{yyYY}/{DIV}.csv` (format complet) et `/new/{PAYS}.csv` (un fichier par pays, toutes saisons). |
 | Cibles | E0, SP1, I1, D1 : 2005-06 à 2026-27. Résultats, mi-temps, tirs, tirs cadrés, fautes, corners, cartons, cotes avant clôture et de clôture. |
 | Contexte (format complet) | F1, N1, P1, B1, T1, SC0, G1 : 2005-06 à 2026-27, mêmes colonnes. |
+| Divisions inférieures | E1, E2, E3, EC, SP2, I2, D2, F2, SC1, SC2, SC3 : 2005-06 à 2026-27, mêmes colonnes (90 688 matchs). |
 | Contexte (`/new/`) | AUT, SWZ, DNK, NOR, SWE, POL : depuis 2012. **Résultats et cotes de clôture seulement**, pas de statistiques ni de cotes avant match. |
 | Heure | Colonne `Time` à partir de 2019-20 ; fuseau non documenté (hypothèse Europe/London). |
 | Matchs répétés | En Écosse, Suisse, Autriche, au Danemark, une affiche se rejoue sur le même terrain dans la saison : la clé des championnats de contexte inclut la date. |

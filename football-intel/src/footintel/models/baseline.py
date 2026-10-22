@@ -64,6 +64,40 @@ class EloPoisson(ProbModel):
         return {"alpha": self.alpha}
 
 
+class PoissonFeatures(ProbModel):
+    """Home and away goals from a Poisson GLM on any feature set (imputed, scaled, clipped)."""
+
+    family = "poisson"
+
+    def __init__(self, name: str, features: list[str], alpha: float = 1e-3):
+        self.name, self.features, self.alpha = name, list(features), alpha
+
+    def _pipe(self):
+        from sklearn.impute import SimpleImputer
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import FunctionTransformer, StandardScaler
+
+        return Pipeline([("impute", SimpleImputer(strategy="median", add_indicator=True)),
+                         ("scale", StandardScaler()),
+                         ("clip", FunctionTransformer(np.clip, kw_args={"a_min": -5.0, "a_max": 5.0})),
+                         ("glm", PoissonRegressor(alpha=self.alpha, max_iter=2000))])
+
+    def fit(self, train: pd.DataFrame) -> "PoissonFeatures":
+        x = train[self.features]
+        self.home_ = self._pipe().fit(x, train["home_goals"])
+        self.away_ = self._pipe().fit(x, train["away_goals"])
+        return self
+
+    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+        x = df[self.features]
+        out = markets_from_lambdas(self.home_.predict(x), self.away_.predict(x))
+        out.index = df.index
+        return out[PROB_COLS + GOAL_COLS]
+
+    def params(self) -> dict:
+        return {"alpha": self.alpha, "features": self.features}
+
+
 class MarketImplied(ProbModel):
     """Model C: bookmaker prices with the margin removed. Not a truth, a reference.
 

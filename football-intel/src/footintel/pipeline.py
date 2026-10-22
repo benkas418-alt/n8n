@@ -18,7 +18,7 @@ from footintel.reports.daily import postmatch_report, prematch_report
 
 log = logging.getLogger(__name__)
 
-DEFAULT_DEPLOY_MODEL = "routed_odds_elo"
+DEFAULT_DEPLOY_MODEL = "routed_competition"
 
 
 def _step(name: str, fn, results: dict) -> None:
@@ -83,6 +83,14 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         decision = registry.promote(engine, feats, version_id, test_seasons, settings.promotion)
         results["retrain"] = {"version_id": version_id, "promoted": decision.promoted,
                               "reason": decision.reason}
+        # Competition profiles and trend tests, refreshed with the week's results.
+        from footintel.analysis.competitions import run_analysis
+        from footintel.reports.competitions import competition_report
+
+        analysis = run_analysis(engine, feats, current - 5, current - 1)
+        results["analysis"] = {"run_id": analysis["run_id"],
+                               "report": str(competition_report(engine, settings,
+                                                                analysis["run_id"]).paths["md"])}
     except Exception:
         status = "failed"
         raise

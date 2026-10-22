@@ -18,6 +18,13 @@ class PromotionCriteria(BaseSettings):
     # Upper bound of the bootstrap CI of (candidate - reference) log loss must be below 0.
     require_ci_below_zero: bool = True
     bootstrap_samples: int = 1000
+    # Secondary route, fixed on 2026-10-22 before any goal-model result was seen:
+    # a candidate that does not degrade 1X2 (mean diff <= max_1x2_degradation) is
+    # promoted if its over/under 2.5 log loss gains at least min_goal_improvement
+    # with a bootstrap CI entirely below 0.
+    goals_secondary: bool = True
+    max_1x2_degradation: float = 0.0005
+    min_goal_improvement: float = 0.002
 
 
 class Settings(BaseSettings):

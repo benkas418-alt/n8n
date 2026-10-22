@@ -1,5 +1,51 @@
 # Résultats du backtest réel
 
+## Run 8 — tendances par compétition et apport de chaque niveau (2026-10-22)
+
+Base : 187 167 matchs réels (4 championnats cibles, 24 championnats et divisions de
+contexte, C1/C3/C4). Rapport complet : [reports/competitions_2026-10-22.md](reports/competitions_2026-10-22.md).
+
+### Particularités validées hors échantillon
+
+Écart entre le taux observé et un modèle Elo-Poisson qui ignore la compétition, estimé sur
+2006-2020 puis vérifié sur 2021-2026 (2 758 tests, correction de Benjamini-Hochberg) :
+
+| Compétition | Effet | 2006-2020 | 2021-2026 |
+|---|---|---|---|
+| Bundesliga | plus de 2,5 buts | +7.8 pts [+6.3 ; +9.3], n = 4 284 | +10.8 pts, n = 1 584 |
+| Bundesliga | les deux marquent | +6.0 pts [+4.5 ; +7.5] | +9.6 pts |
+| Ligue des champions | plus de 2,5 buts | +5.5 pts [+2.7 ; +8.2], n = 1 244 | +9.1 pts, n = 753 |
+| Premier League | plus de 2,5 buts | +2.3 pts [+0.9 ; +3.6], n = 5 320 | +5.8 pts, n = 1 970 |
+| Premier League | plus de 2,5 buts, début de saison | +4.1 pts [+1.8 ; +6.4] | +6.2 pts |
+| Serie A | match nul | +1.6 pts [+0.5 ; +2.8], n = 5 320 | +3.5 pts |
+| Liga | victoire extérieure | −2.3 pts [−3.5 ; −1.2], n = 5 320 | −3.2 pts |
+
+Effets « robustes » sur 2006-2020 mais **non confirmés** ensuite (exemples) : Premier League,
+plus de victoires à domicile en fin de saison ; plus de nuls en milieu de saison.
+
+### Apport prédictif de chaque niveau (2021-22 à 2025-26, 9 168 matchs)
+
+| Niveau ajouté | 1X2 championnats | 1X2 coupes d'Europe | Plus/moins 2,5 | BTTS |
+|---|---|---|---|---|
+| Tendances de la compétition | aucun effet démontré | −0.0045 [−0.0089 ; −0.0003] | −0.0069 [−0.0090 ; −0.0044] | −0.0044 [−0.0063 ; −0.0028] |
+| Phase, tour, manche | aucun effet | aucun effet | +0.0003 (dégrade) | aucun effet |
+| Équipes (forme, tirs, fatigue) | −0.0036 [−0.0059 ; −0.0012] | aucun effet | −0.0021 [−0.0035 ; −0.0006] | aucun effet |
+| Cotes | −0.0163 [−0.0202 ; −0.0123] | pas de cotes | — | — |
+
+### Décision
+
+Nouveau modèle actif `routed_competition` (cotes + équipes en championnat, tendances de
+compétition en coupe, buts par Poisson sur tendances de compétition + attaque/défense des
+équipes ; phase exclue). Promu par la règle secondaire fixée avant l'évaluation :
+1X2 −0.0005 [−0.0015 ; +0.0005] (non dégradé), plus/moins 2,5 **−0.0116 [−0.0154 ; −0.0076]**
+sur 5 465 matchs. Vérification sur la saison 2026-27, jamais utilisée pour un choix
+(283 matchs, sous le minimum de décision) : plus/moins 2,5 −0.0268 [−0.043 ; −0.009].
+
+Limite : la configuration a été choisie sur 2021-2025, période qui chevauche le test de
+promotion. La vérification 2026-27 réduit ce biais sans l'éliminer ; le suivi en direct
+des prochaines semaines est la vraie validation.
+
+
 ## Run 6 — avec coupes d'Europe et championnats de contexte (2026-10-22)
 
 Walk-forward : pour chaque saison testée (2021-22 à 2025-26), les modèles sont entraînés

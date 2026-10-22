@@ -189,6 +189,24 @@ def cmd_run(args, settings, engine):
     _print(getattr(pipeline, args.cycle)(engine, settings))
 
 
+def cmd_analyze(args, settings, engine):
+    from footintel.analysis.ablation import compare_levels, run_ablation, store_ablation
+    from footintel.analysis.competitions import run_analysis
+    from footintel.reports.competitions import competition_report
+
+    feats = _features(engine)
+    last = int(feats.loc[feats["home_goals"].notna(), "season"].max()) - 1  # last complete
+    res = run_analysis(engine, feats, args.split_season, last)
+    comparisons = None
+    if not args.skip_levels:
+        comparisons = compare_levels(run_ablation(feats, list(range(last - 4, last + 1))))
+        store_ablation(engine, comparisons)
+    rep = competition_report(engine, settings, res["run_id"], comparisons)
+    print(f"Analysis run {res['run_id']}: {len(res['tests'])} tests")
+    print(res["tests"]["status"].value_counts().to_string())
+    _print({k: str(v) for k, v in rep.paths.items()})
+
+
 def cmd_scheduler(args, settings, engine):
     from footintel.scheduler import run_scheduler
 
@@ -266,6 +284,12 @@ def build_parser() -> argparse.ArgumentParser:
     rn = sub.add_parser("run", help="run one cycle now")
     rn.add_argument("cycle", choices=["morning", "evening", "nightly", "weekly"])
     rn.set_defaults(fn=cmd_run)
+
+    an = sub.add_parser("analyze", help="competition trends and value of each analysis level")
+    an.add_argument("--split-season", type=int, default=2021,
+                    help="effects are estimated before this season and checked from it on")
+    an.add_argument("--skip-levels", action="store_true", help="skip the level study (faster)")
+    an.set_defaults(fn=cmd_analyze)
 
     sub.add_parser("scheduler", help="start the scheduler").set_defaults(fn=cmd_scheduler)
 
