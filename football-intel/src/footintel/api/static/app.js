@@ -1,0 +1,679 @@
+/* Football Intelligence dashboard. Plain JS, hash routing, data from /api/dash/*.
+   Rules: every chart states its period and sample size; uncertainty is drawn when the
+   sample is small; unavailable data is shown as such, never as zero. */
+
+const API = "/api/dash";
+const C = {
+  accent: "#1f5fbf", accentSoft: "rgba(31,95,191,0.15)", ref: "#5b6673",
+  up: "#1d7a4a", down: "#b4541a", grid: "#dde2e8", na: "#8a94a0",
+};
+const STATUS = {
+  rising: "en hausse", falling: "en baisse", emerging: "émergente", stable: "stable",
+  disappeared: "disparue", unconfirmed: "non confirmée", insufficient_data: "données insuffisantes",
+  validated_out_of_sample: "validé hors échantillon", robust: "robuste, à valider",
+  robust_not_confirmed: "non confirmé hors échantillon", hypothesis: "hypothèse",
+};
+const METRIC_FR = {
+  home_win: "Victoire domicile", draw: "Match nul", away_win: "Victoire extérieur",
+  over_1_5: "Plus de 1,5 but", over_2_5: "Plus de 2,5 buts", over_3_5: "Plus de 3,5 buts",
+  over_0_5: "Plus de 0,5 but", over_4_5: "Plus de 4,5 buts", btts: "Les deux marquent",
+  goals: "Buts par match", nil_nil: "0-0", first_half_goals: "Buts en 1re mi-temps",
+  second_half_goals: "Buts en 2e mi-temps", ht_leader_wins: "Leader à la pause gagne",
+  ht_leader_loses: "Leader à la pause perd", shots: "Tirs", shots_on_target: "Tirs cadrés",
+  corners: "Corners", yellow_cards: "Cartons jaunes", red_cards: "Cartons rouges", fouls: "Fautes",
+  points: "Points par match", goals_for: "Buts marqués", goals_against: "Buts encaissés",
+  win: "Victoire", clean_sheet: "Sans encaisser", failed_to_score: "Sans marquer",
+  score_minus_elo_expected: "Résultat − attente Elo", shots_for: "Tirs", shots_against: "Tirs concédés",
+  sot_for: "Tirs cadrés", sot_against: "Tirs cadrés concédés", corners_for: "Corners obtenus",
+  ht_lead_kept: "Avance à la pause conservée", ht_deficit_recovered: "Retard à la pause effacé",
+  scored_first_half: "Marque en 1re mi-temps", favourite_won: "Le favori gagne",
+  goal_difference_volatility: "Volatilité de l'écart de buts",
+};
+const RATE = new Set(["home_win", "draw", "away_win", "over_0_5", "over_1_5", "over_2_5", "over_3_5",
+  "over_4_5", "btts", "nil_nil", "ht_leader_wins", "ht_leader_loses", "win", "clean_sheet",
+  "failed_to_score", "ht_lead_kept", "ht_deficit_recovered", "scored_first_half", "favourite_won",
+  "home_clean_sheet", "away_clean_sheet", "win_to_nil", "ht_draw", "ht_over_0_5", "ht_over_1_5",
+  "second_half_more_goals", "ht_level_decided", "extra_time", "penalty_shootout", "draw"]);
+const isRate = (m) => RATE.has(m) || m.startsWith("score_") || m.startsWith("total_goals_");
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (v, d = 1) => (v == null ? "n/d" : `${(100 * v).toFixed(d)} %`);
+const num = (v, d = 2) => (v == null ? "n/d" : Number(v).toFixed(d));
+const val = (m, v) => (isRate(m) ? pct(v) : num(v));
+const diff = (m, v) => (v == null ? "n/d" : isRate(m) ? `${v > 0 ? "+" : ""}${(100 * v).toFixed(1)} pts` : `${v > 0 ? "+" : ""}${Number(v).toFixed(2)}`);
+const fdate = (d) => (d ? new Date(d).toLocaleDateString("fr-FR") : "n/d");
+const EXTRA_FR = {
+  home_clean_sheet: "Domicile sans encaisser", away_clean_sheet: "Extérieur sans encaisser",
+  win_to_nil: "Victoire sans encaisser", ht_draw: "Égalité à la pause", ht_over_0_5: "But avant la pause",
+  ht_over_1_5: "2 buts ou plus avant la pause", ht_level_decided: "Égalité à la pause puis vainqueur",
+  second_half_more_goals: "Plus de buts en 2e mi-temps", extra_time: "Prolongation",
+  penalty_shootout: "Tirs au but",
+};
+function mname(m) {
+  if (METRIC_FR[m]) return METRIC_FR[m];
+  if (EXTRA_FR[m]) return EXTRA_FR[m];
+  let r = m.match(/^score_(\d)_(\d)$/); if (r) return `Score ${r[1]}-${r[2]}`;
+  r = m.match(/^total_goals_(\d)(plus)?$/); if (r) return r[2] ? `${r[1]} buts ou plus` : `Exactement ${r[1]} but${r[1] > 1 ? "s" : ""}`;
+  return m;
+}
+const POP_FR = { "": "toutes", home: "à domicile", away: "à l'extérieur", vs_stronger: "contre plus fort",
+  vs_similar: "contre niveau égal", vs_weaker: "contre plus faible" };
+const EVENT_FR = { "1X2:home": "victoire domicile", "1X2:draw": "match nul", "1X2:away": "victoire extérieur",
+  "OU2.5:over": "plus de 2,5 buts", "BTTS:yes": "les deux marquent" };
+const NC_FR = [
+  [/15-minute/, "Buts par tranche de 15 minutes"], [/early and late/, "Buts précoces, tardifs, égalisations"],
+  [/first goal/, "Premier but et son effet"], [/penalties/, "Penalties"], [/xG/, "xG / xGA et grosses occasions"],
+  [/possession/, "Possession, passes, pressing, PPDA"], [/formations/, "Formations et rôles"],
+  [/line-ups/, "Compositions, absences, suspensions"], [/coach/, "Changements d'entraîneur"],
+];
+const ncName = (k) => (NC_FR.find(([re]) => re.test(k)) || [null, k])[1];
+const MARKET_FR = { ll_1x2: "1X2", exact_score_ll: "score exact", total_goals_rps: "total de buts (RPS)",
+  ou15_ll: "plus/moins 1,5", ou25_ll: "plus/moins 2,5", ou35_ll: "plus/moins 3,5", btts_ll: "les deux marquent",
+  ll_ou25: "plus/moins 2,5", ll_btts: "les deux marquent",
+  ht_over05_ll: "but avant la pause", ht_over15_ll: "2+ buts avant la pause", ht_1x2_ll: "1X2 à la pause" };
+const VARIANT_FR = { team_form_residual: "Sur/sous-performance vs Elo", team_scoring_profile: "Profil offensif/défensif des équipes",
+  team_game_state: "État à la mi-temps", competition_score_profile: "Profil de scores de la compétition", all: "Toutes les tendances" };
+// Different names for one event: keep the first one listed.
+const SAME_EVENT = { total_goals_5plus: "over_4_5", total_goals_0: "nil_nil", score_0_0: "nil_nil" };
+const season = (y) => `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
+const badge = (status) => `<span class="badge ${esc(status)}">${esc(STATUS[status] || status)}</span>`;
+const na = (title, why) => `<div class="unavailable"><strong>${esc(title)}</strong> — non collecté.<br><span class="small">${esc(why)}</span></div>`;
+
+async function get(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(`${r.status} ${path}`);
+  return r.json();
+}
+
+/* Admin token: asked on screen, kept for the browser session only. */
+function getToken() { try { return sessionStorage.getItem("fi_token") || ""; } catch { return ""; } }
+function setToken(t) { try { sessionStorage.setItem("fi_token", t); } catch { /* storage blocked */ } }
+async function send(method, url, body) {
+  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", "X-Admin-Token": getToken() },
+    body: body ? JSON.stringify(body) : undefined });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || `${r.status}`);
+  return data;
+}
+function tokenBox() {
+  return `<div class="card" style="margin-bottom:16px"><label class="small">Jeton d'administration (ADMIN_TOKEN, gardé pour cette session seulement)
+    <input type="password" id="token" value="${esc(getToken())}" autocomplete="off" style="margin-top:4px;width:100%;max-width:420px"></label>
+    <button class="btn" id="token-save">Enregistrer</button> <span class="small muted" id="token-state">${getToken() ? "jeton saisi" : "aucun jeton : actions désactivées"}</span></div>`;
+}
+function bindToken() {
+  const b = document.getElementById("token-save");
+  if (b) b.onclick = () => { setToken(document.getElementById("token").value.trim()); document.getElementById("token-state").textContent = "jeton saisi"; };
+}
+
+const charts = [];
+function chart(id, config) {
+  const el = document.getElementById(id);
+  if (!el || !window.Chart) return;
+  config.options = Object.assign({ responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { labels: { boxWidth: 12 } } } }, config.options || {});
+  charts.push(new Chart(el, config));
+}
+function resetCharts() { while (charts.length) charts.pop().destroy(); }
+
+function params() {
+  const q = location.hash.split("?")[1] || "";
+  return Object.fromEntries(new URLSearchParams(q));
+}
+function go(page, p = {}) {
+  const q = new URLSearchParams(Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined && v !== ""))).toString();
+  location.hash = `#/${page}${q ? "?" + q : ""}`;
+}
+
+function drawer(title, html) {
+  document.getElementById("drawer-title").textContent = title;
+  document.getElementById("drawer-body").innerHTML = html;
+  document.getElementById("drawer").classList.remove("hidden");
+}
+document.getElementById("drawer-close").onclick = () => document.getElementById("drawer").classList.add("hidden");
+document.getElementById("drawer").onclick = (e) => { if (e.target.id === "drawer") e.target.classList.add("hidden"); };
+
+function matchTable(rows) {
+  if (!rows.length) return `<p class="muted">Aucun match.</p>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Saison</th><th>Match</th><th class="num">Score</th><th class="num">Mi-temps</th></tr></thead><tbody>${
+    rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.id}})"><td>${fdate(r.kickoff_date)}</td><td>${season(r.season)}</td><td>${esc(r.home)} – ${esc(r.away)}${r.round ? `<div class="small muted">${esc(r.round)}</div>` : ""}</td><td class="num">${r.home_goals}-${r.away_goals}${r.aet_home_goals != null ? " (a.p.)" : ""}</td><td class="num">${r.ht_home_goals ?? "n/d"}-${r.ht_away_goals ?? "n/d"}</td></tr>`).join("")
+  }</tbody></table></div>`;
+}
+
+/* ---------------- 1. Overview ---------------- */
+async function overview() {
+  const d = await get("/overview");
+  const c = d.counts;
+  document.getElementById("brand-sub").textContent = `Centre d'analyse · données jusqu'au ${fdate(c.last_result)}`;
+  const comp = d.trend_counts.filter((t) => t.population_type === "competition");
+  const cnt = (s) => (comp.find((t) => t.status === s) || {}).n || 0;
+  const active = d.active_model || {};
+  const cal = d.calibration.filter((x) => x.model_name === (active.name || "") && x.segment.startsWith("calibration:all:"));
+  const calTxt = cal.map((x) => `${EVENT_FR[x.segment.split(":").slice(2).join(":")]} : ${num(x.value, 3)}`).join(" · ");
+  const seen = new Set();
+  const watch = d.watch.filter((t) => { const k = `${t.competition}|${SAME_EVENT[t.metric] || t.metric}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+  const worst = cal.reduce((a, b) => (b.value > (a?.value ?? -1) ? b : a), null);
+  return `
+  <h1>Vue générale</h1>
+  <p class="muted">Ce qui change dans les compétitions suivies, et si cela compte pour les prédictions.</p>
+  <div class="grid kpis">
+    <div class="card"><div class="kpi-label">Matchs analysés</div><div class="kpi-value">${c.matches.toLocaleString("fr-FR")}</div>
+      <div class="kpi-note">${c.competitions} compétitions · ${fdate(c.first_date)} → ${fdate(c.last_result)}</div>
+      <div class="meta"><span class="badge fact">fait</span> résultats réels</div></div>
+    <div class="card clickable" onclick="go('competitions')"><div class="kpi-label">Tendances de compétition</div>
+      <div class="kpi-value">${cnt("rising") + cnt("falling")}</div>
+      <div class="kpi-note">${cnt("rising")} en hausse · ${cnt("falling")} en baisse · ${cnt("emerging")} émergentes · ${cnt("unconfirmed")} non confirmées</div>
+      <div class="meta">Calcul n° ${d.trend_run} · fenêtre de 380 matchs contre les 1 900 précédents</div></div>
+    <div class="card clickable" onclick="go('competitions')"><div class="kpi-label">Particularités validées</div>
+      <div class="kpi-value">${d.validated_effects}</div>
+      <div class="kpi-note">Écarts à un modèle qui ignore la compétition, significatifs sur 2006-2020 et confirmés sur 2021-2026</div></div>
+    <div class="card clickable" onclick="go('performance')"><div class="kpi-label">Modèle actif</div>
+      <div class="kpi-value" style="font-size:1.1rem">${esc(active.name)} v${active.version}</div>
+      <div class="kpi-note">Promu le ${fdate(active.promoted_at)} · entraîné sur ${(active.n_train || 0).toLocaleString("fr-FR")} matchs</div>
+      <div class="meta">Calibration la moins bonne : ${worst ? esc(EVENT_FR[worst.segment.split(":").slice(2).join(":")]) + " (ECE " + num(worst.value, 3) + ")" : "n/d"}</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Tendances à surveiller</h2>
+      <p class="question">Quelles fréquences s'écartent de leur référence historique dans les compétitions cibles ?</p>
+      <ul class="list">${watch.length ? watch.map((t) => `
+        <li class="clickable" onclick="go('competitions',{c:'${esc(t.competition)}'})">
+          <div class="row-title">${esc(t.competition)} — ${esc(mname(t.metric))} ${badge(t.status)}</div>
+          <div>${val(t.metric, t.observed)} contre ${val(t.metric, t.reference)} (${diff(t.metric, t.abs_diff)})</div>
+          <div class="meta">n = ${t.n} · ${fdate(t.period_start)} → ${fdate(t.period_end)} · p ajusté ${num(t.adjusted_p_value, 3)} · confiance ${esc(t.confidence)}</div>
+        </li>`).join("") : `<li class="muted">Aucune tendance significative après correction des tests multiples.</li>`}</ul></div>
+    <div class="card"><h2>Particularités confirmées des compétitions</h2>
+      <p class="question">Qu'est-ce qui distingue une compétition, au-delà du niveau des équipes engagées ?</p>
+      <ul class="list">${d.validated_targets.map((p) => {
+        const [, comp, , metric] = p.key.split("|");
+        return `<li class="clickable" onclick="go('competitions',{c:'${esc(comp)}'})">
+          <div class="row-title">${esc(comp)} — ${esc(mname(metric))} <span class="badge fact">validé hors échantillon</span></div>
+          <div>${diff(metric, p.effect)} sur 2006-2020 (n = ${p.n}), puis ${diff(metric, p.out_of_sample_effect)} sur 2021-2026 (n = ${p.out_of_sample_n})</div></li>`;
+      }).join("")}</ul></div>
+    <div class="card"><h2>Fiabilité des probabilités par marché</h2>
+      <p class="question">Quand le modèle annonce x %, l'événement arrive-t-il x % du temps ?</p>
+      <p>${esc(calTxt) || "n/d"}</p>
+      <p class="meta">Erreur de calibration moyenne (ECE), backtest 2021-2026, 9 168 matchs. En dessous de 0,02 : bonne calibration. Détail dans <a href="#/performance">Performance</a>.</p>
+      <p class="small"><span class="badge emerging">à surveiller</span> Coupes d'Europe : calibration nettement moins bonne qu'en championnat (pas de cotes, moins de matchs).</p></div>
+    <div class="card"><h2>Qualité et couverture des données</h2>
+      <p class="question">Quelles anomalies et quels manques limitent l'analyse ?</p>
+      <ul class="list">${d.quality_issues.map((q) => `<li><span class="badge ${q.severity === "error" ? "falling" : "stable"}">${esc(q.severity)}</span> ${esc(q.code)} : ${q.n}</li>`).join("")}
+      ${Object.keys(d.not_collected).map((k) => `<li><span class="badge na">non collecté</span> ${esc(ncName(k))}</li>`).join("")}</ul>
+      <p class="meta">Aucune source autorisée ne fournit ces données ; elles ne sont ni estimées ni remplacées par zéro.</p>
+      <p class="meta">${c.upcoming} match(s) à venir publiés par les sources.</p></div>
+  </div>`;
+}
+
+/* ---------------- 2. Competitions ---------------- */
+async function competitions() {
+  const p = params();
+  const list = await get("/competitions");
+  const code = p.c || "ENG-PL";
+  const q = new URLSearchParams();
+  if (p.from) q.set("season_from", p.from);
+  if (p.to) q.set("season_to", p.to);
+  const d = await get(`/competition/${code}?${q}`);
+  const options = list.map((x) => `<option value="${esc(x.code)}" ${x.code === code ? "selected" : ""}>${esc(x.name)}${x.is_target ? "" : " (contexte)"}${x.matches ? "" : " — non couverte"}</option>`).join("");
+  let html = `<h1>Analyse des compétitions</h1>
+  <div class="controls"><label>Compétition<select id="f-comp">${options}</select></label>`;
+  if (!d.available) {
+    return html + `</div><div class="card">${na(d.info?.name || code, d.reason)}</div>`;
+  }
+  const [lo, hi] = d.period;
+  const years = []; for (let y = d.info.first_season; y <= d.info.last_season; y++) years.push(y);
+  const yOpt = (sel) => years.map((y) => `<option value="${y}" ${y === sel ? "selected" : ""}>${season(y)}</option>`).join("");
+  html += `<label>De<select id="f-from">${yOpt(lo)}</select></label><label>À<select id="f-to">${yOpt(hi)}</select></label>
+    <label>Indicateur de la courbe<select id="f-metric">${["over_2_5", "btts", "draw", "home_win", "away_win", "over_1_5", "over_3_5", "goals"].map((m) => `<option value="${m}">${mname(m)}</option>`).join("")}</select></label></div>`;
+  const nAll = d.seasons.reduce((a, s) => a + s.n, 0);
+  html += `<p class="muted">${esc(d.info.name)} · ${season(lo)} à ${season(hi)} · ${nAll.toLocaleString("fr-FR")} matchs. Référence historique = toutes les saisons de la période choisie.</p>
+  <div class="grid two">
+    <div class="card"><h2>Évolution par saison</h2><p class="question">La fréquence augmente-t-elle, baisse-t-elle ou reste-t-elle stable ?</p>
+      <div class="chart-box tall"><canvas id="ch-trend"></canvas></div>
+      <p class="legend-note">Bande bleue : intervalle de confiance à 95 % de chaque saison (Wilson). Ligne grise : moyenne de la période.</p></div>
+    <div class="card"><h2>Saison récente contre référence</h2><p class="question">La dernière saison complète se distingue-t-elle de la référence ?</p>
+      <div class="chart-box tall"><canvas id="ch-compare"></canvas></div>
+      <p class="legend-note" id="compare-note"></p></div>
+    <div class="card"><h2>Matrice des scores exacts</h2><p class="question">Quels scores sont les plus et les moins fréquents ? Cliquez une case pour voir les matchs.</p>
+      <div class="table-wrap" id="heatmap"></div><p class="legend-note">90 minutes. 5 = 5 buts ou plus. Intensité proportionnelle à la fréquence.</p></div>
+    <div class="card"><h2>Distribution du nombre de buts</h2><p class="question">Combien de buts par match ?</p>
+      <div class="chart-box"><canvas id="ch-totals"></canvas></div></div>
+    <div class="card"><h2>Première et deuxième mi-temps</h2><p class="question">Quand les buts sont-ils marqués ?</p>
+      <div class="chart-box"><canvas id="ch-halves"></canvas></div>
+      <div style="margin-top:12px">${na("Buts par tranche de 15 minutes (0-15 … 76-90+)", d.unavailable.goals_by_period)}</div></div>
+    <div class="card"><h2>Indicateurs de jeu par saison</h2><p class="question">Volume de tirs, corners et discipline.</p>
+      <div class="chart-box"><canvas id="ch-stats"></canvas></div>
+      <p class="legend-note">${d.stats.length ? `n = ${d.stats.reduce((a, s) => a + s.n, 0).toLocaleString("fr-FR")} matchs avec statistiques.` : "Aucune statistique de match pour cette compétition."} ${esc(d.definition_warnings.yellow_cards)}</p>
+      <div style="margin-top:12px">${na("xG, possession, pressing", d.unavailable.xg)}</div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Tendances détectées (dernier calcul)</h2><p class="question">Quels indicateurs s'écartent de la référence, et avec quelle confiance ?</p>
+    <p class="small"><label style="flex-direction:row;display:inline-flex;gap:6px"><input type="checkbox" id="show-stable" style="min-width:0"> afficher aussi les ${d.trends.filter((t) => t.window === "medium" && (t.status === "stable" || t.status === "insufficient_data")).length} indicateurs stables</label></p>
+    <div class="table-wrap"><table class="hide-stable" id="trend-table"><thead><tr><th>Indicateur</th><th>Fenêtre</th><th class="num">n</th><th class="num">Observé</th><th class="num">Lissé</th><th class="num">Référence</th><th class="num">Écart</th><th class="num">p ajusté</th><th>Statut</th><th>Persistance passée</th></tr></thead><tbody>
+    ${d.trends.filter((t) => t.window === "medium" || t.status !== "stable").map((t) => {
+      const hide = t.status === "stable" || t.status === "insufficient_data";
+      const o = t.out_of_sample || {};
+      return `<tr class="${hide ? "row-stable" : ""}"><td>${esc(mname(t.metric))}<div class="small muted">${esc(t.definition)}</div></td><td>${t.window === "short" ? "60 m." : "380 m."}<div class="small muted">${fdate(t.period_start)}→${fdate(t.period_end)}</div></td><td class="num">${t.n}</td><td class="num">${val(t.metric, t.observed)}</td><td class="num">${val(t.metric, t.smoothed)}</td><td class="num">${val(t.metric, t.reference)}</td><td class="num">${diff(t.metric, t.abs_diff)}</td><td class="num">${num(t.adjusted_p_value, 3)}</td><td>${badge(t.status)}</td><td class="small">${o.persistence_slope != null ? `${num(o.persistence_slope)} [${num(o.slope_ci[0])} ; ${num(o.slope_ci[1])}]` : "n/d"}</td></tr>`;
+    }).join("")}</tbody></table></div>
+    <p class="legend-note">Persistance passée : part d'un écart qui s'est maintenue dans la fenêtre suivante, mesurée à de nombreuses dates depuis 2010 (0 = bruit, 1 = durable).</p></div>
+  <div class="card" style="margin-top:16px"><h2>Particularités par rapport au niveau des équipes</h2><p class="question">L'écart vient-il de la compétition elle-même ou des équipes engagées ?</p>
+    <div class="table-wrap"><table><thead><tr><th>Indicateur</th><th>Segment</th><th class="num">n 2006-2020</th><th class="num">Écart</th><th class="num">IC 95 %</th><th class="num">Écart 2021-2026</th><th>Statut</th></tr></thead><tbody>
+    ${d.effects.map((e) => `<tr><td>${esc(mname(e.metric))}</td><td>${esc(e.segment)}</td><td class="num">${e.n}</td><td class="num">${diff(e.metric, e.effect)}</td><td class="num">[${diff(e.metric, e.ci_low)} ; ${diff(e.metric, e.ci_high)}]</td><td class="num">${diff(e.metric, e.out_of_sample_effect)} (n=${e.out_of_sample_n ?? "n/d"})</td><td>${badge(e.status)}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">Aucun effet robuste.</td></tr>`}
+    </tbody></table></div><p class="legend-note">Écart = taux observé − probabilité d'un modèle Elo-Poisson qui connaît la force des équipes mais pas la compétition.</p></div>`;
+
+  setTimeout(() => {
+    document.getElementById("show-stable").onchange = (e) => document.getElementById("trend-table").classList.toggle("hide-stable", !e.target.checked);
+    const comp = document.getElementById("f-comp");
+    comp.onchange = () => go("competitions", { c: comp.value });
+    document.getElementById("f-from").onchange = (e) => go("competitions", { c: code, from: e.target.value, to: hi });
+    document.getElementById("f-to").onchange = (e) => go("competitions", { c: code, from: lo, to: e.target.value });
+    const drawTrend = (metric) => {
+      charts.filter((x) => x.canvas.id === "ch-trend").forEach((x) => x.destroy());
+      const s = d.seasons;
+      const total = s.reduce((a, x) => a + x.n, 0);
+      const mean = s.reduce((a, x) => a + x[metric] * x.n, 0) / total;
+      const rate = isRate(metric);
+      const k = rate ? 100 : 1;
+      const ds = [{ label: mname(metric), data: s.map((x) => x[metric] * k), borderColor: C.accent, backgroundColor: C.accent, tension: 0.2, pointRadius: 3 },
+        { label: "Moyenne de la période", data: s.map(() => mean * k), borderColor: C.ref, borderDash: [5, 4], pointRadius: 0 }];
+      if (rate) {
+        ds.unshift({ label: "IC 95 % haut", data: s.map((x) => x[`${metric}_ci`][1] * 100), borderWidth: 0, pointRadius: 0, backgroundColor: C.accentSoft, fill: "+1" },
+          { label: "IC 95 % bas", data: s.map((x) => x[`${metric}_ci`][0] * 100), borderWidth: 0, pointRadius: 0, fill: false });
+      }
+      chart("ch-trend", { type: "line", data: { labels: s.map((x) => season(x.season)), datasets: ds },
+        options: { plugins: { legend: { labels: { filter: (i) => !i.text.startsWith("IC") } },
+          tooltip: { callbacks: { afterBody: (items) => `n = ${s[items[0].dataIndex].n} matchs` } } },
+          scales: { y: { title: { display: true, text: rate ? "%" : "buts" } } } } });
+    };
+    const sel = document.getElementById("f-metric");
+    sel.onchange = () => drawTrend(sel.value);
+    drawTrend("over_2_5");
+
+    const s = d.seasons; const complete = s.filter((x) => x.n >= 0.8 * Math.max(...s.map((y) => y.n)));
+    const last = complete[complete.length - 1];
+    const total = s.reduce((a, x) => a + x.n, 0);
+    const keys = ["home_win", "draw", "away_win", "btts", "over_1_5", "over_2_5", "over_3_5"];
+    const ref = keys.map((m) => (100 * s.reduce((a, x) => a + x[m] * x.n, 0)) / total);
+    chart("ch-compare", { type: "bar", data: { labels: keys.map(mname), datasets: [
+      { label: `${season(last.season)} (n=${last.n})`, data: keys.map((m) => 100 * last[m]), backgroundColor: C.accent },
+      { label: `Référence ${season(lo)}–${season(hi)} (n=${total})`, data: ref, backgroundColor: C.ref }] },
+      options: { scales: { y: { title: { display: true, text: "%" } } } } });
+    document.getElementById("compare-note").textContent = `Dernière saison complète : ${season(last.season)}. Intervalle ±${(1.96 * Math.sqrt(0.25 / last.n) * 100).toFixed(1)} pts au plus sur un taux de saison.`;
+
+    const grid = Array.from({ length: 6 }, () => Array(6).fill(0));
+    d.scores.forEach((x) => { grid[x.h][x.a] = x.n; });
+    const n = d.scores.reduce((a, x) => a + x.n, 0);
+    const max = Math.max(...grid.flat());
+    let hm = `<table class="heatmap"><tr><th>Dom. \\ Ext.</th>${[0, 1, 2, 3, 4, "5+"].map((g) => `<th>${g}</th>`).join("")}</tr>`;
+    grid.forEach((row, h) => {
+      hm += `<tr><th>${h === 5 ? "5+" : h}</th>${row.map((v, a) => {
+        const alpha = max ? (0.08 + 0.85 * v / max).toFixed(2) : 0;
+        const dark = v / max > 0.55;
+        return `<td style="background:rgba(31,95,191,${alpha});color:${dark ? "#fff" : "#17202a"}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
+      }).join("")}</tr>`;
+    });
+    document.getElementById("heatmap").innerHTML = hm + `</table><p class="meta">n = ${n.toLocaleString("fr-FR")} matchs</p>`;
+    document.querySelectorAll(".heatmap td").forEach((td) => td.onclick = async () => {
+      const rows = await get(`/matches?competition=${code}&home_goals=${td.dataset.h}&away_goals=${td.dataset.a}&limit=200`);
+      drawer(`${d.info.name} — score ${td.dataset.h}-${td.dataset.a}`, `<p class="muted">${rows.length} matchs les plus récents (200 au plus).</p>` + matchTable(rows.filter((r) => r.season >= lo && r.season <= hi)));
+    });
+
+    chart("ch-totals", { type: "bar", data: { labels: d.totals.map((x) => (x.goals === 6 ? "6+" : x.goals)),
+      datasets: [{ label: `Part des matchs (n=${n})`, data: d.totals.map((x) => (100 * x.n) / n), backgroundColor: C.accent }] },
+      options: { scales: { y: { title: { display: true, text: "%" } }, x: { title: { display: true, text: "buts dans le match" } } } } });
+    chart("ch-halves", { type: "bar", data: { labels: s.map((x) => season(x.season)), datasets: [
+      { label: "1re mi-temps", data: s.map((x) => x.first_half_goals), backgroundColor: C.accent },
+      { label: "2e mi-temps", data: s.map((x) => x.second_half_goals), backgroundColor: C.ref }] },
+      options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "buts par match" } } } } });
+    if (d.stats.length) {
+      chart("ch-stats", { type: "line", data: { labels: d.stats.map((x) => season(x.season)), datasets: [
+        { label: "Tirs", data: d.stats.map((x) => x.shots), borderColor: C.accent },
+        { label: "Tirs cadrés", data: d.stats.map((x) => x.sot), borderColor: "#6f9be0" },
+        { label: "Corners", data: d.stats.map((x) => x.corners), borderColor: C.ref },
+        { label: "Cartons jaunes", data: d.stats.map((x) => x.yellows), borderColor: C.down }] },
+        options: { scales: { y: { title: { display: true, text: "par match (2 équipes)" } } } } });
+    } else {
+      document.getElementById("ch-stats").parentElement.innerHTML = na("Statistiques de match", "La source de cette compétition (openfootball) ne fournit que les scores.");
+    }
+  });
+  return html;
+}
+
+/* ---------------- 3. Teams ---------------- */
+async function teams() {
+  const p = params();
+  const compCode = p.c || "ENG-PL";
+  const list = await get(`/teams?competition=${compCode}`);
+  const comps = (await get("/competitions")).filter((x) => x.is_target && x.type === "league");
+  const tid = Number(p.t || (list[0] || {}).id);
+  let html = `<h1>Profil des équipes</h1><div class="controls">
+    <label>Championnat<select id="f-tc">${comps.map((x) => `<option value="${x.code}" ${x.code === compCode ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
+    <label>Équipe<select id="f-team">${list.map((t) => `<option value="${t.id}" ${t.id === tid ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select></label></div>`;
+  if (!tid) return html + `<p class="muted">Aucune équipe.</p>`;
+  const d = await get(`/team/${tid}`);
+  const s = d.series;
+  const avg = (arr, k) => { const v = arr.map((x) => x[k]).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const cnt = (arr, k) => arr.filter((x) => x[k] != null).length;
+  const last6 = s.slice(-6), last19 = s.slice(-19), ref = s.slice(-95, -19);
+  const curSeason = s.length ? s[s.length - 1].season : null;
+  const seasonRows = s.filter((x) => x.season === curSeason);
+  const kpi = (label, k) => `<div class="card"><div class="kpi-label">${label}</div><div class="kpi-value">${num(avg(last6, k))}</div>
+    <div class="kpi-note">6 derniers matchs · saison ${curSeason ? season(curSeason) : ""} ${num(avg(seasonRows, k))} (n=${cnt(seasonRows, k)}) · référence ${num(avg(ref, k))} (n=${cnt(ref, k)})</div></div>`;
+  html += `<p class="muted">${esc(d.info.name)} · ${s.length} derniers matchs en base, toutes compétitions suivies. Référence = les 76 matchs précédant les 19 derniers.</p>
+  <div class="grid kpis">${kpi("Buts marqués / match", "gf")}${kpi("Buts encaissés / match", "ga")}${kpi("Tirs / match", "shots_for")}
+    <div class="card"><div class="kpi-label">xG / match</div><div class="kpi-value" style="color:var(--na)">—</div><div class="kpi-note"><span class="badge na">non collecté</span> aucune source autorisée</div></div></div>
+  <div class="grid two">
+    <div class="card"><h2>Production offensive et solidité défensive</h2><p class="question">La tendance récente s'écarte-t-elle de la référence de l'équipe ?</p>
+      <div class="chart-box tall"><canvas id="ch-team-goals"></canvas></div><p class="legend-note">Moyennes glissantes sur 6 matchs ; pointillés : référence (76 matchs précédents). Sur 6 matchs, l'incertitude est forte : un écart y persiste en moyenne à environ 35 % (test de persistance).</p></div>
+    <div class="card"><h2>Volume de tirs</h2><p class="question">Le processus de jeu confirme-t-il les résultats ?</p>
+      <div class="chart-box tall"><canvas id="ch-team-shots"></canvas></div><p class="legend-note">Les tirs persistent davantage que les buts (pente ≈ 0,52 contre 0,35) : ils renseignent mieux le niveau réel.</p></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card"><h2>Tendances mesurées</h2><p class="question">Quels changements sont significatifs après correction des tests multiples ?</p>
+      ${d.trends.some((t) => t.window === "medium" && !["stable", "insufficient_data"].includes(t.status)) ? "" : `<p><span class="badge stable">aucun changement significatif</span> Sur 19 matchs, les écarts observés restent dans la marge du hasard après correction des tests multiples. C'est le cas le plus fréquent : un écart d'équipe ne persiste en moyenne qu'à environ un tiers.</p>`}
+      <p class="small"><label style="flex-direction:row;display:inline-flex;gap:6px"><input type="checkbox" id="show-stable-team" style="min-width:0"> afficher le détail de tous les indicateurs</label></p>
+      <div class="table-wrap"><table class="hide-stable" id="team-trend-table"><thead><tr><th>Population</th><th>Indicateur</th><th class="num">n</th><th class="num">Observé</th><th class="num">Réf.</th><th class="num">Écart</th><th>Statut</th></tr></thead><tbody>
+      ${d.trends.filter((t) => t.window === "medium").map((t) => `<tr class="${t.status === "stable" || t.status === "insufficient_data" ? "row-stable" : ""}"><td>${esc(POP_FR[t.population.split("|")[1] || ""] || t.population.split("|")[1])}</td><td>${esc(mname(t.metric))}</td><td class="num">${t.n}</td><td class="num">${val(t.metric, t.observed)}</td><td class="num">${val(t.metric, t.reference)}</td><td class="num">${diff(t.metric, t.abs_diff)}</td><td>${badge(t.status)}</td></tr>`).join("")}
+      </tbody></table></div><p class="legend-note">Fenêtre de 19 matchs contre les 76 précédents. « Contre plus fort » : adversaire avec un Elo supérieur de plus de 75 points.</p></div>
+    <div class="card"><h2>Profil tactique</h2><p class="question">Formation, organisation et style de jeu.</p>
+      ${na("Formations, compositions, possession, pressing, zones de tir", "Aucune source autorisée connectée (API-Football requise). Une formation affichée ne suffirait pas à décrire le style de jeu.")}
+      <h3 style="margin-top:16px">Derniers matchs</h3>${matchList(s.slice(-10).reverse())}</div>
+  </div>`;
+  setTimeout(() => {
+    document.getElementById("show-stable-team").onchange = (e) => document.getElementById("team-trend-table").classList.toggle("hide-stable", !e.target.checked);
+    document.getElementById("f-tc").onchange = (e) => go("teams", { c: e.target.value });
+    document.getElementById("f-team").onchange = (e) => go("teams", { c: compCode, t: e.target.value });
+    const roll = (k) => s.map((_, i) => { const w = s.slice(Math.max(0, i - 5), i + 1).map((x) => x[k]).filter((x) => x != null); return w.length >= 3 ? w.reduce((a, b) => a + b, 0) / w.length : null; });
+    const labels = s.map((x) => fdate(x.kickoff_date));
+    const refLine = (k) => s.map(() => avg(ref, k));
+    chart("ch-team-goals", { type: "line", data: { labels, datasets: [
+      { label: "Buts marqués (6 m.)", data: roll("gf"), borderColor: C.accent, pointRadius: 0, tension: 0.2 },
+      { label: "Buts encaissés (6 m.)", data: roll("ga"), borderColor: C.down, pointRadius: 0, tension: 0.2 },
+      { label: "Référence marqués", data: refLine("gf"), borderColor: C.accent, borderDash: [4, 4], pointRadius: 0 },
+      { label: "Référence encaissés", data: refLine("ga"), borderColor: C.down, borderDash: [4, 4], pointRadius: 0 }] },
+      options: { scales: { x: { ticks: { maxTicksLimit: 8 } } } } });
+    chart("ch-team-shots", { type: "line", data: { labels, datasets: [
+      { label: "Tirs (6 m.)", data: roll("shots_for"), borderColor: C.accent, pointRadius: 0, tension: 0.2 },
+      { label: "Tirs concédés (6 m.)", data: roll("shots_against"), borderColor: C.down, pointRadius: 0, tension: 0.2 },
+      { label: "Tirs cadrés (6 m.)", data: roll("sot_for"), borderColor: "#6f9be0", pointRadius: 0, tension: 0.2 }] },
+      options: { spanGaps: false, scales: { x: { ticks: { maxTicksLimit: 8 } } } } });
+  });
+  return html;
+}
+function matchList(rows) {
+  return `<div class="table-wrap"><table><tbody>${rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.id}})"><td>${fdate(r.kickoff_date)}</td><td>${esc(r.competition)}</td><td>${r.at_home ? "dom." : "ext."} ${esc(r.opponent)}</td><td class="num">${r.gf}-${r.ga}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+/* ---------------- 4. Pre-match ---------------- */
+async function matchPage() {
+  const p = params();
+  const upcoming = await get("/matches/upcoming");
+  let html = `<h1>Analyse pré-match</h1>`;
+  if (!p.id) {
+    html += `<div class="card"><h2>Matchs à venir</h2>`;
+    html += upcoming.length ? `<div class="table-wrap"><table><tbody>${upcoming.map((m) => `<tr class="clickable" onclick="go('match',{id:${m.id}})"><td>${fdate(m.kickoff_date)}</td><td>${esc(m.competition)}</td><td>${esc(m.home)} – ${esc(m.away)}</td><td>${m.predictions ? '<span class="badge fact">prédiction enregistrée</span>' : '<span class="badge na">pas encore de prédiction</span>'}</td></tr>`).join("")}</tbody></table></div>`
+      : `<p class="muted">Aucun match à venir n'est publié par les sources pour les compétitions suivies. Le cycle du matin les récupère dès leur publication (football-data.co.uk les publie en général quelques jours avant). Les coupes nationales et la saison européenne en cours nécessitent une clé API-Football.</p>
+         <p>Pour consulter la fiche d'un match passé, ouvrez-le depuis une <a href="#/teams">fiche équipe</a> ou la <a href="#/competitions">matrice des scores</a>.</p>`;
+    return html + `</div>`;
+  }
+  const d = await get(`/match/${p.id}`);
+  const m = d.match;
+  html += `<div class="card"><div class="vs"><span>${esc(m.home)}</span><span class="x">contre</span><span>${esc(m.away)}</span></div>
+    <p class="muted" style="text-align:center">${esc(m.competition_name)}${m.round ? " · " + esc(m.round) : ""} · ${fdate(m.kickoff_date)}${m.neutral_venue ? " · terrain neutre" : ""}
+    ${m.home_goals != null ? ` · <strong>résultat ${m.home_goals}-${m.away_goals}</strong>` : ""}</p></div>`;
+  const pr = d.prediction;
+  if (!pr) {
+    html += `<div class="card" style="margin-top:16px">${na("Probabilités du modèle", m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Aucune prédiction enregistrée pour l'instant : elle sera produite par le cycle du matin." : m.status === "scheduled" ? "Date passée sans résultat publié par la source (match reporté, annulé ou non joué). Aucune prédiction possible." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi de ce match. Le système ne calcule pas de probabilité a posteriori : elle ne serait pas un vrai pronostic.")}</div>`;
+  } else {
+    const q = pr.data_quality || {};
+    html += `<div class="grid two" style="margin-top:16px">
+      <div class="card"><h2>Probabilités 1X2</h2><p class="question">Que dit le modèle, et que dit le marché ?</p>
+        <div class="prob-row">${[["Domicile", pr.p_home, 0], ["Nul", pr.p_draw, 1], ["Extérieur", pr.p_away, 2]].map(([l, v, i]) => `<div class="prob"><div class="kpi-label">${l}</div><div class="v">${pct(v, 0)}</div><div class="bar"><span style="width:${100 * v}%"></span></div><div class="meta">marché ${pr.market[i] == null ? "n/d" : pct(pr.market[i], 0)}</div></div>`).join("")}</div>
+        <p class="meta">${esc(pr.model)} · calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")} · <span class="badge estimate">estimation</span></p></div>
+      <div class="card"><h2>Scores les plus probables</h2><p class="question">Quels scores, classés par probabilité calculée ?</p>
+        <ul class="list">${pr.top_scores.map((t) => `<li><span class="row-title">${t.score}</span> — ${pct(t.p)}</li>`).join("")}</ul>
+        <p class="meta">Buts attendus ${num(pr.exp_home_goals)} – ${num(pr.exp_away_goals)} · plus de 2,5 buts ${pct(pr.p_over_2_5, 0)} · les deux marquent ${pct(pr.p_btts, 0)}. Aucun score n'est « le » score prévu.</p></div>
+      <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
+        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v == null ? "n/d" : num(v)}</td></tr>`).join("")}</tbody></table></div>
+      <div class="card"><h2>Fiabilité</h2><p class="question">Les données suffisent-elles ?</p>
+        <p>${pr.sufficient_data ? '<span class="badge fact">données suffisantes</span>' : '<span class="badge falling">données insuffisantes</span>'}</p>
+        <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
+        ${na("Compositions, absences, formations", "Aucune source autorisée connectée.")}</div></div>`;
+  }
+  const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
+  if (m.status === "scheduled" && kickoff > new Date()) {
+    html += `<div class="card" style="margin-top:16px"><h2>Mon pronostic</h2>
+      <p class="question">Enregistré avec l'heure ; refusé après le coup d'envoi. Le dernier envoyé avant le match compte.</p>
+      ${tokenBox()}
+      <form id="pick-form" class="controls">
+        <label>Choix 1X2<select name="pick" required><option value="H">1 — ${esc(m.home)}</option><option value="D">X — nul</option><option value="A">2 — ${esc(m.away)}</option></select></label>
+        <label>Confiance (1-5)<select name="confidence">${[1, 2, 3, 4, 5].map((c) => `<option ${c === 3 ? "selected" : ""}>${c}</option>`).join("")}</select></label>
+        <label>Score (facultatif)<span><input name="home_goals" type="number" min="0" max="20" style="min-width:0;width:60px"> - <input name="away_goals" type="number" min="0" max="20" style="min-width:0;width:60px"></span></label>
+        <label>Plus de 2,5 buts<select name="over_2_5"><option value="">—</option><option value="true">oui</option><option value="false">non</option></select></label>
+        <label>Les deux marquent<select name="btts"><option value="">—</option><option value="true">oui</option><option value="false">non</option></select></label>
+        <label style="flex:1 1 100%">Raisonnement<textarea name="reasoning" rows="3" maxlength="5000" style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px"></textarea></label>
+        <button class="btn" type="submit">Enregistrer le pronostic</button><span id="pick-state" class="small"></span>
+      </form></div>`;
+    setTimeout(() => {
+      bindToken();
+      document.getElementById("pick-form").onsubmit = async (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        const body = { match_id: m.id, pick: f.get("pick"), confidence: Number(f.get("confidence")) };
+        if (f.get("home_goals") !== "" && f.get("away_goals") !== "") { body.home_goals = Number(f.get("home_goals")); body.away_goals = Number(f.get("away_goals")); }
+        if (f.get("over_2_5")) body.over_2_5 = f.get("over_2_5") === "true";
+        if (f.get("btts")) body.btts = f.get("btts") === "true";
+        if (f.get("reasoning")) body.reasoning = f.get("reasoning");
+        const state = document.getElementById("pick-state");
+        try { const r = await send("POST", "/api/user-predictions", body); state.innerHTML = `<span class="badge fact">enregistré n° ${r.id}</span>`; }
+        catch (err) { state.innerHTML = `<span class="badge falling">refusé</span> ${esc(err.message)}`; }
+      };
+    });
+  }
+  html += `<div class="grid two" style="margin-top:16px">${d.sheets.map((sh) => `<div class="card"><h2>${esc(sh.name)}</h2><p class="question">${sh.n_matches} derniers matchs observés avant le coup d'envoi.</p>
+    <table><tbody>${Object.entries(sh.observed).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</tbody></table>
+    ${sh.missing.length ? `<p class="small" style="margin-top:8px"><span class="badge na">non disponible</span> ${esc(sh.missing.join(" ; "))}</p>` : ""}</div>`).join("")}</div>`;
+  return html;
+}
+
+/* ---------------- 5. Performance ---------------- */
+async function performance() {
+  const d = await get("/performance");
+  const p = params();
+  const bt = d.backtest;
+  const all = bt.filter((r) => r.segment === "all");
+  const models = [...new Set(all.map((r) => r.model_name))];
+  const pick = (m, metric, seg = "all") => (bt.find((r) => r.model_name === m && r.metric === metric && r.segment === seg) || {});
+  const comps = [...new Set(bt.filter((r) => r.segment.startsWith("competition:")).map((r) => r.segment.split(":")[1]))];
+  const cmp = bt.filter((r) => r.metric === "log_loss_diff");
+  const calModels = [...new Set(d.calibration.map((r) => r.model_name))];
+  const calModel = p.m || (calModels.includes("routed_competition") ? "routed_competition" : calModels[0]);
+  const events = [...new Set(d.calibration.filter((r) => r.metric === "ece").map((r) => r.segment.split(":").slice(2).join(":")))];
+  const ev = p.e || "1X2:home";
+  const scope = p.s || "all";
+  let html = `<h1>Performance et fiabilité du modèle</h1>
+  <p class="muted">Backtest chronologique : chaque saison est prédite par des modèles entraînés sur les saisons antérieures. Run n° ${d.backtest_run?.id} du ${fdate(d.backtest_run?.started_at)}.</p>
+  <div class="grid two">
+    <div class="card"><h2>Log loss et Brier par modèle</h2><p class="question">Quel modèle prédit le mieux ? (plus bas = meilleur)</p>
+      <div class="table-wrap"><table><thead><tr><th>Modèle</th><th class="num">n</th><th class="num">Log loss</th><th class="num">Brier</th><th class="num">ECE</th><th class="num">Plus/moins 2,5</th><th class="num">BTTS</th></tr></thead><tbody>
+      ${models.map((m) => `<tr><td>${esc(m)}</td><td class="num">${pick(m, "log_loss").n ?? ""}</td><td class="num">${num(pick(m, "log_loss").value, 4)}</td><td class="num">${num(pick(m, "brier").value, 4)}</td><td class="num">${num(pick(m, "ece").value, 3)}</td><td class="num">${num(pick(m, "ou25_log_loss").value, 4)}</td><td class="num">${num(pick(m, "btts_log_loss").value, 4)}</td></tr>`).join("")}
+      </tbody></table></div></div>
+    <div class="card"><h2>Comparaisons appariées</h2><p class="question">L'écart avec la référence est-il plus grand que l'incertitude ?</p>
+      <div class="chart-box tall"><canvas id="ch-forest"></canvas></div><p class="legend-note">Différence de log loss (négatif = meilleur que la référence), IC 95 % bootstrap, mêmes matchs.</p></div>
+    <div class="card"><h2>Log loss par compétition</h2><p class="question">La qualité varie-t-elle selon la compétition ?</p>
+      <div class="chart-box tall"><canvas id="ch-bycomp"></canvas></div></div>
+    <div class="card"><h2>Courbe de calibration</h2><p class="question">Quand le modèle annonce x %, l'événement arrive-t-il x % du temps ?</p>
+      <div class="controls"><label>Modèle<select id="f-cm">${calModels.map((m) => `<option ${m === calModel ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></label>
+        <label>Événement<select id="f-ce">${events.map((e) => `<option value="${esc(e)}" ${e === ev ? "selected" : ""}>${esc(EVENT_FR[e] || e)}</option>`).join("")}</select></label>
+        <label>Périmètre<select id="f-cs">${["all", "domestic", "european"].map((x) => `<option ${x === scope ? "selected" : ""} value="${x}">${{ all: "tout", domestic: "championnats", european: "coupes d'Europe" }[x]}</option>`).join("")}</select></label></div>
+      <div class="chart-box tall"><canvas id="ch-calib"></canvas></div><p class="legend-note" id="calib-note"></p></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Apport mesuré des niveaux et des tendances</h2><p class="question">Quelles informations améliorent réellement les prédictions sur des matchs futurs ?</p>
+    <div class="controls">
+      <label>Marché<select id="f-lm"><option value="">tous</option>${[...new Set(d.levels.map((r) => r.metric))].map((m) => `<option value="${esc(m)}">${esc(MARKET_FR[m] || m)}</option>`).join("")}</select></label>
+      <label>Périmètre<select id="f-ls"><option value="all targets">toutes les compétitions cibles</option><option value="domestic leagues">championnats</option><option value="european cups">coupes d'Europe</option></select></label>
+      <label>Verdict<select id="f-lv"><option value="shown">effet démontré seulement</option><option value="">tous</option></select></label></div>
+    <div class="table-wrap"><table><thead><tr><th>Ajout</th><th>Marché</th><th class="num">n</th><th class="num">Écart</th><th class="num">IC 95 %</th><th>Verdict</th></tr></thead><tbody id="levels-body"></tbody></table></div>
+    <p class="legend-note">Écart de score (log loss ou RPS ; négatif = meilleur) par rapport au niveau précédent ou au modèle actif, mêmes matchs 2021-22 à 2025-26. Une tendance n'est intégrée au modèle actif que si elle passe les seuils de promotion fixés à l'avance.</p></div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card"><h2>Historique des versions</h2><p class="question">Quand et pourquoi le modèle actif a-t-il changé ?</p>
+      <div class="table-wrap"><table><thead><tr><th>Version</th><th>Statut</th><th>Créée</th><th>Promue</th><th>Décision</th></tr></thead><tbody>
+      ${d.versions.map((v) => `<tr><td>${esc(v.name)} v${v.version}</td><td><span class="badge ${v.status === "active" ? "fact" : "stable"}">${esc(v.status)}</span></td><td>${fdate(v.created_at)}</td><td>${fdate(v.promoted_at)}</td><td class="small">${esc(v.decision_note)}</td></tr>`).join("")}
+      </tbody></table></div></div>
+    <div class="card"><h2>Résultats en conditions réelles</h2><p class="question">Les prédictions enregistrées avant les matchs tiennent-elles ?</p>
+      ${d.live.length ? `<table><thead><tr><th>Prédicteur</th><th>Marché</th><th class="num">n</th><th class="num">Log loss</th><th class="num">Réussite</th></tr></thead><tbody>${d.live.map((r) => `<tr><td>${esc(r.predictor_kind)} ${esc(r.model_name)}</td><td>${esc(r.market)}</td><td class="num">${r.n}</td><td class="num">${num(r.log_loss, 3)}</td><td class="num">${pct(r.accuracy, 0)}</td></tr>`).join("")}</tbody></table>`
+        : na("Évaluation en direct", "Aucune prédiction réelle n'a encore été évaluée : aucun match des compétitions suivies n'a été publié à l'avance depuis la mise en service.")}</div>
+  </div>`;
+  setTimeout(() => {
+    const drawLevels = () => {
+      const m = document.getElementById("f-lm").value, sc = document.getElementById("f-ls").value, v = document.getElementById("f-lv").value;
+      const rows = d.levels.filter((r) => r.segment.endsWith(":" + sc) && (!m || r.metric === m) && (!v || r.ci_high < 0 || r.ci_low > 0))
+        .sort((a, b) => a.value - b.value);
+      document.getElementById("levels-body").innerHTML = rows.map((r) => {
+        const verdict = r.ci_high < 0 ? ["rising", "améliore"] : r.ci_low > 0 ? ["falling", "dégrade"] : ["stable", "aucun effet démontré"];
+        const LEVEL_FR = { general: "général (Elo)", competition: "tendances de compétition", phase: "phase, tour, manche", teams: "équipes", market: "cotes" };
+        const name = VARIANT_FR[r.model_name] || r.model_name.replace(/^(outcome_logistic|goals_poisson):/, "").replace(/\d_/g, "")
+          .split(" -> ").map((x) => LEVEL_FR[x] || x).join(" → ") + (r.model_name.startsWith("goals_poisson") ? " (modèle de buts)" : "");
+        return `<tr><td>${esc(name)}</td><td>${esc(MARKET_FR[r.metric] || r.metric)}</td><td class="num">${r.n}</td><td class="num">${num(r.value, 4)}</td><td class="num">[${num(r.ci_low, 4)} ; ${num(r.ci_high, 4)}]</td><td><span class="badge ${verdict[0]}">${verdict[1]}</span></td></tr>`;
+      }).join("") || `<tr><td colspan="6" class="muted">Aucune ligne pour ce filtre.</td></tr>`;
+    };
+    ["f-lm", "f-ls", "f-lv"].forEach((id) => (document.getElementById(id).onchange = drawLevels));
+    drawLevels();
+    const sel = () => go("performance", { m: document.getElementById("f-cm").value, e: document.getElementById("f-ce").value, s: document.getElementById("f-cs").value });
+    ["f-cm", "f-ce", "f-cs"].forEach((id) => (document.getElementById(id).onchange = sel));
+    chart("ch-forest", { type: "bar", data: { labels: cmp.map((r) => `${r.model_name} − ${r.segment.replace("vs:", "")}`),
+      datasets: [{ label: "IC 95 %", data: cmp.map((r) => [r.ci_low, r.ci_high]), backgroundColor: cmp.map((r) => (r.ci_high < 0 ? C.accent : r.ci_low > 0 ? C.down : C.na)), barThickness: 10 }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => { const r = cmp[c.dataIndex]; return `moyenne ${r.value.toFixed(4)} [${r.ci_low.toFixed(4)} ; ${r.ci_high.toFixed(4)}] n=${r.n}`; } } } },
+        scales: { x: { title: { display: true, text: "Δ log loss" } } } } });
+    chart("ch-bycomp", { type: "bar", data: { labels: comps, datasets: models.map((m, i) => ({ label: m,
+      data: comps.map((c) => pick(m, "log_loss", `competition:${c}`).value ?? null),
+      backgroundColor: ["#1f5fbf", "#6f9be0", "#5b6673", "#b4541a", "#a9b4c2", "#1d7a4a", "#c9d6ee"][i % 7] })) },
+      options: { scales: { y: { min: 0.85, title: { display: true, text: "log loss" } } } } });
+    const pts = d.calibration.filter((r) => r.model_name === calModel && r.segment.startsWith(`calibration:${scope}:${ev}:`))
+      .map((r) => ({ x: 100 * Number(r.metric), y: 100 * r.value, n: r.n, lo: 100 * r.ci_low, hi: 100 * r.ci_high }));
+    const ece = d.calibration.find((r) => r.model_name === calModel && r.segment === `calibration:${scope}:${ev}` && r.metric === "ece");
+    chart("ch-calib", { type: "scatter", data: { datasets: [
+      { label: "Observé (IC 95 %)", data: pts, backgroundColor: C.accent, pointRadius: pts.map((q) => Math.max(3, Math.min(10, Math.sqrt(q.n) / 4))) },
+      { label: "IC haut", data: pts.map((q) => ({ x: q.x, y: q.hi })), pointStyle: "line", pointRadius: 6, borderColor: C.accent, showLine: false },
+      { label: "IC bas", data: pts.map((q) => ({ x: q.x, y: q.lo })), pointStyle: "line", pointRadius: 6, borderColor: C.accent, showLine: false },
+      { label: "Calibration parfaite", data: [{ x: 0, y: 0 }, { x: 100, y: 100 }], type: "line", borderColor: C.ref, borderDash: [5, 4], pointRadius: 0 }] },
+      options: { plugins: { legend: { labels: { filter: (i) => !i.text.startsWith("IC ") } }, tooltip: { callbacks: { label: (c) => { const q = c.raw; return q.n ? `annoncé ${q.x.toFixed(1)} % → observé ${q.y.toFixed(1)} % [${q.lo.toFixed(1)} ; ${q.hi.toFixed(1)}], n=${q.n}` : ""; } } } },
+        scales: { x: { min: 0, max: 100, title: { display: true, text: "probabilité annoncée (%)" } }, y: { min: 0, max: 100, title: { display: true, text: "fréquence observée (%)" } } } } });
+    document.getElementById("calib-note").textContent = ece ? `ECE ${ece.value.toFixed(3)} sur ${ece.n} matchs. Taille des points ∝ effectif de la tranche ; barres = IC 95 % (Wilson).` : "Pas de données pour cette combinaison.";
+  });
+  return html;
+}
+
+/* ---------------- 6. Personal predictions ---------------- */
+async function picks() {
+  const d = await (await fetch("/api/admin/user-predictions")).json();
+  const pickTxt = { H: "1", D: "X", A: "2" };
+  const done = d.rows.filter((r) => r.res_home != null);
+  let html = `<h1>Mes pronostics</h1>
+  <p class="muted">Pronostics horodatés et figés avant le coup d'envoi, comparés à la prédiction enregistrée du modèle et au résultat.</p>
+  <div class="grid kpis">
+    <div class="card"><div class="kpi-label">Pronostics enregistrés</div><div class="kpi-value">${d.rows.length}</div><div class="kpi-note">${done.length} matchs joués</div></div>
+    ${d.summary.filter((s) => s.market === "1X2").map((s) => `<div class="card"><div class="kpi-label">${s.predictor_kind === "user" ? "Mes choix 1X2" : "Modèle 1X2 (mêmes matchs)"}</div><div class="kpi-value">${pct(s.accuracy, 0)}</div><div class="kpi-note">de choix justes · n = ${s.n}${s.n < 100 ? " · échantillon trop petit pour conclure" : ""}</div></div>`).join("")}
+  </div>`;
+  html += hybridCard(d.hybrid);
+  if (!d.rows.length) {
+    return html + `<div class="card"><p class="muted">Aucun pronostic pour l'instant. Ouvrez un match programmé dans <a href="#/match">Analyse pré-match</a> pour en saisir un.</p></div>`;
+  }
+  html += `<div class="card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Choix</th><th class="num">Confiance</th><th>Modèle avant match</th><th>Résultat</th><th>Raisonnement</th></tr></thead><tbody>
+    ${d.rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.match_id}})"><td>${fdate(r.kickoff_date)} · ${esc(r.competition)}<div>${esc(r.home)} – ${esc(r.away)}</div><div class="small muted">saisi le ${new Date(r.submitted_at).toLocaleString("fr-FR")}</div></td>
+      <td>${pickTxt[r.pick]}${r.home_goals != null ? ` (${r.home_goals}-${r.away_goals})` : ""}</td><td class="num">${r.confidence}/5</td>
+      <td class="small">${r.model ? `1 ${pct(r.model.p_home, 0)} · X ${pct(r.model.p_draw, 0)} · 2 ${pct(r.model.p_away, 0)}` : '<span class="badge na">aucune prédiction</span>'}</td>
+      <td>${r.res_home != null ? `${r.res_home}-${r.res_away} ${r.correct == null ? "" : r.correct ? '<span class="badge rising">juste</span>' : '<span class="badge falling">faux</span>'}` : '<span class="muted">à venir</span>'}</td>
+      <td class="small">${esc(r.reasoning || "")}</td></tr>`).join("")}</tbody></table></div></div>`;
+  return html;
+}
+
+function hybridCard(h) {
+  const verdicts = {
+    adopt: ["rising", "gain fiable : critères de promotion remplis"],
+    too_few_test_picks: ["stable", "pas assez de pronostics hors échantillon pour conclure (minimum 300)"],
+    no_reliable_gain: ["stable", "aucun gain fiable : le modèle seul reste la référence"],
+  };
+  let body;
+  if (h.status === "evaluated") {
+    const [cls, txt] = verdicts[h.verdict] || ["na", h.verdict];
+    body = `<p><span class="badge ${cls}">${esc(txt)}</span></p>
+      <table><tbody><tr><td>Log loss modèle seul</td><td class="num">${num(h.logloss_model, 4)}</td></tr>
+      <tr><td>Log loss hybride (hors échantillon)</td><td class="num">${num(h.logloss_hybrid, 4)}</td></tr>
+      <tr><td>Écart (négatif = l'hybride est meilleur)</td><td class="num">${num(h.diff, 4)} <span class="small muted">IC 95 % [${num(h.ci_low, 4)} ; ${num(h.ci_high, 4)}]</span></td></tr></tbody></table>
+      <p class="small muted">n = ${h.n_test} pronostics testés sur ${h.n_picks} · calcul du ${fdate(h.computed_at)}</p>`;
+  } else {
+    const n = h.n_picks ?? 0;
+    body = `<p><span class="badge na">données insuffisantes</span></p>
+      <p class="small">${h.status === "not_run" ? "Pas encore calculé." : `${n} pronostics évalués sur ${h.min_picks} nécessaires.`} Avant ${h.min_picks} pronostics, toute mesure de l'apport de vos choix serait du bruit.</p>`;
+  }
+  return `<div class="card" style="margin-bottom:16px"><h2>Modèle hybride (vos choix + modèle)</h2>
+    <p class="question">Vos choix et votre confiance améliorent-ils les probabilités du modèle ? Chaque bloc de pronostics est prédit par un ajustement sur les blocs précédents seulement.</p>${body}</div>`;
+}
+
+/* ---------------- 7. Administration ---------------- */
+async function admin() {
+  const d = await (await fetch("/api/admin/overview")).json();
+  const yes = (b) => (b ? '<span class="badge fact">configurée</span>' : '<span class="badge na">absente</span>');
+  const html = `<h1>Administration</h1>
+  <p class="muted">Aucun secret n'est affiché : seule leur présence est indiquée. Les actions demandent le jeton d'administration.</p>
+  ${tokenBox()}
+  <div class="grid two">
+    <div class="card"><h2>Clés et configuration</h2>
+      <table><tbody>${Object.entries(d.secrets).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${yes(v)}</td></tr>`).join("")}
+      <tr><td>Fuseau horaire</td><td>${esc(d.timezone)}</td></tr></tbody></table>
+      ${d.secrets.API_FOOTBALL_KEY ? "" : '<p class="small">Sans API_FOOTBALL_KEY : mode dégradé (football-data.co.uk + openfootball). Coupes nationales, saison européenne en cours, compositions et formations indisponibles.</p>'}</div>
+    <div class="card"><h2>Planification</h2><p class="question">Heures en ${esc(d.timezone)} (format cron). Modifiables par les variables SCHEDULE_*.</p>
+      <table><tbody>${Object.entries(d.schedule).map(([k, v]) => `<tr><td>${esc(k)}</td><td><code>${esc(v)}</code></td>
+        <td><button class="btn" data-run="${esc(k)}">Lancer maintenant</button></td><td class="small" id="run-${esc(k)}">${esc(d.running[k]?.status || "")}</td></tr>`).join("")}</tbody></table>
+      <p class="small muted">Un cycle déjà en cours (manuel ou planifié) est refusé grâce aux verrous.</p></div>
+    <div class="card"><h2>Modèles</h2>
+      <table><tbody>${d.models.map((m) => `<tr><td>${esc(m.name)} v${m.version}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
+      <p><button class="btn" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
+      <p class="small muted">Critères de promotion (fixés avant évaluation) :</p>
+      <ul class="small muted">${Object.entries(d.promotion).map(([k, v]) => `<li><code>${esc(k)}</code> = ${esc(String(v))}</li>`).join("")}</ul></div>
+    <div class="card"><h2>Sources</h2>
+      <ul class="list">${d.sources.map((s) => `<li><span class="row-title">${esc(s.name)}</span> <span class="badge ${s.enabled ? "fact" : "na"}">${s.enabled ? "active" : "inactive"}</span><div class="small muted">${esc(s.terms_note)}</div><div class="small"><a href="${esc(s.terms_url)}" target="_blank" rel="noopener">conditions d'utilisation</a></div></li>`).join("")}</ul></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Compétitions</h2><p class="question">Désactiver une compétition l'exclut des prochaines collectes et prédictions ; son historique est conservé.</p>
+    <div class="table-wrap"><table><thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Rôle</th><th class="num">Matchs</th><th>Active</th></tr></thead><tbody>
+    ${d.competitions.map((c) => `<tr><td>${esc(c.code)}</td><td>${esc(c.name)}</td><td>${esc(c.type)}</td><td>${c.is_target ? "cible" : "contexte"}</td><td class="num">${c.matches}</td>
+      <td><input type="checkbox" data-comp="${esc(c.code)}" ${c.active ? "checked" : ""} style="min-width:0"></td></tr>`).join("")}</tbody></table></div></div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card"><h2>Journal des collectes</h2><div class="table-wrap"><table><thead><tr><th>Tâche</th><th>Statut</th><th>Début</th><th class="num">+</th><th class="num">~</th><th>Erreur</th></tr></thead><tbody>
+      ${d.runs.map((r) => `<tr><td>${esc(r.job_name)}</td><td><span class="badge ${r.status === "success" ? "rising" : r.status === "running" ? "emerging" : "falling"}">${esc(r.status)}</span></td><td class="small">${new Date(r.started_at).toLocaleString("fr-FR")}</td><td class="num">${r.rows_inserted}</td><td class="num">${r.rows_updated}</td><td class="small">${esc(r.error || "")}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="card"><h2>Anomalies de données récentes</h2><div class="table-wrap"><table><tbody>
+      ${d.issues.map((i) => `<tr><td><span class="badge ${i.severity === "error" ? "falling" : "stable"}">${esc(i.severity)}</span></td><td>${esc(i.code)}</td><td class="small">${esc(i.message)}</td></tr>`).join("")}</tbody></table></div></div>
+  </div>`;
+  setTimeout(() => {
+    bindToken();
+    document.querySelectorAll("[data-run]").forEach((b) => (b.onclick = async () => {
+      const cell = document.getElementById(`run-${b.dataset.run}`);
+      try { await send("POST", `/api/admin/run/${b.dataset.run}`); cell.textContent = "lancé"; } catch (e) { cell.textContent = `refusé : ${e.message}`; }
+    }));
+    document.getElementById("rollback").onclick = async () => {
+      if (!confirm("Revenir à la version de modèle précédente ?")) return;
+      const st = document.getElementById("rollback-state");
+      try { const r = await send("POST", "/api/admin/models/rollback"); st.textContent = `actif : ${r.active}`; } catch (e) { st.textContent = `refusé : ${e.message}`; }
+    };
+    document.querySelectorAll("[data-comp]").forEach((c) => (c.onchange = async () => {
+      try { await send("PATCH", `/api/admin/competitions/${c.dataset.comp}`, { active: c.checked }); }
+      catch (e) { c.checked = !c.checked; alert(`Refusé : ${e.message}`); }
+    }));
+  });
+  return html;
+}
+
+/* ---------------- Router ---------------- */
+const PAGES = { "": overview, competitions, teams, match: matchPage, performance, picks, admin };
+async function route() {
+  resetCharts();
+  const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", (a.dataset.page === "overview" ? "" : a.dataset.page) === page));
+  const app = document.getElementById("app");
+  app.innerHTML = `<p class="muted">Chargement…</p>`;
+  try {
+    app.innerHTML = await (PAGES[page] || overview)();
+  } catch (e) {
+    app.innerHTML = `<div class="card"><h2>Erreur de chargement</h2><p class="muted">${esc(e.message)}</p></div>`;
+  }
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route();
