@@ -4,8 +4,19 @@ A vertical (1080×1920, 60 fps) motion design ad for two engraved silicone
 bracelets: Toji Zen'in and Satoru Gojo. The cuts follow the beat grid of the
 opening "Kaikai Kitan" (~123 BPM, first hit at 2.76 s, drop at 5.97 s).
 
-- V2 (current): `index.html` → `out/cursed-collection-promo-v2.mp4`
+- V3 (current): `index.html` → `out/otaku-drift-gojo-toji-v3.mp4`
+- V2: `out/cursed-collection-promo-v2.mp4` (source in git history)
 - V1: `index-v1.html` → `out/cursed-collection-promo.mp4`
+
+## What changed in V3
+
+- Brand: Otaku Drift. The call to action shows a WhatsApp button with the number.
+- Intro: the Jujutsu Kaisen logo with a moving light and rays.
+- Edit style: hard cuts on every beat, one colour grade per character (red for Toji,
+  violet-blue for Gojo), RGB split, two-frame negative hits, punch-ins, light leaks.
+- Bracelets: names, icons and logos are taken from the reference renders
+  (`scripts/make_bracelet_maps.py`). The engraving is cut 0.45 mm into the geometry,
+  with groove walls, inner shadow and paint on the floor. A softbox sweeps across the band.
 
 ## What is in V2
 
@@ -38,9 +49,10 @@ on a CPU-only machine.
 ## Assets
 
 - `scripts/key.py` removes the green and orange screens from the clips (WebP sequences in `assets/seq/`).
-- `scripts/prep_textures.py` makes the silicone colour maps and the icon and logo masks (`assets/tex/`).
+- `scripts/prep_textures.py` makes the silicone colour noise (`assets/tex/*_base.jpg`).
+- `scripts/make_bracelet_maps.py` makes the colour, height, normal, roughness and glow maps of each face.
 - `scripts/prep_images.py` makes the crops and rotations.
-- Fonts: Poppins and Instrument Serif (SIL Open Font License, see `assets/fonts/OFL-*.txt`),
+- Fonts: Poppins, Instrument Serif and Saira Condensed (SIL Open Font License, see `assets/fonts/OFL-*.txt`),
   JJK font (free for commercial use, per its readme).
 
 | Time (s) | Scene |

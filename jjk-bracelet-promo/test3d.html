@@ -2,7 +2,7 @@
 <html><head><meta charset="utf-8">
 <style>
 @font-face { font-family: 'JJK'; src: url('assets/fonts/jjk.ttf'); }
-@font-face { font-family: 'Poppins'; font-weight: 500; src: url('assets/fonts/Poppins-Medium.ttf'); }
+
 html,body{margin:0;background:#000} canvas{display:block}
 </style>
 <script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
@@ -14,7 +14,8 @@ const studio = await createStudio(document.getElementById('c'), { width: 1080, h
 const ring = (v) => ({ visible: v, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 });
 window.shot = (o) => {
   const s = { gojo: ring(1), toji: ring(0), cam: { theta: 0, phi: 0.25, dist: 180, tx: 0, ty: 0, tz: 0, fov: 30, roll: 0 },
-    focus: 180, aperture: 0.0001, floor: 1, rimA: '#8a4dff', rimB: 0, backdrop: 'rgba(106,44,145,.55)' };
+    focus: 180, aperture: 0.0001, floor: 1, rimA: '#8a4dff', rimB: 0, backdrop: 'rgba(106,44,145,.55)',
+    light: { az: 0.6, el: 0.7, int: 14000 }, sweep: { x: 0, int: 0 }, neon: 1 };
   for (const k in o) Object.assign(s[k] ?? s, typeof o[k] === 'object' ? o[k] : { [k]: o[k] });
   const t0 = performance.now(); studio.render(s); return performance.now() - t0;
 };

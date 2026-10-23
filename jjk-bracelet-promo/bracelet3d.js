@@ -7,20 +7,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 const R_IN = 202 / (2 * Math.PI) - 1; // inner radius, so the mid-line is 202 mm long
 const THICK = 2;
 const WIDTH = 12;
 const CORNER = 0.75;
-const TEX_W = 8192;
-const TEX_H = 512;
-
-const loadImage = (src) => new Promise((res, rej) => {
-  const img = new Image();
-  img.onload = () => res(img);
-  img.onerror = () => rej(new Error(`cannot load ${src}`));
-  img.src = src;
-});
 
 /* ---------- Geometry: a rounded-rectangle profile revolved around Y ---------- */
 function profile() {
@@ -33,20 +25,24 @@ function profile() {
       out.push({ r: cx + CORNER * Math.cos(a), y: cy + CORNER * Math.sin(a), nr: Math.cos(a), ny: Math.sin(a) });
     }
   };
-  for (let i = 0; i <= 24; i++) {
-    faces.outer.push({ r: ro, y: -h + CORNER + (WIDTH - 2 * CORNER) * (i / 24), nr: 1, ny: 0 });
+  // About 0.1 mm between rows, so the displaced engraving keeps sharp walls.
+  const ROWS = 104;
+  for (let i = 0; i <= ROWS; i++) {
+    faces.outer.push({ r: ro, y: -h + CORNER + (WIDTH - 2 * CORNER) * (i / ROWS), nr: 1, ny: 0 });
   }
   arc(ro - CORNER, h - CORNER, 0, Math.PI / 2, 8, faces.top);
   arc(R_IN + CORNER, h - CORNER, Math.PI / 2, Math.PI, 8, faces.top);
-  for (let i = 0; i <= 24; i++) {
-    faces.inner.push({ r: R_IN, y: h - CORNER - (WIDTH - 2 * CORNER) * (i / 24), nr: -1, ny: 0 });
+  for (let i = 0; i <= ROWS; i++) {
+    faces.inner.push({ r: R_IN, y: h - CORNER - (WIDTH - 2 * CORNER) * (i / ROWS), nr: -1, ny: 0 });
   }
   arc(R_IN + CORNER, -h + CORNER, Math.PI, 1.5 * Math.PI, 8, faces.bottom);
   arc(ro - CORNER, -h + CORNER, 1.5 * Math.PI, 2 * Math.PI, 8, faces.bottom);
   return faces;
 }
 
-function revolve(points, segments, flipU, flipV = false) {
+// u runs around the band; v follows the height on the band (0 = bottom, 1 = top),
+// so a texture row maps to the same height on every face.
+function revolve(points, segments, flipU) {
   const pos = [];
   const nor = [];
   const uv = [];
@@ -56,12 +52,11 @@ function revolve(points, segments, flipU, flipV = false) {
     const phi = u * Math.PI * 2;
     const c = Math.cos(phi);
     const sn = Math.sin(phi);
-    points.forEach((p, i) => {
+    for (const p of points) {
       pos.push(p.r * sn, p.y, p.r * c);
       nor.push(p.nr * sn, p.ny, p.nr * c);
-      const v = i / (points.length - 1);
-      uv.push(flipU ? 1 - u : u, flipV ? v : 1 - v);
-    });
+      uv.push(flipU ? 1 - u : u, (p.y + WIDTH / 2) / WIDTH);
+    }
   }
   const n = points.length;
   for (let s = 0; s < segments; s++) {
@@ -79,214 +74,73 @@ function revolve(points, segments, flipU, flipV = false) {
   return g;
 }
 
-/* ---------- Artwork: colour, engraving depth and glow per face ---------- */
-const MM = TEX_W / 202; // texels per millimetre around the band
-
-function canvas(w = TEX_W, h = TEX_H) {
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  return c;
-}
-
-// Each design element is drawn three times: colour, bump (engraving), glow.
-function drawText(ctx, text, xMm, heightMm, font, squeeze = 1, weight = 400) {
-  ctx.save();
-  ctx.font = `${weight} ${heightMm * MM}px ${font}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.translate(xMm * MM, TEX_H / 2 + heightMm * MM * 0.04);
-  ctx.scale(squeeze, 1);
-  ctx.fillText(text, 0, 0);
-  ctx.restore();
-}
-
-function tintedMask(mask, color) {
-  const c = canvas(mask.width, mask.height);
-  const x = c.getContext('2d');
-  x.fillStyle = color;
-  x.fillRect(0, 0, c.width, c.height);
-  x.globalCompositeOperation = 'destination-in';
-  // Masks are white on black: turn luminance into alpha.
-  const m = canvas(mask.width, mask.height);
-  const mx = m.getContext('2d');
-  mx.drawImage(mask, 0, 0);
-  const d = mx.getImageData(0, 0, m.width, m.height);
-  for (let i = 0; i < d.data.length; i += 4) {
-    d.data[i + 3] = d.data[i];
-  }
-  mx.putImageData(d, 0, 0);
-  x.drawImage(m, 0, 0);
-  return c;
-}
-
-function drawMask(ctx, mask, color, xMm, heightMm) {
-  const h = heightMm * MM;
-  const w = (mask.width / mask.height) * h;
-  ctx.drawImage(tintedMask(mask, color), xMm * MM - w / 2, TEX_H / 2 - h / 2, w, h);
-}
-
+/* ---------- Materials from the maps made by scripts/make_bracelet_maps.py ---------- */
 const DESIGNS = {
-  gojo: {
-    base: 'assets/tex/gojo_base.jpg',
-    name: 'SATORU GOJO', nameColor: '#f4f2f6', nameGlow: null,
-    icon: 'assets/tex/icon_gojo.png', iconColor: '#58d8ff', iconGlow: '#2fb8ff', iconAt: 36, iconH: 9.5,
-    logoColor: '#58d8ff', logoGlow: '#2fb8ff', logoRed: null,
-    quote: 'Throughout heaven and earth, I alone am honored', quoteColor: '#f1eff4', quoteH: 4.6,
-    roughness: 0.55, sheen: 0.6, sheenColor: '#b48cff',
-  },
-  toji: {
-    base: 'assets/tex/toji_base.jpg',
-    name: "TOJI ZEN'IN", nameColor: '#121212', nameGlow: null,
-    icon: 'assets/tex/icon_toji.png', iconColor: '#141414', iconGlow: null, iconAt: 34, iconH: 9.5,
-    logoColor: '#141414', logoGlow: null, logoRed: '#a3101a',
-    quote: 'A monkey like me, incapable of using occult energy, has just surpassed all the chosen ones',
-    quoteColor: '#151515', quoteH: 4.2,
-    roughness: 0.62, sheen: 0.35, sheenColor: '#ffffff',
-  },
+  gojo: { sheen: 0.4, sheenColor: '#b48cff', clearcoat: 0.15, neon: true },
+  toji: { sheen: 0.08, sheenColor: '#ffffff', clearcoat: 0.08, neon: false },
 };
+const DEPTH = 0.45; // engraving depth in mm, same as the maps
 
-async function makeMaps(kind) {
+const loader = new THREE.TextureLoader();
+const load = (src, srgb) => new Promise((res, rej) => loader.load(src, (t) => {
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.anisotropy = 8;
+  t.wrapS = THREE.RepeatWrapping;
+  res(t);
+}, undefined, () => rej(new Error(`cannot load ${src}`))));
+
+async function faceMaterial(kind, face, displaced) {
   const d = DESIGNS[kind];
-  const [base, icon, logo, logoRed, micro] = await Promise.all([
-    loadImage(d.base), loadImage(d.icon), loadImage('assets/tex/logo_line.png'),
-    loadImage('assets/tex/logo_red.png'), loadImage('assets/tex/micro.png'),
+  const pre = `assets/tex/${kind}_${face}`;
+  const [map, height, normal, rough, glow] = await Promise.all([
+    load(`${pre}_color.jpg`, true), load(`${pre}_height.png`), load(`${pre}_normal.png`), load(`${pre}_rough.png`),
+    d.neon && face === 'outer' ? load(`${pre}_glow.jpg`, true) : null,
   ]);
-
-  const outer = { color: canvas(), bump: canvas(), glow: canvas() };
-  const inner = { color: canvas(), bump: canvas() };
-  const nameFont = "'JJK'";
-
-  for (const face of [outer, inner]) {
-    const cx = face.color.getContext('2d');
-    cx.drawImage(base, 0, 0, TEX_W, TEX_H);
-    const bx = face.bump.getContext('2d');
-    bx.fillStyle = '#bdbdbd';
-    bx.fillRect(0, 0, TEX_W, TEX_H);
-    // Fine matte grain of moulded silicone.
-    bx.globalAlpha = 0.18;
-    for (let x = 0; x < TEX_W; x += 1024) bx.drawImage(micro, x, 0, 1024, TEX_H);
-    bx.globalAlpha = 1;
-  }
-
-  // Outer face.
-  const oc = outer.color.getContext('2d');
-  const ob = outer.bump.getContext('2d');
-  const og = outer.glow.getContext('2d');
-  og.fillStyle = '#000';
-  og.fillRect(0, 0, TEX_W, TEX_H);
-  const engrave = (drawFn) => {
-    ob.save();
-    // A soft shoulder, then a flat floor: reads as a debossed groove.
-    ob.filter = 'blur(5px)';
-    drawFn(ob, '#555555');
-    ob.filter = 'blur(1.5px)';
-    drawFn(ob, '#1e1e1e');
-    ob.restore();
-  };
-
-  const name = (x, c) => {
-    x.fillStyle = c;
-    x.strokeStyle = c;
-    x.lineWidth = 0.45 * MM;
-    x.lineJoin = 'miter';
-    drawText(x, d.name, 84, 7.4, nameFont);
-    x.save();
-    x.font = `400 ${7.4 * MM}px ${nameFont}`;
-    x.textAlign = 'center';
-    x.textBaseline = 'middle';
-    x.strokeText(d.name, 84 * MM, TEX_H / 2 + 7.4 * MM * 0.04);
-    x.restore();
-  };
-  name(oc, d.nameColor);
-  engrave((x, c) => name(x, c));
-
-  drawMask(oc, icon, d.iconColor, d.iconAt, d.iconH);
-  engrave((x, c) => drawMask(x, icon, c, d.iconAt, d.iconH));
-  if (d.iconGlow) {
-    og.filter = 'blur(6px)';
-    drawMask(og, icon, d.iconGlow, d.iconAt, d.iconH);
-    og.filter = 'none';
-    drawMask(og, icon, d.iconGlow, d.iconAt, d.iconH);
-  }
-
-  drawMask(oc, logo, d.logoColor, 140, 8.4);
-  if (d.logoRed) drawMask(oc, logoRed, d.logoRed, 140, 8.4);
-  engrave((x, c) => drawMask(x, logo, c, 140, 8.4));
-  if (d.logoGlow) {
-    og.filter = 'blur(6px)';
-    drawMask(og, logo, d.logoGlow, 140, 8.4);
-    og.filter = 'none';
-    drawMask(og, logo, d.logoGlow, 140, 8.4);
-  }
-
-  // Inner face: the quote runs around the inside.
-  const ic = inner.color.getContext('2d');
-  const ib = inner.bump.getContext('2d');
-  // Squeeze long quotes so they fit in 175 mm of the inside.
-  ic.font = `500 ${d.quoteH * MM}px 'Poppins'`;
-  const squeeze = Math.min(0.88, (175 * MM) / ic.measureText(d.quote).width);
-  ic.fillStyle = d.quoteColor;
-  drawText(ic, d.quote, 92, d.quoteH, "'Poppins'", squeeze, 500);
-  ib.save();
-  ib.filter = 'blur(4px)';
-  ib.fillStyle = '#555555';
-  drawText(ib, d.quote, 92, d.quoteH, "'Poppins'", squeeze, 500);
-  ib.filter = 'blur(1.2px)';
-  ib.fillStyle = '#1e1e1e';
-  drawText(ib, d.quote, 92, d.quoteH, "'Poppins'", squeeze, 500);
-  ib.restore();
-
-  const tex = (c, srgb) => {
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-    t.anisotropy = 8;
-    t.wrapS = THREE.RepeatWrapping;
-    return t;
-  };
-  return {
-    outer: { map: tex(outer.color, true), bump: tex(outer.bump), glow: tex(outer.glow, true) },
-    inner: { map: tex(inner.color, true), bump: tex(inner.bump) },
-    rim: tex(outer.color, true),
-    design: d,
-  };
-}
-
-function material(d, maps) {
   const m = new THREE.MeshPhysicalMaterial({
-    map: maps.map,
-    bumpMap: maps.bump,
-    bumpScale: 7,
-    roughness: d.roughness,
+    map,
+    normalMap: normal,
+    roughnessMap: rough,
+    roughness: 1,
     sheen: d.sheen,
-    sheenRoughness: 0.75,
+    sheenRoughness: 0.7,
     sheenColor: new THREE.Color(d.sheenColor),
-    clearcoat: 0.12,
-    clearcoatRoughness: 0.55,
+    clearcoat: d.clearcoat,
+    clearcoatRoughness: 0.45,
   });
-  if (maps.glow) {
-    m.emissiveMap = maps.glow;
+  if (displaced) {
+    // The groove is cut into the geometry, so the letters have real walls.
+    m.displacementMap = height;
+    m.displacementScale = -DEPTH;
+  }
+  if (glow) {
+    m.emissiveMap = glow;
     m.emissive = new THREE.Color('#ffffff');
-    m.emissiveIntensity = 0.9;
+    m.emissiveIntensity = 1;
   }
   return m;
 }
 
 export async function createBracelet(kind) {
-  const maps = await makeMaps(kind);
   const faces = profile();
   const group = new THREE.Group();
-  const SEG = 720;
-  // The outer profile runs bottom to top, so V is flipped to keep the text upright.
-  const outer = new THREE.Mesh(revolve(faces.outer, SEG, false, true), material(maps.design, maps.outer));
-  const inner = new THREE.Mesh(revolve(faces.inner, SEG, true), material(maps.design, maps.inner));
-  const rimMat = material(maps.design, { map: maps.rim, bump: maps.outer.bump });
-  rimMat.bumpScale = 0.3;
-  const top = new THREE.Mesh(revolve(faces.top, SEG, false), rimMat);
-  const bottom = new THREE.Mesh(revolve(faces.bottom, SEG, false), rimMat);
+  const [outerMat, innerMat, rimMat] = await Promise.all([
+    faceMaterial(kind, 'outer', true), faceMaterial(kind, 'inner', true), faceMaterial(kind, 'outer', false),
+  ]);
+  const outer = new THREE.Mesh(revolve(faces.outer, 3072, false), outerMat);
+  const inner = new THREE.Mesh(revolve(faces.inner, 3072, true), innerMat);
+  const top = new THREE.Mesh(revolve(faces.top, 1024, false), rimMat);
+  const bottom = new THREE.Mesh(revolve(faces.bottom, 1024, false), rimMat);
   group.add(outer, inner, top, bottom);
   group.traverse((o) => { o.castShadow = true; o.receiveShadow = true; });
+  group.userData.neon = outerMat;
   return group;
+}
+
+function canvas(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return c;
 }
 
 /* ---------- Studio ---------- */
@@ -333,8 +187,8 @@ export async function createStudio(canvasEl, { width, height }) {
   scene.add(floor);
 
   const key = new THREE.SpotLight('#ffffff', 14000, 0, 0.45, 0.6, 2);
-  key.position.set(60, 120, 90);
   key.castShadow = true;
+  scene.add(key.target);
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.radius = 6;
   key.shadow.bias = -0.0004;
@@ -346,6 +200,11 @@ export async function createStudio(canvasEl, { width, height }) {
   const fill = new THREE.PointLight('#ffffff', 600, 0, 2);
   fill.position.set(-60, 10, 90);
   scene.add(rimA, rimB, fill);
+
+  // A long softbox that sweeps across the band: the moving highlight shows the relief.
+  RectAreaLightUniformsLib.init();
+  const sweep = new THREE.RectAreaLight('#ffffff', 0, 14, 160);
+  scene.add(sweep);
 
   const camera = new THREE.PerspectiveCamera(30, width / height, 1, 3000);
   camera.add(backdrop);
@@ -393,8 +252,23 @@ export async function createStudio(canvasEl, { width, height }) {
     backdrop.position.set(0, 0, -far);
     backdrop.scale.set(bh * camera.aspect, bh, 1);
     floor.visible = shot.floor > 0.5;
+    key.castShadow = floor.visible;
     rimA.color.set(shot.rimA);
     rimB.intensity = shot.rimB;
+    // Key light on a sphere around the target: azimuth, elevation, intensity.
+    const L = shot.light;
+    key.position.set(
+      target.x + 220 * Math.cos(L.el) * Math.sin(L.az),
+      target.y + 220 * Math.sin(L.el),
+      target.z + 220 * Math.cos(L.el) * Math.cos(L.az),
+    );
+    key.target.position.copy(target);
+    key.intensity = L.int;
+    // The softbox slides sideways in front of the target, facing it.
+    sweep.intensity = shot.sweep.int;
+    sweep.position.set(target.x + shot.sweep.x, target.y + 40, target.z + 70);
+    sweep.lookAt(target);
+    for (const kind of ['gojo', 'toji']) rings[kind].userData.neon.emissiveIntensity = shot.neon;
     if (shot.backdrop !== render.lastBackdrop) {
       paintBackdrop(shot.backdrop);
       render.lastBackdrop = shot.backdrop;
