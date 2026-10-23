@@ -4,9 +4,22 @@ A vertical (1080×1920, 60 fps) motion design ad for two engraved silicone
 bracelets: Toji Zen'in and Satoru Gojo. The cuts follow the beat grid of the
 opening "Kaikai Kitan" (~123 BPM, first hit at 2.76 s, drop at 5.97 s).
 
-- V3 (current): `index.html` → `out/otaku-drift-gojo-toji-v3.mp4`
+- V4 (current): `index.html` → `out/otaku-drift-gojo-toji-v4.mp4`
+- V3: `out/otaku-drift-gojo-toji-v3.mp4`
 - V2: `out/cursed-collection-promo-v2.mp4` (source in git history)
 - V1: `index-v1.html` → `out/cursed-collection-promo.mp4`
+
+## What changed in V4: details a fan recognises
+
+- 帳 (the curtain): black liquid drips from the sky and turns it to night while the chant
+  「闇より出でて闇より黒く　その穢れを禊ぎ祓え」 appears, before the logo.
+- 黒閃 (Black Flash): black lightning with red edges on the "Toji vs Gojo" hit and on the
+  linked rings. It is not used on Toji alone, because he has no cursed energy.
+- 無量空処 (Unlimited Void): Gojo's domain, an information storm, behind his jump.
+- 天上天下唯我独尊: Gojo's awakening line against Toji, next to his inside quote.
+- 猿 (monkey): a red seal on Toji's inside quote. 天逆鉾 names the spear panel.
+- Ofuda talismans seal the screen and burn away before the call to action.
+- 四つ巴: the four-comma emblem of the Jujutsu High uniform buttons signs Otaku Drift.
 
 ## What changed in V3
 
@@ -43,7 +56,7 @@ node scripts/render.mjs --stills 8.6,12.6,26.6   # quick still frames
 ```
 
 `render.mjs` uses Chromium at `/opt/pw-browsers/...` with SwiftShader for WebGL.
-Set `CHROME_PATH` on another machine. A full 60 fps render takes about 20–30 minutes
+Set `CHROME_PATH` on another machine. A full 60 fps render takes about 1 h 40 min
 on a CPU-only machine.
 
 ## Assets
