@@ -103,9 +103,11 @@ SOURCES = [
     ),
 ]
 
-# football-data.org codes. Free plan: CL only among the cups we follow. It checks the
-# OpenLigaDB results and never creates matches or teams (see ingestion/store.py).
-FOOTBALL_DATA_ORG_COMPETITIONS = {"UEFA-CL": "CL"}
+# football-data.org codes (free plan). It never creates teams. For the cups it only checks
+# matches that exist; for the four leagues it also adds the full season calendar and
+# publishes results the same day (football-data.co.uk publishes them days later).
+FOOTBALL_DATA_ORG_COMPETITIONS = {"UEFA-CL": "CL", "ENG-PL": "PL", "ITA-SA": "SA", "GER-BL": "BL1",
+                                  "ESP-LL": "PD"}
 
 # When two sources give a different score, the higher rank wins and the disagreement
 # is logged. Volunteer-entered data rank lowest.

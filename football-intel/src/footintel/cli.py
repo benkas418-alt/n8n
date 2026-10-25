@@ -236,6 +236,18 @@ def cmd_trends(args, settings, engine):
         _print({k: str(v) for k, v in rep.paths.items()})
 
 
+def cmd_stories(args, settings, engine):
+    from footintel.analysis.stories import run_stories
+    from footintel.reports.stories import stories_report
+
+    res = run_stories(engine, _features(engine), days=args.days)
+    rep = stories_report(engine, settings, res)
+    print(f"Stories run {res['run_id']}: {len(res['stories'])} stories, {len(res['ahead'])} upcoming rows")
+    print(res["scenarios"][res["scenarios"]["window"] == "all"][["scenario", "n", "observed", "status"]]
+          .to_string(index=False))
+    _print({k: str(v) for k, v in rep.paths.items()})
+
+
 def cmd_hybrid(args, settings, engine):
     from footintel.analysis.hybrid import run_hybrid
 
@@ -333,6 +345,10 @@ def build_parser() -> argparse.ArgumentParser:
     tr_.add_argument("--team", help="team name as in the database, e.g. 'Man City'")
     tr_.add_argument("--category", choices=["score", "team", "competition", "tactical"])
     tr_.set_defaults(fn=cmd_trends)
+
+    stp = sub.add_parser("stories", help="match stories, recurring scenarios, next 5 matches")
+    stp.add_argument("--days", type=int, default=7, help="tell the matches of the last N days")
+    stp.set_defaults(fn=cmd_stories)
 
     hy = sub.add_parser("hybrid", help="evaluate the human + model hybrid (needs 200 picks)")
     hy.add_argument("--user", default="me")

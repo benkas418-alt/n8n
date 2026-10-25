@@ -2,6 +2,7 @@
 
 from datetime import UTC, date, datetime, timedelta
 
+import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select, text
@@ -459,13 +460,13 @@ def test_openligadb_import_uses_manual_aliases_and_never_duplicates_a_match(db, 
 
 
 class FakeFootballDataOrg:
-    def __init__(self, matches: list[dict]):
-        self.data = {"matches": matches}
+    def __init__(self, matches: list[dict], league: list[dict] | None = None):
+        self.data = {"UEFA-CL": {"matches": matches}, "ENG-PL": {"matches": league or []}}
 
     def fetch(self, competition_code, season):
         from footintel.connectors.football_data_org import parse_matches
 
-        return parse_matches(self.data, competition_code, season)
+        return parse_matches(self.data.get(competition_code, {"matches": []}), competition_code, season)
 
 
 def _fdo(mid, home, away, day, score, ht):
@@ -516,3 +517,49 @@ def test_football_data_org_checks_results_without_creating_matches(db, settings,
     # The volunteer source never overwrites the checked result.
     tasks.import_openligadb(db, settings, [2026], connector=FakeOpenLigaDB(oldb))
     assert tuple(score("Synthetic FC 1", "Synthetic FC 2")) == (2, 0, "football_data_org")
+
+
+def test_stories_run_stores_scenarios_and_stories(db, settings):
+    from footintel.analysis.stories import run_stories
+    from footintel.reports.stories import stories_report
+
+    _load_synthetic_history(db, settings, seasons=(2019, 2020, 2021))
+    feats = build_features(load_matches(db))
+    last = pd.to_datetime(feats.loc[feats["home_goals"].notna(), "kickoff_date"]).max().date()
+    res = run_stories(db, feats, days=14, today=last)
+    assert res["stories"] and all(s["narrative"] for s in res["stories"])
+    with db.connect() as conn:
+        n_st = conn.execute(text("SELECT count(*) FROM match_stories WHERE training_run_id = :r"),
+                            {"r": res["run_id"]}).scalar()
+        n_sc = conn.execute(text("SELECT count(DISTINCT scenario) FROM scenario_stats WHERE training_run_id = :r"),
+                            {"r": res["run_id"]}).scalar()
+    assert n_st == len(res["stories"]) and n_sc >= 1
+    md = stories_report(db, settings, res, today=last).paths["md"].read_text()
+    assert "Scénarios récurrents" in md and "Histoires des matchs" in md and "OpenLigaDB" in md
+
+
+def test_football_data_org_adds_league_fixtures_once(db, settings, monkeypatch):
+    from footintel.ingestion import store as store_mod
+    from footintel.ingestion import teams as teams_mod
+
+    aliases = {("football_data_org", "Synthetic One FC"): "Synthetic FC 1",
+               ("football_data_org", "Synthetic Two FC"): "Synthetic FC 2"}
+    monkeypatch.setattr(store_mod, "load_manual_aliases", lambda: aliases)
+    monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: aliases)
+    _load_synthetic_history(db, settings, seasons=(2025,))
+    fixture = _fdo(7, "Synthetic One FC", "Synthetic Two FC", "2026-11-07", (0, 0), (0, 0))
+    fixture.update(status="TIMED", stage="REGULAR_SEASON")
+    st = tasks.check_football_data_org(db, settings, [2026], connector=FakeFootballDataOrg([], [fixture]))
+    assert st.inserted == 1
+    # Postponed by three weeks in football-data.co.uk: still the same league match.
+    later = MatchRecord(source_code="football_data_uk", external_id="E0|2026|Synthetic FC 1|Synthetic FC 2",
+                        competition_code="ENG-PL", season_start_year=2026, kickoff_date=date(2026, 11, 28),
+                        kickoff_utc=None, home_team="Synthetic FC 1", away_team="Synthetic FC 2",
+                        status="scheduled")
+    with session_scope(db) as s:
+        MatchStore(s, "football_data_uk").upsert(later, RunStats())
+    with db.connect() as conn:
+        rows = conn.execute(text("""SELECT m.kickoff_date, count(r.id) FROM matches m
+            JOIN seasons se ON se.id = m.season_id JOIN match_external_refs r ON r.match_id = m.id
+            WHERE se.start_year = 2026 GROUP BY m.id""")).all()
+    assert len(rows) == 1 and rows[0][1] == 2 and rows[0][0] == date(2026, 11, 28)

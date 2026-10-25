@@ -1,5 +1,24 @@
 # Résultats du backtest réel
 
+## Scénarios d'avant-match contre le marché (2026-10-25, analyse n° 22)
+
+Points pris moins points attendus par le marché, à cote égale. Toutes saisons avec cotes
+depuis 2005 (4 championnats cibles et championnats de contexte).
+
+| Scénario | n | Écart (pt/match) | IC 95 % | Statut |
+|---|---|---|---|---|
+| Résultats inférieurs au jeu (tirs cadrés +1,5/match, ≤ 1,2 pt/match) | 7 517 | +0,066 | [+0,038 ; +0,093] | confirmé |
+| Repos court (≤ 3 j) face à un adversaire reposé (≥ 5 j) | 4 999 | +0,040 | [+0,008 ; +0,073] | confirmé |
+| Outsider en forme (≥ 2 pts/match, < 35 %) | 22 103 | −0,019 | [−0,035 ; −0,003] | confirmé |
+| Résultats supérieurs au jeu (≥ 2 pts/match, tirs cadrés négatifs) | 6 123 | −0,039 | [−0,070 ; −0,009] | confirmé |
+| En grande forme (≥ 2,4 pts/match) | 28 756 | −0,017 | [−0,031 ; −0,003] | nouveau, à surveiller |
+| Coupe d'Europe dans les 7 jours, calendrier chargé, méforme, grands favoris, défense perméable | — | ≈ 0 | contient 0 | aucun effet : le marché en tient compte |
+
+Lecture : le marché suit un peu trop les résultats récents et pas assez l'équilibre des tirs
+cadrés ; il pénalise un peu trop la fatigue. Les effets sont faibles (0,02 à 0,07 point par
+match) : ils ne suffisent pas à battre la marge d'un bookmaker seuls. Prochaine étape : les
+tester comme variables d'un modèle candidat, avec les règles de promotion D9.
+
 ## Candidats phase 6 — calibration des coupes et Dixon-Coles (2026-10-22)
 
 Walk-forward sur 2023-24, 2024-25 et 2025-26 (5 465 matchs testés, dont 1 127 de coupes

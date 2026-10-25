@@ -56,6 +56,15 @@ def morning(engine: Engine, settings: Settings) -> dict:
     return results
 
 
+def _stories(engine: Engine, settings: Settings, days: int) -> str:
+    """Tell the latest matches, refresh the scenario statistics and the road ahead."""
+    from footintel.analysis.stories import run_stories
+    from footintel.reports.stories import stories_report
+
+    res = run_stories(engine, build_features(load_matches(engine)), days=days)
+    return str(stories_report(engine, settings, res).paths["md"])
+
+
 def evening(engine: Engine, settings: Settings) -> dict:
     """Results and statistics, evaluation and the post-match report.
 
@@ -70,6 +79,7 @@ def evening(engine: Engine, settings: Settings) -> dict:
     _step("sync_context_leagues",
           lambda: tasks.import_context_leagues(engine, settings, current - 1, current), results)
     _step("evaluate", lambda: evaluate_finished(engine), results)
+    _step("stories", lambda: _stories(engine, settings, days=2), results)
     yesterday = date.today() - timedelta(days=1)
     _step("postmatch_report",
           lambda: postmatch_report(engine, settings, yesterday - timedelta(days=6), date.today()).paths,
@@ -117,6 +127,11 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
 
         results["hybrid"] = run_hybrid(engine, criteria=settings.promotion)
         results["trends_run"] = run_trends(engine, feats)["run_id"]
+        from footintel.analysis.stories import run_stories
+        from footintel.reports.stories import stories_report
+
+        stories = run_stories(engine, feats, days=7)
+        results["stories_report"] = str(stories_report(engine, settings, stories).paths["md"])
         results["drift_run"] = run_drift(engine, feats)
         results["calibration_run"] = store_calibration(
             engine, feats, [model_name, "market_implied", "naive_frequency"],

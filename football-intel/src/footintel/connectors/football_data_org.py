@@ -64,8 +64,12 @@ def parse_matches(data: dict, competition_code: str, season: int) -> list[MatchR
         issues: list[tuple[str, str]] = []
         kickoff = datetime.fromisoformat(m["utcDate"].replace("Z", "+00:00")).astimezone(UTC)
         stage = m.get("stage") or ""
-        rnd = (f"League, Matchday {m['matchday']}" if stage == "LEAGUE_STAGE" and m.get("matchday")
-               else _STAGES.get(stage, stage))
+        if stage == "REGULAR_SEASON":
+            rnd = None  # league match: same as the football-data.co.uk records
+        elif stage == "LEAGUE_STAGE" and m.get("matchday"):
+            rnd = f"League, Matchday {m['matchday']}"
+        else:
+            rnd = _STAGES.get(stage, stage)
         status, outcome = "scheduled", None
         if m["status"] == "FINISHED":
             outcome, problem = _outcome(m.get("score") or {})

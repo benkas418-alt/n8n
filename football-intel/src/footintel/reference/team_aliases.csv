@@ -212,3 +212,65 @@ football_data_org,VfB Stuttgart,Stuttgart
 football_data_org,Viking FK,Viking
 football_data_org,Villarreal CF,Villarreal
 football_data_org,ŠK Slovan Bratislava,Slovan Bratislava (SVK)
+# football-data.org league teams (PL, SA, BL1, PD 2026-27). Each name was matched only
+# against the teams of its own league, then checked one by one on 2026-10-25.
+football_data_org,Chelsea FC,Chelsea
+football_data_org,Everton FC,Everton
+football_data_org,Fulham FC,Fulham
+football_data_org,Newcastle United FC,Newcastle
+football_data_org,Sunderland AFC,Sunderland
+football_data_org,Tottenham Hotspur FC,Tottenham
+football_data_org,Hull City AFC,Hull
+football_data_org,Leeds United FC,Leeds
+football_data_org,Ipswich Town FC,Ipswich
+football_data_org,Nottingham Forest FC,Nott'm Forest
+football_data_org,Crystal Palace FC,Crystal Palace
+football_data_org,Brighton & Hove Albion FC,Brighton
+football_data_org,Brentford FC,Brentford
+football_data_org,AFC Bournemouth,Bournemouth
+football_data_org,Coventry City FC,Coventry
+football_data_org,AC Milan,Milan
+football_data_org,ACF Fiorentina,Fiorentina
+football_data_org,Atalanta BC,Atalanta
+football_data_org,Bologna FC 1909,Bologna
+football_data_org,Cagliari Calcio,Cagliari
+football_data_org,Genoa CFC,Genoa
+football_data_org,Juventus FC,Juventus
+football_data_org,SS Lazio,Lazio
+football_data_org,Parma Calcio 1913,Parma
+football_data_org,Udinese Calcio,Udinese
+football_data_org,Venezia FC,Venezia
+football_data_org,Frosinone Calcio,Frosinone
+football_data_org,US Sassuolo Calcio,Sassuolo
+football_data_org,Torino FC,Torino
+football_data_org,US Lecce,Lecce
+football_data_org,AC Monza,Monza
+football_data_org,1. FC Köln,FC Koln
+football_data_org,TSG 1899 Hoffenheim,Hoffenheim
+football_data_org,Bayer 04 Leverkusen,Leverkusen
+football_data_org,FC Schalke 04,Schalke 04
+football_data_org,Hamburger SV,Hamburg
+football_data_org,SV Werder Bremen,Werder Bremen
+football_data_org,1. FSV Mainz 05,Mainz
+football_data_org,FC Augsburg,Augsburg
+football_data_org,SC Freiburg,Freiburg
+football_data_org,Borussia Mönchengladbach,M'gladbach
+football_data_org,Eintracht Frankfurt,Ein Frankfurt
+football_data_org,1. FC Union Berlin,Union Berlin
+football_data_org,SC Paderborn 07,Paderborn
+football_data_org,SV 07 Elversberg,Elversberg
+football_data_org,Athletic Club,Ath Bilbao
+football_data_org,CA Osasuna,Osasuna
+football_data_org,RCD Espanyol de Barcelona,Espanol
+football_data_org,Getafe CF,Getafe
+football_data_org,Málaga CF,Malaga
+football_data_org,Rayo Vallecano de Madrid,Vallecano
+football_data_org,Levante UD,Levante
+football_data_org,Real Sociedad de Fútbol,Sociedad
+football_data_org,Valencia CF,Valencia
+football_data_org,Deportivo Alavés,Alaves
+football_data_org,Elche CF,Elche
+football_data_org,RC Celta de Vigo,Celta
+football_data_org,Sevilla FC,Sevilla
+football_data_org,RC Deportivo La Coruña,La Coruna
+football_data_org,Real Racing Club de Santander,Santander

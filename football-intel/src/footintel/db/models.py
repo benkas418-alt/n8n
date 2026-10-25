@@ -622,3 +622,52 @@ class DetectedPattern(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class MatchStory(Base):
+    """Why a finished match ended as it did, as far as the data shows: what was known
+    before kick-off, the scenarios that applied, and how the score developed.
+    Insert-only per analysis run; the latest run holds the most complete data."""
+
+    __tablename__ = "match_stories"
+    __table_args__ = (UniqueConstraint("training_run_id", "match_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    training_run_id: Mapped[int] = mapped_column(ForeignKey("training_runs.id"), index=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"), index=True)
+    # Pre-match facts of both sides (form, rest, Elo, market), the in-match statistics
+    # and the score development (half time, comeback, lead lost).
+    factors: Mapped[dict] = mapped_column(JSON)
+    scenarios: Mapped[dict] = mapped_column(JSON)  # {"home": [codes], "away": [codes]}
+    flow: Mapped[list] = mapped_column(JSON)  # labels such as "comeback_home"
+    expected_prob: Mapped[float | None] = mapped_column(Float)  # market (else model) prob. of the result
+    surprise: Mapped[str] = mapped_column(String(20))  # expected | open | surprise | big_surprise
+    narrative: Mapped[str] = mapped_column(Text)
+    computed_at: Mapped[datetime] = _now_col()
+
+
+class ScenarioStat(Base):
+    """How teams in one pre-match scenario did against the market's expectation.
+
+    `observed` is the mean of points minus market-expected points, minus the same mean
+    for all teams in the same price band (equal-price comparison); positive means the
+    market underrated teams in that scenario. Insert-only per run."""
+
+    __tablename__ = "scenario_stats"
+    __table_args__ = (UniqueConstraint("training_run_id", "scenario", "window"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    training_run_id: Mapped[int] = mapped_column(ForeignKey("training_runs.id"), index=True)
+    scenario: Mapped[str] = mapped_column(String(60))
+    definition: Mapped[str] = mapped_column(Text)
+    window: Mapped[str] = mapped_column(String(20))  # all | before_2016 | from_2016 | last_365d | last_60d
+    n: Mapped[int] = mapped_column(Integer)
+    points: Mapped[float] = mapped_column(Float)  # mean points won
+    expected_points: Mapped[float] = mapped_column(Float)  # mean market-expected points
+    observed: Mapped[float] = mapped_column(Float)  # points - expected, at equal price
+    ci_low: Mapped[float | None] = mapped_column(Float)
+    ci_high: Mapped[float | None] = mapped_column(Float)
+    p_value: Mapped[float | None] = mapped_column(Float)
+    adjusted_p_value: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(30))
+    computed_at: Mapped[datetime] = _now_col()

@@ -24,6 +24,8 @@ from footintel.db.models import (
 from footintel.ingestion.teams import TeamResolver, load_manual_aliases
 from footintel.jobs import RunStats
 
+SINGLE_PAIRING_LEAGUES = {"ENG-PL", "ESP-LL", "ITA-SA", "GER-BL"}
+
 _STAT_FIELDS = ("shots", "shots_on_target", "corners", "fouls", "yellow_cards", "red_cards", "xg")
 
 
@@ -120,16 +122,18 @@ class MatchStore:
             return -1
 
         match_id = self._refs.get(rec.external_id)
-        if match_id is None and self.manual_only is not None:
-            match_id = self._same_match(competition.id, home_id, away_id, rec)
+        if match_id is None:
+            match_id = self._same_match(competition, season.id, home_id, away_id, rec)
             if match_id is not None:
                 self.s.add(MatchExternalRef(match_id=match_id, source_id=self.source.id,
                                             external_id=rec.external_id))
                 self._refs[rec.external_id] = match_id
-        if match_id is None and self.attach_only:
-            stats.issue("warning", "match_not_found",
-                        f"{rec.external_id}: {rec.home_team} - {rec.away_team} {rec.kickoff_date} "
-                        "is in no other source; skipped")
+        # A checking source adds league fixtures (full calendar), never cup matches.
+        if match_id is None and self.attach_only and competition.type != "league":
+            if rec.status == "finished":
+                stats.issue("warning", "match_not_found",
+                            f"{rec.external_id}: {rec.home_team} - {rec.away_team} {rec.kickoff_date} "
+                            "is in no other source; skipped")
             stats.skipped += 1
             return -1
         is_new = match_id is None
@@ -185,15 +189,18 @@ class MatchStore:
             stats.skipped += 1
         return match_id
 
-    def _same_match(self, competition_id: int, home_id: int, away_id: int,
+    def _same_match(self, competition: Competition, season_id: int, home_id: int, away_id: int,
                     rec: MatchRecord) -> int | None:
-        """A match already imported from another source: same competition and teams,
-        kick-off within two days. Reused so that two sources never create two matches."""
-        return self.s.scalar(select(Match.id).where(
-            Match.competition_id == competition_id, Match.home_team_id == home_id,
-            Match.away_team_id == away_id,
-            Match.kickoff_date.between(rec.kickoff_date - timedelta(days=2),
-                                       rec.kickoff_date + timedelta(days=2))))
+        """A match already imported from another source, reused so that two sources never
+        create two matches. In the four target leagues a pairing is played once per season
+        and venue, so the season identifies it even after a postponement; elsewhere the
+        kick-off must be within two days (some context leagues repeat a pairing)."""
+        q = select(Match.id).where(Match.competition_id == competition.id,
+                                   Match.home_team_id == home_id, Match.away_team_id == away_id)
+        if competition.code in SINGLE_PAIRING_LEAGUES:
+            return self.s.scalar(q.where(Match.season_id == season_id))
+        return self.s.scalar(q.where(Match.kickoff_date.between(
+            rec.kickoff_date - timedelta(days=2), rec.kickoff_date + timedelta(days=2))))
 
     def _upsert_outcome(self, match_id: int, rec: MatchRecord, is_new: bool, stats: RunStats) -> bool:
         o = rec.outcome

@@ -558,3 +558,49 @@ def test_football_data_org_parse_keeps_only_safe_results():
     assert recs[2].round == "Round of 16"
     assert recs[3].outcome is None and recs[3].issues[0][0] == "result_inconsistent"
     assert recs[4].status == "scheduled" and recs[4].outcome is None
+
+
+def _scenario_rows(n=6000, seed=0, planted=0.0):
+    """Synthetic team rows: market price drawn at random, results drawn from that price.
+    `planted` adds a true win-probability shift to teams in the 'unlucky' scenario."""
+    rng = np.random.default_rng(seed)
+    p_win = rng.uniform(0.15, 0.75, n)
+    p_draw = np.full(n, 0.25)
+    unlucky = rng.random(n) < 0.2
+    true_win = np.clip(p_win + planted * unlucky, 0.01, 0.74)
+    u = rng.random(n)
+    points = np.where(u < true_win, 3.0, np.where(u < true_win + p_draw, 1.0, 0.0))
+    return pd.DataFrame({
+        "match_id": np.arange(n), "kickoff_date": pd.date_range("2010-01-01", periods=n, freq="D"),
+        "season": 2010, "competition": "ENG-PL", "team_id": 1, "is_home": rng.random(n) < 0.5,
+        "form5_ppg_s": np.where(unlucky, 1.0, 1.6), "form5_ppg_o": 1.4, "gf5_s": 1.2, "gf5_o": 1.2,
+        "ga5_s": 1.2, "ga5_o": 1.2, "sot5_for_s": np.where(unlucky, 6.0, 4.0), "sot5_for_o": 4.0,
+        "sot5_against_s": 4.0, "sot5_against_o": 4.0, "rest_days_s": 7.0, "rest_days_o": 7.0,
+        "games_14d_s": 2.0, "games_14d_o": 2.0, "europe_7d_s": 0.0, "europe_7d_o": 0.0,
+        "p_win": p_win, "p_draw": p_draw, "points": points, "expected_points": 3 * p_win + p_draw})
+
+
+def test_scenarios_detect_a_planted_effect_and_ignore_price_selection():
+    from footintel.analysis.stories import scenario_table
+
+    as_of = pd.Timestamp("2026-10-25")
+    none = scenario_table(_scenario_rows(planted=0.0), as_of).set_index(["scenario", "window"])
+    planted = scenario_table(_scenario_rows(planted=0.12), as_of).set_index(["scenario", "window"])
+    assert none.loc[("unlucky", "all"), "status"] == "no_effect"
+    assert planted.loc[("unlucky", "all"), "status"] == "confirmed"
+    assert planted.loc[("unlucky", "all"), "observed"] > 0.2
+    # Big favourites are only a price selection here: no effect at equal price.
+    assert none.loc[("big_home_favourite", "all"), "status"] in ("no_effect", "insufficient_data")
+
+
+def test_story_flow_labels_read_the_half_time_score():
+    from footintel.analysis.stories import _flow
+
+    row = lambda hg, ag, hh, ha: {"home_goals": hg, "away_goals": ag,  # noqa: E731
+                                  "ht_home_goals": float(hh), "ht_away_goals": float(ha)}
+    assert "comeback_home" in _flow(row(2, 1, 0, 1))
+    assert "home_lead_lost" in _flow(row(1, 2, 1, 0)) and "comeback_away" in _flow(row(1, 2, 1, 0))
+    assert "away_recovered_draw" in _flow(row(3, 3, 1, 0)) and "open_second_half" in _flow(row(3, 3, 1, 0))
+    assert _flow(row(0, 0, 0, 0)) == ["goalless"]
+    assert _flow({"home_goals": 1, "away_goals": 0, "ht_home_goals": np.nan,
+                  "ht_away_goals": np.nan}) == ["half_time_unknown"]
