@@ -1,5 +1,26 @@
 # Résultats du backtest réel
 
+## Changement de jeu et réentraînement mois par mois (2026-10-26)
+
+À période égale (août au 26 octobre), 4 championnats cibles : 2026-27 a un record de tirs
+(28,4/match contre 22,4 à 26,1 de 2015 à 2024) et de tirs cadrés (9,7), et 3,07 buts/match.
+2025-26 était au contraire la plus fermée (2,68 buts, 8,4 tirs cadrés). Victoires à domicile
+et nuls stables.
+
+Simulation : chaque mois d'août 2024 à octobre 2026, réentraînement du modèle 1X2 à cotes sur
+les seuls matchs passés, prédiction du mois. Log loss 1X2 :
+
+| Version | 2025-26 (n = 1 446) | 2026-27 (n = 319) |
+|---|---|---|
+| Standard (tout l'historique, chaque mois) | 0,9796 | 0,9600 |
+| 12 derniers mois × 5 | 0,9796 | 0,9600 |
+| Couche adaptative (erreurs des 12 derniers mois, par championnat) | 0,9829 | 0,9667 |
+| Marché | 0,9795 | 0,9568 |
+
+Lecture : renforcer les 12 derniers mois ne change rien (écart 0,0000, IC ±0,002) ; la couche
+adaptative est moins bonne (elle apprend du bruit). Le changement de jeu touche le volume
+(tirs, buts), pas l'issue des matchs ; le 1X2 n'en profite pas.
+
 ## Fenêtre d'entraînement : historique complet ou saisons récentes (2026-10-26)
 
 Modèle `routed_competition`, entraîné seulement sur les saisons antérieures au test.
