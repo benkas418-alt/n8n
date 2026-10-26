@@ -14,6 +14,12 @@ depuis 2005 (4 championnats cibles et championnats de contexte).
 | En grande forme (≥ 2,4 pts/match) | 28 756 | −0,017 | [−0,031 ; −0,003] | nouveau, à surveiller |
 | Coupe d'Europe dans les 7 jours, calendrier chargé, méforme, grands favoris, défense perméable | — | ≈ 0 | contient 0 | aucun effet : le marché en tient compte |
 
+**Test en modèle (2026-10-26)** : `routed_competition_scen` ajoute les 4 scénarios confirmés
+(0/1 pour chaque équipe) au modèle à cotes. Walk-forward 2023-24 à 2025-26, 5 465 matchs :
+écart de log loss 1X2 −0,0001, IC 95 % [−0,0004 ; +0,0002] (2023 : −0,0005 ; 2024 : 0,0000 ;
+2025 : +0,0003). **Rejeté** : gain bien sous le seuil de 0,002 (D9). Le modèle actif, qui
+utilise déjà la forme et les tirs cadrés, capte l'essentiel de ces effets.
+
 Lecture : le marché suit un peu trop les résultats récents et pas assez l'équilibre des tirs
 cadrés ; il pénalise un peu trop la fatigue. Les effets sont faibles (0,02 à 0,07 point par
 match) : ils ne suffisent pas à battre la marge d'un bookmaker seuls. Prochaine étape : les

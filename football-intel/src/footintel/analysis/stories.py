@@ -461,3 +461,22 @@ def run_stories(engine: Engine, features: pd.DataFrame, days: int = 7,
     log.info("Stories run %d: %d stories, %d scenario rows, %d upcoming rows",
              run_id, len(stories), len(table), len(ahead))
     return {"run_id": run_id, "scenarios": table, "stories": stories, "ahead": ahead}
+
+
+CONFIRMED_FOR_MODEL = ("unlucky", "lucky", "short_rest_vs_rested", "hot_underdog")
+
+
+def scenario_columns(f: pd.DataFrame, codes=CONFIRMED_FOR_MODEL) -> pd.DataFrame:
+    """Match-level 0/1 columns sc_<code>_h / sc_<code>_a from pre-match features only."""
+    out = pd.DataFrame(index=f.index)
+    for side, s, o, p in (("h", "h", "a", "mkt_p_home"), ("a", "a", "h", "mkt_p_away")):
+        r = pd.DataFrame({
+            "form5_ppg_s": f[f"form5_ppg_{s}"], "sot5_for_s": f[f"sot5_for_{s}"],
+            "sot5_against_s": f[f"sot5_against_{s}"], "rest_days_s": f[f"rest_days_{s}"],
+            "rest_days_o": f[f"rest_days_{o}"], "games_14d_s": f[f"games_14d_{s}"],
+            "europe_7d_s": f[f"europe_7d_{s}"], "ga5_s": f[f"ga5_{s}"], "p_win": f[p],
+            "is_home": side == "h"}, index=f.index)
+        fl = flags(r)
+        for c in codes:
+            out[f"sc_{c}_{side}"] = fl[c].astype(float)
+    return out

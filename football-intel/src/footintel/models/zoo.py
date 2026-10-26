@@ -5,6 +5,7 @@ from collections.abc import Callable
 import numpy as np
 import pandas as pd
 
+from footintel.analysis.stories import CONFIRMED_FOR_MODEL, scenario_columns
 from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
 from footintel.models.baseline import EloPoisson, MarketImplied, NaiveFrequency, PoissonFeatures
 from footintel.models.ml import CORE_FEATURES, WITH_MARKET_FEATURES, logistic, random_forest, xgboost
@@ -75,13 +76,16 @@ class RoutedCompetitionAware(ProbModel):
     family = "routed"
 
     def __init__(self, name: str, trend_groups: tuple[str, ...] = (), dixon_coles: bool = False,
-                 calibrate_without_odds: bool = False):
+                 calibrate_without_odds: bool = False, scenario_flags: bool = False):
         from footintel.analysis.ablation import COMPETITION, GOAL_TEAM
         from footintel.features.trend_features import group_columns
 
         self.name, self.trend_groups = name, tuple(trend_groups)
         extra = [c for g in trend_groups for c in group_columns(g)]
-        self.with_odds = logistic(WITH_MARKET_FEATURES, f"{name}:with_odds")
+        # Confirmed pre-match scenarios (D44) as 0/1 inputs of the odds model only.
+        self.scenario_flags = scenario_flags
+        sc = ([f"sc_{c}_{s}" for c in CONFIRMED_FOR_MODEL for s in ("h", "a")] if scenario_flags else [])
+        self.with_odds = logistic(WITH_MARKET_FEATURES + sc, f"{name}:with_odds")
         self.without_odds = logistic(COMPETITION + extra, f"{name}:without_odds")
         self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM + extra,
                                      dixon_coles=dixon_coles)
@@ -89,8 +93,13 @@ class RoutedCompetitionAware(ProbModel):
         self.features = sorted(set(self.with_odds.features) | set(self.without_odds.features)
                                | set(self.goals.features))
 
+    def _with_flags(self, df: pd.DataFrame) -> pd.DataFrame:
+        if not getattr(self, "scenario_flags", False):
+            return df
+        return pd.concat([df, scenario_columns(df)], axis=1)
+
     def fit(self, train: pd.DataFrame) -> "RoutedCompetitionAware":
-        self.with_odds.fit(train[train["mkt_p_home"].notna()])
+        self.with_odds.fit(self._with_flags(train[train["mkt_p_home"].notna()]))
         if self.calibrate_without_odds:
             self.temperature_ = self._fit_temperature(train)
         self.without_odds.fit(train)
@@ -133,7 +142,7 @@ class RoutedCompetitionAware(ProbModel):
             out[PROB_COLS] = z / z.sum(axis=1, keepdims=True)
         has_odds = df["mkt_p_home"].notna()
         if has_odds.any():
-            out.loc[has_odds, PROB_COLS] = self.with_odds.predict(df[has_odds])[PROB_COLS]
+            out.loc[has_odds, PROB_COLS] = self.with_odds.predict(self._with_flags(df[has_odds]))[PROB_COLS]
         return pd.concat([out, self.goals.predict(df)[GOAL_COLS]], axis=1)
 
     def params(self) -> dict:
@@ -152,6 +161,8 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     "routed_competition_cal": lambda: RoutedCompetitionAware(
         "routed_competition_cal", calibrate_without_odds=True),
     "routed_competition_dc": lambda: RoutedCompetitionAware("routed_competition_dc", dixon_coles=True),
+    # Candidate from the scenario study (D44): confirmed scenarios as inputs of the odds model.
+    "routed_competition_scen": lambda: RoutedCompetitionAware("routed_competition_scen", scenario_flags=True),
     "routed_odds_elo": lambda: RoutedByOdds("routed_odds_elo"),
     "logreg_market_goals": lambda: Composite(
         "logreg_market_goals", logistic(WITH_MARKET_FEATURES, "logreg_market"), EloPoisson()),
