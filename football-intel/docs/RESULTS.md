@@ -1,5 +1,22 @@
 # Résultats du backtest réel
 
+## Fenêtre d'entraînement : historique complet ou saisons récentes (2026-10-26)
+
+Modèle `routed_competition`, entraîné seulement sur les saisons antérieures au test.
+Écart de log loss 1X2 contre l'entraînement actuel (toutes les saisons), IC 95 % bootstrap.
+
+| Entraînement | Test 2025-26 (n = 1 446) | Test 2026-27 (n = 319) |
+|---|---|---|
+| Toutes les saisons (actuel) | 0,9798 | 0,9599 |
+| 3 dernières saisons | −0,0006 [−0,0032 ; +0,0021] | +0,0053 [−0,0027 ; +0,0135] |
+| Dernière saison seule | +0,0014 [−0,0050 ; +0,0072] | +0,0064 [−0,0071 ; +0,0197] |
+| Toutes, pondération demi-vie 2 saisons | −0,0010 [−0,0034 ; +0,0012] | +0,0030 [−0,0023 ; +0,0085] |
+| Marché (référence) | 0,9795 | 0,9568 |
+
+Lecture : aucune fenêtre ne bat l'historique complet de façon fiable ; une seule saison
+(environ 9 000 matchs) est la pire variante dans les deux tests. L'entraînement actuel
+(jusqu'au 21/10/2026, saison 2025-26 incluse) est conservé.
+
 ## Scénarios d'avant-match contre le marché (2026-10-25, analyse n° 22)
 
 Points pris moins points attendus par le marché, à cote égale. Toutes saisons avec cotes
