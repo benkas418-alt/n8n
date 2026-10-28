@@ -41,6 +41,21 @@ Ce qui n'est **pas** encore fait est listé dans [PROGRESS.md](PROGRESS.md).
 
 ## Installation (Linux / VPS)
 
+**En une commande** (Debian ou Ubuntu, en root ou avec sudo) :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/benkas418-alt/n8n/claude/branche-higgsfield-974raq/football-intel/deploy/install.sh | sudo bash
+```
+
+Le script installe PostgreSQL, Python 3.13 (uv), le code, la base, les services systemd et,
+si un domaine est donné, Caddy (HTTPS et mot de passe). Il demande les clés en saisie masquée
+et les écrit seulement dans `/opt/football-intel/.env`. Le premier chargement (historique,
+modèle, premières prédictions, environ 1 h) tourne ensuite en arrière-plan :
+`sudo journalctl -fu footintel-bootstrap`. Relancer la même commande met le code à jour sans
+toucher à `.env` ni aux données. Testé le 2026-10-28 sur Ubuntu 24.04 (sans systemd).
+
+Installation manuelle :
+
 Prérequis : Python ≥ 3.12, PostgreSQL ≥ 14, [uv](https://docs.astral.sh/uv/) (ou pip).
 
 ```bash
