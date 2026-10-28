@@ -15,6 +15,7 @@ API_FOOTBALL = "api_football"
 OPENFOOTBALL = "openfootball"
 OPENLIGADB = "openligadb"
 FOOTBALL_DATA_ORG = "football_data_org"
+THE_ODDS_API = "the_odds_api"
 
 
 @dataclass(frozen=True)
@@ -101,7 +102,26 @@ SOURCES = [
             "current season of the UEFA cups and the DFB-Pokal. No odds, no statistics."
         ),
     ),
+    SourceDef(
+        code=THE_ODDS_API,
+        name="The Odds API",
+        kind="api",
+        base_url="https://api.the-odds-api.com/v4",
+        terms_url="https://the-odds-api.com/terms-and-conditions.html",
+        terms_note=(
+            "Free plan with a personal key (ODDS_API_KEY): 500 credits per month. Storing the "
+            "data and showing it in a dashboard are permitted; reselling it as a data service "
+            "is not. Used for the 1X2 prices of the cups, which have no other free odds source."
+        ),
+    ),
 ]
+
+# The Odds API sport keys. Checked against /sports (free) before each call: a key that is
+# not in season is skipped without spending credits. The leagues already have odds from
+# football-data.co.uk, so they are left out to keep within the free quota.
+ODDS_API_SPORTS = {"UEFA-CL": "soccer_uefa_champs_league", "UEFA-EL": "soccer_uefa_europa_league",
+                   "UEFA-ECL": "soccer_uefa_europa_conference_league",
+                   "GER-DFB": "soccer_germany_dfb_pokal"}
 
 # football-data.org codes (free plan). It never creates teams. For the cups it only checks
 # matches that exist; for the four leagues it also adds the full season calendar and

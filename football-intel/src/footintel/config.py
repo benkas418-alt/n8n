@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     api_football_base_url: str = "https://v3.football.api-sports.io"
     # football-data.org free plan: 10 requests per minute, header X-Auth-Token.
     football_data_org_key: SecretStr | None = None
+    # The Odds API free plan: 500 credits per month; one h2h call in one region costs 1.
+    odds_api_key: SecretStr | None = None
+    odds_api_regions: str = "eu"
+    # Stop calling when fewer credits than this remain in the month.
+    odds_api_reserve: int = 40
     admin_token: SecretStr | None = None
 
     data_dir: Path = Path("./data")
@@ -59,6 +64,10 @@ class Settings(BaseSettings):
     @property
     def football_data_org_enabled(self) -> bool:
         return bool(self.football_data_org_key and self.football_data_org_key.get_secret_value().strip())
+
+    @property
+    def odds_api_enabled(self) -> bool:
+        return bool(self.odds_api_key and self.odds_api_key.get_secret_value().strip())
 
     @property
     def api_football_enabled(self) -> bool:

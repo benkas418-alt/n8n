@@ -321,7 +321,7 @@ def performance() -> dict:
 @router.get("/value-board")
 def value_board(days: int = 7) -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""
-    from footintel.analysis.value import RELIABILITY, market_probabilities
+    from footintel.analysis.value import RELIABILITY, market_consensus, market_probabilities
 
     rows = _rows("""
         SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
@@ -337,9 +337,27 @@ def value_board(days: int = 7) -> dict:
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE
           AND m.kickoff_date <= CURRENT_DATE + CAST(:d AS int)
         ORDER BY m.kickoff_utc NULLS LAST, m.kickoff_date""", d=days)
+    # Latest The Odds API snapshot of each match: the market reference shown next to the model.
+    prices: dict[int, list] = {}
+    captured: dict[int, object] = {}
+    ids = [r["id"] for r in rows]
+    if ids:
+        for o in _rows("""
+            SELECT o.match_id, o.bookmaker, o.selection, o.price, o.captured_at
+            FROM odds_snapshots o JOIN data_sources d ON d.id = o.source_id
+            WHERE d.code = 'the_odds_api' AND o.market = '1X2' AND o.match_id = ANY(:ids)
+              AND o.snapshot_label = (SELECT max(o2.snapshot_label) FROM odds_snapshots o2
+                                      WHERE o2.match_id = o.match_id AND o2.source_id = o.source_id)""",
+                       ids=ids):
+            prices.setdefault(o["match_id"], []).append((o["bookmaker"], o["selection"], o["price"]))
+            if o["captured_at"] and (captured.get(o["match_id"]) is None or o["captured_at"] > captured[o["match_id"]]):
+                captured[o["match_id"]] = o["captured_at"]
     matches = []
     for r in rows:
+        market = market_consensus(prices.get(r["id"], []))
+        if market:
+            market["captured_at"] = captured.get(r["id"])
         matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
                                           "home", "away", "predicted_at", "has_odds", "model")}
-                       | {"markets": market_probabilities(r)})
+                       | {"markets": market_probabilities(r), "market": market})
     return {"generated_for_days": days, "reliability": RELIABILITY, "matches": matches}

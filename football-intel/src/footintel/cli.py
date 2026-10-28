@@ -58,6 +58,8 @@ def cmd_ingest(args, settings, engine):
         st = tasks.import_openligadb(engine, settings, [args.last] if args.last else None)
     elif args.what == "football-data-org":
         st = tasks.check_football_data_org(engine, settings, [args.last] if args.last else None)
+    elif args.what == "odds-api":
+        st = tasks.sync_odds_api(engine, settings)
     elif args.what == "fixtures":
         st = tasks.sync_fixtures(engine, settings)
     elif args.what == "results":
@@ -277,7 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     ing = sub.add_parser("ingest", help="collect data")
     ing.add_argument("what", choices=["history", "context", "european", "openligadb",
-                                      "football-data-org", "fixtures", "results", "quality"])
+                                      "football-data-org", "odds-api", "fixtures", "results", "quality"])
     ing.add_argument("--first", type=int, default=2005, help="first season start year")
     ing.add_argument("--last", type=int, default=None, help="last season start year")
     ing.add_argument("--competition", action="append", help="e.g. ENG-PL (repeatable)")

@@ -21,6 +21,13 @@ function verdict(prob, odds) {
   return { cls: "v-neutral", text: `${v >= 0 ? "+" : ""}${(100 * v).toFixed(1)} % neutre`, value: v };
 }
 
+const BEST = { "1": "H", X: "D", "2": "A" };
+function marketCell(mk, key) {
+  if (!mk || mk[key] == null) return "—";
+  const best = BEST[key] ? `<br><span class="note">meilleure ${two(mk.best[BEST[key]])}</span>` : "";
+  return `${pct(mk[key], 1)}${best}`;
+}
+
 function matchCard(m) {
   const p = Object.fromEntries(m.markets.map((x) => [x.key, x.prob]));
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : m.kickoff_date;
@@ -29,7 +36,7 @@ function matchCard(m) {
   let group = "";
   const rows = m.markets.map((x) => {
     const head = x.note !== group
-      ? `<tr class="group"><td colspan="6"><strong>${esc(GROUPS[x.note] || x.note)}</strong> <span class="note">${esc(state.data.reliability[x.note] || "")}</span></td></tr>`
+      ? `<tr class="group"><td colspan="7"><strong>${esc(GROUPS[x.note] || x.note)}</strong> <span class="note">${esc(state.data.reliability[x.note] || "")}</span></td></tr>`
       : "";
     group = x.note;
     const key = `${m.id}:${x.key}`;
@@ -40,6 +47,7 @@ function matchCard(m) {
       <td class="label">${esc(x.label)}</td>
       <td class="r num" data-h="Modèle">${pct(x.prob, 1)}</td>
       <td class="r num" data-h="Cote juste">${two(1 / x.prob)}</td>
+      <td class="r num" data-h="Marché">${marketCell(m.market, x.key)}</td>
       <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote ${esc(x.label)}"
            id="o-${m.id}-${esc(x.key)}" data-key="${esc(key)}" value="${odds ?? ""}"></td>
       <td><span class="verdict ${v.cls}" id="v-${m.id}-${esc(x.key)}">${v.text}</span></td>
@@ -50,10 +58,11 @@ function matchCard(m) {
     <summary><span class="teams">${esc(m.home)} – ${esc(m.away)}</span>
       <span class="meta">${esc(COMP[m.competition] || m.competition)} · ${esc(when)}</span>
       ${m.has_odds ? '<span class="pill ok">avec cotes de référence</span>' : `<span class="pill warn" title="${esc(state.data.reliability.no_odds)}">sans cotes : moins fiable</span>`}
+      ${m.market ? `<span class="pill ok" title="${esc(state.data.reliability.market || "")}">marché : ${m.market.n_bookmakers} bookmakers</span>` : ""}
       <span class="probs" aria-label="Probabilités 1, X, 2"><span>1 ${pct(p["1"])}</span><span>X ${pct(p["X"])}</span><span>2 ${pct(p["2"])}</span></span>
     </summary>
     <div class="table-wrap"><table>
-      <thead><tr><th>Sélection</th><th class="r">Modèle</th><th class="r">Cote juste</th><th class="r">Ta cote</th><th>Verdict</th><th></th></tr></thead>
+      <thead><tr><th>Sélection</th><th class="r">Modèle</th><th class="r">Cote juste</th><th class="r">Marché</th><th class="r">Ta cote</th><th>Verdict</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div></details>`;
 }
 

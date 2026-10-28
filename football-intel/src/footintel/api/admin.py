@@ -40,6 +40,7 @@ def admin_overview() -> dict:
     secrets = {
         "API_FOOTBALL_KEY": s.api_football_enabled,
         "FOOTBALL_DATA_ORG_KEY": s.football_data_org_enabled,
+        "ODDS_API_KEY": s.odds_api_enabled,
         "ADMIN_TOKEN": bool(s.admin_token and s.admin_token.get_secret_value()),
         "TELEGRAM_BOT_TOKEN": bool(s.telegram_bot_token and s.telegram_bot_token.get_secret_value()),
         "TELEGRAM_CHAT_ID": bool(s.telegram_chat_id),

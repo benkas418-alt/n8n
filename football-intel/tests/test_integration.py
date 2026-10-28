@@ -367,7 +367,7 @@ def test_admin_endpoints_hide_secrets_and_protect_writes(db, settings, monkeypat
 
     r = client.get("/api/admin/overview")
     assert r.status_code == 200
-    assert r.json()["secrets"] == {"API_FOOTBALL_KEY": False, "FOOTBALL_DATA_ORG_KEY": False,
+    assert r.json()["secrets"] == {"API_FOOTBALL_KEY": False, "FOOTBALL_DATA_ORG_KEY": False, "ODDS_API_KEY": False,
                                    "ADMIN_TOKEN": True,
                                    "TELEGRAM_BOT_TOKEN": True, "TELEGRAM_CHAT_ID": False}
     assert "S" * 35 not in r.text and "test-token" not in r.text
@@ -566,3 +566,67 @@ def test_football_data_org_adds_league_fixtures_once(db, settings, monkeypatch):
             JOIN seasons se ON se.id = m.season_id JOIN match_external_refs r ON r.match_id = m.id
             WHERE se.start_year = 2026 GROUP BY m.id""")).all()
     assert len(rows) == 1 and rows[0][1] == 2 and rows[0][0] == date(2026, 11, 28)
+
+
+class FakeOddsApi:
+    def __init__(self, events, remaining=400):
+        self.events, self.remaining, self.calls = events, remaining, []
+
+    def active_sports(self):
+        return {"soccer_epl"}
+
+    def odds(self, sport_key):
+        from footintel.connectors.the_odds_api import parse_events
+
+        self.calls.append(sport_key)
+        return parse_events(self.events, datetime(2026, 11, 3, 10, 0, tzinfo=UTC))
+
+
+def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkeypatch):
+    from footintel.api import app as api_module
+    from footintel.api import dashboard
+    from footintel.ingestion import teams as teams_mod
+
+    monkeypatch.setattr(tasks, "ODDS_API_SPORTS", {"ENG-PL": "soccer_epl", "UEFA-CL": "soccer_uefa_champs_league"})
+    monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: {
+        ("the_odds_api", "Synth One"): "Synthetic FC 1", ("the_odds_api", "Synth Two"): "Synthetic FC 2"})
+    _load_synthetic_history(db, settings)
+    feats = build_features(load_matches(db))
+    v1 = registry.train_version(db, settings, feats, "logreg_market_goals")
+    assert registry.promote(db, feats, v1, [2021, 2022], LOW_BAR).promoted
+    now = datetime.now(UTC).replace(microsecond=0)
+    kickoff = now + timedelta(days=2)
+    fixture = MatchRecord("football_data_uk", "E0|2023|Synthetic FC 1|Synthetic FC 2", "ENG-PL", 2023,
+                          kickoff.date(), kickoff, "Synthetic FC 1", "Synthetic FC 2", "scheduled")
+    tasks.sync_fixtures(db, settings, connector=FakeConnector({}, [fixture]))
+
+    def event(eid, home, away):
+        return {"id": eid, "sport_key": "soccer_epl", "commence_time": kickoff.isoformat().replace("+00:00", "Z"),
+                "home_team": home, "away_team": away,
+                "bookmakers": [{"key": k, "markets": [{"key": "h2h", "outcomes": [
+                    {"name": home, "price": h}, {"name": "Draw", "price": 3.4}, {"name": away, "price": a}]}]}
+                    for k, h, a in (("pinnacle", 2.0, 3.9), ("betfair_ex_eu", 2.1, 3.8))]}
+
+    fake = FakeOddsApi([event("e1", "Synth One", "Synth Two"), event("e2", "Nobody", "Synth One")])
+    st = tasks.sync_odds_api(db, settings, connector=fake)
+    codes = [i[1] for i in st.issues]
+    assert st.inserted == 1 and "unmapped_team" in codes and "not_in_season" in codes
+    assert fake.calls == ["soccer_epl"]  # the cup key is not in season: no credit spent
+    again = tasks.sync_odds_api(db, settings, connector=fake)
+    assert again.inserted == 0
+    with db.connect() as conn:
+        assert conn.execute(text("SELECT count(*) FROM odds_snapshots o JOIN data_sources d ON d.id = o.source_id "
+                                 "WHERE d.code = 'the_odds_api'")).scalar() == 6
+        assert conn.execute(text("SELECT count(*) FROM teams WHERE name = 'Nobody'")).scalar() == 0
+
+    assert predict_upcoming(db, settings, now=now).created == 1
+    with session_scope(db) as s:
+        assert s.scalars(select(Prediction)).one().feature_snapshot.get("mkt_p_home") is None
+    monkeypatch.setattr(dashboard, "get_engine", lambda: db)
+    board = TestClient(api_module.app).get("/api/dash/value-board").json()
+    m = board["matches"][0]
+    assert m["has_odds"] is False and m["market"]["n_bookmakers"] == 2 and m["market"]["best"]["H"] == 2.1
+
+    low = FakeOddsApi([], remaining=10)
+    assert "quota_low" in [i[1] for i in tasks.sync_odds_api(db, settings, connector=low).issues]
+    assert low.calls == []

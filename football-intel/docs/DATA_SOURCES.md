@@ -54,6 +54,17 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Conditions | `football-data.org/about` : mention « Data provided by football-data.org » visible (ajoutée au tableau de bord et aux rapports) ; après résiliation du compte, ses données ne doivent plus être affichées. |
 | Priorité des scores | football-data.co.uk = football-data.org > openfootball > OpenLigaDB. Une source moins fiable n'écrase jamais un résultat. |
 
+### The Odds API — cotes 1X2 des coupes
+
+| Élément | Constat (2026-10-28, code prêt, clé pas encore installée) |
+|---|---|
+| Accès | `https://api.the-odds-api.com/v4`, clé en variable d'environnement `ODDS_API_KEY` (jamais dans le dépôt). La clé passe dans l'URL : elle est masquée dans les erreurs et les journaux `httpx` sont coupés. |
+| Quota | Offre gratuite : 500 crédits par mois. `/sports` est gratuit ; un appel `/odds` en `h2h` sur une région (`eu`) coûte 1 crédit ; une réponse vide ne coûte rien. 4 compétitions × 2 passages par jour = 8 crédits par jour au plus, environ 250 par mois. Arrêt automatique sous 40 crédits restants. |
+| Couverture | Ligue des champions, Ligue Europa, Conference League, DFB-Pokal. Clé de compétition vérifiée sur `/sports` avant chaque appel. Les championnats ont déjà leurs cotes (football-data.co.uk). |
+| Rattachement | Jamais d'équipe ni de match créé, jamais de match modifié. Noms d'équipes par alias relus à la main (source `the_odds_api`) ; un nom inconnu est signalé avec le nom le plus proche, pour relecture. |
+| Usage | Référence de marché dans le vérificateur de cotes (probabilité moyenne des bookmakers, marge retirée, meilleure cote). **Pas lue par le modèle actif** (D49). |
+| Conditions | `the-odds-api.com/terms-and-conditions.html` : stockage et affichage dans un tableau de bord autorisés ; revente comme service de données interdite. Mention non obligatoire, ajoutée quand même. |
+
 ## Prévue, désactivée
 
 ### API-Football (api-sports.io)

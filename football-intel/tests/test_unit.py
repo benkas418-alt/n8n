@@ -617,3 +617,33 @@ def test_value_markets_are_consistent():
     # Leading at some point is at least as likely as winning, and both teams can lead.
     assert m["1UP_1"] >= m["1"] - 1e-3 and m["1UP_2"] >= m["2"] - 1e-3
     assert m["1UP_1"] + m["1UP_2"] > 1 - m["X"]
+
+
+def test_odds_api_parse_keeps_complete_h2h_markets_only():
+    from datetime import UTC, datetime
+
+    from footintel.connectors.the_odds_api import parse_events
+
+    def book(key, prices):
+        return {"key": key, "last_update": "2026-11-03T10:00:00Z",
+                "markets": [{"key": "h2h", "outcomes": [{"name": n, "price": p} for n, p in prices]}]}
+
+    data = [{"id": "e1", "sport_key": "soccer_uefa_champs_league", "commence_time": "2026-11-04T20:00:00Z",
+             "home_team": "Home FC", "away_team": "Away FC",
+             "bookmakers": [book("pinnacle", [("Home FC", 1.9), ("Draw", 3.6), ("Away FC", 4.2)]),
+                            book("partial", [("Home FC", 1.8), ("Away FC", 4.0)]),
+                            book("bad", [("Home FC", 1.0), ("Draw", 3.5), ("Away FC", 4.0)])]}]
+    ev = parse_events(data, datetime(2026, 11, 3, 10, 5, tzinfo=UTC))[0]
+    assert ev.commence_utc.hour == 20 and {o.bookmaker for o in ev.odds} == {"pinnacle"}
+    assert sorted(o.selection for o in ev.odds) == ["A", "D", "H"]
+    assert ev.odds[0].snapshot_label == "oddsapi@2026-11-03T10:05"
+
+
+def test_market_consensus_removes_each_margin_and_keeps_best_price():
+    from footintel.analysis.value import market_consensus
+
+    m = market_consensus([("a", "H", 2.0), ("a", "D", 3.5), ("a", "A", 4.0),
+                          ("b", "H", 2.1), ("b", "D", 3.4), ("b", "A", 3.8), ("c", "H", 2.5)])
+    assert m["n_bookmakers"] == 2 and m["best"]["H"] == 2.5
+    assert m["1"] + m["X"] + m["2"] == pytest.approx(1.0, abs=1e-3)
+    assert market_consensus([]) is None

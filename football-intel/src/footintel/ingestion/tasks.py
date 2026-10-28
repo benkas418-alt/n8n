@@ -7,18 +7,20 @@ from sqlalchemy import Engine, func, select
 
 from footintel.catalog import (COMPETITIONS, FD_NEW, FOOTBALL_DATA, FOOTBALL_DATA_ORG,
                                FOOTBALL_DATA_ORG_COMPETITIONS, OPENFOOTBALL, OPENLIGADB,
-                               OPENLIGADB_LEAGUES, get_source)
+                               ODDS_API_SPORTS, OPENLIGADB_LEAGUES, THE_ODDS_API, get_source)
 from footintel.config import Settings
 from footintel.connectors.base import season_start_for
 from footintel.connectors.football_data_uk import NEW_TO_COMPETITION, FootballDataUK
 from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
-from footintel.connectors.football_data_org import FootballDataOrg
+from footintel.connectors.football_data_org import UEFA_TZ, FootballDataOrg
 from footintel.connectors.openligadb import OpenLigaDB
+from footintel.connectors.the_odds_api import TheOddsApi
 from footintel.connectors.http import SourceUnavailable
-from footintel.db.models import Match, MatchOutcome, OddsSnapshot, TeamMatchStatistics
+from footintel.db.models import Competition, Match, MatchOutcome, OddsSnapshot, Team, TeamMatchStatistics
 from footintel.db.session import session_scope
 from footintel.ingestion.store import MatchStore, remove_stale_matches
-from footintel.ingestion.teams import apply_manual_aliases, backfill_team_countries
+from footintel.ingestion import teams as teams_mod
+from footintel.ingestion.teams import apply_manual_aliases, backfill_team_countries, similarity
 from footintel.jobs import RunStats, tracked_run
 
 log = logging.getLogger(__name__)
@@ -214,6 +216,93 @@ def check_football_data_org(engine: Engine, settings: Settings, seasons: list[in
                     for rec in records:
                         store.upsert(rec, stats)
                 log.info("football-data.org %s %d: %d rows", comp, y, len(records))
+    return stats
+
+
+def _odds_api_team(session, name: str, aliases: dict[str, str], cache: dict) -> int | None:
+    if name not in cache:
+        cache[name] = session.scalar(select(Team.id).where(Team.name == aliases.get(name, "")))
+    return cache[name]
+
+
+def _closest_team(session, competition_id: int, name: str) -> str:
+    """Closest team name among this season's teams of the competition, for alias review."""
+    since = date.today() - timedelta(days=400)
+    ids = session.scalars(select(Match.home_team_id).where(
+        Match.competition_id == competition_id, Match.kickoff_date >= since).union(
+        select(Match.away_team_id).where(Match.competition_id == competition_id,
+                                         Match.kickoff_date >= since))).all()
+    names = session.scalars(select(Team.name).where(Team.id.in_(ids))).all()
+    best = max(names, key=lambda n: similarity(name, n), default=None)
+    return f", closest {best!r} at {similarity(name, best):.2f}" if best else ""
+
+
+def sync_odds_api(engine: Engine, settings: Settings, connector: TheOddsApi | None = None) -> RunStats:
+    """1X2 prices of upcoming cup matches from The Odds API.
+
+    Attach only: it never creates a team or a match and never changes a match. Team names
+    go through aliases checked by a human. The prices are kept under each bookmaker's own
+    name, so the active model does not read them (see docs/DECISIONS.md D49)."""
+    source_id = _source_id(engine, THE_ODDS_API)
+    with tracked_run(engine, "sync_odds_api", source_id=source_id) as stats:
+        if connector is None and not settings.odds_api_enabled:
+            stats.issue("info", "source_disabled", "ODDS_API_KEY is not set: odds skipped")
+            return stats
+        connector = connector or TheOddsApi(settings)
+        try:
+            active = connector.active_sports()
+        except SourceUnavailable as exc:
+            stats.issue("warning", "source_unavailable", str(exc))
+            return stats
+        aliases = {a: t for (src, a), t in teams_mod.load_manual_aliases().items() if src == THE_ODDS_API}
+        for comp, sport in ODDS_API_SPORTS.items():
+            if sport not in active:
+                stats.issue("info", "not_in_season", f"{sport}: not active, no credit spent")
+                continue
+            if connector.remaining is not None and connector.remaining < settings.odds_api_reserve:
+                stats.issue("warning", "quota_low",
+                            f"{connector.remaining} credits left (reserve {settings.odds_api_reserve}): stopped")
+                break
+            try:
+                events = connector.odds(sport)
+            except SourceUnavailable as exc:
+                stats.issue("warning", "source_unavailable", f"{sport}: {exc}")
+                continue
+            with session_scope(engine) as s:
+                competition = s.scalar(select(Competition).where(Competition.code == comp))
+                cache: dict = {}
+                for ev in events:
+                    ids = [_odds_api_team(s, n, aliases, cache) for n in (ev.home_team, ev.away_team)]
+                    for n, team_id in zip((ev.home_team, ev.away_team), ids):
+                        if team_id is None:
+                            stats.issue("warning", "unmapped_team", f"{comp} {n!r}: no manual alias"
+                                        + _closest_team(s, competition.id, n))
+                    if None in ids or not ev.odds:
+                        stats.skipped += 1
+                        continue
+                    day = ev.commence_utc.astimezone(UEFA_TZ).date()
+                    match_id = s.scalar(select(Match.id).where(
+                        Match.competition_id == competition.id, Match.home_team_id == ids[0],
+                        Match.away_team_id == ids[1], Match.status == "scheduled",
+                        Match.kickoff_date.between(day - timedelta(days=2), day + timedelta(days=2))))
+                    if match_id is None:
+                        stats.issue("info", "match_not_found",
+                                    f"{comp} {ev.home_team} - {ev.away_team} {day}: no scheduled match")
+                        stats.skipped += 1
+                        continue
+                    seen = set(s.execute(select(OddsSnapshot.bookmaker, OddsSnapshot.selection).where(
+                        OddsSnapshot.match_id == match_id, OddsSnapshot.source_id == source_id,
+                        OddsSnapshot.snapshot_label == ev.odds[0].snapshot_label)).all())
+                    new = [o for o in ev.odds if (o.bookmaker, o.selection) not in seen]
+                    s.add_all(OddsSnapshot(match_id=match_id, source_id=source_id, bookmaker=o.bookmaker,
+                                           market=o.market, selection=o.selection, price=o.price,
+                                           snapshot_label=o.snapshot_label, captured_at=o.captured_at)
+                              for o in new)
+                    if new:
+                        stats.inserted += 1
+                    else:
+                        stats.skipped += 1
+            log.info("the-odds-api %s: %d events, %s credits left", sport, len(events), connector.remaining)
     return stats
 
 

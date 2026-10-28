@@ -18,6 +18,8 @@ RELIABILITY = {
     "btts": "Point faible : à peine mieux qu'un taux fixe en backtest, moins bon ce week-end.",
     "1up": "Approximation : buts supposés arriver dans un ordre aléatoire.",
     "no_odds": "Match sans cotes de référence : prédiction moins fiable (données insuffisantes).",
+    "market": "Marché : moyenne des bookmakers (The Odds API), marge de chacun retirée. "
+              "En coupe, aucun test ne montre encore si le modèle ou le marché est le plus juste.",
 }
 
 
@@ -73,3 +75,24 @@ def market_probabilities(pred: dict) -> list[dict]:
         rows += [("1UP_1", "1X2 1UP : domicile mène à un moment", up_h, "1up"),
                  ("1UP_2", "1X2 1UP : extérieur mène à un moment", up_a, "1up")]
     return [{"key": k, "label": lab, "prob": round(float(p), 4), "note": note} for k, lab, p, note in rows]
+
+
+def market_consensus(prices: list[tuple[str, str, float]]) -> dict | None:
+    """Fair 1X2 probabilities from several bookmakers: each one's margin removed in
+    proportion, then the mean. Also the best price offered for each selection."""
+    books: dict[str, dict[str, float]] = {}
+    for bookmaker, selection, price in prices:
+        books.setdefault(bookmaker, {})[selection] = price
+    fair = []
+    for b in books.values():
+        if set(b) == {"H", "D", "A"}:
+            inv = {k: 1 / v for k, v in b.items()}
+            total = sum(inv.values())
+            fair.append({k: v / total for k, v in inv.items()})
+    if not fair:
+        return None
+    mean = {k: float(np.mean([f[k] for f in fair])) for k in ("H", "D", "A")}
+    best = {k: max(b[k] for b in books.values() if k in b) for k in ("H", "D", "A")}
+    return {"1": round(mean["H"], 4), "X": round(mean["D"], 4), "2": round(mean["A"], 4),
+            "1X": round(mean["H"] + mean["D"], 4), "X2": round(mean["D"] + mean["A"], 4),
+            "12": round(mean["H"] + mean["A"], 4), "best": best, "n_bookmakers": len(fair)}
