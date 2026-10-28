@@ -19,7 +19,8 @@ SKIP_SYSTEMD="${SKIP_SYSTEMD:-0}"
 say() { printf '\n==> %s\n' "$*"; }
 ask() {  # ask VAR "question" [hidden]: read from the terminal even when piped from curl
   local var=$1 q=$2 hidden=${3:-} ans=""
-  if [ -r /dev/tty ] && [ -w /dev/tty ]; then
+  # /dev/tty can exist without a terminal behind it (cron, CI): test that it opens.
+  if { : </dev/tty; } 2>/dev/null; then
     printf '%s' "$q" >/dev/tty
     if [ -n "$hidden" ]; then read -rs ans </dev/tty || true; printf '\n' >/dev/tty
     else read -r ans </dev/tty || true; fi
