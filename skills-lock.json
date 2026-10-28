@@ -1,6 +1,24 @@
 {
   "version": 1,
   "skills": {
+    "ad-creative": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/ad-creative/SKILL.md",
+      "computedHash": "62469b7b8e594424cd313527c6b45e0749242a27955b1f80dcfc7f0c12d13d2d"
+    },
+    "analytics": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/analytics/SKILL.md",
+      "computedHash": "5ffac703d3668127f5aa01dc65f34a0dd8b6b1080d40931414bbdd896278eebb"
+    },
+    "aso": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/aso/SKILL.md",
+      "computedHash": "f76655de874f6317030343397aa47ae61f3c80eb6a4467bada0aac282c6a8d34"
+    },
     "azure-machine-learning": {
       "source": "MicrosoftDocs/Agent-Skills",
       "sourceType": "github",
@@ -42,6 +60,12 @@
       "sourceType": "github",
       "skillPath": "skills/copywriting/SKILL.md",
       "computedHash": "fa83931a47fad42131875374585cab98c9fcf2c3299543bb5bae8828cf06ea08"
+    },
+    "customer-research": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/customer-research/SKILL.md",
+      "computedHash": "c1820bf42369971b9d5e43c5118bbf50402a7b6731b43cfa61d8fe56e0260da4"
     },
     "deep-research": {
       "source": "sanjay3290/ai-skills",
@@ -91,6 +115,12 @@
       "skillPath": "skills/.system/imagegen/SKILL.md",
       "computedHash": "9f14832d6538d83047ef41223ba9b0fb4a8c393d144ad4015ce4c10cc3d5414c"
     },
+    "influencer-marketing": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/influencer-marketing/SKILL.md",
+      "computedHash": "65d83162f351e934fd045a81a43f10fb1fe77b77d53090daf06855d6e6bffd6f"
+    },
     "internal-comms": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -121,6 +151,18 @@
       "skillPath": "skills/neon-postgres/SKILL.md",
       "computedHash": "3c09fbeadf705429a831b7321e535a43655bddf733438b8ffa5dae2537dd6efc"
     },
+    "offers": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/offers/SKILL.md",
+      "computedHash": "cf33eff3e0bc6a527d16f00919f8887be47e9f3dae78a0b382b8e6df8f8081cc"
+    },
+    "onboarding": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/onboarding/SKILL.md",
+      "computedHash": "5606ee5c3f1cde7478febf0c957bf414fb2aa919327b4906009d77ee060d1882"
+    },
     "openai-docs": {
       "source": "openai/skills",
       "sourceType": "github",
@@ -145,11 +187,29 @@
       "skillPath": "skills/recursive-decomposition/SKILL.md",
       "computedHash": "e24e851e8db08ed2fe9c9954e077918b4541a27c7e57b037266760240810ce94"
     },
+    "referrals": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/referrals/SKILL.md",
+      "computedHash": "2f2480c93fbf8af8b7e2ca447d7ab18ae76329d3748c0e56906fa9e24add3743"
+    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
+    },
+    "sms": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/sms/SKILL.md",
+      "computedHash": "1a49d8a2326f945a3a88fa09e7aeb9049a40a457f3c12629c0278bf4ffe6ce95"
+    },
+    "social": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/social/SKILL.md",
+      "computedHash": "665681c9f0815617bcfedd5b3334404acebfe2b3dfececc67300e276c0cdcd18"
     },
     "vercel-react-view-transitions": {
       "source": "vercel-labs/agent-skills",
