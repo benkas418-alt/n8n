@@ -345,6 +345,9 @@ def test_dashboard_endpoints(db, settings, monkeypatch):
     if match:
         assert match["prediction"] is None and len(match["sheets"]) == 2
     assert "versions" in client.get("/api/dash/performance").json()
+    board = client.get("/api/dash/value-board").json()
+    assert board["matches"] == [] and "1x2" in board["reliability"]
+    assert client.get("/dashboard/value.html").status_code == 200
 
 
 def test_admin_endpoints_hide_secrets_and_protect_writes(db, settings, monkeypatch):

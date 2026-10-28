@@ -604,3 +604,16 @@ def test_story_flow_labels_read_the_half_time_score():
     assert _flow(row(0, 0, 0, 0)) == ["goalless"]
     assert _flow({"home_goals": 1, "away_goals": 0, "ht_home_goals": np.nan,
                   "ht_away_goals": np.nan}) == ["half_time_unknown"]
+
+
+def test_value_markets_are_consistent():
+    from footintel.analysis.value import market_probabilities
+
+    pred = {"p_home": 0.5, "p_draw": 0.27, "p_away": 0.23, "p_over_1_5": 0.75, "p_over_2_5": 0.5,
+            "p_over_3_5": 0.27, "p_btts": 0.52, "exp_home_goals": 1.6, "exp_away_goals": 1.0}
+    m = {x["key"]: x["prob"] for x in market_probabilities(pred)}
+    assert m["1X"] == pytest.approx(0.77, abs=1e-4) and m["12"] == pytest.approx(0.73, abs=1e-4)
+    assert m["O2.5"] + m["U2.5"] == pytest.approx(1.0)
+    # Leading at some point is at least as likely as winning, and both teams can lead.
+    assert m["1UP_1"] >= m["1"] - 1e-3 and m["1UP_2"] >= m["2"] - 1e-3
+    assert m["1UP_1"] + m["1UP_2"] > 1 - m["X"]

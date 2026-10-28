@@ -91,6 +91,7 @@ $F report prematch
 | État du système | `footintel status` |
 | Revenir au modèle précédent | `footintel models rollback` |
 | Histoires des matchs, scénarios récurrents, 5 prochains matchs | `footintel stories --days 7` |
+| Vérifier une cote (betPawa ou autre) contre le modèle | page « Cotes » du tableau de bord (`/dashboard/value.html`) |
 | Apport de mes pronostics (modèle hybride) | `footintel hybrid` (calculé à partir de 200 pronostics évalués) |
 | Sauvegarde | `footintel db backup` |
 | API HTTP | `footintel serve` (http://127.0.0.1:8000/docs) |

@@ -314,3 +314,32 @@ def performance() -> dict:
                     FROM prediction_evaluations GROUP BY 1, 2, 3 ORDER BY 1, 2, 3""")
     return {"versions": versions, "backtest_run": run, "backtest": backtest,
             "calibration_run": cal, "calibration": calibration, "levels": levels, "live": live}
+
+
+# --- Odds checker --------------------------------------------------------------------
+
+@router.get("/value-board")
+def value_board(days: int = 7) -> dict:
+    """Upcoming predicted matches with the model probability of each betting market."""
+    from footintel.analysis.value import RELIABILITY, market_probabilities
+
+    rows = _rows("""
+        SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
+               th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
+               p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.predicted_at,
+               p.sufficient_data, (p.feature_snapshot->>'mkt_p_home') IS NOT NULL AS has_odds,
+               mv.name || ' v' || mv.version AS model
+        FROM matches m JOIN competitions c ON c.id = m.competition_id
+        JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
+        JOIN LATERAL (SELECT * FROM predictions p WHERE p.match_id = m.id
+                      ORDER BY p.predicted_at DESC LIMIT 1) p ON TRUE
+        JOIN model_versions mv ON mv.id = p.model_version_id
+        WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE
+          AND m.kickoff_date <= CURRENT_DATE + CAST(:d AS int)
+        ORDER BY m.kickoff_utc NULLS LAST, m.kickoff_date""", d=days)
+    matches = []
+    for r in rows:
+        matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
+                                          "home", "away", "predicted_at", "has_odds", "model")}
+                       | {"markets": market_probabilities(r)})
+    return {"generated_for_days": days, "reliability": RELIABILITY, "matches": matches}
