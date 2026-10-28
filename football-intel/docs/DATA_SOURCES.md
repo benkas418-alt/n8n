@@ -80,7 +80,7 @@ et les résultats de la C1.
 | TheSportsDB (clé publique « 3 ») | HTTP 403. | Clé publique refusée. |
 | Sofascore | HTTP 403 sur le site et l'API. | **Conditions d'utilisation** : « Using website content through embedding, aggregating, scraping, or reproducing without explicit consent is prohibited » ; requêtes automatiques interdites. Les bibliothèques qui y accèdent imitent le navigateur Chrome pour franchir la protection anti-robot. Non utilisée. |
 | FotMob | `robots.txt` : `Disallow: /api/*`. | API interdite aux robots. |
-| ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502. | Service indisponible lors des tests. À retester : il donnerait la force de tous les clubs européens. |
+| ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502 ; le 2026-10-28, coupure HTTPS et vérification anti-robot sur le site. | Non joignable depuis le conteneur. L'historique (copie MIT de `xgabora/Club-Football-Match-Data`, réel jusqu'au 2025-06-01) a servi au test D48. À retester depuis le VPS. |
 | openfootball football.json | C1 2024-25 seulement, finale sans score. | Couverture trouée ; le dépôt `champions-league` est utilisé à la place. |
 
 ## Mode dégradé

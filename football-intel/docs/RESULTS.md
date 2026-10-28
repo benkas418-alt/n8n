@@ -1,5 +1,52 @@
 # Résultats du backtest réel
 
+## Test ClubElo (2026-10-28)
+
+Question : la cote ClubElo d'un club, publiée avant le match, améliore-t-elle le modèle actif ?
+ClubElo note tous les clubs européens dans un même système, alors que notre Elo (D14, D22) part
+de valeurs posées a priori par championnat.
+
+Données : historique ClubElo du dépôt `xgabora/Club-Football-Match-Data` (licence MIT), deux
+relevés par mois. Seuls les relevés jusqu'au 2025-06-01 sont utilisés : après, le fichier
+contient une continuation provisoire, pas les vraies valeurs ClubElo. Pour chaque match, on
+prend le dernier relevé daté **avant** le jour du match (au plus 45 jours avant).
+
+Correspondance des noms : 720 noms identiques, 41 rapprochements automatiques relus, 18 ajouts
+manuels. 4 rapprochements faux retirés (Odd → Hodd, Northwich → Norwich, Lewes → Leeds,
+Olympiakos Volou → Olympiakos). Couverture des matchs testés (les deux équipes notées) :
+Liga et Serie A 100 %, Premier League 94 %, Bundesliga 90 %, Ligue des champions 81 %,
+Ligue Europa 64 %, Conference League 34 %. Une valeur absente est remplacée par la médiane,
+avec une colonne indicatrice.
+
+Candidats : `routed_competition` + `ce_diff`, `ce_home`, `ce_away` dans les trois parties
+(`rc_ce_all`), ou seulement dans la partie sans cotes et les buts (`rc_ce_cups`).
+Walk-forward 2021-22 à 2024-25, 7 533 matchs. Écart de log loss 1X2 contre le modèle actif
+(négatif = meilleur), IC 95 % bootstrap :
+
+| Segment | n | `rc_ce_all` | `rc_ce_cups` |
+|---|---|---|---|
+| Tous (règle D9) | 7 533 | −0,0007 [−0,0014 ; +0,0001] | −0,0007 [−0,0015 ; −0,0000] |
+| Championnats (avec cotes) | 5 784 | 0,0000 [−0,0003 ; +0,0003] | 0 (inchangé) |
+| Coupes d'Europe (sans cotes) | 1 749 | −0,0031 [−0,0062 ; +0,0002] | −0,0031 [−0,0064 ; +0,0001] |
+| dont Ligue des champions | 564 | −0,0051 [−0,0106 ; −0,0001] | −0,0051 [−0,0103 ; +0,0002] |
+| dont Ligue Europa | 610 | −0,0051 [−0,0105 ; +0,0003] | −0,0051 [−0,0108 ; +0,0008] |
+| dont Conference League | 575 | +0,0011 [−0,0042 ; +0,0066] | +0,0011 [−0,0043 ; +0,0066] |
+
+Par saison, les coupes gagnent les 4 années (−0,0014, −0,0039, −0,0062, −0,0013). Marchés de
+buts : plus/moins de 2,5 meilleur en championnat (−0,0005 [−0,0009 ; −0,0001]), neutre en
+coupe ; BTTS neutre.
+
+**Décision : non promu.** Sur l'ensemble, le gain (0,0007) est sous le seuil de 0,002. Sur les
+coupes seules, le gain (0,0031) dépasse le seuil mais l'intervalle touche 0. Les cotes du
+marché contiennent déjà l'information ClubElo en championnat. La piste reste ouverte pour les
+coupes sans cotes, surtout la Ligue des champions et la Ligue Europa : la Conference League,
+mal couverte (34 %), n'en profite pas.
+
+Limite pratique : la vraie série ClubElo s'arrête au 2025-06-01 dans ce fichier. L'utiliser
+en production demande l'API `api.clubelo.com`. Depuis ce conteneur, elle répond par une
+coupure de connexion (HTTPS) ou HTTP 502 (HTTP), et le site affiche une vérification
+anti-robot : non utilisable ici, à retester depuis le VPS.
+
 ## Changement de jeu et réentraînement mois par mois (2026-10-26)
 
 À période égale (août au 26 octobre), 4 championnats cibles : 2026-27 a un record de tirs
