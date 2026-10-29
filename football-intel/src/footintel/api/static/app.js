@@ -450,7 +450,7 @@ const formDots = (rows) => rows.length
   ? `<span class="form">${rows.map((r) => `<span class="res ${RES_CLS[r.result]}" title="${esc(fdate(r.date))} · ${r.at_home ? "dom." : "ext."} ${esc(r.opponent)} ${r.gf}-${r.ga}">${r.result}</span>`).join("")}</span>`
   : `<span class="muted small">Aucun match</span>`;
 
-const TABS = [["avant", "Avant-match"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
+const TABS = [["avant", "Avant-match"], ["marches", "Paris"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
   ["classement", "Classement"], ["journees", "Journées"], ["analyse", "Analyse"]];
 
 async function matchPage() {
@@ -493,7 +493,7 @@ async function matchPage() {
     `<a role="tab" href="#/match?id=${m.id}&t=${k}" aria-selected="${k === tab}" class="tab${k === tab ? " on" : ""}">${label}</a>`).join("")}</div>`;
   const noData = `<div class="unavailable"><strong>Données indisponibles</strong><br><span class="small">L'analyse détaillée n'a pas pu être calculée pour ce match.</span></div>`;
   html += `<div role="tabpanel">${!x && tab !== "analyse" ? noData : {
-    avant: () => tabBefore(m, x, H, A), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
+    avant: () => tabBefore(m, x, H, A), marches: () => tabMarkets(m, d), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
     compos: () => tabLineups(m, H, A),
     classement: () => tabTable(m, x), journees: () => tabRounds(x), analyse: () => tabAnalysis(m, d, pr),
   }[tab]()}</div>`;
@@ -612,6 +612,21 @@ function tabLineups(m, H, A) {
       ${T.regulars.length ? fold("Les plus titularisés cette saison", `<p class="small">${T.regulars.slice(0, 11).map((r) => `${esc(r.name)} <span class="muted">${r.starts}</span>`).join(", ")}</p>`, { inner: true }) : ""}</div>`;
   };
   return `<div class="grid two" style="margin-top:var(--space-4)">${pitch(H, "h")}${pitch(A, "a")}</div>`;
+}
+
+/* Model probability and fair odds of each betting market (same list as the odds checker). */
+const MARKET_GROUPS = { "1x2": "Résultat et double chance", goals: "Nombre de buts", btts: "Les deux équipes marquent",
+  "1up": "1UP / 2UP", first: "Premier but" };
+function tabMarkets(m, d) {
+  const mk = d.markets;
+  if (!mk || !mk.length) return `<div class="unavailable"><strong>Marchés indisponibles</strong><br><span class="small">Aucune prédiction enregistrée pour ce match.</span></div>`;
+  const groups = [...new Set(mk.map((x) => x.note))];
+  return `<p class="question">Cote juste = 1 / probabilité. Une cote du bookmaker au-dessus de la cote juste n'est intéressante que si la probabilité est fiable : voir la note de chaque groupe.</p>
+    <div class="grid two">${groups.map((g) => `<div class="card"><h2>${esc(MARKET_GROUPS[g] || g)}</h2>
+      <p class="meta">${esc((d.market_notes || {})[g] || "")}</p>
+      <table><thead><tr><th>Marché</th><th class="num">Probabilité</th><th class="num">Cote juste</th></tr></thead><tbody>
+      ${mk.filter((x) => x.note === g).map((x) => `<tr><td>${esc(x.label.replace("domicile", m.home).replace("extérieur", m.away))}</td><td class="num">${pct(x.prob, 0)}</td><td class="num">${x.prob > 0 ? num(1 / x.prob, 2) : "—"}</td></tr>`).join("")}
+      </tbody></table></div>`).join("")}</div>`;
 }
 
 function tabTable(m, x) {

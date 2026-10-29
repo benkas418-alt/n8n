@@ -816,3 +816,43 @@ def test_supabase_export_batches_stay_under_the_size_limit():
     rows = [{"path": f"/p{i}", "body": {"x": "a" * 1000}} for i in range(5000)]
     batches = list(supabase._batches(rows))
     assert sum(len(b) for b in batches) == 5000 and len(batches) > 1
+
+
+def test_path_markets_match_a_simulation():
+    from footintel.analysis.value import path_markets
+
+    lh, la = 1.6, 1.0
+    pm = path_markets(lh, la)
+    assert pm["first_home"] + pm["first_away"] + pm["none"] == pytest.approx(1.0, abs=1e-6)
+    assert pm["up2_home"] <= pm["up1_home"] and pm["first_home_win"] <= pm["first_home"]
+    rng = np.random.default_rng(1)
+    n = 200_000
+    nh, na = rng.poisson(lh, n), rng.poisson(la, n)
+    sim = dict.fromkeys(pm, 0)
+    for h, a in zip(nh, na):
+        seq = rng.permutation([1] * h + [-1] * a)
+        run = np.cumsum(seq) if len(seq) else np.array([0])
+        win, top, low = run[-1] > 0, run.max(), run.min()
+        if not len(seq):
+            sim["none"] += 1
+            continue
+        first = "home" if seq[0] == 1 else "away"
+        sim[f"first_{first}"] += 1
+        sim["up1_home"] += top >= 1
+        sim["up2_home"] += top >= 2 or win
+        sim["up2_away"] += low <= -2 or run[-1] < 0
+        sim["first_home_win"] += first == "home" and win
+    for k in ("none", "first_home", "up1_home", "up2_home", "up2_away", "first_home_win"):
+        assert pm[k] == pytest.approx(sim[k] / n, abs=0.005), k
+
+
+def test_value_markets_include_the_betpawa_specials():
+    from footintel.analysis.value import market_probabilities
+
+    pred = {"p_home": 0.5, "p_draw": 0.27, "p_away": 0.23, "p_over_1_5": 0.75, "p_over_2_5": 0.5,
+            "p_over_3_5": 0.27, "p_btts": 0.52, "exp_home_goals": 1.6, "exp_away_goals": 1.0}
+    m = {x["key"]: x["prob"] for x in market_probabilities(pred)}
+    # 2UP pays on a win, so it is between the win and the 1UP.
+    assert m["1"] - 1e-3 <= m["2UP_1"] <= m["1UP_1"]
+    assert m["FG_1"] + m["FG_2"] + m["FG_0"] == pytest.approx(1.0, abs=1e-3)
+    assert m["FGW_1"] < m["FG_1"] and m["FGW_1"] < m["1"]

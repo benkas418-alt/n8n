@@ -88,6 +88,29 @@ Lecture : l'estimation est utile et bien calibrée au centre. Aux extrêmes, ell
 prudente : l'équipe favorite ouvre le score un peu plus souvent qu'annoncé, l'outsider un peu
 moins. Échantillon d'une demi-saison : à refaire en fin de saison.
 
+## Marchés selon l'ordre des buts (1UP, 2UP, premier but), saison 2026-27 (2026-10-29)
+
+Question : les probabilités 1UP, 2UP, premier but et « ouvre le score et gagne » (onglet
+Paris, vérificateur de cotes) tiennent-elles sur les vrais déroulements ? Script :
+`scripts/markets_check.py`. Modèle entraîné avant 2026-27, matchs prédits hors échantillon ;
+ordre des buts tiré des minutes OneFootball. 150 matchs (Premier League et Liga lus ce jour).
+
+| Log loss | Buts attendus du modèle | Ajusté au 1X2 | Ajusté au 1X2 + plus de 2,5 | Fréquence naïve |
+|---|---|---|---|---|
+| Premier but (3 issues) | 0,8952 | 0,8862 | 0,8914 | 0,9272 |
+| 1UP domicile | 0,6339 | 0,6280 | 0,6353 | 0,6859 |
+| 1UP extérieur | 0,6497 | 0,6630 | 0,6537 | 0,6931 |
+| 2UP domicile | 0,6059 | 0,6071 | 0,6125 | 0,6730 |
+| 2UP extérieur | 0,5690 | 0,5590 | 0,5591 | 0,6318 |
+| Domicile ouvre et gagne | 0,5893 | 0,5967 | 0,5966 | 0,6365 |
+| Extérieur ouvre et gagne | 0,5217 | 0,5074 | 0,5075 | 0,5731 |
+
+Lecture : les trois calculs battent la fréquence naïve sur chaque marché ; leurs écarts entre
+eux sont dans le bruit d'un si petit échantillon. Le site garde l'ajustement 1X2 + plus de
+2,5, seul cohérent avec les marchés de buts (« aucun but »). Calibration (6 marchés réunis) :
+annoncé 42 %, observé 37 % entre 35 et 50 % ; annoncé 72 %, observé 67 % entre 65 et 80 % :
+un peu trop optimiste au milieu. À refaire avec les quatre championnats et la saison complète.
+
 ## Test des compositions OneFootball, saison 2026-27 (2026-10-29)
 
 Question : les compositions des matchs précédents (OneFootball, D50) améliorent-elles la
