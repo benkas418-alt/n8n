@@ -1,0 +1,209 @@
+{
+	"name": "PitUp – Veille TikTok Lubumbashi",
+	"nodes": [
+		{
+			"id": "a1b2c3d4-0001-4000-8000-000000000001",
+			"name": "Chaque lundi 07:00",
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1.2,
+			"position": [
+				0,
+				0
+			],
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"field": "weeks",
+							"triggerAtDay": [
+								1
+							],
+							"triggerAtHour": 7
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "a1b2c3d4-0002-4000-8000-000000000002",
+			"name": "Apify – TikTok Scraper",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [
+				220,
+				0
+			],
+			"parameters": {
+				"method": "POST",
+				"url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items",
+				"authentication": "genericCredentialType",
+				"genericAuthType": "httpHeaderAuth",
+				"sendQuery": true,
+				"queryParameters": {
+					"parameters": [
+						{
+							"name": "timeout",
+							"value": "300"
+						}
+					]
+				},
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "{\n  \"hashtags\": [\n    \"lubumbashi\",\n    \"lushi\",\n    \"lubumbashicity\",\n    \"katanga\",\n    \"rdc243\"\n  ],\n  \"searchQueries\": [\n    \"lubumbashi livraison\",\n    \"boutique lubumbashi\",\n    \"vente en ligne lubumbashi\"\n  ],\n  \"searchSection\": \"/video\",\n  \"resultsPerPage\": 20,\n  \"profiles\": [],\n  \"excludePinnedPosts\": true,\n  \"shouldDownloadVideos\": false,\n  \"shouldDownloadCovers\": false,\n  \"shouldDownloadSlideshowImages\": false,\n  \"shouldDownloadAvatars\": false,\n  \"shouldDownloadMusicCovers\": false,\n  \"proxyCountryCode\": \"None\"\n}",
+				"options": {
+					"timeout": 330000
+				}
+			},
+			"credentials": {
+				"httpHeaderAuth": {
+					"id": "",
+					"name": "Apify API"
+				}
+			}
+		},
+		{
+			"id": "a1b2c3d4-0003-4000-8000-000000000003",
+			"name": "Préparer vidéos",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [
+				440,
+				0
+			],
+			"parameters": {
+				"jsCode": "function prepareVideos(items, { maxAgeDays = 30, now = Date.now() } = {}) {\n\tconst seen = new Set();\n\tconst videos = [];\n\tfor (const v of items) {\n\t\t// The actor pushes \"error items\" (errorCode) for private/empty inputs.\n\t\tif (!v || v.errorCode || !v.id || seen.has(v.id)) continue;\n\t\tseen.add(v.id);\n\t\tconst createdMs = v.createTimeISO ? Date.parse(v.createTimeISO) : NaN;\n\t\tif (Number.isFinite(createdMs) && now - createdMs > maxAgeDays * 86400000) continue;\n\n\t\tconst a = v.authorMeta || {};\n\t\tconst vues = v.playCount || 0;\n\t\tconst likes = v.diggCount || 0;\n\t\tconst commentaires = v.commentCount || 0;\n\t\tconst partages = v.shareCount || 0;\n\t\tconst enregistrements = v.collectCount || 0;\n\t\tconst interactions = likes + commentaires + partages + enregistrements;\n\t\tvideos.push({\n\t\t\tid: String(v.id),\n\t\t\tdate: v.createTimeISO || '',\n\t\t\tsource: v.searchQuery ? `recherche: ${v.searchQuery}` : v.input ? `entrée: ${v.input}` : 'hashtag',\n\t\t\tauteur: a.name ? `@${a.name}` : '',\n\t\t\tauteur_nom: a.nickName || '',\n\t\t\tauteur_url: a.profileUrl || '',\n\t\t\tabonnes: a.fans || 0,\n\t\t\tverifie: Boolean(a.verified),\n\t\t\ttexte: (v.text || '').replace(/\\s+/g, ' ').trim().slice(0, 300),\n\t\t\thashtags: (v.hashtags || []).map((h) => h.name).filter(Boolean).join(' '),\n\t\t\tvues,\n\t\t\tlikes,\n\t\t\tcommentaires,\n\t\t\tpartages,\n\t\t\tenregistrements,\n\t\t\ttaux_engagement: vues ? Math.round((interactions / vues) * 10000) / 100 : 0,\n\t\t\tduree_s: (v.videoMeta && v.videoMeta.duration) || 0,\n\t\t\tsponsorise: Boolean(v.isAd || v.isSponsored),\n\t\t\turl: v.webVideoUrl || '',\n\t\t\tdate_collecte: new Date(now).toISOString(),\n\t\t});\n\t}\n\treturn videos.sort((x, y) => y.vues - x.vues);\n}\n\nreturn prepareVideos($input.all().map((i) => i.json), { maxAgeDays: 30 }).map((json) => ({ json }));\n"
+			}
+		},
+		{
+			"id": "a1b2c3d4-0004-4000-8000-000000000004",
+			"name": "Top créateurs",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [
+				660,
+				160
+			],
+			"parameters": {
+				"jsCode": "function topCreators(videos, { limit = 50 } = {}) {\n\tconst byAuthor = new Map();\n\tfor (const v of videos) {\n\t\tif (!v.auteur) continue;\n\t\tconst c = byAuthor.get(v.auteur) || {\n\t\t\tauteur: v.auteur,\n\t\t\tauteur_nom: v.auteur_nom,\n\t\t\tauteur_url: v.auteur_url,\n\t\t\tabonnes: v.abonnes,\n\t\t\tverifie: v.verifie,\n\t\t\tnb_videos: 0,\n\t\t\tvues_totales: 0,\n\t\t\tsomme_engagement: 0,\n\t\t\tmeilleure_video: v.url,\n\t\t\tmeilleures_vues: -1,\n\t\t};\n\t\t// Search results sometimes carry less author metadata than profile results.\n\t\tc.auteur_nom = c.auteur_nom || v.auteur_nom;\n\t\tc.auteur_url = c.auteur_url || v.auteur_url;\n\t\tc.abonnes = Math.max(c.abonnes, v.abonnes);\n\t\tc.nb_videos += 1;\n\t\tc.vues_totales += v.vues;\n\t\tc.somme_engagement += v.taux_engagement;\n\t\tif (v.vues > c.meilleures_vues) {\n\t\t\tc.meilleures_vues = v.vues;\n\t\t\tc.meilleure_video = v.url;\n\t\t}\n\t\tbyAuthor.set(v.auteur, c);\n\t}\n\treturn [...byAuthor.values()]\n\t\t.map(({ somme_engagement, meilleures_vues, ...c }) => ({\n\t\t\t...c,\n\t\t\tvues_moyennes: Math.round(c.vues_totales / c.nb_videos),\n\t\t\tengagement_moyen: Math.round((somme_engagement / c.nb_videos) * 100) / 100,\n\t\t\tdate_collecte: videos[0] ? videos[0].date_collecte : new Date().toISOString(),\n\t\t}))\n\t\t.sort((x, y) => y.vues_moyennes - x.vues_moyennes)\n\t\t.slice(0, limit);\n}\n\nreturn topCreators($input.all().map((i) => i.json)).map((json) => ({ json }));\n"
+			}
+		},
+		{
+			"id": "a1b2c3d4-0005-4000-8000-000000000005",
+			"name": "Google Sheets – videos",
+			"type": "n8n-nodes-base.googleSheets",
+			"typeVersion": 4.5,
+			"position": [
+				660,
+				-80
+			],
+			"parameters": {
+				"operation": "appendOrUpdate",
+				"documentId": {
+					"__rl": true,
+					"mode": "url",
+					"value": ""
+				},
+				"sheetName": {
+					"__rl": true,
+					"mode": "name",
+					"value": "videos"
+				},
+				"columns": {
+					"mappingMode": "autoMapInputData",
+					"value": {},
+					"matchingColumns": [
+						"id"
+					]
+				},
+				"options": {}
+			}
+		},
+		{
+			"id": "a1b2c3d4-0006-4000-8000-000000000006",
+			"name": "Google Sheets – createurs",
+			"type": "n8n-nodes-base.googleSheets",
+			"typeVersion": 4.5,
+			"position": [
+				880,
+				160
+			],
+			"parameters": {
+				"operation": "appendOrUpdate",
+				"documentId": {
+					"__rl": true,
+					"mode": "url",
+					"value": ""
+				},
+				"sheetName": {
+					"__rl": true,
+					"mode": "name",
+					"value": "createurs"
+				},
+				"columns": {
+					"mappingMode": "autoMapInputData",
+					"value": {},
+					"matchingColumns": [
+						"auteur"
+					]
+				},
+				"options": {}
+			}
+		}
+	],
+	"connections": {
+		"Chaque lundi 07:00": {
+			"main": [
+				[
+					{
+						"node": "Apify – TikTok Scraper",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Apify – TikTok Scraper": {
+			"main": [
+				[
+					{
+						"node": "Préparer vidéos",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Préparer vidéos": {
+			"main": [
+				[
+					{
+						"node": "Google Sheets – videos",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Top créateurs",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Top créateurs": {
+			"main": [
+				[
+					{
+						"node": "Google Sheets – createurs",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"settings": {
+		"executionOrder": "v1",
+		"timezone": "Africa/Lubumbashi"
+	},
+	"pinData": {}
+}
