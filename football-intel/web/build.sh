@@ -20,4 +20,20 @@ for page in index.html:app.js value.html:value.js; do
     -e "s|<script src=\"$script\"></script>|$SUPABASE_JS\n<script src=\"config.js\"></script>\n<script src=\"site.js\"></script>\n<script src=\"$script\"></script>|" \
     "$file"
 done
+# CDN_COMMIT=<sha>: serve the scripts and styles from jsDelivr at that pushed commit, with
+# integrity hashes, so the Vercel deployment holds only the small HTML and config files.
+if [ -n "${CDN_COMMIT:-}" ]; then
+  cdn="https://cdn.jsdelivr.net/gh/benkas418-alt/n8n@$CDN_COMMIT/football-intel"
+  for asset in app.js:src/footintel/api/static style.css:src/footintel/api/static \
+               value.js:src/footintel/api/static site.js:web site.css:web; do
+    name="${asset%%:*}"
+    url="$cdn/${asset##*:}/$name"
+    sri="sha384-$(openssl dgst -sha384 -binary "$dist/$name" | openssl base64 -A)"
+    curl -fsS "$url" | cmp -s - "$dist/$name" || { echo "!! $url differs from the local file: push first" >&2; exit 1; }
+    sed -i -e "s|src=\"$name\"|src=\"$url\" integrity=\"$sri\" crossorigin=\"anonymous\"|" \
+           -e "s|href=\"$name\"|href=\"$url\" integrity=\"$sri\" crossorigin=\"anonymous\"|" \
+      "$dist/index.html" "$dist/value.html"
+    rm "$dist/$name"
+  done
+fi
 echo "Site built in $dist"
