@@ -88,6 +88,24 @@ Lecture : l'estimation est utile et bien calibrée au centre. Aux extrêmes, ell
 prudente : l'équipe favorite ouvre le score un peu plus souvent qu'annoncé, l'outsider un peu
 moins. Échantillon d'une demi-saison : à refaire en fin de saison.
 
+## « Forte en 1re ou en 2e mi-temps » : un trait qui se répète ? (2026-10-29)
+
+Question : une équipe meilleure dans une mi-temps que dans l'autre le reste-t-elle ? Script :
+`scripts/half_profile_check.py`. 164 135 matchs de championnat avec score à la pause
+(2005-2026), chiffres de chaque équipe moins la moyenne de son championnat et de sa saison.
+
+| Mesure | Saison → saison suivante (7 445 paires) | Matchs impairs → pairs, même saison (8 444) |
+|---|---|---|
+| Écart de différence de buts 1re − 2e mi-temps | r = 0,045 [0,022 ; 0,068] | r = 0,035 |
+| Part des buts marqués après la pause | r = 0,009 [−0,016 ; 0,032] | r = −0,006 |
+| Pour comparaison : différence de buts par match | r = 0,469 | — |
+
+Lecture : la force d'une équipe se répète nettement ; son profil par mi-temps presque pas,
+même au sein d'une saison. « Marque surtout après la pause » décrit le passé, pas le
+prochain match. Les profils par mi-temps et par tranche de 15 minutes (onglet « Moments du
+match ») sont affichés avec cet avertissement ; la phrase de la fiche qui en tirait un
+scénario est retirée (D59).
+
 ## Marchés selon l'ordre des buts (1UP, 2UP, premier but), saison 2026-27 (2026-10-29)
 
 Question : les probabilités 1UP, 2UP, premier but et « ouvre le score et gagne » (onglet

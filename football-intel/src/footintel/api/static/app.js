@@ -450,7 +450,7 @@ const formDots = (rows) => rows.length
   ? `<span class="form">${rows.map((r) => `<span class="res ${RES_CLS[r.result]}" title="${esc(fdate(r.date))} · ${r.at_home ? "dom." : "ext."} ${esc(r.opponent)} ${r.gf}-${r.ga}">${r.result}</span>`).join("")}</span>`
   : `<span class="muted small">Aucun match</span>`;
 
-const TABS = [["avant", "Avant-match"], ["marches", "Paris"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
+const TABS = [["avant", "Avant-match"], ["marches", "Paris"], ["moments", "Moments du match"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
   ["classement", "Classement"], ["journees", "Journées"], ["analyse", "Analyse"]];
 
 async function matchPage() {
@@ -493,7 +493,7 @@ async function matchPage() {
     `<a role="tab" href="#/match?id=${m.id}&t=${k}" aria-selected="${k === tab}" class="tab${k === tab ? " on" : ""}">${label}</a>`).join("")}</div>`;
   const noData = `<div class="unavailable"><strong>Données indisponibles</strong><br><span class="small">L'analyse détaillée n'a pas pu être calculée pour ce match.</span></div>`;
   html += `<div role="tabpanel">${!x && tab !== "analyse" ? noData : {
-    avant: () => tabBefore(m, x, H, A), marches: () => tabMarkets(m, d), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
+    avant: () => tabBefore(m, x, H, A), marches: () => tabMarkets(m, d), moments: () => tabMoments(m, x, H, A), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
     compos: () => tabLineups(m, H, A),
     classement: () => tabTable(m, x), journees: () => tabRounds(x), analyse: () => tabAnalysis(m, d, pr),
   }[tab]()}</div>`;
@@ -573,8 +573,8 @@ function tabPlayers(m, pl) {
   const clean = P.timeline.filter((r) => r.ga === 0).length;
   const cracks = P.timeline.filter((r) => r.ga >= 2).length;
   const fmt = (v, d = 1) => (v == null ? "—" : Number(v).toFixed(d));
-  const pairs = P.cb_pairs.length ? `<table class="tight"><thead><tr><th>Charnière</th><th class="num">Matchs</th><th class="num">Encaissés / match</th><th class="num">Sans encaisser</th><th class="num">2 buts ou plus</th><th class="num">Tirs concédés</th></tr></thead><tbody>
-      ${P.cb_pairs.map((c) => `<tr><td>${c.players.map((n) => esc(n)).join(" et ")}</td><td class="num">${c.n}</td><td class="num">${fmt(c.ga)}</td><td class="num">${c.clean_sheets}</td><td class="num">${c.cracks}</td><td class="num">${fmt(c.shots_against)}</td></tr>`).join("")}</tbody></table>`
+  const pairs = P.cb_pairs.length ? `<table class="tight"><thead><tr><th>Charnière</th><th class="num">Matchs</th><th class="num">Encaissés / match</th><th class="num">Sans encaisser</th><th class="num">2 buts ou plus</th><th class="num">1er but encaissé</th><th class="num">Tirs concédés</th></tr></thead><tbody>
+      ${P.cb_pairs.map((c) => `<tr><td>${c.players.map((n) => esc(n)).join(" et ")}</td><td class="num">${c.n}</td><td class="num">${fmt(c.ga)}</td><td class="num">${c.clean_sheets}</td><td class="num">${c.cracks}</td><td class="num">${c.conceded_first ?? "—"}</td><td class="num">${fmt(c.shots_against)}</td></tr>`).join("")}</tbody></table>`
     : `<p class="muted small">Pas de charnière identifiable : la formation n'est pas connue pour ces matchs.</p>`;
   const lines = ["defence", "midfield", "attack"].map((ln) => {
     const rows = P.players.filter((x) => x.line === ln);
@@ -593,12 +593,22 @@ function tabPlayers(m, pl) {
     ${P.timeline.map((r) => `<tr><td>${r.at_home ? "Dom." : "Ext."} ${esc(r.opponent)}<div class="small muted">${esc(fdate(r.date))}</div></td>
       <td class="num">${r.gf}-${r.ga}</td><td>${esc(r.formation || "—")}</td>
       <td class="small">${r.defence.map((n) => esc(lastName(n))).join(", ")}</td><td class="num">${r.shots_against ?? "—"}</td>
-      <td>${r.ga === 0 ? '<span class="badge fact">solide</span>' : r.ga >= 2 ? '<span class="badge falling">a craqué</span>' : ""}</td></tr>`).join("")}</tbody></table></div>`;
+      <td>${r.ga === 0 ? '<span class="badge fact">solide</span>' : r.ga >= 2 ? '<span class="badge falling">a craqué</span>' : ""}${r.conceded_first ? ' <span class="badge">1er but encaissé</span>' : ""}</td></tr>`).join("")}</tbody></table></div>`;
+  const units = P.units?.length ? `<div class="table-wrap"><table class="tight"><thead><tr><th>Duo</th><th class="num">Ensemble</th><th class="num">Buts / match</th><th class="num">Sans eux</th><th class="num">Tirs (cadrés)</th><th class="num">Sans eux</th><th>Lecture</th></tr></thead><tbody>
+      ${P.units.map((u) => `<tr><td>${u.players.map((n) => esc(n)).join(" et ")}<div class="small muted">${esc(u.lines.split("-").map((l) => LINE_FR[l] || l).join(" + "))}</div></td>
+        <td class="num">${u.with.n}</td><td class="num">${fmt(u.with.gf)}</td><td class="num">${fmt(u.without.gf)}<span class="muted small"> (${u.without.n})</span></td>
+        <td class="num">${fmt(u.with.shots)} (${fmt(u.with.sot)})</td><td class="num">${fmt(u.without.shots)} (${fmt(u.without.sot)})</td><td class="small">${esc(u.verdict)}</td></tr>`).join("")}</tbody></table></div>`
+    : `<p class="muted small">Pas assez de matchs avec et sans chaque duo (3 de chaque côté au minimum).</p>`;
+  const duos = P.assist_duos?.length ? `<ul class="list">${P.assist_duos.map((d) => `<li>${esc(d.passer)} → ${esc(d.scorer)} : ${d.goals} buts</li>`).join("")}</ul>` : `<p class="muted small">Aucun duo passeur → buteur répété (2 buts au moins) cette saison.</p>`;
   return seg + `<div class="card"><h2>Défense de ${esc(name)} : quand ça tient, quand ça craque</h2>
       <p class="question">${P.matches} matchs de championnat cette saison : ${fmt(P.avg_ga)} but encaissé par match, ${clean} sans encaisser, ${cracks} à 2 buts encaissés ou plus.</p>${pairs}</div>
     <div class="card" style="margin-top:var(--space-4)"><h2>Impact des titulaires</h2>
       <p class="question">Résultats de l'équipe dans les matchs où le joueur était titulaire, contre ceux où il ne l'était pas. Entre parenthèses : le nombre de matchs.</p>${lines}
       <p class="meta">Une association sur peu de matchs, pas une preuve : la force des adversaires n'est pas prise en compte. Un écart n'est indiqué qu'avec au moins 3 matchs de chaque côté, et marqué « faible échantillon » sous 5.</p></div>
+    <div class="card" style="margin-top:var(--space-4)"><h2>Milieu et attaque : les duos</h2>
+      <p class="question">Production offensive de l'équipe quand deux joueurs du milieu ou de l'attaque sont titulaires ensemble, contre les autres matchs. Les passes clés et les tirs par joueur ne sont pas collectés : il faudrait Sofascore (D56).</p>${units}
+      <h3>Duos passeur → buteur</h3>${duos}
+      <p class="meta">Même règle que pour les joueurs seuls : 3 matchs au moins de chaque côté, « faible échantillon » sous 5, force des adversaires non ajustée.</p></div>
     ${fold("Match par match", `<p class="small muted">Du plus récent au plus ancien. « A craqué » : 2 buts encaissés ou plus.</p>${timeline}`, { note: `${clean} solide${clean > 1 ? "s" : ""}, ${cracks} fois craqué` })}`;
 }
 
@@ -612,6 +622,39 @@ function tabLineups(m, H, A) {
       ${T.regulars.length ? fold("Les plus titularisés cette saison", `<p class="small">${T.regulars.slice(0, 11).map((r) => `${esc(r.name)} <span class="muted">${r.starts}</span>`).join(", ")}</p>`, { inner: true }) : ""}</div>`;
   };
   return `<div class="grid two" style="margin-top:var(--space-4)">${pitch(H, "h")}${pitch(A, "a")}</div>`;
+}
+
+/* When a team scores and concedes, and what follows the first goal. */
+function tabMoments(m, x, H, A) {
+  const fmt = (v, d = 2) => (v == null ? "—" : Number(v).toFixed(d));
+  const halves = (h, label) => (h ? `<tr><td>${label}<div class="small muted">${h.matches} matchs</div></td>
+      <td class="num">${fmt(h.gf1)} – ${fmt(h.ga1)}</td><td class="num">${fmt(h.gf2)} – ${fmt(h.ga2)}</td>
+      <td class="num">${pct(h.won1, 0)}</td><td class="num">${pct(h.won2, 0)}</td></tr>` : "");
+  const after = (a) => (a ? `${pct(a.win, 0)} / ${pct(a.draw, 0)} / ${pct(a.loss, 0)}<span class="muted small"> (${a.n})</span>` : "—");
+  const card = (T) => {
+    const P = T.periods || {}, F = T.first_goal;
+    const w = P.windows;
+    const max = w ? Math.max(1, ...w.rows.map((r) => Math.max(r.for, r.against))) : 1;
+    return `<div class="card"><h2>${esc(T.name)}</h2>
+      <h3>Par mi-temps (buts marqués – encaissés par match)</h3>
+      <table class="tight"><thead><tr><th></th><th class="num">1re mi-temps</th><th class="num">2e mi-temps</th><th class="num">Gagne la 1re</th><th class="num">Gagne la 2e</th></tr></thead><tbody>
+        ${halves(P.halves_season, "Cette saison")}${halves(P.halves_all, `Depuis ${season(P.since)}`)}</tbody></table>
+      <h3>Par tranche de 15 minutes, cette saison</h3>
+      ${w ? `<table class="tight"><thead><tr><th>Minutes</th><th class="num">Marqués</th><th class="num">Encaissés</th></tr></thead><tbody>
+        ${w.rows.map((r) => `<tr><td>${esc(r.window)}</td><td class="num"><span class="bar" style="width:${Math.round(60 * r.for / max)}px"></span> ${r.for}</td><td class="num">${r.against}</td></tr>`).join("")}
+        <tr><td><b>30-60</b></td><td class="num"><b>${w.w30_60.for}</b></td><td class="num"><b>${w.w30_60.against}</b></td></tr></tbody></table>
+        <p class="meta">${w.matches} matchs lus (minutes des buts OneFootball, quatre grands championnats).</p>`
+        : `<p class="muted small">Minutes des buts inconnues : elles ne couvrent que les quatre grands championnats.</p>`}
+      <h3>Après le premier but (victoire / nul / défaite)</h3>
+      ${F ? `<table class="tight"><thead><tr><th></th><th class="num">${esc(T.name)}</th><th class="num">Moyenne du championnat</th></tr></thead><tbody>
+        <tr><td>Ouvre le score</td><td class="num">${after(F.team.scored_first)}</td><td class="num">${after(F.league.scored_first)}</td></tr>
+        <tr><td>Encaisse le premier but</td><td class="num">${after(F.team.conceded_first)}</td><td class="num">${after(F.league.conceded_first)}</td></tr>
+        <tr><td>Mène de 2 buts à un moment</td><td class="num">${after(F.team.led_by_two)}</td><td class="num">${after(F.league.led_by_two)}</td></tr></tbody></table>
+        <p class="meta">${F.matches} matchs de l'équipe, ${F.league_matches} matchs du championnat cette saison. La défense alignée quand l'équipe encaisse le premier but est dans l'onglet Joueurs.</p>`
+        : `<p class="muted small">Ordre des buts inconnu pour cette équipe.</p>`}</div>`;
+  };
+  return `<div class="card read" style="margin-top:var(--space-4)"><p class="question">${esc((H.periods || {}).note || "")}</p></div>
+    <div class="grid two" style="margin-top:var(--space-4)">${card(H)}${card(A)}</div>`;
 }
 
 /* Model probability and fair odds of each betting market (same list as the odds checker). */

@@ -856,3 +856,41 @@ def test_value_markets_include_the_betpawa_specials():
     assert m["1"] - 1e-3 <= m["2UP_1"] <= m["1UP_1"]
     assert m["FG_1"] + m["FG_2"] + m["FG_0"] == pytest.approx(1.0, abs=1e-3)
     assert m["FGW_1"] < m["FG_1"] and m["FGW_1"] < m["1"]
+
+
+def test_flows_follow_the_goal_order():
+    from footintel.analysis.periods import _after, _flows
+
+    base = {"home_team_id": 1, "away_team_id": 2, "competition": "ENG-PL"}
+    rows = [  # match 10: away scores first, home comes back 2-1 after leading never by two
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 2, "minute": 10, "extra": 0, "detail": "Goal: B"},
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 1, "minute": 50, "extra": 0, "detail": "Goal: A"},
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 1, "minute": 80, "extra": 0, "detail": "Goal: A"},
+        # match 11: 0-0, no goal row
+        {**base, "match_id": 11, "home_goals": 0, "away_goals": 0, "team_id": None, "minute": None, "extra": 0, "detail": None},
+        # match 12: home leads 2-0 then draws 2-2
+        *[{**base, "match_id": 12, "home_goals": 2, "away_goals": 2, "team_id": t, "minute": m, "extra": 0, "detail": "Goal: X"}
+          for t, m in ((1, 5), (1, 20), (2, 60), (2, 89))],
+    ]
+    f = _flows(pd.DataFrame(rows)).set_index(["match_id", "team"])
+    assert f.loc[(10, 1), "first"] == "against" and f.loc[(10, 1), "result"] == "W"
+    assert f.loc[(10, 2), "first"] == "for" and not f.loc[(10, 1), "lead2"]
+    assert f.loc[(11, 1), "first"] == "none"
+    assert f.loc[(12, 1), "lead2"] and f.loc[(12, 1), "result"] == "D"
+    a = _after(f.reset_index().query("first == 'for'"))
+    assert a["n"] == 2 and a["loss"] == 0.5 and a["draw"] == 0.5
+
+
+def test_units_skip_duos_without_a_comparison():
+    from footintel.analysis.players import _units
+
+    matches = pd.DataFrame({"match_id": range(8), "gf": [3, 3, 2, 3, 0, 1, 0, 1], "ga": [0] * 8,
+                            "shots_for": [15] * 8, "sot_for": [6] * 8})
+    lineups = {0: ("Mid A", "Wing B"), 1: ("Mid A", "Wing B"), 2: ("Mid A", "Wing B"), 3: ("Mid A", "Wing B"),
+               4: ("Mid D", "Wing B"), 5: ("Mid D", "Wing B"), 6: ("Mid A", "Wing C"), 7: ("Mid A", "Wing C")}
+    by_match = {i: [(m, "CM"), (w, "W"), ("Back", "CB")] for i, (m, w) in lineups.items()}
+    units = {tuple(u["players"]): u for u in _units(matches, by_match)}
+    assert ("Mid A", "Wing B") in units and units[("Mid A", "Wing B")]["gap_goals"] > 0.5
+    # No defender in a duo, and no duo whose matches are all of one player's starts (Mid D, Wing C).
+    assert all("Back" not in k for k in units)
+    assert ("Mid D", "Wing B") not in units and ("Mid A", "Wing C") not in units

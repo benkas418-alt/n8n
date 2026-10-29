@@ -43,12 +43,13 @@ ORDER BY m.kickoff_date, l.id
 
 _SHOTS_SQL = text("""
 SELECT s.match_id, sum(CASE WHEN s.team_id = :team THEN s.shots END) AS shots_for,
-       sum(CASE WHEN s.team_id <> :team THEN s.shots END) AS shots_against
+       sum(CASE WHEN s.team_id <> :team THEN s.shots END) AS shots_against,
+       sum(CASE WHEN s.team_id = :team THEN s.shots_on_target END) AS sot_for
 FROM team_match_statistics s WHERE s.match_id = ANY(:ids) GROUP BY s.match_id
 """)
 
 _EVENTS_SQL = text("""
-SELECT e.match_id, e.type, e.detail, e.minute, e.team_id FROM match_events e
+SELECT e.match_id, e.type, e.detail, e.minute, coalesce(e.extra_minute, 0) AS extra, e.team_id FROM match_events e
 JOIN data_sources d ON d.id = e.source_id AND d.code = 'onefootball'
 WHERE e.match_id = ANY(:ids) AND e.type IN ('goal', 'card')
 """)
@@ -127,6 +128,70 @@ def _verdict(split: dict, line: str) -> str | None:
     return f"{abs(gap):.1f} but encaissé par match en {'moins' if gap < 0 else 'plus'} quand il est titulaire{weak}"
 
 
+def _unit_figures(d: pd.DataFrame) -> dict | None:
+    if not len(d):
+        return None
+    sh = pd.to_numeric(d.shots_for, errors="coerce").dropna()
+    sot = pd.to_numeric(d.sot_for, errors="coerce").dropna()
+    return {"n": int(len(d)), "gf": float(d.gf.mean()), "points": float(((d.gf > d.ga) * 3 + (d.gf == d.ga)).mean()),
+            "shots": float(sh.mean()) if len(sh) else None, "sot": float(sot.mean()) if len(sot) else None}
+
+
+def _units(matches: pd.DataFrame, by_match: dict) -> list[dict]:
+    """Midfield and attack duos: the team's attacking figures when both start, and otherwise.
+
+    Only duos that started MIN_SPLIT matches together, with MIN_SPLIT matches without them.
+    The gap is stated only above GAP_GOALS goals per match, as for single players (D53)."""
+    together: dict[tuple, set] = defaultdict(set)
+    for mid, pr in by_match.items():
+        front = sorted({n for n, role in pr if LINE_OF.get(role) in ("midfield", "attack")})
+        for i, a in enumerate(front):
+            for b in front[i + 1:]:
+                together[(a, b)].add(mid)
+    lines: dict[str, dict] = defaultdict(lambda: defaultdict(int))
+    starts: dict[str, set] = defaultdict(set)
+    for mid, pr in by_match.items():
+        for n, role in pr:
+            starts[n].add(mid)
+            if role:
+                lines[n][LINE_OF[role]] += 1
+    line_of = {n: max(c, key=c.get) for n, c in lines.items()}
+    out = []
+    for (a, b), ids in together.items():
+        # A partner who starts every match of the other: the gap is that one player's, shown elsewhere.
+        if ids == starts[a] or ids == starts[b]:
+            continue
+        w, wo = matches[matches.match_id.isin(ids)], matches[~matches.match_id.isin(ids)]
+        if len(w) < MIN_SPLIT or len(wo) < MIN_SPLIT:
+            continue
+        fw, fwo = _unit_figures(w), _unit_figures(wo)
+        gap = fw["gf"] - fwo["gf"]
+        weak = " (faible échantillon)" if min(len(w), len(wo)) < STRONG_SPLIT else ""
+        verdict = ("pas d'écart net sur les buts marqués" if abs(gap) < GAP_GOALS else
+                   f"{abs(gap):.1f} but marqué par match en {'plus' if gap > 0 else 'moins'} quand ils jouent ensemble{weak}")
+        kind = "-".join(sorted({line_of.get(a), line_of.get(b)}))
+        out.append({"players": [a, b], "lines": kind, "with": fw, "without": fwo, "gap_goals": gap, "verdict": verdict})
+    out.sort(key=lambda u: (-abs(u["gap_goals"]) if abs(u["gap_goals"]) >= GAP_GOALS else 0, -u["with"]["n"]))
+    # One player in many listed duos usually means his own effect: keep his two strongest.
+    seen: dict[str, int] = defaultdict(int)
+    kept = []
+    for u in out:
+        if all(seen[p] < 2 for p in u["players"]):
+            kept.append(u)
+            for p in u["players"]:
+                seen[p] += 1
+    return kept[:10]
+
+
+def _assist_duos(parsed: pd.DataFrame) -> list[dict]:
+    """Passer and scorer pairs from the goal details (own goals removed)."""
+    d = parsed.dropna(subset=["p", "o"])
+    if d.empty:
+        return []
+    counts = d.assign(p=d.p.str.strip(), o=d.o.str.strip()).groupby(["o", "p"]).size().sort_values(ascending=False)
+    return [{"passer": o, "scorer": p, "goals": int(n)} for (o, p), n in counts.head(8).items() if n >= 2]
+
+
 def player_impact(engine: Engine, team_id: int, season: int, before) -> dict | None:
     with engine.connect() as conn:
         lu = pd.read_sql(_LINEUPS_SQL, conn, params={"team": team_id, "season": season, "before": before})
@@ -169,6 +234,11 @@ def player_impact(engine: Engine, team_id: int, season: int, before) -> dict | N
                         "cards": int(cards.get(name, 0)), "split": split, "verdict": _verdict(split, line)})
     players.sort(key=lambda p: (["defence", "midfield", "attack"].index(p["line"]), -p["starts"], p["name"]))
 
+    # Who scored the first goal of each match: the defence on the pitch at kick-off is the context.
+    goal_rows = events[events.type == "goal"].assign(t=lambda d: d.minute.fillna(0) + d.extra / 100)
+    first_against = {mid: g.sort_values("t").team_id.iloc[0] != team_id for mid, g in goal_rows.groupby("match_id")}
+    matches["conceded_first"] = matches.match_id.map(first_against).fillna(False).astype(bool)
+
     pairs: dict[tuple, list] = defaultdict(list)
     timeline = []
     for r in matches.sort_values("kickoff_date", ascending=False).itertuples():
@@ -180,6 +250,7 @@ def player_impact(engine: Engine, team_id: int, season: int, before) -> dict | N
         timeline.append({"date": r.kickoff_date.isoformat(), "opponent": r.opponent, "at_home": bool(r.at_home),
                          "gf": int(r.gf), "ga": int(r.ga), "formation": r.formation,
                          "shots_against": None if pd.isna(r.shots_against) else int(r.shots_against),
+                         "conceded_first": bool(r.conceded_first),
                          "keeper": next((n for n, role in pr if role == "GK"), None), **lines})
     pair_rows = []
     for cbs, rs in sorted(pairs.items(), key=lambda kv: -len(kv[1])):
@@ -187,6 +258,9 @@ def player_impact(engine: Engine, team_id: int, season: int, before) -> dict | N
         sa = [x.shots_against for x in rs if not pd.isna(x.shots_against)]
         pair_rows.append({"players": list(cbs), "n": len(rs), "ga": sum(ga) / len(ga),
                           "clean_sheets": sum(1 for g in ga if g == 0), "cracks": sum(1 for g in ga if g >= 2),
+                          "conceded_first": sum(1 for x in rs if x.conceded_first),
                           "shots_against": sum(sa) / len(sa) if sa else None})
     return {"matches": int(len(matches)), "players": players, "cb_pairs": pair_rows[:6], "timeline": timeline,
+            "units": _units(matches, by_match), "assist_duos": _assist_duos(parsed[~own]),
+            "conceded_first": int(matches.conceded_first.sum()),
             "avg_ga": float(matches.ga.mean()), "avg_gf": float(matches.gf.mean())}
