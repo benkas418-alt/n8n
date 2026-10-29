@@ -32,7 +32,7 @@ they are the source of truth. This skill is the quick map.
 | Understat | xG per shot | robots.txt `Disallow: /` | Tested via a GitHub republication: no gain (D55). Not collected |
 | Transfermarkt | Injuries, suspensions, market values | Terms 11.1 forbid bots **and** use for machine learning | Excluded |
 | FBref | Advanced stats | Returns 403 to the container | Not usable from here |
-| Sofascore | Everything, live | Terms forbid collection (D36) | Scraper installed with owner approval, but Sofascore returns 403 to the container (even its browser) |
+| Sofascore | Everything, live | Terms forbid collection (D36) | Scraper installed; 403 from the container. Residential connection approved by the owner (D56): set `SOFASCORE_CLIENT__PROXY` (env only), 1 req/s, breaker on |
 | ESPN (site.api.espn.com) | Schedules, match sheets, line-ups | Terms not yet checked | Reachable (200). Candidate for line-ups: check terms first |
 | ClubElo | Elo history | Free | API returned 502 from the container; tested in D48, no gain |
 | StatsBomb / Hudl open data | Full event data (+ 360 freeze frames) for selected competitions | Free, cite StatsBomb with logo | Not for the model (isolated seasons); useful to learn event models (xG, xT) |
@@ -66,7 +66,8 @@ events per match; each event has `type.name`, `team`, `player`, `minute`, `secon
 **Sofascore scraper** (`/home/user/tools/venvs/sofascore/bin/ssc`, Python 3.14 venv):
 `ssc doctor`, `ssc fetch tournament <id> --season <id> --rate 1 --data-dir <dir>`,
 `ssc export`. Blocked from the cloud container (403); would need a residential
-connection. Do not add proxy rotation or other bypasses without an explicit decision.
+connection: D56 allows one residential proxy (or the owner's home connection) through
+`SOFASCORE_CLIENT__PROXY`; no rotation to raise throughput, keep the circuit breaker.
 
 **worldfootballR** (R, GPL-3): wraps FBref, Transfermarkt (injuries, suspensions,
 market values) and Understat. R is not installed and both main sites are excluded.
