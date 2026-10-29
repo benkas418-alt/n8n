@@ -1,6 +1,6 @@
 # Plan : football-intel en site web avec comptes
 
-Statut : proposition (2026-10-29), en attente des réponses du propriétaire (section 6).
+Statut : décidé le 2026-10-29 (réponses du propriétaire en section 6). À implémenter.
 
 ## 1. Ce qui existe déjà
 
@@ -57,12 +57,23 @@ Statut : proposition (2026-10-29), en attente des réponses du propriétaire (se
   strictes (jeux d'argent, protection des consommateurs) ; à vérifier pour la RDC et
   les pays des utilisateurs.
 
-## 6. Questions au propriétaire
+## 6. Décisions du propriétaire (2026-10-29)
 
-1. Qui aura un compte : quelques proches, un public large, des clients payants ?
-2. Inscription libre ou sur invitation ?
-3. Que faire des données OneFootball/Sofascore pour les autres utilisateurs (section 5) ?
-4. Un VPS et un nom de domaine sont-ils disponibles ?
+1. **Comptes** : le propriétaire seul en **super admin** ; quelques utilisateurs
+   **sur invitation uniquement**. Pas d'admin au départ, mais le rôle `admin` est prévu
+   dans le modèle (désactivé). Pas d'offre payante.
+2. **Inscription libre** : prévue dans le code derrière un réglage
+   `FOOTINTEL_OPEN_SIGNUP=false` (désactivée). Seules les invitations fonctionnent.
+3. **Données OneFootball/Sofascore** : visibles par les utilisateurs invités (D57).
+   Jamais d'accès public : toutes les pages et l'API exigent une session.
+4. **Domaine** : `benkassiyfootball.com` (Ben Kassiy + football). Aucune entrée DNS le
+   2026-10-29, donc probablement libre ; disponibilité et prix à vérifier chez un
+   registraire (Cloudflare, Namecheap, OVH…). À acheter par le propriétaire.
+5. **Hébergement** : VPS (section 4), code déployé depuis GitHub. Vercel et Supabase
+   écartés : Vercel exécute des fonctions courtes, alors que football-intel fait tourner
+   un planificateur et des entraînements de modèle de plusieurs minutes ; la base pèse
+   ~1,1 Go, au-dessus de l'offre gratuite de Supabase (500 Mo), et un second
+   hébergeur ajouterait un coût et une panne possible sans rien apporter.
 
 ## 7. Étapes une fois les réponses connues
 
