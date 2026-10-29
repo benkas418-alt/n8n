@@ -17,42 +17,74 @@ RELIABILITY = {
     "goals": "Plus/moins : légèrement meilleur que le marché en backtest, avantage non démontré.",
     "btts": "Point faible : à peine mieux qu'un taux fixe en backtest, moins bon ce week-end.",
     "1up": "Approximation : buts supposés arriver dans un ordre aléatoire.",
+    "first": "Même approximation (ordre aléatoire des buts) ; le premier but est vérifié sur 2026-27 "
+             "(docs/RESULTS.md).",
     "no_odds": "Match sans cotes de référence : prédiction moins fiable (données insuffisantes).",
     "market": "Marché : moyenne des bookmakers (The Odds API), marge de chacun retirée. "
               "En coupe, aucun test ne montre encore si le modèle ou le marché est le plus juste.",
 }
 
 
-def _fit_lambdas(p_home: float, p_away: float, start: tuple[float, float]) -> tuple[float, float]:
-    """Goal rates whose independent-Poisson 1X2 matches the model's 1X2."""
+def _fit_lambdas(p_home: float, p_away: float, start: tuple[float, float],
+                 p_over_2_5: float | None = None) -> tuple[float, float]:
+    """Goal rates whose independent-Poisson markets match the model: its 1X2, and its
+    over 2.5 when given (least squares, so the three are matched as closely as possible)."""
     def res(x):
         lh, la = np.exp(x)
         m = np.outer(poisson.pmf(GOALS, lh), poisson.pmf(GOALS, la))
-        return [np.tril(m, -1).sum() - p_home, np.triu(m, 1).sum() - p_away]
+        r = [np.tril(m, -1).sum() - p_home, np.triu(m, 1).sum() - p_away]
+        if p_over_2_5 is not None:
+            total = GOALS[:, None] + GOALS[None, :]
+            r.append(m[total > 2.5].sum() - p_over_2_5)
+        return r
     lh, la = np.exp(least_squares(res, np.log(np.clip(start, 0.2, 5.0))).x)
     return float(lh), float(la)
 
 
-def ever_leads(lh: float, la: float) -> tuple[float, float]:
-    """P(home leads at some point), P(away leads at some point), goals in random order."""
+def path_markets(lh: float, la: float) -> dict[str, float]:
+    """Markets that depend on the order of the goals, with goals in random order.
+
+    Independent Poisson goal rates: the number of goals is Poisson(lh + la) and each goal is
+    the home team's with probability lh / (lh + la). A state is (score difference, home led by
+    1, home led by 2, away led by 1, away led by 2, first scorer).
+    """
     q = lh / (lh + la)
     pn = poisson.pmf(GOALS, lh + la)
-    out = []
-    for side_q in (q, 1 - q):
-        dp, reached, by_n = {0: 1.0}, 0.0, [0.0]
-        for _ in range(1, len(GOALS)):
-            new, hit = {}, 0.0
-            for s, p in dp.items():
-                if s + 1 >= 1:
-                    hit += p * side_q
-                else:
-                    new[s + 1] = new.get(s + 1, 0.0) + p * side_q
-                new[s - 1] = new.get(s - 1, 0.0) + p * (1 - side_q)
-            reached += hit
-            dp = new
-            by_n.append(reached)
-        out.append(float(sum(pn[n] * by_n[n] for n in range(len(GOALS)))))
-    return out[0], out[1]
+    dp = {(0, False, False, False, False, ""): 1.0}
+    out = dict.fromkeys(("first_home", "first_away", "none", "up1_home", "up1_away", "up2_home",
+                         "up2_away", "lead2_home", "lead2_away", "first_home_win", "first_home_draw",
+                         "first_away_win", "first_away_draw"), 0.0)
+    for n in range(len(GOALS)):
+        for (s, h1, h2, a1, a2, first), p in dp.items():
+            w = pn[n] * p
+            if not first:
+                out["none"] += w
+                continue
+            out[f"first_{first}"] += w
+            out["up1_home"] += w * (h1 or s > 0)
+            out["up1_away"] += w * (a1 or s < 0)
+            out["up2_home"] += w * (h2 or s > 0)
+            out["up2_away"] += w * (a2 or s < 0)
+            out["lead2_home"] += w * h2
+            out["lead2_away"] += w * a2
+            sign = 1 if first == "home" else -1
+            out[f"first_{first}_win"] += w * (sign * s > 0)
+            out[f"first_{first}_draw"] += w * (s == 0)
+        new: dict = {}
+        for (s, h1, h2, a1, a2, first), p in dp.items():
+            for step, pr in ((1, q), (-1, 1 - q)):
+                t = s + step
+                key = (t, h1 or t >= 1, h2 or t >= 2, a1 or t <= -1, a2 or t <= -2,
+                       first or ("home" if step == 1 else "away"))
+                new[key] = new.get(key, 0.0) + p * pr
+        dp = new
+    return {k: float(v) for k, v in out.items()}
+
+
+def ever_leads(lh: float, la: float) -> tuple[float, float]:
+    """P(home leads at some point), P(away leads at some point), goals in random order."""
+    pm = path_markets(lh, la)
+    return pm["up1_home"], pm["up1_away"]
 
 
 def market_probabilities(pred: dict) -> list[dict]:
@@ -70,10 +102,17 @@ def market_probabilities(pred: dict) -> list[dict]:
         rows += [("BTTS_Y", "Les deux marquent : oui", pred["p_btts"], "btts"),
                  ("BTTS_N", "Les deux marquent : non", 1 - pred["p_btts"], "btts")]
     if pred.get("exp_home_goals") and pred.get("exp_away_goals"):
-        lh, la = _fit_lambdas(ph, pa, (pred["exp_home_goals"], pred["exp_away_goals"]))
-        up_h, up_a = ever_leads(lh, la)
-        rows += [("1UP_1", "1X2 1UP : domicile mène à un moment", up_h, "1up"),
-                 ("1UP_2", "1X2 1UP : extérieur mène à un moment", up_a, "1up")]
+        lh, la = _fit_lambdas(ph, pa, (pred["exp_home_goals"], pred["exp_away_goals"]), pred.get("p_over_2_5"))
+        pm = path_markets(lh, la)
+        rows += [("1UP_1", "1UP domicile : mène d'1 but à un moment ou gagne", pm["up1_home"], "1up"),
+                 ("1UP_2", "1UP extérieur : mène d'1 but à un moment ou gagne", pm["up1_away"], "1up"),
+                 ("2UP_1", "2UP domicile : mène de 2 buts à un moment ou gagne", pm["up2_home"], "1up"),
+                 ("2UP_2", "2UP extérieur : mène de 2 buts à un moment ou gagne", pm["up2_away"], "1up"),
+                 ("FG_1", "Premier but : domicile", pm["first_home"], "first"),
+                 ("FG_2", "Premier but : extérieur", pm["first_away"], "first"),
+                 ("FG_0", "Aucun but", pm["none"], "first"),
+                 ("FGW_1", "Domicile marque en premier et gagne", pm["first_home_win"], "first"),
+                 ("FGW_2", "Extérieur marque en premier et gagne", pm["first_away_win"], "first")]
     return [{"key": k, "label": lab, "prob": round(float(p), 4), "note": note} for k, lab, p, note in rows]
 
 

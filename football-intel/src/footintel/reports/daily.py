@@ -1,5 +1,7 @@
 """Pre-match and post-match reports, built only from rows stored in the database."""
 
+import html
+import re
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -98,10 +100,13 @@ padding-left:12px}}@media (prefers-color-scheme:dark){{body{{background:#0d1117;
 th{{background:#161b22}}td,th{{border-color:#30363d}}}}</style></head><body>{body}</body></html>"""
 
 
+_BOLD = re.compile(r"\*\*(.+?)\*\*")
+
+
 def _md_to_html(md: str) -> str:
     """Small converter for the subset of Markdown the templates produce."""
     out, in_table, in_list = [], False, False
-    for line in md.splitlines():
+    for line in html.escape(md, quote=False).splitlines():
         if line.startswith("|"):
             cells = [c.strip() for c in line.strip("|").split("|")]
             if all(set(c) <= {"-"} for c in cells):
@@ -125,19 +130,23 @@ def _md_to_html(md: str) -> str:
         if in_list:
             out.append("</ul>")
             in_list = False
-        if line.startswith("## "):
+        if line.strip() == "---":
+            out.append("<hr>")
+        elif line.startswith("### "):
+            out.append(f"<h3>{line[4:]}</h3>")
+        elif line.startswith("## "):
             out.append(f"<h2>{line[3:]}</h2>")
         elif line.startswith("# "):
             out.append(f"<h1>{line[2:]}</h1>")
-        elif line.startswith("> "):
-            out.append(f"<blockquote>{line[2:]}</blockquote>")
+        elif line.startswith("&gt; "):
+            out.append(f"<blockquote>{line[5:]}</blockquote>")
         elif line.strip():
             out.append(f"<p>{line}</p>")
     if in_table:
         out.append("</table>")
     if in_list:
         out.append("</ul>")
-    return "\n".join(out)
+    return _BOLD.sub(r"<strong>\1</strong>", "\n".join(out))
 
 
 @dataclass
@@ -158,13 +167,13 @@ def _write(settings: Settings, stem: str, md: str, title: str, csv: pd.DataFrame
     md = md.rstrip("\n") + f"\n\n---\n{SOURCES_NOTE}\n"
     folder = Path(settings.reports_dir)
     folder.mkdir(parents=True, exist_ok=True)
-    html = HTML_WRAPPER.format(title=title, body=_md_to_html(md))
+    page = HTML_WRAPPER.format(title=html.escape(title), body=_md_to_html(md))
     paths = {"md": folder / f"{stem}.md", "html": folder / f"{stem}.html",
              "csv": folder / f"{stem}.csv"}
     paths["md"].write_text(md, encoding="utf-8")
-    paths["html"].write_text(html, encoding="utf-8")
+    paths["html"].write_text(page, encoding="utf-8")
     csv.to_csv(paths["csv"], index=False)
-    return Report(md, html, csv, paths)
+    return Report(md, page, csv, paths)
 
 
 _PREMATCH_SQL = text("""

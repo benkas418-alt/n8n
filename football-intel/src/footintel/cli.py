@@ -163,7 +163,14 @@ def cmd_report(args, settings, engine):
 
         print(match_sheet_markdown(engine, args.match_id))
         return
-    if args.kind == "prematch":
+    if args.kind == "weekly":
+        from footintel.pipeline import _email_weekly
+        from footintel.reports.weekly import weekly_report
+
+        rep = weekly_report(engine, settings)
+        if args.email:
+            print("e-mail sent" if _email_weekly(settings, rep.paths) else "e-mail not sent (SMTP not configured)")
+    elif args.kind == "prematch":
         rep = prematch_report(engine, settings, args.horizon)
     else:
         rep = postmatch_report(engine, settings, date.fromisoformat(args.start),
@@ -287,6 +294,14 @@ def cmd_serve(args, settings, engine):
     uvicorn.run("footintel.api.app:app", host=args.host, port=args.port)
 
 
+def cmd_export_supabase(args, settings, engine):
+    from footintel.export.supabase import export
+
+    if not settings.supabase_url or not settings.supabase_secret_key:
+        sys.exit("SUPABASE_URL and SUPABASE_SECRET_KEY are required")
+    _print(export(settings.supabase_url, settings.supabase_secret_key.get_secret_value()))
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="footintel", description="Football intelligence platform")
     p.add_argument("--log-level", default="INFO")
@@ -346,7 +361,8 @@ def build_parser() -> argparse.ArgumentParser:
         fn=cmd_evaluate)
 
     rp = sub.add_parser("report", help="generate a report")
-    rp.add_argument("kind", choices=["prematch", "postmatch", "fiche"])
+    rp.add_argument("kind", choices=["prematch", "postmatch", "fiche", "weekly"])
+    rp.add_argument("--email", action="store_true", help="weekly: also send the PDF by e-mail")
     rp.add_argument("--match-id", type=int, help="match for the pre-match sheet")
     rp.add_argument("--horizon", type=int, default=7)
     rp.add_argument("--start", default=str(date.today()))
@@ -388,6 +404,9 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--host", default="127.0.0.1")
     sv.add_argument("--port", type=int, default=8000)
     sv.set_defaults(fn=cmd_serve)
+
+    sub.add_parser("export-supabase", help="copy the dashboard data to the private site").set_defaults(
+        fn=cmd_export_supabase)
     return p
 
 

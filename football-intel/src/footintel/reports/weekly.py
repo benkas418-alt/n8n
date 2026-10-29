@@ -69,6 +69,9 @@ def weekly_report(engine: Engine, settings: Settings, end: date | None = None) -
               + (f", log loss {r.log_loss:.3f}" if pd.notna(r.log_loss) else "") for r in live_all.itertuples()]
         if live_all["n"].max() < 100:
             L.append("> Moins de 100 matchs évalués : trop peu pour conclure sur la performance réelle.")
+    from footintel.analysis.errors import errors_markdown, model_errors
+
+    L += [""] + errors_markdown(model_errors(engine, end - timedelta(days=28), end))
     L += ["", "## Versions du modèle", ""]
     L += [f"- {r.name} v{r.version} ({r.status}) — créée le {r.created_at:%d/%m/%Y}"
           + (f", promue le {r.promoted_at:%d/%m/%Y}" if pd.notna(r.promoted_at) else "")

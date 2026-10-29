@@ -357,3 +357,6 @@ table.standings tr.me.h td:first-child { border-left: 3px solid var(--home); }
 table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Small inline bar in the 15-minute windows table. */
+.bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); vertical-align: middle; }

@@ -40,3 +40,11 @@ propriétaire, et rendre tout cela disponible dans chaque future session Claude 
 ## Prochaine étape
 Fusion de la PR #3, puis discussion du VPS et de la source d'absences (Sofascore via proxy,
 ou ESPN après vérification de ses conditions).
+
+## Ajout (fin de session) – site avec comptes
+- Plan décidé : `football-intel/docs/DEPLOYMENT_PLAN.md` et décision D57.
+- À implémenter dans la prochaine session : comptes (super admin + invités), sessions,
+  invitations, rôles sur toutes les routes, pages de connexion et de gestion, tests,
+  puis déploiement sur VPS avec le domaine `benkassiyfootball.com`.
+- Choix final : GitHub Actions + Cloudflare Pages + Access (section 9 du plan). Le propriétaire crée un compte Cloudflare.
+- Révision : GitHub Actions + Supabase + Vercel (section 10 du plan).

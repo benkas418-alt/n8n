@@ -779,3 +779,144 @@ def test_clv_of_picks_against_the_closing_price():
     close = np.array([1 / 1.8, 1 / 3.6, 1 / 5.5])
     assert math.isclose(row.clv_mean, 2.0 * close[0] / close.sum() - 1, rel_tol=1e-9)
     assert row.clv_mean > 0 and row.share_line_moved_our_way == 1.0
+
+
+def test_supabase_export_paths_follow_the_dashboard_links():
+    from footintel.export.supabase import collect
+
+    answers = {
+        "/competitions": [{"code": "ENG-PL", "is_target": True, "type": "league", "matches": 10},
+                          {"code": "NED-ED", "is_target": False, "type": "league", "matches": 5},
+                          {"code": "UEFA-CL", "is_target": True, "type": "cup", "matches": 0}],
+        "/teams?competition=ENG-PL": [{"id": 7}, {"id": 8}],
+        "/home": {"matches": [{"id": 42}]},
+    }
+
+    class FakeClient:
+        def get(self, url):
+            path = url.removeprefix("/api/dash")
+            ok = path in answers or not path.startswith("/competition/UEFA")
+            return type("R", (), {"status_code": 200 if ok else 404,
+                                  "json": lambda self: answers.get(path, {})})()
+
+    data, failed = collect(FakeClient())
+    assert not failed
+    for p in ("/overview", "/competition/ENG-PL", "/competition/NED-ED", "/team/7", "/team/8",
+              "/match/42", "/match/42/insights", "/match/42/players",
+              "/matches?competition=ENG-PL&home_goals=5&away_goals=0&limit=200"):
+        assert p in data
+    # No drill-down or team pages outside the target leagues, no page for an empty cup.
+    assert not any("NED-ED&" in p or "UEFA-CL" in p for p in data)
+    assert sum(p.startswith("/matches?competition=ENG-PL") for p in data) == 36
+
+
+def test_supabase_export_batches_stay_under_the_size_limit():
+    from footintel.export import supabase
+
+    rows = [{"path": f"/p{i}", "body": {"x": "a" * 1000}} for i in range(5000)]
+    batches = list(supabase._batches(rows))
+    assert sum(len(b) for b in batches) == 5000 and len(batches) > 1
+
+
+def test_path_markets_match_a_simulation():
+    from footintel.analysis.value import path_markets
+
+    lh, la = 1.6, 1.0
+    pm = path_markets(lh, la)
+    assert pm["first_home"] + pm["first_away"] + pm["none"] == pytest.approx(1.0, abs=1e-6)
+    assert pm["up2_home"] <= pm["up1_home"] and pm["first_home_win"] <= pm["first_home"]
+    rng = np.random.default_rng(1)
+    n = 200_000
+    nh, na = rng.poisson(lh, n), rng.poisson(la, n)
+    sim = dict.fromkeys(pm, 0)
+    for h, a in zip(nh, na):
+        seq = rng.permutation([1] * h + [-1] * a)
+        run = np.cumsum(seq) if len(seq) else np.array([0])
+        win, top, low = run[-1] > 0, run.max(), run.min()
+        if not len(seq):
+            sim["none"] += 1
+            continue
+        first = "home" if seq[0] == 1 else "away"
+        sim[f"first_{first}"] += 1
+        sim["up1_home"] += top >= 1
+        sim["up2_home"] += top >= 2 or win
+        sim["up2_away"] += low <= -2 or run[-1] < 0
+        sim["first_home_win"] += first == "home" and win
+    for k in ("none", "first_home", "up1_home", "up2_home", "up2_away", "first_home_win"):
+        assert pm[k] == pytest.approx(sim[k] / n, abs=0.005), k
+
+
+def test_value_markets_include_the_betpawa_specials():
+    from footintel.analysis.value import market_probabilities
+
+    pred = {"p_home": 0.5, "p_draw": 0.27, "p_away": 0.23, "p_over_1_5": 0.75, "p_over_2_5": 0.5,
+            "p_over_3_5": 0.27, "p_btts": 0.52, "exp_home_goals": 1.6, "exp_away_goals": 1.0}
+    m = {x["key"]: x["prob"] for x in market_probabilities(pred)}
+    # 2UP pays on a win, so it is between the win and the 1UP.
+    assert m["1"] - 1e-3 <= m["2UP_1"] <= m["1UP_1"]
+    assert m["FG_1"] + m["FG_2"] + m["FG_0"] == pytest.approx(1.0, abs=1e-3)
+    assert m["FGW_1"] < m["FG_1"] and m["FGW_1"] < m["1"]
+
+
+def test_flows_follow_the_goal_order():
+    from footintel.analysis.periods import _after, _flows
+
+    base = {"home_team_id": 1, "away_team_id": 2, "competition": "ENG-PL"}
+    rows = [  # match 10: away scores first, home comes back 2-1 after leading never by two
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 2, "minute": 10, "extra": 0, "detail": "Goal: B"},
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 1, "minute": 50, "extra": 0, "detail": "Goal: A"},
+        {**base, "match_id": 10, "home_goals": 2, "away_goals": 1, "team_id": 1, "minute": 80, "extra": 0, "detail": "Goal: A"},
+        # match 11: 0-0, no goal row
+        {**base, "match_id": 11, "home_goals": 0, "away_goals": 0, "team_id": None, "minute": None, "extra": 0, "detail": None},
+        # match 12: home leads 2-0 then draws 2-2
+        *[{**base, "match_id": 12, "home_goals": 2, "away_goals": 2, "team_id": t, "minute": m, "extra": 0, "detail": "Goal: X"}
+          for t, m in ((1, 5), (1, 20), (2, 60), (2, 89))],
+    ]
+    f = _flows(pd.DataFrame(rows)).set_index(["match_id", "team"])
+    assert f.loc[(10, 1), "first"] == "against" and f.loc[(10, 1), "result"] == "W"
+    assert f.loc[(10, 2), "first"] == "for" and not f.loc[(10, 1), "lead2"]
+    assert f.loc[(11, 1), "first"] == "none"
+    assert f.loc[(12, 1), "lead2"] and f.loc[(12, 1), "result"] == "D"
+    a = _after(f.reset_index().query("first == 'for'"))
+    assert a["n"] == 2 and a["loss"] == 0.5 and a["draw"] == 0.5
+
+
+def test_units_skip_duos_without_a_comparison():
+    from footintel.analysis.players import _units
+
+    matches = pd.DataFrame({"match_id": range(8), "gf": [3, 3, 2, 3, 0, 1, 0, 1], "ga": [0] * 8,
+                            "shots_for": [15] * 8, "sot_for": [6] * 8})
+    lineups = {0: ("Mid A", "Wing B"), 1: ("Mid A", "Wing B"), 2: ("Mid A", "Wing B"), 3: ("Mid A", "Wing B"),
+               4: ("Mid D", "Wing B"), 5: ("Mid D", "Wing B"), 6: ("Mid A", "Wing C"), 7: ("Mid A", "Wing C")}
+    by_match = {i: [(m, "CM"), (w, "W"), ("Back", "CB")] for i, (m, w) in lineups.items()}
+    units = {tuple(u["players"]): u for u in _units(matches, by_match)}
+    assert ("Mid A", "Wing B") in units and units[("Mid A", "Wing B")]["gap_goals"] > 0.5
+    # No defender in a duo, and no duo whose matches are all of one player's starts (Mid D, Wing C).
+    assert all("Back" not in k for k in units)
+    assert ("Mid D", "Wing B") not in units and ("Mid A", "Wing C") not in units
+
+
+def test_error_leads_follow_fixed_thresholds():
+    from datetime import date
+
+    from footintel.analysis.errors import analyse, errors_markdown
+
+    n = 40
+    df = pd.DataFrame({"match_id": range(n), "log_loss": 1.0, "correct": False, "p_home": 0.7, "p_draw": 0.2,
+                       "p_away": 0.1, "result": ["D"] * 20 + ["A"] * 20, "home_goals": 1, "away_goals": 1,
+                       "competition": "ENG-PL", "competition_name": "Premier League", "home": "A", "away": "B",
+                       "kickoff_date": date(2026, 10, 1), "market_log_loss": 0.9})
+    e = analyse(df, date(2026, 9, 1), date(2026, 10, 30))
+    text = " ".join(e["leads"])
+    assert "nuls sont sous-estimés" in text and "favori gagne 0 %" in text and "moins bien que le marché" in text
+    md = "\n".join(errors_markdown(e))
+    assert "1.000 / 0.900 (40)" in md
+    assert analyse(df.iloc[0:0], date(2026, 9, 1), date(2026, 10, 30)) is None
+
+
+def test_weekly_email_is_skipped_without_smtp(tmp_path):
+    from footintel.config import Settings
+    from footintel.notify.email import send_report
+
+    s = Settings(_env_file=None, smtp_host=None, report_to=None)
+    assert send_report(s, "x", "y", []) is False

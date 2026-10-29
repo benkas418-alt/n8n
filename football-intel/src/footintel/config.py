@@ -41,6 +41,15 @@ class Settings(BaseSettings):
     # Stop calling when fewer credits than this remain in the month.
     odds_api_reserve: int = 40
     admin_token: SecretStr | None = None
+    # Private site (D57): the daily export writes the dashboard data with the secret key.
+    supabase_url: str | None = None
+    supabase_secret_key: SecretStr | None = None
+    # Weekly report by e-mail (PDF). With Gmail: smtp.gmail.com, port 587, an app password.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    report_to: str | None = None  # comma-separated addresses
 
     data_dir: Path = Path("./data")
     artifacts_dir: Path = Path("./artifacts")

@@ -32,7 +32,7 @@ function matchCard(m) {
   const p = Object.fromEntries(m.markets.map((x) => [x.key, x.prob]));
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : m.kickoff_date;
   const inCoupon = state.coupon.find((c) => c.match === m.id);
-  const GROUPS = { "1x2": "Résultat et double chance", goals: "Nombre de buts", btts: "Les deux équipes marquent", "1up": "1X2 1UP" };
+  const GROUPS = { "1x2": "Résultat et double chance", goals: "Nombre de buts", btts: "Les deux équipes marquent", "1up": "1UP / 2UP", first: "Premier but" };
   let group = "";
   const rows = m.markets.map((x) => {
     const head = x.note !== group
@@ -148,9 +148,14 @@ document.addEventListener("click", (e) => {
   const saved = load();
   state.odds = saved.odds || {};
   try {
-    const r = await fetch(SRC);
-    if (!r.ok) throw new Error(r.status);
-    state.data = await r.json();
+    if (window.fiGet) {
+      await window.fiReady;
+      state.data = await window.fiGet("/value-board");
+    } else {
+      const r = await fetch(SRC);
+      if (!r.ok) throw new Error(r.status);
+      state.data = await r.json();
+    }
   } catch (err) {
     document.getElementById("stamp").textContent = "Prédictions indisponibles pour le moment.";
     return;

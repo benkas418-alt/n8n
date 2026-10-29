@@ -346,8 +346,12 @@ def match(match_id: int) -> dict:
                                                    "games_14d_h", "games_14d_a", "comp_over25_rate",
                                                    "comp_draw_rate", "comp_goals_mean")},
         }
+        from footintel.analysis.value import RELIABILITY, market_probabilities
+
+        out["markets"] = market_probabilities(pred)
+        out["market_notes"] = RELIABILITY
     before = m["kickoff_date"]
-    out["sheets"] = [team_sheet(get_engine(), m["home_team_id"], m["home"], before).__dict__,
+    out["sheets"] =[team_sheet(get_engine(), m["home_team_id"], m["home"], before).__dict__,
                      team_sheet(get_engine(), m["away_team_id"], m["away"], before).__dict__]
     return out
 

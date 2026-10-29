@@ -275,9 +275,10 @@ GLOSSARY = {
     "wasteful": "Beaucoup de tirs cadrés pour peu de buts : elle crée mais ne conclut pas assez.",
     "solid": "Ses adversaires tirent nettement moins que la moyenne : le bloc défensif tient.",
     "exposed": "Ses adversaires tirent nettement plus que la moyenne : la défense laisse des occasions.",
-    "late": "La majorité de ses buts arrivent après la pause : elle finit fort, souvent grâce à la "
-            "fraîcheur ou aux changements.",
-    "early": "La majorité de ses buts arrivent avant la pause : elle entre vite dans le match.",
+    "late": "La majorité de ses buts arrivent après la pause cette saison. Sur 164 135 matchs, ce "
+            "profil ne se répète presque pas d'une saison à l'autre : c'est une description, pas une prévision.",
+    "early": "La majorité de ses buts arrivent avant la pause cette saison. Sur 164 135 matchs, ce "
+             "profil ne se répète presque pas d'une saison à l'autre : c'est une description, pas une prévision.",
     "first": "Elle ouvre le score dans la majorité de ses matchs où un but est marqué.",
 }
 
@@ -302,9 +303,6 @@ def _matchup(home: str, away: str, ph: Profile, pa: Profile, fg: dict | None) ->
                        f"Chaque perte de balle de {a} peut devenir une occasion pour {b}.")
         if "clinical" in la_ and "exposed" in lb_:
             out.append(f"{a} a besoin de peu d'occasions, et {b} en concède beaucoup : avantage {a} pour marquer.")
-        if "late" in la_ and "early" in lb_:
-            out.append(f"{b} marque surtout avant la pause, {a} surtout après : "
-                       f"un premier but de {b} est plausible, puis une réaction de {a}.")
         if "exposed" in la_ and "wasteful" in lb_:
             out.append(f"{b} se crée des occasions face à une défense de {a} qui en laisse, "
                        f"mais conclut mal : son efficacité décidera du match.")
@@ -361,6 +359,8 @@ def _lineup(conn, team_id: int, before) -> dict | None:
 
 
 def match_insights(engine: Engine, match: dict, prediction: dict | None) -> dict:
+    from footintel.analysis.periods import first_goal_effect, team_periods
+
     before = match["kickoff_date"]
     season = season_start_for(before if isinstance(before, date) else date.fromisoformat(str(before)))
     with engine.connect() as conn:
@@ -400,6 +400,9 @@ def match_insights(engine: Engine, match: dict, prediction: dict | None) -> dict
             "scorers": _scorers(goals, tid) if len(goals) else [],
             "lineup": lineups[side],
             "regulars": starts[side],
+            "periods": team_periods(engine, tid, season, before),
+            "first_goal": first_goal_effect(engine, tid, season, before,
+                                            sorted(set(own.competition)) if len(own) else [comp]),
         }
     if not played.empty:
         h, a = match["home_team_id"], match["away_team_id"]
