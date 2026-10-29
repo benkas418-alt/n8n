@@ -1,5 +1,30 @@
 # Résultats du backtest réel
 
+## Test des compositions OneFootball, saison 2026-27 (2026-10-29)
+
+Question : les compositions des matchs précédents (OneFootball, D50) améliorent-elles la
+prévision 1X2 des quatre championnats ? Script : `scripts/lineup_experiment.py`.
+
+Variables, calculées pour chaque équipe à partir de ses **matchs précédents** de la saison
+seulement (la composition du match lui-même n'est connue qu'une heure avant le coup d'envoi) :
+titulaires changés entre ses deux derniers matchs (`rot_last`), titulaires habituels absents
+de son dernier match (`core_out_last`), formation du dernier match différente de l'habituelle
+(`form_change_last`). Écart domicile − extérieur. Une équipe a besoin de 3 matchs précédents :
+205 matchs utilisables (2026-09-03 au 2026-10-26).
+
+Modèles : régression logistique sur les probabilités du marché seules (base), puis avec les
+trois variables (candidat). Log loss 1X2, négatif = meilleur, IC 95 % bootstrap apparié.
+
+| Test | Entraînement | Test | Marché | Base | Candidat | Candidat − base |
+|---|---|---|---|---|---|---|
+| Semaine passée (19 au 26 oct.) | 161 | 44 | 0,9659 | 0,9789 | 0,9593 | −0,0196 [−0,0617 ; +0,0255] |
+| Semaine par semaine (4 semaines) | 60 à 161 | 117 | 0,9397 | 0,9713 | 1,0053 | +0,0340 [−0,0024 ; +0,0707] |
+
+Lecture : aucun gain démontré. Sur la semaine passée, le candidat fait mieux mais l'IC contient
+0 avec 44 matchs. Sur 117 matchs testés semaine par semaine, il fait **moins bien** que la base.
+Les deux modèles entraînés sur si peu de matchs font moins bien que le marché brut. Loin des
+300 matchs de test exigés par D9. Le modèle actif ne change pas (D51).
+
 ## Test ClubElo (2026-10-28)
 
 Question : la cote ClubElo d'un club, publiée avant le match, améliore-t-elle le modèle actif ?
