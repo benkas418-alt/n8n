@@ -738,3 +738,17 @@ def test_standings_and_goal_events_keep_the_credited_team():
          "home_team_id": 1, "away_team_id": 2}]))
     assert goals.credited.tolist() == [1, 1] and goals.own.tolist() == [True, False]
     assert goals.scorer.tolist() == ["Beta Player", "Alpha Striker"]
+
+
+def test_roles_follow_the_formation_lines():
+    from footintel.analysis.players import roles
+
+    # Stored from the forwards to the goalkeeper: 4-2-3-1.
+    names = ["ST", "LW", "AM", "RW", "DM1", "DM2", "LB", "CB1", "CB2", "RB", "GK"]
+    got = dict(roles("4-2-3-1", names))
+    assert got["ST"] == "ST" and got["LW"] == "W" and got["AM"] == "AM"
+    assert got["DM1"] == "DM" and got["LB"] == "FB" and got["CB2"] == "CB" and got["GK"] == "GK"
+    # A back three makes the wide midfielders wing-backs.
+    got = dict(roles("3-4-2-1", ["ST", "AM1", "AM2", "LWB", "CM1", "CM2", "RWB", "CB1", "CB2", "CB3", "GK"]))
+    assert got["LWB"] == "WB" and got["CM1"] == "DM" and got["CB1"] == "CB" and got["AM1"] == "AM"
+    assert roles(None, names)[0] == ("ST", "")

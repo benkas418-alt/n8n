@@ -446,14 +446,15 @@ const formDots = (rows) => rows.length
   ? `<span class="form">${rows.map((r) => `<span class="res ${RES_CLS[r.result]}" title="${esc(fdate(r.date))} · ${r.at_home ? "dom." : "ext."} ${esc(r.opponent)} ${r.gf}-${r.ga}">${r.result}</span>`).join("")}</span>`
   : `<span class="muted small">Aucun match</span>`;
 
-const TABS = [["avant", "Avant-match"], ["tactique", "Tactique"], ["compos", "Compositions"],
+const TABS = [["avant", "Avant-match"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
   ["classement", "Classement"], ["journees", "Journées"], ["analyse", "Analyse"]];
 
 async function matchPage() {
   const p = params();
   if (!p.id) return home();
   const tab = TABS.some(([k]) => k === p.t) ? p.t : "avant";
-  const [d, x] = await Promise.all([get(`/match/${p.id}`), get(`/match/${p.id}/insights`).catch(() => null)]);
+  const [d, x, pl] = await Promise.all([get(`/match/${p.id}`), get(`/match/${p.id}/insights`).catch(() => null),
+    tab === "joueurs" ? get(`/match/${p.id}/players`).catch(() => null) : null]);
   const m = d.match;
   const pr = d.prediction;
   const H = x?.teams?.home, A = x?.teams?.away;
@@ -488,7 +489,8 @@ async function matchPage() {
     `<a role="tab" href="#/match?id=${m.id}&t=${k}" aria-selected="${k === tab}" class="tab${k === tab ? " on" : ""}">${label}</a>`).join("")}</div>`;
   const noData = `<div class="unavailable"><strong>Données indisponibles</strong><br><span class="small">L'analyse détaillée n'a pas pu être calculée pour ce match.</span></div>`;
   html += `<div role="tabpanel">${!x && tab !== "analyse" ? noData : {
-    avant: () => tabBefore(m, x, H, A), tactique: () => tabTactics(m, x, H, A), compos: () => tabLineups(m, H, A),
+    avant: () => tabBefore(m, x, H, A), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
+    compos: () => tabLineups(m, H, A),
     classement: () => tabTable(m, x), journees: () => tabRounds(x), analyse: () => tabAnalysis(m, d, pr),
   }[tab]()}</div>`;
   return html;
@@ -553,6 +555,49 @@ function tabTactics(m, x, H, A) {
       ${x.matchup.length ? `<ul class="reading">${x.matchup.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : `<p class="muted">Pas assez de données mesurées pour comparer les deux styles.</p>`}
       <p class="meta">Lecture des statistiques de la saison, comparées à la moyenne de la compétition. Ces profils ne modifient pas les probabilités du modèle.</p></div>
     <div class="grid two" style="margin-top:var(--space-4)">${card(H)}${card(A)}</div>`;
+}
+
+const LINE_FR = { defence: "Défense", midfield: "Milieu", attack: "Attaque" };
+const lastName = (n) => String(n).split(" ").slice(-1)[0];
+function tabPlayers(m, pl) {
+  const side = params().s === "away" ? "away" : "home";
+  const P = pl?.[side];
+  const name = side === "home" ? m.home : m.away;
+  const seg = `<div class="controls" style="margin-top:var(--space-4)"><div class="seg" role="group" aria-label="Équipe">
+    <a class="seg-btn${side === "home" ? " on" : ""}" href="#/match?id=${m.id}&t=joueurs&s=home">${esc(m.home)}</a>
+    <a class="seg-btn${side === "away" ? " on" : ""}" href="#/match?id=${m.id}&t=joueurs&s=away">${esc(m.away)}</a></div></div>`;
+  if (!P) return seg + `<div class="card"><p class="muted">Aucune composition en base pour ${esc(name)} cette saison : l'analyse par joueur ne couvre que les quatre grands championnats.</p></div>`;
+  const clean = P.timeline.filter((r) => r.ga === 0).length;
+  const cracks = P.timeline.filter((r) => r.ga >= 2).length;
+  const fmt = (v, d = 1) => (v == null ? "—" : Number(v).toFixed(d));
+  const pairs = P.cb_pairs.length ? `<table class="tight"><thead><tr><th>Charnière</th><th class="num">Matchs</th><th class="num">Encaissés / match</th><th class="num">Sans encaisser</th><th class="num">2 buts ou plus</th><th class="num">Tirs concédés</th></tr></thead><tbody>
+      ${P.cb_pairs.map((c) => `<tr><td>${c.players.map((n) => esc(n)).join(" et ")}</td><td class="num">${c.n}</td><td class="num">${fmt(c.ga)}</td><td class="num">${c.clean_sheets}</td><td class="num">${c.cracks}</td><td class="num">${fmt(c.shots_against)}</td></tr>`).join("")}</tbody></table>`
+    : `<p class="muted small">Pas de charnière identifiable : la formation n'est pas connue pour ces matchs.</p>`;
+  const lines = ["defence", "midfield", "attack"].map((ln) => {
+    const rows = P.players.filter((x) => x.line === ln);
+    if (!rows.length) return "";
+    const key = ln === "attack" ? "gf" : "ga";
+    const label = ln === "attack" ? "marqués" : "encaissés";
+    return `<h3 style="margin-top:var(--space-4)">${LINE_FR[ln]}</h3>
+      <div class="table-wrap"><table class="tight"><thead><tr><th>Joueur</th><th class="num">Titulaire</th><th class="num">Buts / passes</th><th class="num">Buts ${label} avec lui</th><th class="num">Sans lui</th><th>Lecture</th></tr></thead><tbody>
+      ${rows.map((x) => { const w = x.split.with, o = x.split.without;
+        return `<tr><td>${esc(x.name)}<div class="small muted">${esc(x.role_fr)}</div></td><td class="num">${x.starts}</td><td class="num">${x.goals} / ${x.assists}</td>
+          <td class="num">${w ? fmt(w[key]) : "—"}<span class="muted small"> ${w ? `(${w.n})` : ""}</span></td>
+          <td class="num">${o ? fmt(o[key]) : "—"}<span class="muted small"> ${o ? `(${o.n})` : ""}</span></td>
+          <td class="small">${x.verdict ? esc(x.verdict) : `<span class="muted">${o ? "pas assez de matchs pour comparer" : "a joué tous les matchs"}</span>`}</td></tr>`; }).join("")}
+      </tbody></table></div>`;
+  }).join("");
+  const timeline = `<div class="table-wrap"><table class="tight"><thead><tr><th>Match</th><th class="num">Score</th><th>Système</th><th>Défense alignée</th><th class="num">Tirs concédés</th><th>Lecture</th></tr></thead><tbody>
+    ${P.timeline.map((r) => `<tr><td>${r.at_home ? "Dom." : "Ext."} ${esc(r.opponent)}<div class="small muted">${esc(fdate(r.date))}</div></td>
+      <td class="num">${r.gf}-${r.ga}</td><td>${esc(r.formation || "—")}</td>
+      <td class="small">${r.defence.map((n) => esc(lastName(n))).join(", ")}</td><td class="num">${r.shots_against ?? "—"}</td>
+      <td>${r.ga === 0 ? '<span class="badge fact">solide</span>' : r.ga >= 2 ? '<span class="badge falling">a craqué</span>' : ""}</td></tr>`).join("")}</tbody></table></div>`;
+  return seg + `<div class="card"><h2>Défense de ${esc(name)} : quand ça tient, quand ça craque</h2>
+      <p class="question">${P.matches} matchs de championnat cette saison : ${fmt(P.avg_ga)} but encaissé par match, ${clean} sans encaisser, ${cracks} à 2 buts encaissés ou plus.</p>${pairs}</div>
+    <div class="card" style="margin-top:var(--space-4)"><h2>Impact des titulaires</h2>
+      <p class="question">Résultats de l'équipe dans les matchs où le joueur était titulaire, contre ceux où il ne l'était pas. Entre parenthèses : le nombre de matchs.</p>${lines}
+      <p class="meta">Une association sur peu de matchs, pas une preuve : la force des adversaires n'est pas prise en compte. Un écart n'est indiqué qu'avec au moins 3 matchs de chaque côté, et marqué « faible échantillon » sous 5.</p></div>
+    <div class="card" style="margin-top:var(--space-4)"><h2>Match par match</h2><p class="question">Du plus récent au plus ancien. « A craqué » : 2 buts encaissés ou plus.</p>${timeline}</div>`;
 }
 
 function tabLineups(m, H, A) {

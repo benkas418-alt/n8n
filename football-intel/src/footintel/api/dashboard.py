@@ -288,6 +288,22 @@ def match_insights_view(match_id: int) -> dict:
     return match_insights(get_engine(), m, pred)
 
 
+@router.get("/match/{match_id}/players")
+def match_players(match_id: int) -> dict:
+    """Player and unit impact of both teams this season, before the kick-off (D53)."""
+    from footintel.analysis.players import player_impact
+    from footintel.connectors.base import season_start_for
+
+    m = _one("SELECT kickoff_date, home_team_id, away_team_id FROM matches WHERE id = :m", m=match_id)
+    if not m:
+        raise HTTPException(404, "unknown match")
+    before = date.fromisoformat(str(m["kickoff_date"]))
+    season = season_start_for(before)
+    return {"season": season,
+            "home": player_impact(get_engine(), m["home_team_id"], season, before),
+            "away": player_impact(get_engine(), m["away_team_id"], season, before)}
+
+
 def _score_grid(lh: float, la: float, n: int = 6) -> list[list[float]]:
     goals = np.arange(11)
     m = np.outer(poisson.pmf(goals, lh), poisson.pmf(goals, la))
