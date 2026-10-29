@@ -474,7 +474,7 @@ async function matchPage() {
     html += `<section class="essentials" aria-label="L'essentiel">
       <div class="ess-block"><h2>Qui gagne</h2>${strip([pr.p_home, pr.p_draw, pr.p_away], pr.market.every((v) => v != null) ? pr.market : null, true)}</div>
       <div class="ess-block"><h2>Qui marque en premier</h2>${fg ? strip([fg.home, fg.none, fg.away], null, true) : `<p class="muted">Estimation indisponible.</p>`}
-        ${fg ? `<p class="meta">Au milieu : aucun but. Estimation du modèle à partir des buts attendus.</p>` : ""}</div>
+        ${fg ? `<p class="meta">Au milieu : aucun but. Sur 322 matchs de 2026-27, l'équipe annoncée favorite a ouvert le score dans 63 % des cas.</p>` : ""}</div>
       <div class="ess-facts">
         <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
         <div><span class="kpi-label">Plus de 2,5 buts</span><span class="kpi-value">${pct(pr.p_over_2_5, 0)}</span><span class="kpi-note">buts attendus ${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span></div>

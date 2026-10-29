@@ -1,5 +1,38 @@
 # Résultats du backtest réel
 
+## Test de « qui marque en premier », saison 2026-27 (2026-10-29)
+
+Question : l'estimation du premier but de la fiche de match (D52) tient-elle sur des matchs
+réels ? Script : `scripts/first_goal_check.py`.
+
+Méthode : `routed_competition` entraîné sur les saisons antérieures seulement, puis appliqué
+aux matchs de championnat de 2026-27 (hors échantillon). Ses buts attendus donnent, par un
+processus de Poisson, P(domicile ouvre le score), P(extérieur), P(aucun but). Le vrai premier
+but vient des minutes OneFootball. 322 matchs : 175 ouverts par l'équipe à domicile, 126 par
+l'équipe à l'extérieur, 21 sans but.
+
+| Estimation | Log loss (3 issues) |
+|---|---|
+| Modèle (buts attendus, Poisson) | **0,8448** |
+| Part de victoire 1X2 | 0,8610 |
+| Fréquences observées (référence naïve) | 0,8766 |
+
+Modèle − référence naïve : −0,0318 [IC 95 % −0,0603 ; −0,0025]. L'équipe que le modèle voit
+ouvrir le score l'a fait dans **63,1 %** des 301 matchs avec au moins un but.
+
+| Chance annoncée d'ouvrir le score | n | Annoncé | Observé |
+|---|---|---|---|
+| 20-30 % | 49 | 26,0 % | 18,4 % |
+| 30-40 % | 124 | 35,8 % | 35,5 % |
+| 40-50 % | 221 | 45,3 % | 42,1 % |
+| 50-60 % | 152 | 54,5 % | 58,6 % |
+| 60-70 % | 70 | 64,5 % | 68,6 % |
+| 70 % et plus | 24 | 74,9 % | 75,0 % |
+
+Lecture : l'estimation est utile et bien calibrée au centre. Aux extrêmes, elle est un peu
+prudente : l'équipe favorite ouvre le score un peu plus souvent qu'annoncé, l'outsider un peu
+moins. Échantillon d'une demi-saison : à refaire en fin de saison.
+
 ## Test des compositions OneFootball, saison 2026-27 (2026-10-29)
 
 Question : les compositions des matchs précédents (OneFootball, D50) améliorent-elles la
