@@ -51,8 +51,8 @@
 		},
 		"session-handoff": {
 			"source": {
-				"source": "github",
-				"repo": "David-E-Kay/claude-session-handoff"
+				"source": "directory",
+				"path": "./.claude/plugins/session-handoff"
 			}
 		}
 	},
