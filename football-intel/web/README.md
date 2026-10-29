@@ -12,10 +12,24 @@ flowchart LR
 - `site.js`: sign-in, account request with an invitation code, accounts page for the
   super admin, data read from the `snapshots` table.
 - `build.sh`: copies the dashboard from `src/footintel/api/static` into `dist/` and adds
-  the Supabase layer. Vercel runs it (root directory `football-intel/web`, output `dist`).
+  the Supabase layer.
+- Site: https://benkassiyfootball.vercel.app (Vercel project `benkassiyfootball`).
 - `../supabase/migrations/`: tables, row level security, account functions.
 - `.github/workflows/util-football-intel-daily.yml`: daily cycle, encrypted state in the
   Actions cache, export to Supabase.
+
+## Deploy a new version of the site
+
+The Vercel project is not linked to GitHub. The scripts and styles come from jsDelivr at
+a pushed commit, with integrity hashes. Vercel holds only `index.html`, `value.html`,
+`config.js` and `vercel.json`.
+
+1. Commit and push the change.
+2. `CDN_COMMIT=$(git rev-parse HEAD) football-intel/web/build.sh`. The script stops if a
+   file on jsDelivr differs from the local file.
+3. Deploy the four files of `web/dist/` to the Vercel project (production).
+
+Data changes need no deployment: the daily export writes them to Supabase.
 
 ## Accounts
 
@@ -37,8 +51,9 @@ Open signup stays off (`open_signup = 'false'`). Only invitation codes work.
 
 ## One-time setup (owner)
 
-1. Supabase, Authentication > URL Configuration: set Site URL to the Vercel address and
-   add it to Redirect URLs.
+1. Supabase, Authentication > URL Configuration: set Site URL to
+   `https://benkassiyfootball.vercel.app` and add `https://benkassiyfootball.vercel.app/**`
+   to Redirect URLs. Without it, confirmation and password links point to localhost.
 2. Supabase, Project Settings > API Keys: create a secret key.
 3. GitHub, repository Settings > Secrets and variables > Actions:
    - variable `SUPABASE_URL` = `https://mnwyipiakbleihdfpegg.supabase.co`
