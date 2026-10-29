@@ -20,6 +20,17 @@ const COMP_FR = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie
   "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
   "UEFA-ECL": "Ligue Conférence" };
 const compName = (code, name) => COMP_FR[code] || name || code;
+/* Relative luminance of an "rgb(r,g,b)" string, to pick white or ink text on it. */
+function luminance(rgbStr) {
+  const [r, g, b] = rgbStr.match(/\d+/g).map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+/* Solid blend of two hex colours: `share` of the first over the second. */
+function mix(a, b, share) {
+  const rgb = (h) => h.replace("#", "").match(/../g).map((x) => parseInt(x, 16));
+  const [x, y] = [rgb(a), rgb(b)];
+  return `rgb(${x.map((v, i) => Math.round(v * share + y[i] * (1 - share))).join(",")})`;
+}
 const FACTOR_FR = { elo_home: "Force Elo, domicile", elo_away: "Force Elo, extérieur", elo_diff: "Écart Elo (avantage domicile inclus)",
   form5_ppg_h: "Points par match, 5 derniers (domicile)", form5_ppg_a: "Points par match, 5 derniers (extérieur)",
   rest_days_h: "Jours de repos (domicile)", rest_days_a: "Jours de repos (extérieur)",
@@ -323,9 +334,10 @@ async function competitions() {
     let hm = `<table class="heatmap"><tr><th>Dom. \\ Ext.</th>${[0, 1, 2, 3, 4, "5+"].map((g) => `<th>${g}</th>`).join("")}</tr>`;
     grid.forEach((row, h) => {
       hm += `<tr><th>${h === 5 ? "5+" : h}</th>${row.map((v, a) => {
-        const alpha = max ? (0.08 + 0.85 * v / max).toFixed(2) : 0;
-        const dark = v / max > 0.55;
-        return `<td style="background:rgba(30,107,71,${alpha});color:${dark ? "#fff" : "inherit"}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
+        const share = max ? 0.08 + 0.85 * v / max : 0;
+        const bg = mix(C.accent, css("--surface"), share);
+        const dark = luminance(bg) < 0.21;
+        return `<td style="background:${bg};color:${dark ? "#ffffff" : C.text}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
       }).join("")}</tr>`;
     });
     document.getElementById("heatmap").innerHTML = hm + `</table><p class="meta">n = ${n.toLocaleString("fr-FR")} matchs</p>`;
@@ -428,30 +440,28 @@ async function matchPage() {
   const d = await get(`/match/${p.id}`);
   const m = d.match;
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : fdate(m.kickoff_date);
+  const played = m.home_goals != null;
   html += `<p class="small"><a href="#/">Retour aux matchs</a></p>
-    <div class="card"><div class="match-head"><div class="side h">${esc(m.home)}</div>
-      <div class="mid">${m.home_goals != null ? `<div class="score">${m.home_goals} – ${m.away_goals}</div>` : ""}
-        <div>${esc(compName(m.competition, m.competition_name))}${m.round ? `, ${esc(m.round)}` : ""}</div><div>${esc(when)}</div>
-        ${m.neutral_venue ? "<div>Terrain neutre</div>" : ""}</div>
-      <div class="side a">${esc(m.away)}</div></div></div>`;
+    <div class="page-head"><div><h1>${esc(m.home)} ${played ? `${m.home_goals} – ${m.away_goals}` : "–"} ${esc(m.away)}</h1>
+      <p>${esc(compName(m.competition, m.competition_name))}${m.round ? `, ${esc(m.round)}` : ""}, ${esc(when)}${m.neutral_venue ? ", terrain neutre" : ""}.</p></div></div>`;
   const pr = d.prediction;
   if (!pr) {
     html += `<div class="card" style="margin-top:16px">${na("Probabilités du modèle", m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Aucune prédiction enregistrée pour l'instant : elle sera produite par le cycle du matin." : m.status === "scheduled" ? "Date passée sans résultat publié par la source (match reporté, annulé ou non joué). Aucune prédiction possible." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi de ce match. Le système ne calcule pas de probabilité a posteriori : elle ne serait pas un vrai pronostic.")}</div>`;
   } else {
     const q = pr.data_quality || {};
-    html += `<div class="grid two" style="margin-top:16px">
+    html += `<div class="grid two"><div class="grid">
       <div class="card"><h2>Probabilités 1X2</h2><p class="question">Que dit le modèle, et que dit le marché ?</p>
         ${strip([pr.p_home, pr.p_draw, pr.p_away], pr.market.every((x) => x != null) ? pr.market : null, true)}
         <p class="meta">${esc(pr.model)} · calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")} · <span class="badge estimate">estimation</span></p></div>
-      <div class="card"><h2>Scores les plus probables</h2><p class="question">Quels scores, classés par probabilité calculée ?</p>
+      <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
+        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table></div></div>
+      <div class="grid"><div class="card"><h2>Scores les plus probables</h2><p class="question">Quels scores, classés par probabilité calculée ?</p>
         <ul class="list">${pr.top_scores.map((t) => `<li><span class="row-title">${t.score}</span> — ${pct(t.p)}</li>`).join("")}</ul>
         <p class="meta">Buts attendus ${num(pr.exp_home_goals)} – ${num(pr.exp_away_goals)} · plus de 2,5 buts ${pct(pr.p_over_2_5, 0)} · les deux marquent ${pct(pr.p_btts, 0)}. Aucun score n'est « le » score prévu.</p></div>
-      <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
-        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table></div>
       <div class="card"><h2>Fiabilité</h2><p class="question">Les données suffisent-elles ?</p>
         <p>${pr.sufficient_data ? '<span class="badge fact">données suffisantes</span>' : '<span class="badge falling">données insuffisantes</span>'}</p>
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
-        <div class="unavailable"><strong>Compositions et formations</strong><br><span class="small">Collectées depuis OneFootball pour les championnats, pas encore utilisées par le modèle : aucun gain démontré pour l'instant.</span></div></div></div>`;
+        <div class="unavailable"><strong>Compositions et formations</strong><br><span class="small">Collectées depuis OneFootball pour les championnats, pas encore utilisées par le modèle : aucun gain démontré pour l'instant.</span></div></div></div></div>`;
   }
   const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
   if (m.status === "scheduled" && kickoff > new Date()) {
@@ -696,34 +706,44 @@ function strip(p, market, big = false) {
     <div class="strip-bar"><span class="h" style="width:${w(h)}"></span><span class="d" style="width:${w(d)}"></span><span class="a" style="width:${w(a)}"></span></div>${mk}</div>`;
 }
 
-function marketGap(m) {
-  if (!m.market || m.p_home == null) return "";
+function marketGaps(m) {
+  if (!m.market || m.p_home == null) return null;
   const gaps = [m.p_home - m.market[0], m.p_draw - m.market[1], m.p_away - m.market[2]];
   const i = gaps.reduce((b, g, k) => (Math.abs(g) > Math.abs(gaps[b]) ? k : b), 0);
-  if (Math.abs(gaps[i]) < 0.05) return "proche du marché";
-  const side = [m.home, "le nul", m.away][i];
-  return `${gaps[i] > 0 ? "+" : "−"}${Math.round(100 * Math.abs(gaps[i]))} pts sur ${side} par rapport au marché`;
+  return { i, gap: gaps[i], side: [m.home, "le nul", m.away][i] };
 }
+const signedPts = (g) => `${g > 0 ? "+" : "−"}${Math.round(100 * Math.abs(g))} pts`;
 
 let homeFilter = "all";
+let homeAll = false;
 async function home() {
   const d = await get("/home");
   const sub = document.getElementById("brand-sub");
   if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
   const comps = [...new Set(d.matches.map((m) => m.competition))];
-  const shown = d.matches.filter((m) => homeFilter === "all" || m.competition === homeFilter);
+  const inComp = d.matches.filter((m) => homeFilter === "all" || m.competition === homeFilter);
+  const today = new Date().toISOString().slice(0, 10);
+  const horizon = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const shown = homeAll ? inComp : inComp.filter((m) => m.kickoff_date <= horizon);
+  const hidden = inComp.length - shown.length;
+  const withGap = inComp.map((m) => ({ m, g: marketGaps(m) })).filter((x) => x.g);
+  const top = withGap.sort((a, b) => Math.abs(b.g.gap) - Math.abs(a.g.gap))[0];
   const head = `<div class="page-head"><div><h1>Matchs à venir</h1>
-    <p>Probabilités 1, X, 2 du modèle pour chaque match, et l'avis du marché quand il est connu.</p></div></div>`;
+    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} avec les probabilités 1, X, 2 du modèle. Écart avec le marché quand une cote de référence existe.</p></div>
+    <a class="btn" href="value.html">Vérifier une cote</a></div>`;
   if (!d.matches.length) {
     return head + `<div class="empty"><h2>Aucun match publié pour l'instant</h2>
       <p class="muted">Le cycle du matin récupère les prochains matchs dès que les sources les publient, puis calcule les probabilités. Vous pouvez le lancer tout de suite depuis l'<a href="#/admin">administration</a>.</p></div>`;
   }
+  const finding = top
+    ? `<div class="finding"><p>Plus gros écart avec le marché : <b>${esc(top.m.home)} – ${esc(top.m.away)}</b>, le modèle donne ${signedPts(top.g.gap)} sur ${esc(top.g.side)} (${pct([top.m.p_home, top.m.p_draw, top.m.p_away][top.g.i], 0)} contre ${pct(top.m.market[top.g.i], 0)}).</p>
+        <a href="#/match?id=${top.m.id}">Ouvrir le match</a></div>`
+    : `<div class="finding"><p>Aucun match à venir n'a encore de cote de référence pour comparer le modèle au marché.</p></div>`;
   const chips = `<div class="chips" role="group" aria-label="Filtrer par compétition">
     <button class="chip" data-c="all" aria-pressed="${homeFilter === "all"}">Toutes</button>
     ${comps.map((c) => `<button class="chip" data-c="${esc(c)}" aria-pressed="${homeFilter === c}">${esc(compName(c))}</button>`).join("")}</div>`;
   const byDay = new Map();
   shown.forEach((m) => { const k = m.kickoff_date; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); });
-  const today = new Date().toISOString().slice(0, 10);
   const days = [...byDay.entries()].map(([day, rows]) => {
     const label = new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
     return `<section><div class="day"><h2>${day === today ? "Aujourd'hui" : label.charAt(0).toUpperCase() + label.slice(1)}</h2><span>${rows.length} match${rows.length > 1 ? "s" : ""}</span></div>
@@ -731,21 +751,30 @@ async function home() {
         const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
         const has = m.p_home != null;
         const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
-        const gap = marketGap(m);
+        const g = marketGaps(m);
+        const flag = !has ? "" : !g ? `<span class="flag" title="Pas de cote de référence pour ce match">—</span>`
+          : Math.abs(g.gap) < 0.05 ? `<span class="flag">proche du marché</span>`
+          : `<span class="flag gap">${signedPts(g.gap)} sur ${g.i === 1 ? "le nul" : g.i === 0 ? "le 1" : "le 2"}</span>`;
+        const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
         return `<a class="fixture" href="#/match?id=${m.id}">
           <span class="time">${time}</span>
-          <span class="teams"><span class="team${fav === 0 ? " fav" : ""}">${esc(m.home)}</span><span class="team${fav === 2 ? " fav" : ""}">${esc(m.away)}</span>
+          <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
             <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
-          ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités calculées au prochain cycle du matin</span>`}
-          <span class="flag${gap && gap !== "proche du marché" ? " gap" : ""}">${has ? (m.market ? esc(gap) : "pas de cote de référence") : ""}</span></a>`;
+          ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
+          ${flag}</a>`;
       }).join("")}</div></section>`;
   }).join("");
+  const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs suivants</button></p>` : "";
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
     <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
     <span><a href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
-  setTimeout(() => document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => { homeFilter = b.dataset.c; route(); })));
-  return head + chips + days + status;
+  setTimeout(() => {
+    document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => { homeFilter = b.dataset.c; route(); }));
+    const all = document.getElementById("show-all");
+    if (all) all.onclick = () => { homeAll = true; route(); };
+  });
+  return head + finding + chips + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + status;
 }
 
 /* ---------------- Router ---------------- */
