@@ -676,7 +676,8 @@ def test_onefootball_attaches_lineups_without_creating_teams(db, settings, monke
         assert one("SELECT count(*) FROM match_events") == 3
         # The scorer is a starter: linked to a player. The substitute is not in the line-up.
         assert one("SELECT count(*) FROM match_events WHERE player_id IS NOT NULL") == 2
-        assert one("SELECT shots FROM team_match_statistics s JOIN data_sources d ON d.id = s.source_id "
-                   "WHERE d.code = 'onefootball' AND s.is_home") == 12
+        # Shots go with the tactics; the statistics table the model reads keeps one source.
+        assert one("SELECT count(*) FROM team_match_statistics") == 0
+        assert one("SELECT max((extra->>'shots')::int) FROM team_match_tactics") == 12
         assert one("SELECT count(*) FROM teams WHERE name = 'Nobody'") == 0
         assert one("SELECT count(*) FROM match_outcomes") == 0  # scores are never written

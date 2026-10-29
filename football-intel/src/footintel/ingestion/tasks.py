@@ -312,7 +312,7 @@ def sync_odds_api(engine: Engine, settings: Settings, connector: TheOddsApi | No
 def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPage,
                             team_ids: tuple[int, int]) -> None:
     """Replace this source's line-ups, formations, events and shots for one match."""
-    for model in (Lineup, MatchEvent, TeamMatchTactics, TeamMatchStatistics):
+    for model in (Lineup, MatchEvent, TeamMatchTactics):
         s.execute(delete(model).where(model.match_id == match.id, model.source_id == source_id))
     now = datetime.now(UTC)
     confirmed = "CONFIRMED" in (page.lineup_title or "").upper()
@@ -320,9 +320,12 @@ def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPa
     for side, (sheet, team_id) in enumerate(zip((page.home, page.away), team_ids)):
         if sheet is None:
             continue
+        st = page.stats.get(("home", "away")[side], {})
+        # Shots stay here, not in team_match_statistics: the model reads that table (D50).
+        shots = {k: st[k] for k in ("shots", "shots_on_target") if k in st}
         s.add(TeamMatchTactics(match_id=match.id, team_id=team_id, source_id=source_id,
                                kind="official" if confirmed else "predicted", formation=sheet.formation,
-                               possession_pct=page.stats.get(("home", "away")[side], {}).get("possession_pct"),
+                               possession_pct=st.get("possession_pct"), extra=shots or None,
                                known_at=now))
         for p in sheet.starters:
             player = s.scalar(select(Player).where(Player.source_id == source_id,
@@ -334,12 +337,6 @@ def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPa
             s.add(Lineup(match_id=match.id, team_id=team_id, player_id=player.id, source_id=source_id,
                          is_starter=True, position=p.position, confirmed=confirmed, known_at=now))
             by_name[side].update({p.name: player.id, p.short_name: player.id})
-    for side, key in ((0, "home"), (1, "away")):
-        st = page.stats.get(key)
-        if st and ("shots" in st or "shots_on_target" in st):
-            s.add(TeamMatchStatistics(match_id=match.id, team_id=team_ids[side], source_id=source_id,
-                                      is_home=side == 0, shots=st.get("shots"),
-                                      shots_on_target=st.get("shots_on_target")))
     for ev in page.events:
         names = by_name[ev.side] if ev.side in (0, 1) else {}
         detail = ev.detail if ev.other_player is None else f"{ev.detail}: {ev.player} / {ev.other_player}"
