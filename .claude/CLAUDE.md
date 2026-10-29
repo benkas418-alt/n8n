@@ -32,8 +32,9 @@ Where names overlapped, master's newer version was kept. Main ones added by us:
 | Design, UI/UX, 3D | design-taste-frontend, no-ai-design-slop, audit-ai-design-slop, ui-design-system, ux-researcher-designer, landing-page, pricing-page, tailwindcss, gsap, animation-systems, build-awwwards-quality-sites, cinematic-scroll-storytelling, threejs, build-threejs-scroll-worlds, webgl-3d-object, 3d-orbit-inspect-demo, react-3d-web, design-first-ui-prompting |
 | Code, data, deploy | python-pro, fastapi-expert, postgres-pro, sql-pro, database-designer, typescript-pro, javascript-pro, react-expert, nextjs-developer, react-native-expert, flutter-expert, api-designer, debugging-wizard, test-master, secure-code-guardian, devops-engineer, docker-development, ci-cd-pipeline-builder, data-quality-auditor |
 
-Plugin enabled for every session: `session-handoff` (say "session handoff" at the end of
-a session, "resume from before" in the next one).
+Handoffs: skill `handoff-notes` writes notes to `.claude/handoffs/` (committed). Read the
+newest one when the owner says "reprends où on s'est arrêtés". Project plugins
+(`.claude/plugins/*`, incl. session-handoff) do NOT load in fresh cloud sessions.
 
 ## Repositories the owner sent (2026-10-29) and their status
 
@@ -50,7 +51,7 @@ a session, "resume from before" in the next one).
 | vercel/ai, activepieces, playcanvas/react, 3D portfolio, Astra prompt repos | Distilled into vercel-ai-sdk, activepieces-automation, react-3d-web, cinematic-scroll-site |
 | UppuluriKalyani/ML-Nexus | Distilled into prediction-modeling (random splits = main mistake) |
 | Alishahryar1/free-claude-code | Tool (proxy to other model providers); reinstall with the setup script |
-| David-E-Kay/claude-session-handoff | Plugin enabled in .claude/settings.json |
+| David-E-Kay/claude-session-handoff | Vendored in .claude/plugins (works locally only); replaced in cloud by skill handoff-notes |
 | ww-w-ai/super-token-saver | Not enabled: injects instructions that force sub-agent delegation and edits ~/.claude/settings.json; its report command can publish a public gist. Install on a local machine only if wanted |
 | sajidmahamud835/MarketSync-EA | Rejected: its "AI" returns random stop-loss/take-profit; would place real trades |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
@@ -69,4 +70,5 @@ The cloud container is reset between sessions. Reinstall the external tools with
 - sofascore_scraper crashes on Python 3.13 (`_ThreadHandle`); use Python 3.14.
 - Big GitHub repos (hudl/open-data) stall through the proxy; fetch only needed folders.
 - Shot/feature files change column names between seasons: check coverage per period.
+- Environment setup script runs before the repo exists: it must be self-contained and end with `exit 0`.
 - Never trust a "best price" CLV or a random-split score; compare on recent data.
