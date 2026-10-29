@@ -115,6 +115,7 @@ const badge = (status) => `<span class="badge ${esc(status)}">${esc(STATUS[statu
 const na = (title, why) => `<div class="unavailable"><strong>${esc(title)}</strong> — non collecté.<br><span class="small">${esc(why)}</span></div>`;
 
 async function get(path) {
+  if (window.fiGet) return window.fiGet(path);  // private site: data from Supabase (web/site.js)
   const r = await fetch(API + path);
   if (!r.ok) throw new Error(`${r.status} ${path}`);
   return r.json();
@@ -645,7 +646,7 @@ function tabAnalysis(m, d, pr) {
         ${fold("Voir les facteurs", `<table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table>`, { inner: true, open: true })}</div></div>`;
   }
   const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
-  if (m.status === "scheduled" && kickoff > new Date()) {
+  if (m.status === "scheduled" && kickoff > new Date() && !window.FI_READ_ONLY) {
     html += `<div class="card" style="margin-top:var(--space-4)"><h2>Mon pronostic</h2>
       <p class="question">Enregistré avec l'heure, refusé après le coup d'envoi. Le dernier envoyé avant le match compte.</p>
       ${tokenBox()}
@@ -995,13 +996,14 @@ function foldCards(page) {
 }
 
 /* ---------------- Router ---------------- */
-const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin };
+const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
+  ...(window.fiPages || {}) };
 async function route() {
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
   document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === (page === "match" ? "" : page)));
   const CRUMB = { "": "Matchs à venir", match: "Matchs", picks: "Mes pronostics", competitions: "Compétitions", teams: "Équipes",
-    performance: "Fiabilité du modèle", tendances: "Tendances", admin: "Administration" };
+    performance: "Fiabilité du modèle", tendances: "Tendances", admin: "Administration", ...(window.fiCrumbs || {}) };
   document.getElementById("crumb").textContent = CRUMB[page] || "Football Intel";
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("menu-btn").setAttribute("aria-expanded", "false");
@@ -1035,4 +1037,4 @@ document.getElementById("menu-btn").onclick = (e) => {
   const open = document.getElementById("sidebar").classList.toggle("open");
   e.currentTarget.setAttribute("aria-expanded", String(open));
 };
-route();
+(window.fiReady || Promise.resolve()).then(route);

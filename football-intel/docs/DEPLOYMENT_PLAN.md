@@ -1,6 +1,6 @@
 # Plan : football-intel en site web avec comptes
 
-Statut : décidé le 2026-10-29 (réponses du propriétaire en section 6). À implémenter.
+Statut : décidé le 2026-10-29. Choix en vigueur : section 10. Mise en œuvre : section 11.
 
 ## 1. Ce qui existe déjà
 
@@ -145,3 +145,17 @@ Connecteurs claude.ai du propriétaire : **Vercel**, **Netlify**, **Render** con
   réglages claude.ai ; créer le projet Supabase (gratuit).
 - Limites Supabase gratuit à surveiller : 500 Mo de base, projet mis en pause après une
   semaine sans activité (l'envoi quotidien l'évite).
+
+## 11. Mise en œuvre (2026-10-29)
+
+- Projet Supabase `benkassiyfootball` (offre gratuite, région eu-central-1), schéma
+  `supabase/migrations/0001_site_accounts.sql` appliqué. Testé en SQL : sans code
+  d'invitation, inscription refusée ; code valide, compte `en_attente` sans accès aux
+  données ; code déjà utilisé, refusé ; e-mail du super admin, compte actif ; seul le
+  super admin approuve et crée des codes ; un visiteur anonyme ne lit rien.
+- Données : table `snapshots` (une ligne par réponse de `/api/dash`), écrite par
+  `footintel export-supabase` ; les lignes non rafraîchies sont supprimées.
+- Site : `web/` (voir `web/README.md`), tableau de bord existant + couche Supabase.
+- Cycle : `.github/workflows/util-football-intel-daily.yml` ; base complète chiffrée dans
+  le cache GitHub Actions (clé `FOOTINTEL_STATE_KEY`), jamais dans le dépôt.
+- Réglages restant au propriétaire : `web/README.md`, section « One-time setup ».

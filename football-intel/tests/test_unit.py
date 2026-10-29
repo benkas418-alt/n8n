@@ -779,3 +779,40 @@ def test_clv_of_picks_against_the_closing_price():
     close = np.array([1 / 1.8, 1 / 3.6, 1 / 5.5])
     assert math.isclose(row.clv_mean, 2.0 * close[0] / close.sum() - 1, rel_tol=1e-9)
     assert row.clv_mean > 0 and row.share_line_moved_our_way == 1.0
+
+
+def test_supabase_export_paths_follow_the_dashboard_links():
+    from footintel.export.supabase import collect
+
+    answers = {
+        "/competitions": [{"code": "ENG-PL", "is_target": True, "type": "league", "matches": 10},
+                          {"code": "NED-ED", "is_target": False, "type": "league", "matches": 5},
+                          {"code": "UEFA-CL", "is_target": True, "type": "cup", "matches": 0}],
+        "/teams?competition=ENG-PL": [{"id": 7}, {"id": 8}],
+        "/home": {"matches": [{"id": 42}]},
+    }
+
+    class FakeClient:
+        def get(self, url):
+            path = url.removeprefix("/api/dash")
+            ok = path in answers or not path.startswith("/competition/UEFA")
+            return type("R", (), {"status_code": 200 if ok else 404,
+                                  "json": lambda self: answers.get(path, {})})()
+
+    data, failed = collect(FakeClient())
+    assert not failed
+    for p in ("/overview", "/competition/ENG-PL", "/competition/NED-ED", "/team/7", "/team/8",
+              "/match/42", "/match/42/insights", "/match/42/players",
+              "/matches?competition=ENG-PL&home_goals=5&away_goals=0&limit=200"):
+        assert p in data
+    # No drill-down or team pages outside the target leagues, no page for an empty cup.
+    assert not any("NED-ED&" in p or "UEFA-CL" in p for p in data)
+    assert sum(p.startswith("/matches?competition=ENG-PL") for p in data) == 36
+
+
+def test_supabase_export_batches_stay_under_the_size_limit():
+    from footintel.export import supabase
+
+    rows = [{"path": f"/p{i}", "body": {"x": "a" * 1000}} for i in range(5000)]
+    batches = list(supabase._batches(rows))
+    assert sum(len(b) for b in batches) == 5000 and len(batches) > 1

@@ -148,9 +148,14 @@ document.addEventListener("click", (e) => {
   const saved = load();
   state.odds = saved.odds || {};
   try {
-    const r = await fetch(SRC);
-    if (!r.ok) throw new Error(r.status);
-    state.data = await r.json();
+    if (window.fiGet) {
+      await window.fiReady;
+      state.data = await window.fiGet("/value-board");
+    } else {
+      const r = await fetch(SRC);
+      if (!r.ok) throw new Error(r.status);
+      state.data = await r.json();
+    }
   } catch (err) {
     document.getElementById("stamp").textContent = "Prédictions indisponibles pour le moment.";
     return;

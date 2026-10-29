@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     # Stop calling when fewer credits than this remain in the month.
     odds_api_reserve: int = 40
     admin_token: SecretStr | None = None
+    # Private site (D57): the daily export writes the dashboard data with the secret key.
+    supabase_url: str | None = None
+    supabase_secret_key: SecretStr | None = None
 
     data_dir: Path = Path("./data")
     artifacts_dir: Path = Path("./artifacts")
