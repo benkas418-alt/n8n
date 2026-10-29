@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vérificateur de cotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem("fi_theme") || "dark"; } catch { document.documentElement.dataset.theme = "dark"; }</script>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one column of match cards, a coupon panel that docks at the bottom on phones
+   and sits on the right on wide screens. Same palette as the dashboard. */
+:root, :root[data-theme="dark"] {
+  --bg: #000000; --surface: #111111; --text: #ffffff; --muted: #b4b4b4; --line: #1f1f1f;
+  --accent: #c6f24e; --accent-soft: #182006; --good: #c6f24e; --good-soft: #182006;
+  --bad: #e5484d; --bad-soft: #2c1a1c; --warn: #e5a93b; --warn-soft: #2b2414;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display: "Barlow Semi Condensed", "Inter", system-ui, sans-serif; color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f4f4f2; --surface: #ffffff; --text: #111111; --muted: #555555; --line: #e4e4e0;
+  --accent: #4d7c0f; --accent-soft: #eef5df; --good: #3f6a0b; --good-soft: #eef5df;
+  --bad: #c4242a; --bad-soft: #ffedea; --warn: #8a5408; --warn-soft: #fff6e0; color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 140px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2 { font-family: var(--display); }
+h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 4px; text-wrap: balance; }
+h2 { font-size: 1.15rem; font-weight: 600; margin: 0; }
+.back { font-size: 0.9rem; color: var(--accent); }
+.muted { color: var(--muted); } .small { font-size: 0.85rem; }
+.num { font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { h1 { font-size: 1.5rem; } }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; margin-top: 16px; }
+.intro { display: grid; gap: 6px; }
+.formula { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.filters button, .chip { border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+.day { margin: 18px 0 8px; font-family: var(--display); font-weight: 600; font-size: 1.05rem; color: var(--text); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
+.match > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.match > summary::-webkit-details-marker { display: none; }
+.match > summary:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.teams { font-weight: 600; min-width: 0; }
+.meta { color: var(--muted); font-size: 0.85rem; }
+.pill { font-size: 0.75rem; border-radius: 999px; padding: 2px 8px; border: 1px solid var(--line); white-space: nowrap; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.pill.ok { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.probs { margin-left: auto; display: flex; gap: 6px; }
+.probs span { font-family: var(--display); font-size: 0.85rem; background: var(--bg); border-radius: 6px; padding: 2px 6px; }
+.table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+td.r, th.r { text-align: right; }
+tr:last-child td { border-bottom: 0; }
+input[type="number"] { width: 84px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--text); font: inherit; font-family: var(--display); text-align: right; }
+.verdict { font-size: 0.8rem; border-radius: 6px; padding: 3px 8px; white-space: nowrap; display: inline-block; }
+.v-good { background: var(--good-soft); color: var(--good); }
+.v-bad { background: var(--bad-soft); color: var(--bad); }
+.v-neutral { background: var(--bg); color: var(--muted); }
+.add { border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 6px;
+  padding: 4px 10px; font: inherit; font-size: 0.8rem; cursor: pointer; }
+.add[disabled] { opacity: 0.4; cursor: not-allowed; }
+.note { font-size: 0.78rem; color: var(--muted); }
+.coupon { position: sticky; top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; }
+.coupon ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.coupon li { display: flex; gap: 8px; justify-content: space-between; align-items: center; font-size: 0.88rem; }
+.coupon li button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 1rem; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.9rem; }
+.kv[hidden] { display: none; }
+.kv .big { font-size: 1.15rem; font-weight: 700; }
+.empty { color: var(--muted); font-size: 0.88rem; }
+.foot { margin-top: 28px; font-size: 0.8rem; color: var(--muted); }
+td.num, .add, .verdict { white-space: nowrap; }
+tr.group td { background: var(--bg); padding-top: 10px; }
+@media (max-width: 600px) {
+  thead { display: none; }
+  tr.mk { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 10px; padding: 10px; border-bottom: 1px solid var(--line); align-items: center; }
+  tr.mk td { border: 0; padding: 0; text-align: left; }
+  tr.mk td.label { grid-column: 1 / -1; font-weight: 600; }
+  tr.mk td.num::before { content: attr(data-h) " "; color: var(--muted); font-family: var(--font); font-size: 0.75rem; }
+  tr.group, tr.group td { display: block; }
+  input[type="number"] { width: 100%; }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .coupon { position: fixed; left: 0; right: 0; bottom: 0; top: auto; border-radius: 12px 12px 0 0; max-height: 48vh; overflow: auto;
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12); /* taste-skill-ignore: floating bottom sheet */ }
+  .probs { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap" id="root" data-src="/api/dash/value-board">
+  <header class="intro">
+    <a class="back" href="./#/">Retour aux matchs</a>
+    <h1>Vérificateur de cotes</h1>
+    <p class="muted" id="stamp">Chargement des prédictions…</p>
+    <div class="formula small">
+      Tape la cote proposée par ton bookmaker. <strong>Cote juste</strong> = 1 / probabilité du modèle.
+      <strong>Valeur théorique</strong> = probabilité × cote − 1. Une valeur positive n'est ni un gain garanti
+      ni une preuve de rentabilité : le modèle est au niveau du marché, sans avantage démontré.
+    </div>
+  </header>
+  <div class="filters" role="group" aria-label="Filtrer les compétitions" id="filters"></div>
+  <div class="layout">
+    <main id="list" aria-live="polite"></main>
+    <aside class="coupon" aria-label="Combiné">
+      <h2>Mon combiné</h2>
+      <ul id="sel"></ul>
+      <p class="empty" id="sel-empty">Ajoute des sélections avec « + combiné ». Une seule sélection par match.</p>
+      <div class="kv" id="sum" hidden>
+        <span>Probabilité (modèle)</span><span class="num" id="c-prob"></span>
+        <span>Cote juste du combiné</span><span class="num" id="c-fair"></span>
+        <span>Cote du combiné (tes cotes)</span><span class="num" id="c-odds"></span>
+        <label for="c-pay">Paiement affiché pour 1 misé</label>
+        <input type="number" id="c-pay" step="0.01" min="1" inputmode="decimal" placeholder="auto">
+        <span>Valeur théorique</span><span class="num big" id="c-ev"></span>
+      </div>
+      <p class="note" id="c-note"></p>
+    </aside>
+  </div>
+  <p class="foot" id="foot">Sources : football-data.co.uk ; openfootball ; données OpenLigaDB (ODbL 1.0) ; Data provided by football-data.org ; cotes du marché : The Odds API.
+    Les probabilités quantifient l'incertitude ; elles ne garantissent aucun résultat.</p>
+</div>
+
+<script src="value.js"></script>
+</body>
+</html>
