@@ -83,3 +83,26 @@ Statut : décidé le 2026-10-29 (réponses du propriétaire en section 6). À im
    et journal (super admin).
 4. Tests : droits par rôle (un utilisateur ne peut pas appeler une route admin, etc.).
 5. Déploiement sur le VPS, puis retrait du mot de passe Caddy global.
+
+## 8. Compléments décidés le 2026-10-29 (fin de session)
+
+**Approbation obligatoire.** Toute demande de compte (par lien d'invitation, ou par le
+formulaire d'inscription libre s'il est activé un jour) crée un compte `en_attente`. Il ne
+peut pas se connecter tant que le super admin ne l'a pas **approuvé** dans la page de
+gestion. Le super admin peut aussi refuser, suspendre ou supprimer. Statuts :
+`en_attente` → `actif` / `refusé` ; `actif` → `suspendu`.
+
+**Hébergement gratuit (choix du propriétaire).** Par ordre de préférence :
+1. **Oracle Cloud Always Free** : 2 cœurs Arm et 12 Go de RAM gratuits à vie, 200 Go de
+   disque (documentation Oracle, mise à jour 2026-06-12 ; limites divisées par deux en
+   2026). Contraintes : carte bancaire demandée pour vérification (non débitée), région
+   choisie à l'inscription définitive, capacité parfois indisponible, et **reprise des
+   machines « inactives »** (sur 7 jours : CPU au 95e centile < 20 %, réseau < 20 %,
+   mémoire < 20 %). football-intel est souvent calme : risque réel de reprise ; prévoir
+   la sauvegarde quotidienne de la base hors de la machine.
+2. **Ordinateur du propriétaire + Cloudflare Tunnel** : gratuit, et donne une connexion
+   résidentielle utile à Sofascore (D56). L'ordinateur doit rester allumé.
+
+**Domaine.** Un `.com` est payant (environ 10 € par an, à vérifier). Gratuit :
+sous-domaine DuckDNS `benkassiyfootball.duckdns.org` (avec Oracle), à remplacer plus tard
+par `benkassiyfootball.com` sans changer le site.
