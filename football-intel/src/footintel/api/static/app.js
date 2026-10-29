@@ -20,6 +20,9 @@ const COMP_FR = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie
   "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
   "UEFA-ECL": "Ligue Conférence" };
 const compName = (code, name) => COMP_FR[code] || name || code;
+/* A collapsible panel for side information: closed unless `open`; `inner` sits inside a card. */
+const fold = (title, body, { open = false, note = "", inner = false } = {}) =>
+  `<details class="fold${inner ? " inner" : ""}"${open ? " open" : ""}><summary>${title}${note ? ` <span class="sum-note">${note}</span>` : ""}</summary><div class="fold-body">${body}</div></details>`;
 const roundFr = (r) => String(r || "").replace(/^League,\s*/i, "").replace(/Matchday/i, "Journée").replace(/^Round of 16$/i, "Huitièmes de finale")
   .replace(/^Quarter-finals?$/i, "Quarts de finale").replace(/^Semi-finals?$/i, "Demi-finales").replace(/^Final$/i, "Finale");
 /* Relative luminance of an "rgb(r,g,b)" string, to pick white or ink text on it. */
@@ -339,7 +342,7 @@ async function competitions() {
         const share = max ? 0.08 + 0.85 * v / max : 0;
         const bg = mix(C.accent, css("--surface"), share);
         const dark = luminance(bg) < 0.21;
-        return `<td style="background:${bg};color:${dark ? "#ffffff" : C.text}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
+        return `<td style="background:${bg};color:${dark ? "#ffffff" : "#111111"}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
       }).join("")}</tr>`;
     });
     document.getElementById("heatmap").innerHTML = hm + `</table><p class="meta">n = ${n.toLocaleString("fr-FR")} matchs</p>`;
@@ -479,7 +482,7 @@ async function matchPage() {
       <div class="ess-facts">
         <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
         <div><span class="kpi-label">Plus de 2,5 buts</span><span class="kpi-value">${pct(pr.p_over_2_5, 0)}</span><span class="kpi-note">buts attendus ${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span></div>
-        <div><span class="kpi-label">Les deux marquent</span><span class="kpi-value">${pct(pr.p_btts, 0)}</span><span class="kpi-note">${pr.sufficient_data ? "données suffisantes" : "données insuffisantes"}</span></div>
+        <div><span class="kpi-label">Les deux marquent</span><span class="kpi-value">${pct(pr.p_btts, 0)}</span><span class="kpi-note">${pr.sufficient_data ? "but des deux côtés" : "historique court : prudence"}</span></div>
       </div></section>`;
   } else {
     html += `<div class="unavailable" style="margin-bottom:var(--space-4)"><strong>Probabilités du modèle</strong><br><span class="small">${m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Elles seront calculées au prochain cycle du matin." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi : le système ne calcule pas de probabilité après coup."}</span></div>`;
@@ -527,9 +530,8 @@ function tabBefore(m, x, H, A) {
         <p class="question">${esc(streak(T.streaks))}. ${goals(T)} cette saison.</p>${formList(T)}</div>`).join("")}
       ${[H, A].map((T) => `<div class="card"><h2>Meilleurs buteurs de ${esc(T.name)}</h2><p class="question">Saison ${season(x.season)}, championnat.</p>${scorers(T)}</div>`).join("")}
     </div>
-    <div class="card" style="margin-top:var(--space-4)"><h2>Confrontations directes</h2>
-      ${x.h2h?.length ? `<table class="tight"><tbody>${x.h2h.map((r) => `<tr><td>${esc(fdate(r.date))}<div class="small muted">${esc(compName(r.competition))}</div></td><td>${esc(r.home)} – ${esc(r.away)}</td><td class="num">${r.score}</td></tr>`).join("")}</tbody></table>`
-        : `<p class="muted">Aucune confrontation entre ces deux équipes dans les 8 dernières saisons en base.</p>`}</div>`;
+    ${fold("Confrontations directes", x.h2h?.length ? `<table class="tight"><tbody>${x.h2h.map((r) => `<tr><td>${esc(fdate(r.date))}<div class="small muted">${esc(compName(r.competition))}</div></td><td>${esc(r.home)} – ${esc(r.away)}</td><td class="num">${r.score}</td></tr>`).join("")}</tbody></table>`
+        : `<p class="muted">Aucune confrontation entre ces deux équipes dans les 8 dernières saisons en base.</p>`, { note: x.h2h?.length ? `${x.h2h.length} match${x.h2h.length > 1 ? "s" : ""}` : "aucune" })}`;
 }
 
 function tabTactics(m, x, H, A) {
@@ -542,14 +544,14 @@ function tabTactics(m, x, H, A) {
     return `<div class="card"><h2>${esc(T.name)}</h2>
       <p class="question">${f.formation ? `Système habituel <b>${esc(f.formation)}</b> (${pct(f.formation_share, 0)} des matchs)` : "Système non mesuré"}, ${T.profile.matches} matchs de championnat cette saison.</p>
       <ul class="styles">${T.profile.labels.map((l) => `<li><b>${esc(l.text)}</b><p>${esc(x.glossary[l.key] || "")}</p></li>`).join("")}</ul>
-      <table class="tight"><tbody>
+      ${fold("Voir les chiffres", `<table class="tight"><tbody>
         <tr><td>Possession moyenne</td><td class="num">${fig(f, "possession", (v) => `${v.toFixed(0)} %`)}</td></tr>
         <tr><td>Tirs par match (pour / contre)</td><td class="num">${fig(f, "shots_for", (v) => v.toFixed(1))} / ${fig(f, "shots_against", (v) => v.toFixed(1))}<span class="muted small"> moy. ${fig(f, "comp_shots", (v) => v.toFixed(1))}</span></td></tr>
         <tr><td>Buts par tir cadré</td><td class="num">${fig(f, "conversion", (v) => pct(v, 0))}<span class="muted small"> moy. ${fig(f, "comp_conversion", (v) => pct(v, 0))}</span></td></tr>
         <tr><td>Buts marqués après la pause</td><td class="num">${fig(f, "second_half_share", (v) => pct(v, 0))}</td></tr>
         <tr><td>Ouvre le score</td><td class="num">${fig(f, "scored_first", (v) => pct(v, 0))}<span class="muted small"> sur ${f.first_goal_matches ?? 0} matchs avec but</span></td></tr>
         <tr><td>Gagne quand il ouvre le score</td><td class="num">${fig(f, "win_when_first", (v) => pct(v, 0))}<span class="muted small"> sur ${f.n_first ?? 0}</span></td></tr>
-      </tbody></table></div>`;
+      </tbody></table>`, { inner: true })}</div>`;
   };
   return `<div class="card read" style="margin-top:var(--space-4)"><h2>Le match en quelques phrases</h2>
       ${x.matchup.length ? `<ul class="reading">${x.matchup.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : `<p class="muted">Pas assez de données mesurées pour comparer les deux styles.</p>`}
@@ -578,14 +580,13 @@ function tabPlayers(m, pl) {
     if (!rows.length) return "";
     const key = ln === "attack" ? "gf" : "ga";
     const label = ln === "attack" ? "marqués" : "encaissés";
-    return `<h3 style="margin-top:var(--space-4)">${LINE_FR[ln]}</h3>
-      <div class="table-wrap"><table class="tight"><thead><tr><th>Joueur</th><th class="num">Titulaire</th><th class="num">Buts / passes</th><th class="num">Buts ${label} avec lui</th><th class="num">Sans lui</th><th>Lecture</th></tr></thead><tbody>
+    return fold(`${LINE_FR[ln]}`, `<div class="table-wrap"><table class="tight"><thead><tr><th>Joueur</th><th class="num">Titulaire</th><th class="num">Buts / passes</th><th class="num">Buts ${label} avec lui</th><th class="num">Sans lui</th><th>Lecture</th></tr></thead><tbody>
       ${rows.map((x) => { const w = x.split.with, o = x.split.without;
         return `<tr><td>${esc(x.name)}<div class="small muted">${esc(x.role_fr)}</div></td><td class="num">${x.starts}</td><td class="num">${x.goals} / ${x.assists}</td>
           <td class="num">${w ? fmt(w[key]) : "—"}<span class="muted small"> ${w ? `(${w.n})` : ""}</span></td>
           <td class="num">${o ? fmt(o[key]) : "—"}<span class="muted small"> ${o ? `(${o.n})` : ""}</span></td>
           <td class="small">${x.verdict ? esc(x.verdict) : `<span class="muted">${o ? "pas assez de matchs pour comparer" : "a joué tous les matchs"}</span>`}</td></tr>`; }).join("")}
-      </tbody></table></div>`;
+      </tbody></table></div>`, { inner: true, open: ln === "defence", note: `${rows.length} joueur${rows.length > 1 ? "s" : ""}` });
   }).join("");
   const timeline = `<div class="table-wrap"><table class="tight"><thead><tr><th>Match</th><th class="num">Score</th><th>Système</th><th>Défense alignée</th><th class="num">Tirs concédés</th><th>Lecture</th></tr></thead><tbody>
     ${P.timeline.map((r) => `<tr><td>${r.at_home ? "Dom." : "Ext."} ${esc(r.opponent)}<div class="small muted">${esc(fdate(r.date))}</div></td>
@@ -597,7 +598,7 @@ function tabPlayers(m, pl) {
     <div class="card" style="margin-top:var(--space-4)"><h2>Impact des titulaires</h2>
       <p class="question">Résultats de l'équipe dans les matchs où le joueur était titulaire, contre ceux où il ne l'était pas. Entre parenthèses : le nombre de matchs.</p>${lines}
       <p class="meta">Une association sur peu de matchs, pas une preuve : la force des adversaires n'est pas prise en compte. Un écart n'est indiqué qu'avec au moins 3 matchs de chaque côté, et marqué « faible échantillon » sous 5.</p></div>
-    <div class="card" style="margin-top:var(--space-4)"><h2>Match par match</h2><p class="question">Du plus récent au plus ancien. « A craqué » : 2 buts encaissés ou plus.</p>${timeline}</div>`;
+    ${fold("Match par match", `<p class="small muted">Du plus récent au plus ancien. « A craqué » : 2 buts encaissés ou plus.</p>${timeline}`, { note: `${clean} solide${clean > 1 ? "s" : ""}, ${cracks} fois craqué` })}`;
 }
 
 function tabLineups(m, H, A) {
@@ -607,8 +608,7 @@ function tabLineups(m, H, A) {
     return `<div class="card"><h2>${esc(T.name)}${L.formation ? `, ${esc(L.formation)}` : ""}</h2>
       <p class="question">Dernière composition alignée, contre ${esc(L.opponent)} le ${esc(fdate(L.date))}. Ce n'est pas une composition officielle pour ce match.</p>
       <div class="pitch ${side}">${L.lines.map((line) => `<div class="pline">${line.map((n) => `<span class="pl"><i></i>${esc(n.split(" ").slice(-1)[0])}</span>`).join("")}</div>`).join("")}</div>
-      ${T.regulars.length ? `<h3 style="margin-top:var(--space-4)">Les plus titularisés cette saison</h3>
-        <p class="small">${T.regulars.slice(0, 11).map((r) => `${esc(r.name)} <span class="muted">${r.starts}</span>`).join(", ")}</p>` : ""}</div>`;
+      ${T.regulars.length ? fold("Les plus titularisés cette saison", `<p class="small">${T.regulars.slice(0, 11).map((r) => `${esc(r.name)} <span class="muted">${r.starts}</span>`).join(", ")}</p>`, { inner: true }) : ""}</div>`;
   };
   return `<div class="grid two" style="margin-top:var(--space-4)">${pitch(H, "h")}${pitch(A, "a")}</div>`;
 }
@@ -642,7 +642,7 @@ function tabAnalysis(m, d, pr) {
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
         <p class="meta">${esc(pr.model)}, calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")}.</p></div></div>
       <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
-        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table></div></div>`;
+        ${fold("Voir les facteurs", `<table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table>`, { inner: true, open: true })}</div></div>`;
   }
   const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
   if (m.status === "scheduled" && kickoff > new Date()) {
@@ -924,24 +924,36 @@ async function home() {
   shown.forEach((m) => { const k = m.kickoff_date; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); });
   const days = [...byDay.entries()].map(([day, rows]) => {
     const label = new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-    return `<section><div class="day"><h2>${day === today ? "Aujourd'hui" : label.charAt(0).toUpperCase() + label.slice(1)}</h2><span>${rows.length} match${rows.length > 1 ? "s" : ""}</span></div>
-      <div class="fixtures">${rows.map((m) => {
-        const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
-        const has = m.p_home != null;
-        const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
-        const g = marketGaps(m);
-        const flag = !has ? "" : !g ? `<span class="flag" title="Pas de cote de référence pour ce match">—</span>`
-          : Math.abs(g.gap) < 0.05 ? `<span class="flag">proche du marché</span>`
-          : `<span class="flag gap">${signedPts(g.gap)} sur ${g.i === 1 ? "le nul" : g.i === 0 ? "le 1" : "le 2"}</span>`;
-        const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
-        return `<a class="fixture" href="#/match?id=${m.id}">
-          <span class="time">${time}</span>
-          <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
-            <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
-          ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
-          ${flag}</a>`;
-      }).join("")}</div></section>`;
+    const title = day === today ? "Aujourd'hui" : label.charAt(0).toUpperCase() + label.slice(1);
+    const count = (n) => `${n} match${n > 1 ? "s" : ""}`;
+    const ready = rows.filter((m) => m.p_home != null);
+    const waiting = rows.filter((m) => m.p_home == null);
+    // Matches without probabilities yet are secondary: they stay folded under the day.
+    const later = waiting.length
+      ? fold(ready.length ? `${count(waiting.length)} sans probabilités` : title,
+        `<div class="fixtures">${waiting.map(fixtureRow).join("")}</div>`,
+        { note: ready.length ? "calcul au prochain cycle du matin" : `${count(waiting.length)}, probabilités au prochain cycle du matin` })
+      : "";
+    if (!ready.length) return `<section>${later}</section>`;
+    return `<section><div class="day"><h2>${title}</h2><span>${count(rows.length)}</span></div>
+      <div class="fixtures">${ready.map(fixtureRow).join("")}</div>${later}</section>`;
   }).join("");
+  function fixtureRow(m) {
+    const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
+    const has = m.p_home != null;
+    const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
+    const g = marketGaps(m);
+    const flag = !has ? "" : !g ? `<span class="flag" title="Pas de cote de référence pour ce match">—</span>`
+      : Math.abs(g.gap) < 0.05 ? `<span class="flag">proche du marché</span>`
+      : `<span class="flag gap">${signedPts(g.gap)} sur ${g.i === 1 ? "le nul" : g.i === 0 ? "le 1" : "le 2"}</span>`;
+    const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
+    return `<a class="fixture" href="#/match?id=${m.id}">
+      <span class="time">${time}</span>
+      <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
+        <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
+      ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
+      ${flag}</a>`;
+  }
   const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs suivants</button></p>` : "";
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
     <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
@@ -955,28 +967,72 @@ async function home() {
   return head + finding + chips + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + status;
 }
 
+/* Side cards folded on each page: the title stays visible, the content opens on click. */
+const FOLDED = {
+  performance: ["Apport mesuré des niveaux et des tendances", "Historique des versions", "Résultats en conditions réelles"],
+  competitions: ["Tendances détectées (dernier calcul)", "Particularités par rapport au niveau des équipes"],
+  tendances: ["Fiabilité des probabilités par marché", "Qualité et couverture des données"],
+  teams: ["Tendances mesurées"],
+  admin: ["Compétitions", "Sources", "Journal des collectes", "Anomalies de données récentes"],
+};
+function foldCards(page) {
+  const titles = FOLDED[page] || [];
+  document.querySelectorAll("#app .card > h2").forEach((h2) => {
+    if (!titles.includes(h2.textContent.trim())) return;
+    const card = h2.parentElement;
+    const details = document.createElement("details");
+    details.className = "fold";
+    details.style.marginTop = card.style.marginTop;
+    const summary = document.createElement("summary");
+    summary.textContent = h2.textContent;
+    const body = document.createElement("div");
+    body.className = "fold-body";
+    h2.remove();
+    while (card.firstChild) body.appendChild(card.firstChild);
+    details.append(summary, body);
+    card.replaceWith(details);
+  });
+}
+
 /* ---------------- Router ---------------- */
 const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin };
 async function route() {
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
   document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === (page === "match" ? "" : page)));
+  const CRUMB = { "": "Matchs à venir", match: "Matchs", picks: "Mes pronostics", competitions: "Compétitions", teams: "Équipes",
+    performance: "Fiabilité du modèle", tendances: "Tendances", admin: "Administration" };
+  document.getElementById("crumb").textContent = CRUMB[page] || "Football Intel";
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("menu-btn").setAttribute("aria-expanded", "false");
   readColors();
   const app = document.getElementById("app");
   app.innerHTML = `<p class="loading">Chargement…</p>`;
   try {
     app.innerHTML = await (PAGES[page] || overview)();
+    foldCards(page);
   } catch (e) {
     app.innerHTML = `<div class="empty"><h2>Cette page n'a pas pu être chargée</h2><p class="muted">Le serveur a répondu : ${esc(e.message)}. Vérifiez que le service tourne, puis rechargez la page.</p></div>`;
   }
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
-document.getElementById("theme-btn").onclick = () => {
+const themeBtn = document.getElementById("theme-btn");
+const themeLabel = () => { themeBtn.textContent = document.documentElement.dataset.theme === "light" ? "Mode sombre" : "Mode clair"; };
+themeBtn.onclick = () => {
   const root = document.documentElement;
-  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  root.dataset.theme = dark ? "light" : "dark";
+  root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
   try { localStorage.setItem("fi_theme", root.dataset.theme); } catch { /* storage blocked */ }
+  themeLabel();
   route();
+};
+themeLabel();
+document.getElementById("menu-close").onclick = () => {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("menu-btn").setAttribute("aria-expanded", "false");
+};
+document.getElementById("menu-btn").onclick = (e) => {
+  const open = document.getElementById("sidebar").classList.toggle("open");
+  e.currentTarget.setAttribute("aria-expanded", String(open));
 };
 route();

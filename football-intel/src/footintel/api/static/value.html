@@ -6,27 +6,24 @@
 <title>Vérificateur de cotes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap">
-<script>try { const t = localStorage.getItem("fi_theme"); if (t) document.documentElement.dataset.theme = t; } catch { /* storage blocked */ }</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem("fi_theme") || "dark"; } catch { document.documentElement.dataset.theme = "dark"; }</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: one column of match cards, a coupon panel that docks at the bottom on phones
    and sits on the right on wide screens. Same palette as the dashboard. */
-:root {
-  --bg: #f4f6f2; --surface: #ffffff; --text: #15201a; --muted: #5e6b63; --line: #dce2da;
-  --accent: #1e6b47; --accent-soft: #e2efe7; --good: #1e6b47; --good-soft: #e2efe7;
-  --bad: #b3261e; --bad-soft: #f7e3e1; --warn: #85520a; --warn-soft: #f6ead5;
-  --font: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --display: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
+:root, :root[data-theme="dark"] {
+  --bg: #000000; --surface: #111111; --text: #ffffff; --muted: #b4b4b4; --line: #1f1f1f;
+  --accent: #c6f24e; --accent-soft: #182006; --good: #c6f24e; --good-soft: #182006;
+  --bad: #e5484d; --bad-soft: #2c1a1c; --warn: #e5a93b; --warn-soft: #2b2414;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display: "Barlow Semi Condensed", "Inter", system-ui, sans-serif; color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0e1511; --surface: #151f19; --text: #e6eee8; --muted: #98a79d; --line: #26332b;
-  --accent: #58b386; --accent-soft: #1a2e23; --good: #58b386; --good-soft: #1a2e23;
-  --bad: #ef8a80; --bad-soft: #321b19; --warn: #e0a84a; --warn-soft: #2c2415; color-scheme: dark } }
-:root[data-theme="dark"] {
-  --bg: #0e1511; --surface: #151f19; --text: #e6eee8; --muted: #98a79d; --line: #26332b;
-  --accent: #58b386; --accent-soft: #1a2e23; --good: #58b386; --good-soft: #1a2e23;
-  --bad: #ef8a80; --bad-soft: #321b19; --warn: #e0a84a; --warn-soft: #2c2415; color-scheme: dark }
+:root[data-theme="light"] {
+  --bg: #f4f4f2; --surface: #ffffff; --text: #111111; --muted: #555555; --line: #e4e4e0;
+  --accent: #4d7c0f; --accent-soft: #eef5df; --good: #3f6a0b; --good-soft: #eef5df;
+  --bad: #c4242a; --bad-soft: #ffedea; --warn: #8a5408; --warn-soft: #fff6e0; color-scheme: light;
+}
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.45; font-variant-numeric: tabular-nums; }
 .wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 140px;
@@ -44,7 +41,7 @@ h2 { font-size: 1.15rem; font-weight: 600; margin: 0; }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
 .filters button, .chip { border: 1px solid var(--line); background: var(--surface); color: var(--text);
   border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
-.filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.filters button[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 .day { margin: 18px 0 8px; font-family: var(--display); font-weight: 600; font-size: 1.05rem; color: var(--text); }
 .match { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
 .match > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
