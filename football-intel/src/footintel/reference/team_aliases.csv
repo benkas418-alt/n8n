@@ -386,3 +386,85 @@ the_odds_api,TSG Hoffenheim,Hoffenheim
 the_odds_api,Torreense,SC União Torreense
 the_odds_api,Union Saint-Gilloise,St. Gilloise
 the_odds_api,Viktoria Plzeň,Viktoria Plzeň (CZE)
+
+# OneFootball (PL, LaLiga, Serie A, Bundesliga 2026-27). Proposed by the closest team of the
+# same league, then checked one by one on 2026-10-29. One proposal was wrong and was
+# corrected: "Leeds United" (proposed Man United).
+onefootball,Sunderland,Sunderland
+onefootball,Leeds United,Leeds
+onefootball,Manchester United,Man United
+onefootball,AFC Bournemouth,Bournemouth
+onefootball,Liverpool FC,Liverpool
+onefootball,Brighton & Hove Albion,Brighton
+onefootball,Hull City,Hull
+onefootball,Brentford,Brentford
+onefootball,Crystal Palace,Crystal Palace
+onefootball,Newcastle United,Newcastle
+onefootball,Chelsea,Chelsea
+onefootball,Tottenham Hotspur,Tottenham
+onefootball,Coventry City,Coventry
+onefootball,Fulham,Fulham
+onefootball,Arsenal,Arsenal
+onefootball,Everton,Everton
+onefootball,Aston Villa,Aston Villa
+onefootball,Manchester City,Man City
+onefootball,Ipswich Town,Ipswich
+onefootball,Nottingham Forest,Nott'm Forest
+onefootball,Sevilla,Sevilla
+onefootball,Osasuna,Osasuna
+onefootball,Barcelona,Barcelona
+onefootball,Real Madrid,Real Madrid
+onefootball,Real Sociedad,Sociedad
+onefootball,Levante,Levante
+onefootball,Celta de Vigo,Celta
+onefootball,Real Betis,Betis
+onefootball,Athletic Bilbao,Ath Bilbao
+onefootball,Getafe,Getafe
+onefootball,Atlético de Madrid,Ath Madrid
+onefootball,Deportivo A Coruña,La Coruna
+onefootball,Valencia,Valencia
+onefootball,Villarreal,Villarreal
+onefootball,Racing de Santander,Santander
+onefootball,Espanyol,Espanol
+onefootball,Rayo Vallecano,Vallecano
+onefootball,Elche,Elche
+onefootball,Alavés,Alaves
+onefootball,Málaga,Malaga
+onefootball,Monza,Monza
+onefootball,Napoli,Napoli
+onefootball,Genoa,Genoa
+onefootball,Juventus,Juventus
+onefootball,Venezia,Venezia
+onefootball,Inter,Inter
+onefootball,Parma,Parma
+onefootball,Udinese,Udinese
+onefootball,Milan,Milan
+onefootball,Bologna,Bologna
+onefootball,Torino,Torino
+onefootball,Como,Como
+onefootball,Roma,Roma
+onefootball,Cagliari,Cagliari
+onefootball,Sassuolo,Sassuolo
+onefootball,Lazio,Lazio
+onefootball,Lecce,Lecce
+onefootball,Atalanta,Atalanta
+onefootball,Frosinone,Frosinone
+onefootball,Fiorentina,Fiorentina
+onefootball,SC Freiburg,Freiburg
+onefootball,Bayern Munich,Bayern Munich
+onefootball,Hoffenheim,Hoffenheim
+onefootball,Bayer Leverkusen,Leverkusen
+onefootball,Borussia Dortmund,Dortmund
+onefootball,Eintracht Frankfurt,Ein Frankfurt
+onefootball,Paderborn,Paderborn
+onefootball,Hamburg,Hamburg
+onefootball,Köln,FC Koln
+onefootball,Schalke 04,Schalke 04
+onefootball,Mainz,Mainz
+onefootball,Werder Bremen,Werder Bremen
+onefootball,Augsburg,Augsburg
+onefootball,Union Berlin,Union Berlin
+onefootball,RB Leipzig,RB Leipzig
+onefootball,Elversberg,Elversberg
+onefootball,VfB Stuttgart,Stuttgart
+onefootball,Borussia Mönchengladbach,M'gladbach
