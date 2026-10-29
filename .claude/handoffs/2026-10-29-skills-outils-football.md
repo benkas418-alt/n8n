@@ -47,4 +47,4 @@ ou ESPN après vérification de ses conditions).
   invitations, rôles sur toutes les routes, pages de connexion et de gestion, tests,
   puis déploiement sur VPS avec le domaine `benkassiyfootball.com`.
 - Choix final : GitHub Actions + Cloudflare Pages + Access (section 9 du plan). Le propriétaire crée un compte Cloudflare.
-  IP ; jamais de mot de passe dans la conversation.
+- Révision : GitHub Actions + Supabase + Vercel (section 10 du plan).

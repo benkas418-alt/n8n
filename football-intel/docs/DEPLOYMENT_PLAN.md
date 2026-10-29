@@ -124,3 +124,24 @@ publierait les données à tout le monde : écarté.
 - Version 1 en lecture seule ; pronostics par utilisateur en étape 2 (Workers + D1).
 - À vérifier : carte bancaire demandée pour Access/R2 ; blocage éventuel de OneFootball
   depuis les adresses GitHub ; nom `benkassiyfootball.pages.dev` libre.
+
+## 10. Révision après vérification des connecteurs (2026-10-29) — remplace la section 9
+
+Connecteurs claude.ai du propriétaire : **Vercel**, **Netlify**, **Render** connectés ;
+**Supabase** installé mais connexion à terminer. Choix, 0 € :
+
+- **GitHub Actions** : cycle quotidien (collecte, modèle, prédictions) ; la base complète
+  (~1,1 Go) reste côté GitHub (cache/artefact privé), jamais dans le dépôt public.
+- **Supabase (gratuit)** : comptes (Supabase Auth), table `profiles` avec rôle
+  (`superadmin`, `user`, `admin` prévu) et statut (`en_attente`, `actif`, `refusé`,
+  `suspendu`) ; seules les **tables de résultats** (matchs à venir, probabilités, fiches,
+  fiabilité : quelques Mo) y sont poussées chaque matin. Règles RLS : lecture réservée aux
+  comptes `actif` ; validation par le super admin.
+- **Vercel (gratuit)** : site (lien `*.vercel.app`, domaine plus tard), pages : connexion,
+  demande de compte (code d'invitation obligatoire), page super admin (approuver/refuser).
+- Écartés : Render gratuit (Postgres gratuit supprimé après 30 jours, limité à 1 Go ;
+  tâches planifiées payantes), Cloudflare (pas de connecteur ; reste une alternative).
+- À faire par le propriétaire : terminer la connexion du connecteur Supabase dans les
+  réglages claude.ai ; créer le projet Supabase (gratuit).
+- Limites Supabase gratuit à surveiller : 500 Mo de base, projet mis en pause après une
+  semaine sans activité (l'envoi quotidien l'évite).
