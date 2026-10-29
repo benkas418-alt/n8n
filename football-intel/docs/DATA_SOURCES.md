@@ -56,7 +56,7 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 
 ### The Odds API — cotes 1X2 des coupes
 
-| Élément | Constat (2026-10-28, code prêt, clé pas encore installée) |
+| Élément | Constat (2026-10-29, premier passage réel : 54 matchs de C1, C3 et C4 rattachés, 20 bookmakers, 3 crédits) |
 |---|---|
 | Accès | `https://api.the-odds-api.com/v4`, clé en variable d'environnement `ODDS_API_KEY` (jamais dans le dépôt). La clé passe dans l'URL : elle est masquée dans les erreurs et les journaux `httpx` sont coupés. |
 | Quota | Offre gratuite : 500 crédits par mois. `/sports` est gratuit ; un appel `/odds` en `h2h` sur une région (`eu`) coûte 1 crédit ; une réponse vide ne coûte rien. 4 compétitions × 2 passages par jour = 8 crédits par jour au plus, environ 250 par mois. Arrêt automatique sous 40 crédits restants. |
