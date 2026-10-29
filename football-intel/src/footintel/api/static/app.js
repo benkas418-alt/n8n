@@ -620,7 +620,8 @@ const odds2 = (v) => (v == null ? "—" : Number(v).toFixed(2).replace(".", ",")
 /* The short reading: verdict, the safest markets with their fair odds, a few key facts. */
 function tabSummary(m, d, x, pr) {
   if (!pr) return `<div class="unavailable" style="margin-top:var(--space-4)"><strong>Pas encore de probabilités</strong><br><span class="small">${m.status === "scheduled" ? "Elles seront calculées au prochain cycle du matin." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi."}</span></div>`;
-  const S = d.summary || {};
+  if (!d.summary) return `<div class="unavailable" style="margin-top:var(--space-4)"><strong>Synthèse en préparation</strong><br><span class="small">Elle apparaîtra après le prochain cycle de calcul. En attendant, voir l'onglet Paris.</span></div>`;
+  const S = d.summary;
   const fg = x?.first_goal;
   const top = pr.top_scores[0];
   const picks = (S.safe_picks || []).map((p) => `<div class="pick"><span class="pick-label">${esc(p.label.replace("domicile", m.home).replace("extérieur", m.away))}</span>
@@ -1023,7 +1024,7 @@ async function home() {
     const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
     // One line per match: its safest checked market and the fair odds to beat.
     const sp = m.safe;
-    const flag = !has ? "" : sp
+    const flag = !has || sp === undefined ? "" : sp
       ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
       : `<span class="flag">pas de pari sûr</span>`;
     const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
