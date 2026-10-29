@@ -30,15 +30,22 @@
 			}
 		]
 	},
+	"enabledPlugins": {
+		"n8n@n8n": true,
+		"session-handoff@session-handoff": true
+	},
 	"extraKnownMarketplaces": {
 		"n8n": {
 			"source": {
 				"source": "directory",
 				"path": "./.claude/plugins/n8n"
 			}
+		},
+		"session-handoff": {
+			"source": {
+				"source": "github",
+				"repo": "David-E-Kay/claude-session-handoff"
+			}
 		}
-	},
-	"enabledPlugins": {
-		"n8n@n8n": true
 	}
 }
