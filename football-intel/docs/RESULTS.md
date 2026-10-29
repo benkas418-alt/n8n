@@ -1,5 +1,29 @@
 # Résultats du backtest réel
 
+## Test des xG Understat (2026-10-29)
+
+Question : les buts attendus (xG) améliorent-ils le modèle à cotes ? Script :
+`scripts/xg_experiment.py`. Source : fichiers de tirs Understat republiés par
+worldfootballR_data sur GitHub (4 championnats, 2014-15 à septembre 2025). Understat n'est
+jamais interrogé (son robots.txt interdit tous les robots).
+
+Rattachement : 133 noms d'équipe sur 134 (Pisa manque, absent des saisons testées), 16 030
+matchs rattachés, 2 écartés pour score différent. Variables fixées avant tout résultat : xG
+pour et contre, moyenne des 10 derniers matchs (au moins 5), et l'écart entre les deux équipes.
+
+Saisons 2021 à 2024, 5 705 matchs de championnat (98,6 % avec xG), hors échantillon :
+
+| Comparaison | Log loss (IC 95 %) |
+|---|---|
+| Avec xG − modèle actif | +0,0008 [+0,0000 ; +0,0015] |
+| Avec xG − sans xG, mêmes lignes d'entraînement | +0,0008 [+0,0001 ; +0,0015] |
+| Modèle actif − marché avant clôture | −0,0001 [−0,0023 ; +0,0021] |
+
+CLV au prix moyen (avantage > 3 %) : −2,4 % pour le modèle actif, −2,7 % avec xG.
+
+Lecture : les xG **dégradent** légèrement le modèle. Le marché les intègre déjà, et le modèle
+lit déjà les tirs cadrés des 5 derniers matchs, qui portent la même information.
+
 ## Cote de clôture (CLV) et mélange modèle-marché (2026-10-29)
 
 Question : le modèle voit-il quelque chose que le marché n'intègre qu'au coup d'envoi ?
