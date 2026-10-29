@@ -15,7 +15,11 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   Not in this repository. Use the `prediction-modeling` skill for what to log.
 - Work branches: `ccr-4d6bcf99-mmbgxo` and `claude/branche-higgsfield-974raq`; push both.
 
-## Skills in .claude/skills (85) — pick by theme
+## Skills in .claude/skills (117) — pick by theme
+
+38 come from master (marketingskills v2: copywriting, ad-creative, social, sms, offers,
+referrals, onboarding, analytics, aso…; skill-creator, brainstorming, deep-research…).
+Where names overlapped, master's newer version was kept. Main ones added by us:
 
 | Theme | Skills |
 |---|---|

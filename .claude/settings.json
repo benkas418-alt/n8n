@@ -30,15 +30,23 @@
 			}
 		]
 	},
-	"enabledPlugins": {
-		"n8n@n8n": true,
-		"session-handoff@session-handoff": true
-	},
 	"extraKnownMarketplaces": {
 		"n8n": {
 			"source": {
 				"source": "directory",
 				"path": "./.claude/plugins/n8n"
+			}
+		},
+		"dotnet-agent-skills": {
+			"source": {
+				"source": "github",
+				"repo": "dotnet/skills"
+			}
+		},
+		"humanizer": {
+			"source": {
+				"source": "github",
+				"repo": "blader/humanizer"
 			}
 		},
 		"session-handoff": {
@@ -47,5 +55,11 @@
 				"repo": "David-E-Kay/claude-session-handoff"
 			}
 		}
+	},
+	"enabledPlugins": {
+		"n8n@n8n": true,
+		"dotnet@dotnet-agent-skills": true,
+		"humanizer@humanizer": true,
+		"session-handoff@session-handoff": true
 	}
 }

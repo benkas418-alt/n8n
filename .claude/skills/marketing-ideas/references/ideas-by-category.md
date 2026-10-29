@@ -2,6 +2,25 @@
 
 Complete list of proven marketing approaches organized by category.
 
+## Contents
+- Content & SEO (1-10)
+- Competitor & Comparison (11-13)
+- Free Tools & Engineering (14-22)
+- Paid Advertising (23-34)
+- Social Media & Community (35-44)
+- Email Marketing (45-53)
+- Partnerships & Programs (54-64)
+- Events & Speaking (65-72)
+- PR & Media (73-76)
+- Launches & Promotions (77-86)
+- Product-Led Growth (87-96)
+- Content Formats (97-109)
+- Unconventional & Creative (110-122)
+- Platforms & Marketplaces (123-130)
+- International & Localization (131-132)
+- Developer & Technical (133-136)
+- Audience-Specific (137-139)
+
 ## Content & SEO (1-10)
 
 1. **Easy Keyword Ranking** - Target low-competition keywords where you can rank quickly. Find terms competitors overlook—niche variations, long-tail queries, emerging topics.
@@ -292,7 +311,7 @@ Complete list of proven marketing approaches organized by category.
 
 120. **Marketing Stunts** - Bold, attention-grabbing marketing moments.
 
-121. **Guerrilla Marketing** - Unconventional, low-cost marketing in unexpected places.
+121. **Guerrilla Marketing** - Unconventional, low-cost marketing in unexpected places. Deep dive: direct-mail 3-rule framework (relevance / relationship / precision), ROI discipline, and a named case library in [guerrilla-marketing.md](guerrilla-marketing.md).
 
 122. **Humor Marketing** - Use humor to stand out and create memorability.
 
