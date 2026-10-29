@@ -894,3 +894,29 @@ def test_units_skip_duos_without_a_comparison():
     # No defender in a duo, and no duo whose matches are all of one player's starts (Mid D, Wing C).
     assert all("Back" not in k for k in units)
     assert ("Mid D", "Wing B") not in units and ("Mid A", "Wing C") not in units
+
+
+def test_error_leads_follow_fixed_thresholds():
+    from datetime import date
+
+    from footintel.analysis.errors import analyse, errors_markdown
+
+    n = 40
+    df = pd.DataFrame({"match_id": range(n), "log_loss": 1.0, "correct": False, "p_home": 0.7, "p_draw": 0.2,
+                       "p_away": 0.1, "result": ["D"] * 20 + ["A"] * 20, "home_goals": 1, "away_goals": 1,
+                       "competition": "ENG-PL", "competition_name": "Premier League", "home": "A", "away": "B",
+                       "kickoff_date": date(2026, 10, 1), "market_log_loss": 0.9})
+    e = analyse(df, date(2026, 9, 1), date(2026, 10, 30))
+    text = " ".join(e["leads"])
+    assert "nuls sont sous-estimés" in text and "favori gagne 0 %" in text and "moins bien que le marché" in text
+    md = "\n".join(errors_markdown(e))
+    assert "1.000 / 0.900 (40)" in md
+    assert analyse(df.iloc[0:0], date(2026, 9, 1), date(2026, 10, 30)) is None
+
+
+def test_weekly_email_is_skipped_without_smtp(tmp_path):
+    from footintel.config import Settings
+    from footintel.notify.email import send_report
+
+    s = Settings(_env_file=None, smtp_host=None, report_to=None)
+    assert send_report(s, "x", "y", []) is False

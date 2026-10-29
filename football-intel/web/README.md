@@ -62,6 +62,10 @@ Open signup stays off (`open_signup = 'false'`). Only invitation codes work.
      keep a copy: without it the state cannot be read)
    - optional secrets: `FOOTBALL_DATA_ORG_KEY`, `ODDS_API_KEY`, `TELEGRAM_BOT_TOKEN`,
      `TELEGRAM_CHAT_ID`
+   - weekly report by e-mail (optional): variables `SMTP_HOST` (`smtp.gmail.com`),
+     `SMTP_USER` (the sending Gmail address), `REPORT_TO` (recipients, comma-separated);
+     secret `SMTP_PASSWORD` = a Gmail app password (Google account > Security >
+     2-step verification > App passwords), never the account password
 4. Merge the branch into `master`: scheduled workflows run only from the default branch.
    Then start the workflow once by hand (Actions > football-intel > Run workflow).
 5. Sign up on the site with the super admin e-mail (no code needed), confirm the e-mail.

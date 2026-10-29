@@ -163,7 +163,14 @@ def cmd_report(args, settings, engine):
 
         print(match_sheet_markdown(engine, args.match_id))
         return
-    if args.kind == "prematch":
+    if args.kind == "weekly":
+        from footintel.pipeline import _email_weekly
+        from footintel.reports.weekly import weekly_report
+
+        rep = weekly_report(engine, settings)
+        if args.email:
+            print("e-mail sent" if _email_weekly(settings, rep.paths) else "e-mail not sent (SMTP not configured)")
+    elif args.kind == "prematch":
         rep = prematch_report(engine, settings, args.horizon)
     else:
         rep = postmatch_report(engine, settings, date.fromisoformat(args.start),
@@ -354,7 +361,8 @@ def build_parser() -> argparse.ArgumentParser:
         fn=cmd_evaluate)
 
     rp = sub.add_parser("report", help="generate a report")
-    rp.add_argument("kind", choices=["prematch", "postmatch", "fiche"])
+    rp.add_argument("kind", choices=["prematch", "postmatch", "fiche", "weekly"])
+    rp.add_argument("--email", action="store_true", help="weekly: also send the PDF by e-mail")
     rp.add_argument("--match-id", type=int, help="match for the pre-match sheet")
     rp.add_argument("--horizon", type=int, default=7)
     rp.add_argument("--start", default=str(date.today()))

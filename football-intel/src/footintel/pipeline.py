@@ -41,6 +41,14 @@ def _notify(settings: Settings, title: str, report_paths) -> None:
     send(settings, f"{title}\n\n{summary_from_markdown(md)}")
 
 
+def _email_weekly(settings: Settings, report_paths) -> bool:
+    from footintel.notify.email import email_weekly
+    from footintel.notify.telegram import summary_from_markdown
+
+    md = report_paths["md"].read_text(encoding="utf-8")
+    return email_weekly(settings, report_paths, summary_from_markdown(md))
+
+
 def morning(engine: Engine, settings: Settings) -> dict:
     """Fixtures and odds, then predictions and the pre-match report."""
     results: dict = {}
@@ -147,6 +155,7 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         weekly = weekly_report(engine, settings)
         results["weekly_report"] = str(weekly.paths["md"])
         _notify(settings, "Football Intel — rapport hebdomadaire", weekly.paths)
+        _step("email", lambda: _email_weekly(settings, weekly.paths), results)
     except Exception:
         status = "failed"
         raise

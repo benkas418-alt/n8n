@@ -50,6 +50,12 @@ jobs:
       SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       STATE_KEY: ${{ secrets.FOOTINTEL_STATE_KEY }}
+      # Weekly report by e-mail (PDF printed by the runner's Chrome); skipped when unset.
+      SMTP_HOST: ${{ vars.SMTP_HOST }}
+      SMTP_PORT: ${{ vars.SMTP_PORT || '587' }}
+      SMTP_USER: ${{ vars.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      REPORT_TO: ${{ vars.REPORT_TO }}
     defaults:
       run:
         working-directory: football-intel
