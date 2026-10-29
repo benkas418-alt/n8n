@@ -106,3 +106,21 @@ gestion. Le super admin peut aussi refuser, suspendre ou supprimer. Statuts :
 **Domaine.** Un `.com` est payant (environ 10 € par an, à vérifier). Gratuit :
 sous-domaine DuckDNS `benkassiyfootball.duckdns.org` (avec Oracle), à remplacer plus tard
 par `benkassiyfootball.com` sans changer le site.
+
+## 9. Choix final du propriétaire (2026-10-29) : GitHub + Cloudflare, 0 €
+
+Remplace les sections 3 et 4 pour la version 1. Le dépôt est public, donc GitHub Pages
+publierait les données à tout le monde : écarté.
+
+- **GitHub Actions** (gratuit, dépôt public) : cycle quotidien (collecte, prédictions) dans
+  un conteneur PostgreSQL éphémère ; la base est restaurée puis sauvegardée à chaque
+  exécution (stockage privé à choisir : cache GitHub Actions, ou Cloudflare R2).
+  Les clés (Odds API, football-data.org) en secrets GitHub, jamais dans le dépôt.
+- **Export statique** : l'API produit des fichiers JSON ; le tableau de bord les lit.
+- **Cloudflare Pages** : publication du site (lien gratuit `*.pages.dev`), envoyé par
+  l'action GitHub (les données ne sont jamais commitées dans le dépôt public).
+- **Cloudflare Access** (gratuit jusqu'à 50 utilisateurs) : connexion par code e-mail ;
+  seules les adresses ajoutées par le propriétaire entrent = approbation du super admin.
+- Version 1 en lecture seule ; pronostics par utilisateur en étape 2 (Workers + D1).
+- À vérifier : carte bancaire demandée pour Access/R2 ; blocage éventuel de OneFootball
+  depuis les adresses GitHub ; nom `benkassiyfootball.pages.dev` libre.

@@ -46,5 +46,5 @@ ou ESPN après vérification de ses conditions).
 - À implémenter dans la prochaine session : comptes (super admin + invités), sessions,
   invitations, rôles sur toutes les routes, pages de connexion et de gestion, tests,
   puis déploiement sur VPS avec le domaine `benkassiyfootball.com`.
-- Le propriétaire doit : acheter le domaine, louer un VPS (Ubuntu), puis donner l'adresse
+- Choix final : GitHub Actions + Cloudflare Pages + Access (section 9 du plan). Le propriétaire crée un compte Cloudflare.
   IP ; jamais de mot de passe dans la conversation.
