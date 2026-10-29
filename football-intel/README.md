@@ -123,7 +123,7 @@ Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" d
 | Espace | Question à laquelle il répond |
 |---|---|
 | Matchs (accueil) | Que dit le modèle sur les prochains matchs ? Probabilités 1 / X / 2 par jour, filtre par compétition, écart avec le marché. Un clic ouvre la fiche du match. |
-| Fiche d'un match | Probabilités 1X2 contre le marché, scores classés par probabilité, facteurs, fiabilité, fiches des deux équipes, mon pronostic. |
+| Fiche d'un match | L'essentiel en tête : qui gagne, qui marque en premier, score le plus probable, plus de 2,5 buts, les deux marquent. Onglets : Avant-match (forme, séries, buteurs, confrontations), Tactique (style mesuré de chaque équipe et lecture du match), Compositions (dernière composition sur un terrain), Classement, Journées, Analyse (scores probables, facteurs, fiabilité, mon pronostic). |
 | Cotes | Vérificateur de cotes : cote juste, valeur théorique, combiné. |
 | Mes pronostics | Mes choix horodatés contre le modèle et le résultat. |
 | Compétitions | Évolution par saison avec intervalle de confiance, saison récente contre référence, matrice des scores (cliquable → matchs), distribution des buts, mi-temps, indicateurs de jeu, tendances et particularités. |

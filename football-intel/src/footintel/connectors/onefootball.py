@@ -66,7 +66,7 @@ class TeamSheet:
 class Event:
     key: str
     side: int  # 0 home, 1 away
-    type: str  # goal | card | substitution
+    type: str  # goal | disallowed_goal | card | substitution
     detail: str  # label shown by the source, e.g. "Yellow card", "Own goal"
     minute: int | None
     extra_minute: int | None
@@ -172,6 +172,9 @@ def _event(e: dict, n: int) -> Event | None:
         player, other = (body.get("playerIn") or {}).get("name"), (body.get("playerOut") or {}).get("name")
     else:
         return None
+    # A goal the referee cancelled keeps its own type, so goal counts stay true.
+    if kind == "goal" and "disallowed" in (e.get("name") or "").lower():
+        kind = "disallowed_goal"
     # No event id in the source: the key is the order and content, stable on re-read.
     key = f"{n}|{kind}|{e.get('timeline', '')}|{player or ''}"[:200]
     return Event(key, int(e.get("teamSide", 0)), kind, (e.get("name") or kind)[:200],

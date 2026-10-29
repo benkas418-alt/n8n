@@ -2,6 +2,7 @@
 size and data status, so the interface never shows a number without its context."""
 
 import math
+from datetime import date
 from decimal import Decimal
 
 import numpy as np
@@ -267,6 +268,24 @@ def home() -> dict:
                              ORDER BY promoted_at DESC LIMIT 1) AS model,
                             (SELECT max(predicted_at) FROM predictions) AS last_prediction""")
     return {**status, "matches": matches}
+
+
+@router.get("/match/{match_id}/insights")
+def match_insights_view(match_id: int) -> dict:
+    """Form, head-to-head, standings, scorers, last line-up, tactical profile, first goal."""
+    from footintel.analysis.matchup import match_insights
+
+    m = _one("""SELECT m.id, m.kickoff_date, c.code AS competition, m.home_team_id, m.away_team_id,
+                       th.name AS home, ta.name AS away
+                FROM matches m JOIN competitions c ON c.id = m.competition_id
+                JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
+                WHERE m.id = :m""", m=match_id)
+    if not m:
+        raise HTTPException(404, "unknown match")
+    m["kickoff_date"] = date.fromisoformat(str(m["kickoff_date"]))
+    pred = _one("""SELECT exp_home_goals, exp_away_goals FROM predictions WHERE match_id = :m
+                   ORDER BY predicted_at DESC LIMIT 1""", m=match_id)
+    return match_insights(get_engine(), m, pred)
 
 
 def _score_grid(lh: float, la: float, n: int = 6) -> list[list[float]]:

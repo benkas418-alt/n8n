@@ -339,7 +339,8 @@ def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPa
             by_name[side].update({p.name: player.id, p.short_name: player.id})
     for ev in page.events:
         names = by_name[ev.side] if ev.side in (0, 1) else {}
-        detail = ev.detail if ev.other_player is None else f"{ev.detail}: {ev.player} / {ev.other_player}"
+        # "Label: player / other player": the names stay readable when no player row matches.
+        detail = ev.detail + (f": {ev.player}" if ev.player else "") + (f" / {ev.other_player}" if ev.other_player else "")
         s.add(MatchEvent(match_id=match.id, source_id=source_id, external_key=ev.key, minute=ev.minute,
                          extra_minute=ev.extra_minute, team_id=team_ids[ev.side] if ev.side in (0, 1) else None,
                          player_id=names.get(ev.player or ""), type=ev.type, detail=detail[:200]))

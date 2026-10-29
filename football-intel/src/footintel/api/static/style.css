@@ -249,3 +249,64 @@ code { font-size: 0.85rem; background: var(--sunk); padding: 1px 5px; border-rad
 .loading { color: var(--muted); padding: var(--space-6) 0; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---- Match page ---- */
+.match-top { display: grid; grid-template-columns: 1fr minmax(0, 1.4fr) 1fr; gap: var(--space-4); align-items: center;
+  margin: var(--space-2) 0 var(--space-5); }
+.team-side { display: grid; justify-items: start; gap: 6px; }
+.team-side.a { justify-items: end; text-align: right; }
+.team-name { font-family: var(--display); font-weight: 700; font-size: 1.25rem; }
+.crest { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  font-family: var(--display); font-weight: 700; font-size: 1.15rem; color: var(--surface); }
+.crest.h { background: var(--home); }
+.crest.a { background: var(--away); }
+.match-mid { text-align: center; }
+.match-mid h1 { margin-bottom: 4px; }
+.match-mid p { margin: 0 auto; color: var(--muted); font-size: 0.9rem; }
+@media (max-width: 700px) {
+  .match-top { grid-template-columns: 1fr 1fr; }
+  .match-mid { grid-column: 1 / -1; grid-row: 1; }
+  .crest { width: 40px; height: 40px; font-size: 0.95rem; }
+}
+.form { display: inline-flex; gap: 3px; }
+.res { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; font-size: 0.72rem;
+  font-weight: 700; color: var(--surface); flex: none; }
+.res.w { background: var(--home); }
+.res.d { background: var(--draw); }
+.res.l { background: var(--down); }
+.essentials { display: grid; grid-template-columns: 1fr 1fr minmax(0, 0.9fr); gap: var(--space-4);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-4); }
+.ess-block h2, .essentials h2 { font-size: 1rem; margin-bottom: var(--space-2); }
+.ess-facts { display: grid; gap: var(--space-3); }
+.ess-facts div { display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: var(--space-3); }
+.ess-facts .kpi-value { font-size: 1.5rem; text-align: right; }
+.ess-facts .kpi-note { grid-column: 1 / -1; font-size: 0.8rem; }
+@media (max-width: 900px) { .essentials { grid-template-columns: 1fr; padding: var(--space-4); } }
+.tabs { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 10px var(--space-3); color: var(--muted); font-weight: 500; text-decoration: none; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); text-decoration: none; }
+.tab.on { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+.seg { display: inline-flex; background: var(--sunk); border-radius: var(--radius-s); padding: 3px; }
+.seg-btn { padding: 6px 12px; border-radius: 4px; color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+.seg-btn:hover { color: var(--text); text-decoration: none; }
+.seg-btn.on { background: var(--surface); color: var(--text); font-weight: 600; }
+table.tight td { padding: 7px 6px; vertical-align: middle; }
+.styles { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: var(--space-3); }
+.styles b { font-family: var(--display); font-size: 1.05rem; }
+.styles p { margin: 2px 0 0; font-size: 0.9rem; color: var(--muted); }
+.reading { margin: 0; padding-left: 1.1em; display: grid; gap: var(--space-2); }
+.reading li { max-width: 80ch; }
+.pitch { background: var(--home-soft); border-radius: var(--radius-s); padding: var(--space-3) var(--space-2);
+  display: grid; gap: var(--space-3); }
+.pitch.a { background: var(--away-soft); }
+.pline { display: flex; justify-content: space-around; gap: var(--space-1); }
+.pl { display: grid; justify-items: center; gap: 3px; font-size: 0.8rem; text-align: center; min-width: 0; max-width: 84px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl i { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--home); }
+.pitch.a .pl i { background: var(--away); }
+table.standings tr.me td { background: var(--sunk); font-weight: 600; }
+table.standings tr.me.h td:first-child { border-left: 3px solid var(--home); }
+table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }

@@ -679,7 +679,9 @@ def onefootball_match_page(home="Synth One", away="Synth Two"):
                 "type": 0, "player": {"name": f"{away} P101"}}}},
             {"teamSide": 1, "name": "Substitution", "timeline": "70'", "type": {"$case": "substitution",
                 "substitution": {"playerIn": {"name": "Bench Man"}, "playerOut": {"name": f"{away} P100"}}}},
-            {"teamSide": 0, "name": "Other", "timeline": "80'", "type": {"$case": "var", "var": {}}}]}),
+            {"teamSide": 0, "name": "Other", "timeline": "80'", "type": {"$case": "var", "var": {}}},
+            {"teamSide": 1, "name": "Disallowed goal", "timeline": "85'", "type": {"$case": "goal", "goal": {
+                "scorer": {"name": "Bench Man"}}}}]}),
         comp("matchStats", {"stats": [{"title": "Possession", "home": 55, "away": 45},
                                       {"title": "Total shots", "home": 12, "away": 7},
                                       {"title": "Shots on target", "home": 5, "away": 2},
@@ -696,7 +698,8 @@ def test_onefootball_parses_lineups_events_and_stats():
     assert page.finished and page.home.formation == "4-3-3" and len(page.away.starters) == 11
     assert [page.home.starters[i].position for i in (0, 3, 6, 10)] == ["A", "M", "D", "G"]
     assert page.home.starters[0].external_id == "1"
-    goal, card, sub = page.events  # the unknown event type is left out
+    goal, card, sub, cancelled = page.events  # the unknown event type is left out
+    assert cancelled.type == "disallowed_goal" and cancelled.player == "Bench Man"
     assert (goal.type, goal.minute, goal.extra_minute, goal.other_player) == ("goal", 45, 2, "Synth One P5")
     assert (card.side, card.detail) == (1, "Yellow card") and sub.player == "Bench Man"
     assert page.stats == {"home": {"possession_pct": 55, "shots": 12, "shots_on_target": 5},
@@ -707,3 +710,31 @@ def test_onefootball_parses_lineups_events_and_stats():
         {"link": "/en/news/1", "kickoff": "2026-10-25T16:30:00Z", "homeTeam": {"name": "A"},
          "awayTeam": {"name": "B"}}]}]})
     assert [(c.external_id, c.finished) for c in cards] == [("7", True)] and more is None
+
+
+def test_first_goal_split_follows_expected_goals():
+    from footintel.analysis.matchup import first_goal
+
+    fg = first_goal(2.0, 1.0)
+    assert math.isclose(fg["home"] + fg["away"] + fg["none"], 1.0)
+    assert math.isclose(fg["home"], 2 * fg["away"]) and math.isclose(fg["none"], math.exp(-3.0))
+    assert first_goal(None, 1.0) is None
+
+
+def test_standings_and_goal_events_keep_the_credited_team():
+    from footintel.analysis.matchup import _goal_events, standings
+
+    played = pd.DataFrame([
+        {"id": 1, "competition": "ENG-PL", "season": 2026, "kickoff_date": date(2026, 8, 1), "home_team_id": 1,
+         "away_team_id": 2, "home": "Alpha", "away": "Beta", "home_goals": 2, "away_goals": 0},
+        {"id": 2, "competition": "ENG-PL", "season": 2026, "kickoff_date": date(2026, 8, 8), "home_team_id": 2,
+         "away_team_id": 3, "home": "Beta", "away": "Gamma", "home_goals": 1, "away_goals": 1}])
+    table = standings(played, "ENG-PL", 2026)
+    assert [(r["team"], r["points"], r["rank"]) for r in table] == [("Alpha", 3, 1), ("Gamma", 1, 2), ("Beta", 1, 3)]
+    goals = _goal_events(pd.DataFrame([
+        {"match_id": 1, "team_id": 1, "minute": 10, "extra": 0, "detail": "Own goal: Beta Player",
+         "home_team_id": 1, "away_team_id": 2},
+        {"match_id": 1, "team_id": 1, "minute": 50, "extra": 0, "detail": "Goal: Alpha Striker / Alpha Wing",
+         "home_team_id": 1, "away_team_id": 2}]))
+    assert goals.credited.tolist() == [1, 1] and goals.own.tolist() == [True, False]
+    assert goals.scorer.tolist() == ["Beta Player", "Alpha Striker"]
