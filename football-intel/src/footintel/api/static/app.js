@@ -450,13 +450,15 @@ const formDots = (rows) => rows.length
   ? `<span class="form">${rows.map((r) => `<span class="res ${RES_CLS[r.result]}" title="${esc(fdate(r.date))} · ${r.at_home ? "dom." : "ext."} ${esc(r.opponent)} ${r.gf}-${r.ga}">${r.result}</span>`).join("")}</span>`
   : `<span class="muted small">Aucun match</span>`;
 
-const TABS = [["avant", "Avant-match"], ["marches", "Paris"], ["moments", "Moments du match"], ["tactique", "Tactique"], ["joueurs", "Joueurs"], ["compos", "Compositions"],
-  ["classement", "Classement"], ["journees", "Journées"], ["analyse", "Analyse"]];
+// Four sections in view; the detailed ones stay one step away.
+const TABS = [["synthese", "Synthèse"], ["marches", "Paris"], ["moments", "Moments du match"], ["joueurs", "Joueurs"]];
+const MORE_TABS = [["avant", "Forme et confrontations"], ["tactique", "Tactique"], ["compos", "Compositions"],
+  ["classement", "Classement"], ["journees", "Journées"], ["analyse", "Analyse du modèle"]];
 
 async function matchPage() {
   const p = params();
   if (!p.id) return home();
-  const tab = TABS.some(([k]) => k === p.t) ? p.t : "avant";
+  const tab = [...TABS, ...MORE_TABS].some(([k]) => k === p.t) ? p.t : "synthese";
   const [d, x, pl] = await Promise.all([get(`/match/${p.id}`), get(`/match/${p.id}/insights`).catch(() => null),
     tab === "joueurs" ? get(`/match/${p.id}/players`).catch(() => null) : null]);
   const m = d.match;
@@ -472,28 +474,15 @@ async function matchPage() {
       <div class="team-side a">${crest(m.away, "a")}<span class="team-name">${esc(m.away)}</span>${A ? formDots(A.form_all.slice(0, 5)) : ""}</div>
     </div>`;
 
-  // The essentials: who wins, who scores first, the likeliest score, goals.
-  if (pr) {
-    const fg = x?.first_goal;
-    const top = pr.top_scores[0];
-    html += `<section class="essentials" aria-label="L'essentiel">
-      <div class="ess-block"><h2>Qui gagne</h2>${strip([pr.p_home, pr.p_draw, pr.p_away], pr.market.every((v) => v != null) ? pr.market : null, true)}</div>
-      <div class="ess-block"><h2>Qui marque en premier</h2>${fg ? strip([fg.home, fg.none, fg.away], null, true) : `<p class="muted">Estimation indisponible.</p>`}
-        ${fg ? `<p class="meta">Au milieu : aucun but. Sur 322 matchs de 2026-27, l'équipe annoncée favorite a ouvert le score dans 63 % des cas.</p>` : ""}</div>
-      <div class="ess-facts">
-        <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
-        <div><span class="kpi-label">Plus de 2,5 buts</span><span class="kpi-value">${pct(pr.p_over_2_5, 0)}</span><span class="kpi-note">buts attendus ${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span></div>
-        <div><span class="kpi-label">Les deux marquent</span><span class="kpi-value">${pct(pr.p_btts, 0)}</span><span class="kpi-note">${pr.sufficient_data ? "but des deux côtés" : "historique court : prudence"}</span></div>
-      </div></section>`;
-  } else {
-    html += `<div class="unavailable" style="margin-bottom:var(--space-4)"><strong>Probabilités du modèle</strong><br><span class="small">${m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Elles seront calculées au prochain cycle du matin." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi : le système ne calcule pas de probabilité après coup."}</span></div>`;
-  }
-
   html += `<div class="tabs" role="tablist" aria-label="Sections du match">${TABS.map(([k, label]) =>
-    `<a role="tab" href="#/match?id=${m.id}&t=${k}" aria-selected="${k === tab}" class="tab${k === tab ? " on" : ""}">${label}</a>`).join("")}</div>`;
+    `<a role="tab" href="#/match?id=${m.id}&t=${k}" aria-selected="${k === tab}" class="tab${k === tab ? " on" : ""}">${label}</a>`).join("")}
+    <label class="tab-more${MORE_TABS.some(([k]) => k === tab) ? " on" : ""}"><span class="sr-only">Autres sections</span>
+      <select id="f-more" aria-label="Autres sections"><option value="">Plus…</option>${MORE_TABS.map(([k, label]) =>
+        `<option value="${k}" ${k === tab ? "selected" : ""}>${label}</option>`).join("")}</select></label></div>`;
+  setTimeout(() => { const sel = document.getElementById("f-more"); if (sel) sel.onchange = () => { if (sel.value) location.hash = `#/match?id=${m.id}&t=${sel.value}`; }; }, 0);
   const noData = `<div class="unavailable"><strong>Données indisponibles</strong><br><span class="small">L'analyse détaillée n'a pas pu être calculée pour ce match.</span></div>`;
   html += `<div role="tabpanel">${!x && tab !== "analyse" ? noData : {
-    avant: () => tabBefore(m, x, H, A), marches: () => tabMarkets(m, d), moments: () => tabMoments(m, x, H, A), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
+    synthese: () => tabSummary(m, d, x, pr), avant: () => tabBefore(m, x, H, A), marches: () => tabMarkets(m, d), moments: () => tabMoments(m, x, H, A), tactique: () => tabTactics(m, x, H, A), joueurs: () => tabPlayers(m, pl),
     compos: () => tabLineups(m, H, A),
     classement: () => tabTable(m, x), journees: () => tabRounds(x), analyse: () => tabAnalysis(m, d, pr),
   }[tab]()}</div>`;
@@ -622,6 +611,37 @@ function tabLineups(m, H, A) {
       ${T.regulars.length ? fold("Les plus titularisés cette saison", `<p class="small">${T.regulars.slice(0, 11).map((r) => `${esc(r.name)} <span class="muted">${r.starts}</span>`).join(", ")}</p>`, { inner: true }) : ""}</div>`;
   };
   return `<div class="grid two" style="margin-top:var(--space-4)">${pitch(H, "h")}${pitch(A, "a")}</div>`;
+}
+
+// "O1.5" -> "+1,5 buts", "U3.5" -> "−3,5 buts"; result keys stay as they are (1X, 12...).
+const shortKey = (k) => (/^[OU]\d/.test(k) ? `${k[0] === "O" ? "+" : "−"}${k.slice(1).replace(".", ",")} buts` : k);
+const odds2 = (v) => (v == null ? "—" : Number(v).toFixed(2).replace(".", ","));
+
+/* The short reading: verdict, the safest markets with their fair odds, a few key facts. */
+function tabSummary(m, d, x, pr) {
+  if (!pr) return `<div class="unavailable" style="margin-top:var(--space-4)"><strong>Pas encore de probabilités</strong><br><span class="small">${m.status === "scheduled" ? "Elles seront calculées au prochain cycle du matin." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi."}</span></div>`;
+  const S = d.summary || {};
+  const fg = x?.first_goal;
+  const top = pr.top_scores[0];
+  const picks = (S.safe_picks || []).map((p) => `<div class="pick"><span class="pick-label">${esc(p.label.replace("domicile", m.home).replace("extérieur", m.away))}</span>
+      <span class="pick-p">${pct(p.prob, 0)}</span><span class="pick-odds">cote juste <b>${odds2(p.fair_odds)}</b></span></div>`).join("")
+    || `<p class="muted">Aucun marché vérifié n'atteint 60 % sur ce match : pas de pari « sûr » ici.</p>`;
+  const facts = x?.key_facts?.length ? `<ul class="reading">${x.key_facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : `<p class="muted">Rien de marquant au-delà des seuils fixés (séries, réaction au premier but, buteurs, confrontations).</p>`;
+  return `<div class="card read" style="margin-top:var(--space-4)"><h2>En bref</h2><p class="verdict">${esc(S.verdict || "")}</p>
+      <section class="essentials" aria-label="L'essentiel" style="margin-top:var(--space-4)">
+        <div class="ess-block"><h2>Qui gagne</h2>${strip([pr.p_home, pr.p_draw, pr.p_away], pr.market.every((v) => v != null) ? pr.market : null, true)}</div>
+        <div class="ess-block"><h2>Qui marque en premier</h2>${fg ? strip([fg.home, fg.none, fg.away], null, true) : `<p class="muted">Estimation indisponible.</p>`}</div>
+        <div class="ess-facts">
+          <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
+          <div><span class="kpi-label">Buts attendus</span><span class="kpi-value">${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span><span class="kpi-note">${pr.sufficient_data ? "" : "historique court : prudence"}</span></div>
+        </div></section></div>
+    <div class="grid two" style="margin-top:var(--space-4)">
+      <div class="card"><h2>Les paris les plus sûrs</h2>
+        <p class="question">Les plus probables selon le modèle, parmi les marchés dont la fiabilité est vérifiée (résultat, double chance, buts).</p>
+        <div class="picks">${picks}</div>
+        <p class="meta"><b>Règle :</b> ne jouer que si la cote betPawa est <b>au-dessus</b> de la cote juste. En dessous, le pari perd de l'argent sur la durée, même s'il passe souvent. Le modèle est au niveau du marché, sans avantage démontré. <a href="value.html">Comparer avec vos cotes</a></p></div>
+      <div class="card"><h2>Ce qu'il faut savoir</h2>${facts}
+        <p class="meta">Détails : onglets Paris (tous les marchés), Moments du match, Joueurs.</p></div></div>`;
 }
 
 /* When a team scores and concedes, and what follows the first goal. */
@@ -1001,10 +1021,11 @@ async function home() {
     const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
     const has = m.p_home != null;
     const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
-    const g = marketGaps(m);
-    const flag = !has ? "" : !g ? `<span class="flag" title="Pas de cote de référence pour ce match">—</span>`
-      : Math.abs(g.gap) < 0.05 ? `<span class="flag">proche du marché</span>`
-      : `<span class="flag gap">${signedPts(g.gap)} sur ${g.i === 1 ? "le nul" : g.i === 0 ? "le 1" : "le 2"}</span>`;
+    // One line per match: its safest checked market and the fair odds to beat.
+    const sp = m.safe;
+    const flag = !has ? "" : sp
+      ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
+      : `<span class="flag">pas de pari sûr</span>`;
     const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
     return `<a class="fixture" href="#/match?id=${m.id}">
       <span class="time">${time}</span>

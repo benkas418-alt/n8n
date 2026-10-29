@@ -250,8 +250,8 @@ def home() -> dict:
     """Upcoming matches with the latest stored prediction, for the start page."""
     matches = _rows("""
         SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
-               th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_2_5, p.p_btts,
-               p.sufficient_data, p.feature_snapshot->>'mkt_p_home' AS mkt_home,
+               th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
+               p.p_over_3_5, p.p_btts, p.sufficient_data, p.feature_snapshot->>'mkt_p_home' AS mkt_home,
                p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
@@ -259,9 +259,17 @@ def home() -> dict:
                            ORDER BY p.predicted_at DESC LIMIT 1) p ON true
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE AND c.is_target
         ORDER BY m.kickoff_date, m.kickoff_utc LIMIT 100""")
+    from footintel.analysis.summary import list_pick, safe_picks
+    from footintel.analysis.value import market_probabilities
+
     for m in matches:
         mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
         m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
+        # Result and goal markets only: the order-dependent ones need a fit, not useful here.
+        picks = safe_picks(market_probabilities({k: m[k] for k in ("p_home", "p_draw", "p_away", "p_over_1_5",
+                                                                    "p_over_2_5", "p_over_3_5", "p_btts")})) \
+            if m["p_home"] is not None else []
+        m["safe"] = list_pick(picks)
     status = _one("""SELECT (SELECT max(m.kickoff_date) FROM matches m JOIN match_outcomes o ON o.match_id = m.id)
                             AS last_result,
                             (SELECT name || ' v' || version FROM model_versions WHERE status = 'active'
@@ -348,8 +356,13 @@ def match(match_id: int) -> dict:
         }
         from footintel.analysis.value import RELIABILITY, market_probabilities
 
+        from footintel.analysis.summary import safe_picks, verdict
+
         out["markets"] = market_probabilities(pred)
         out["market_notes"] = RELIABILITY
+        out["summary"] = {"verdict": verdict(pred["p_home"], pred["p_draw"], pred["p_away"], pred["p_over_2_5"],
+                                             m["home"], m["away"]),
+                          "safe_picks": safe_picks(out["markets"])}
     before = m["kickoff_date"]
     out["sheets"] =[team_sheet(get_engine(), m["home_team_id"], m["home"], before).__dict__,
                      team_sheet(get_engine(), m["away_team_id"], m["away"], before).__dict__]
