@@ -244,6 +244,31 @@ def upcoming() -> list[dict]:
         ORDER BY m.kickoff_date, m.kickoff_utc LIMIT 100""")
 
 
+@router.get("/home")
+def home() -> dict:
+    """Upcoming matches with the latest stored prediction, for the start page."""
+    matches = _rows("""
+        SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
+               th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_2_5, p.p_btts,
+               p.sufficient_data, p.feature_snapshot->>'mkt_p_home' AS mkt_home,
+               p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away
+        FROM matches m JOIN competitions c ON c.id = m.competition_id
+        JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
+        LEFT JOIN LATERAL (SELECT * FROM predictions p WHERE p.match_id = m.id
+                           ORDER BY p.predicted_at DESC LIMIT 1) p ON true
+        WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE AND c.is_target
+        ORDER BY m.kickoff_date, m.kickoff_utc LIMIT 100""")
+    for m in matches:
+        mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
+        m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
+    status = _one("""SELECT (SELECT max(m.kickoff_date) FROM matches m JOIN match_outcomes o ON o.match_id = m.id)
+                            AS last_result,
+                            (SELECT name || ' v' || version FROM model_versions WHERE status = 'active'
+                             ORDER BY promoted_at DESC LIMIT 1) AS model,
+                            (SELECT max(predicted_at) FROM predictions) AS last_prediction""")
+    return {**status, "matches": matches}
+
+
 def _score_grid(lh: float, la: float, n: int = 6) -> list[list[float]]:
     goals = np.arange(11)
     m = np.outer(poisson.pmf(goals, lh), poisson.pmf(goals, la))

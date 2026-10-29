@@ -3,10 +3,29 @@
    sample is small; unavailable data is shown as such, never as zero. */
 
 const API = "/api/dash";
-const C = {
-  accent: "#1f5fbf", accentSoft: "rgba(31,95,191,0.15)", ref: "#5b6673",
-  up: "#1d7a4a", down: "#b4541a", grid: "#dde2e8", na: "#8a94a0",
-};
+/* Chart colours come from the CSS theme, so charts follow light and dark mode. */
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const C = {};
+function readColors() {
+  Object.assign(C, { accent: css("--home"), accentSoft: css("--accent-faint"), ref: css("--muted"),
+    up: css("--up"), down: css("--down"), grid: css("--line"), na: css("--na"), away: css("--away"),
+    draw: css("--draw"), text: css("--text") });
+  if (window.Chart) {
+    Chart.defaults.font.family = css("--font") || "system-ui";
+    Chart.defaults.color = C.ref;
+    Chart.defaults.borderColor = C.grid;
+  }
+}
+const COMP_FR = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie A", "GER-BL": "Bundesliga",
+  "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
+  "UEFA-ECL": "Ligue Conférence" };
+const compName = (code, name) => COMP_FR[code] || name || code;
+const FACTOR_FR = { elo_home: "Force Elo, domicile", elo_away: "Force Elo, extérieur", elo_diff: "Écart Elo (avantage domicile inclus)",
+  form5_ppg_h: "Points par match, 5 derniers (domicile)", form5_ppg_a: "Points par match, 5 derniers (extérieur)",
+  rest_days_h: "Jours de repos (domicile)", rest_days_a: "Jours de repos (extérieur)",
+  games_14d_h: "Matchs joués en 14 jours (domicile)", games_14d_a: "Matchs joués en 14 jours (extérieur)",
+  comp_over25_rate: "Plus de 2,5 buts dans la compétition", comp_draw_rate: "Matchs nuls dans la compétition",
+  comp_goals_mean: "Buts par match dans la compétition" };
 const STATUS = {
   rising: "en hausse", falling: "en baisse", emerging: "émergente", stable: "stable",
   disappeared: "disparue", unconfirmed: "non confirmée", insufficient_data: "données insuffisantes",
@@ -96,13 +115,15 @@ async function send(method, url, body) {
   return data;
 }
 function tokenBox() {
-  return `<div class="card" style="margin-bottom:16px"><label class="small">Jeton d'administration (ADMIN_TOKEN, gardé pour cette session seulement)
-    <input type="password" id="token" value="${esc(getToken())}" autocomplete="off" style="margin-top:4px;width:100%;max-width:420px"></label>
-    <button class="btn" id="token-save">Enregistrer</button> <span class="small muted" id="token-state">${getToken() ? "jeton saisi" : "aucun jeton : actions désactivées"}</span></div>`;
+  return `<div class="card" style="margin-bottom:16px"><div class="controls" style="margin:0">
+    <label style="flex:1 1 280px">Jeton d'administration (gardé pour cette session seulement)
+      <input type="password" id="token" value="${esc(getToken())}" autocomplete="off"></label>
+    <button class="btn ghost" id="token-save" type="button">Enregistrer le jeton</button>
+    <span class="small muted" id="token-state">${getToken() ? "Jeton enregistré." : "Sans jeton, les boutons d'action sont refusés."}</span></div></div>`;
 }
 function bindToken() {
   const b = document.getElementById("token-save");
-  if (b) b.onclick = () => { setToken(document.getElementById("token").value.trim()); document.getElementById("token-state").textContent = "jeton saisi"; };
+  if (b) b.onclick = () => { setToken(document.getElementById("token").value.trim()); document.getElementById("token-state").textContent = "Jeton enregistré."; };
 }
 
 const charts = [];
@@ -143,7 +164,6 @@ function matchTable(rows) {
 async function overview() {
   const d = await get("/overview");
   const c = d.counts;
-  document.getElementById("brand-sub").textContent = `Centre d'analyse · données jusqu'au ${fdate(c.last_result)}`;
   const comp = d.trend_counts.filter((t) => t.population_type === "competition");
   const cnt = (s) => (comp.find((t) => t.status === s) || {}).n || 0;
   const active = d.active_model || {};
@@ -153,8 +173,8 @@ async function overview() {
   const watch = d.watch.filter((t) => { const k = `${t.competition}|${SAME_EVENT[t.metric] || t.metric}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
   const worst = cal.reduce((a, b) => (b.value > (a?.value ?? -1) ? b : a), null);
   return `
-  <h1>Vue générale</h1>
-  <p class="muted">Ce qui change dans les compétitions suivies, et si cela compte pour les prédictions.</p>
+  <div class="page-head"><div><h1>Tendances</h1>
+  <p>Ce qui change dans les compétitions suivies, et si cela compte pour les prédictions.</p></div></div>
   <div class="grid kpis">
     <div class="card"><div class="kpi-label">Matchs analysés</div><div class="kpi-value">${c.matches.toLocaleString("fr-FR")}</div>
       <div class="kpi-note">${c.competitions} compétitions · ${fdate(c.first_date)} → ${fdate(c.last_result)}</div>
@@ -227,7 +247,7 @@ async function competitions() {
   <div class="grid two">
     <div class="card"><h2>Évolution par saison</h2><p class="question">La fréquence augmente-t-elle, baisse-t-elle ou reste-t-elle stable ?</p>
       <div class="chart-box tall"><canvas id="ch-trend"></canvas></div>
-      <p class="legend-note">Bande bleue : intervalle de confiance à 95 % de chaque saison (Wilson). Ligne grise : moyenne de la période.</p></div>
+      <p class="legend-note">Bande verte : intervalle de confiance à 95 % de chaque saison (Wilson). Ligne grise : moyenne de la période.</p></div>
     <div class="card"><h2>Saison récente contre référence</h2><p class="question">La dernière saison complète se distingue-t-elle de la référence ?</p>
       <div class="chart-box tall"><canvas id="ch-compare"></canvas></div>
       <p class="legend-note" id="compare-note"></p></div>
@@ -305,7 +325,7 @@ async function competitions() {
       hm += `<tr><th>${h === 5 ? "5+" : h}</th>${row.map((v, a) => {
         const alpha = max ? (0.08 + 0.85 * v / max).toFixed(2) : 0;
         const dark = v / max > 0.55;
-        return `<td style="background:rgba(31,95,191,${alpha});color:${dark ? "#fff" : "#17202a"}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
+        return `<td style="background:rgba(30,107,71,${alpha});color:${dark ? "#fff" : "inherit"}" title="${h}-${a} : ${v} matchs" data-h="${h}" data-a="${a}">${pct(v / n)}</td>`;
       }).join("")}</tr>`;
     });
     document.getElementById("heatmap").innerHTML = hm + `</table><p class="meta">n = ${n.toLocaleString("fr-FR")} matchs</p>`;
@@ -324,7 +344,7 @@ async function competitions() {
     if (d.stats.length) {
       chart("ch-stats", { type: "line", data: { labels: d.stats.map((x) => season(x.season)), datasets: [
         { label: "Tirs", data: d.stats.map((x) => x.shots), borderColor: C.accent },
-        { label: "Tirs cadrés", data: d.stats.map((x) => x.sot), borderColor: "#6f9be0" },
+        { label: "Tirs cadrés", data: d.stats.map((x) => x.sot), borderColor: C.away },
         { label: "Corners", data: d.stats.map((x) => x.corners), borderColor: C.ref },
         { label: "Cartons jaunes", data: d.stats.map((x) => x.yellows), borderColor: C.down }] },
         options: { scales: { y: { title: { display: true, text: "par match (2 équipes)" } } } } });
@@ -391,7 +411,7 @@ async function teams() {
     chart("ch-team-shots", { type: "line", data: { labels, datasets: [
       { label: "Tirs (6 m.)", data: roll("shots_for"), borderColor: C.accent, pointRadius: 0, tension: 0.2 },
       { label: "Tirs concédés (6 m.)", data: roll("shots_against"), borderColor: C.down, pointRadius: 0, tension: 0.2 },
-      { label: "Tirs cadrés (6 m.)", data: roll("sot_for"), borderColor: "#6f9be0", pointRadius: 0, tension: 0.2 }] },
+      { label: "Tirs cadrés (6 m.)", data: roll("sot_for"), borderColor: C.away, pointRadius: 0, tension: 0.2 }] },
       options: { spanGaps: false, scales: { x: { ticks: { maxTicksLimit: 8 } } } } });
   });
   return html;
@@ -403,20 +423,17 @@ function matchList(rows) {
 /* ---------------- 4. Pre-match ---------------- */
 async function matchPage() {
   const p = params();
-  const upcoming = await get("/matches/upcoming");
-  let html = `<h1>Analyse pré-match</h1>`;
-  if (!p.id) {
-    html += `<div class="card"><h2>Matchs à venir</h2>`;
-    html += upcoming.length ? `<div class="table-wrap"><table><tbody>${upcoming.map((m) => `<tr class="clickable" onclick="go('match',{id:${m.id}})"><td>${fdate(m.kickoff_date)}</td><td>${esc(m.competition)}</td><td>${esc(m.home)} – ${esc(m.away)}</td><td>${m.predictions ? '<span class="badge fact">prédiction enregistrée</span>' : '<span class="badge na">pas encore de prédiction</span>'}</td></tr>`).join("")}</tbody></table></div>`
-      : `<p class="muted">Aucun match à venir n'est publié par les sources pour les compétitions suivies. Le cycle du matin les récupère dès leur publication (football-data.co.uk les publie en général quelques jours avant). Les coupes nationales et la saison européenne en cours nécessitent une clé API-Football.</p>
-         <p>Pour consulter la fiche d'un match passé, ouvrez-le depuis une <a href="#/teams">fiche équipe</a> ou la <a href="#/competitions">matrice des scores</a>.</p>`;
-    return html + `</div>`;
-  }
+  if (!p.id) return home();
+  let html = "";
   const d = await get(`/match/${p.id}`);
   const m = d.match;
-  html += `<div class="card"><div class="vs"><span>${esc(m.home)}</span><span class="x">contre</span><span>${esc(m.away)}</span></div>
-    <p class="muted" style="text-align:center">${esc(m.competition_name)}${m.round ? " · " + esc(m.round) : ""} · ${fdate(m.kickoff_date)}${m.neutral_venue ? " · terrain neutre" : ""}
-    ${m.home_goals != null ? ` · <strong>résultat ${m.home_goals}-${m.away_goals}</strong>` : ""}</p></div>`;
+  const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : fdate(m.kickoff_date);
+  html += `<p class="small"><a href="#/">Retour aux matchs</a></p>
+    <div class="card"><div class="match-head"><div class="side h">${esc(m.home)}</div>
+      <div class="mid">${m.home_goals != null ? `<div class="score">${m.home_goals} – ${m.away_goals}</div>` : ""}
+        <div>${esc(compName(m.competition, m.competition_name))}${m.round ? `, ${esc(m.round)}` : ""}</div><div>${esc(when)}</div>
+        ${m.neutral_venue ? "<div>Terrain neutre</div>" : ""}</div>
+      <div class="side a">${esc(m.away)}</div></div></div>`;
   const pr = d.prediction;
   if (!pr) {
     html += `<div class="card" style="margin-top:16px">${na("Probabilités du modèle", m.status === "scheduled" && new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`) > new Date() ? "Aucune prédiction enregistrée pour l'instant : elle sera produite par le cycle du matin." : m.status === "scheduled" ? "Date passée sans résultat publié par la source (match reporté, annulé ou non joué). Aucune prédiction possible." : "Aucune prédiction n'a été enregistrée avant le coup d'envoi de ce match. Le système ne calcule pas de probabilité a posteriori : elle ne serait pas un vrai pronostic.")}</div>`;
@@ -424,17 +441,17 @@ async function matchPage() {
     const q = pr.data_quality || {};
     html += `<div class="grid two" style="margin-top:16px">
       <div class="card"><h2>Probabilités 1X2</h2><p class="question">Que dit le modèle, et que dit le marché ?</p>
-        <div class="prob-row">${[["Domicile", pr.p_home, 0], ["Nul", pr.p_draw, 1], ["Extérieur", pr.p_away, 2]].map(([l, v, i]) => `<div class="prob"><div class="kpi-label">${l}</div><div class="v">${pct(v, 0)}</div><div class="bar"><span style="width:${100 * v}%"></span></div><div class="meta">marché ${pr.market[i] == null ? "n/d" : pct(pr.market[i], 0)}</div></div>`).join("")}</div>
+        ${strip([pr.p_home, pr.p_draw, pr.p_away], pr.market.every((x) => x != null) ? pr.market : null, true)}
         <p class="meta">${esc(pr.model)} · calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")} · <span class="badge estimate">estimation</span></p></div>
       <div class="card"><h2>Scores les plus probables</h2><p class="question">Quels scores, classés par probabilité calculée ?</p>
         <ul class="list">${pr.top_scores.map((t) => `<li><span class="row-title">${t.score}</span> — ${pct(t.p)}</li>`).join("")}</ul>
         <p class="meta">Buts attendus ${num(pr.exp_home_goals)} – ${num(pr.exp_away_goals)} · plus de 2,5 buts ${pct(pr.p_over_2_5, 0)} · les deux marquent ${pct(pr.p_btts, 0)}. Aucun score n'est « le » score prévu.</p></div>
       <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
-        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v == null ? "n/d" : num(v)}</td></tr>`).join("")}</tbody></table></div>
+        <table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table></div>
       <div class="card"><h2>Fiabilité</h2><p class="question">Les données suffisent-elles ?</p>
         <p>${pr.sufficient_data ? '<span class="badge fact">données suffisantes</span>' : '<span class="badge falling">données insuffisantes</span>'}</p>
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
-        ${na("Compositions, absences, formations", "Aucune source autorisée connectée.")}</div></div>`;
+        <div class="unavailable"><strong>Compositions et formations</strong><br><span class="small">Collectées depuis OneFootball pour les championnats, pas encore utilisées par le modèle : aucun gain démontré pour l'instant.</span></div></div></div>`;
   }
   const kickoff = new Date(m.kickoff_utc || `${m.kickoff_date}T00:00:00Z`);
   if (m.status === "scheduled" && kickoff > new Date()) {
@@ -543,7 +560,7 @@ async function performance() {
         scales: { x: { title: { display: true, text: "Δ log loss" } } } } });
     chart("ch-bycomp", { type: "bar", data: { labels: comps, datasets: models.map((m, i) => ({ label: m,
       data: comps.map((c) => pick(m, "log_loss", `competition:${c}`).value ?? null),
-      backgroundColor: ["#1f5fbf", "#6f9be0", "#5b6673", "#b4541a", "#a9b4c2", "#1d7a4a", "#c9d6ee"][i % 7] })) },
+      backgroundColor: [C.accent, C.away, C.ref, C.down, C.draw, "#7fae95", "#9db7d4"][i % 7] })) },
       options: { scales: { y: { min: 0.85, title: { display: true, text: "log loss" } } } } });
     const pts = d.calibration.filter((r) => r.model_name === calModel && r.segment.startsWith(`calibration:${scope}:${ev}:`))
       .map((r) => ({ x: 100 * Number(r.metric), y: 100 * r.value, n: r.n, lo: 100 * r.ci_low, hi: 100 * r.ci_high }));
@@ -608,6 +625,15 @@ function hybridCard(h) {
 }
 
 /* ---------------- 7. Administration ---------------- */
+function cronFr(expr) {
+  const [mi, h, , , dow] = String(expr).split(/\s+/);
+  const DAYS = { mon: "le lundi", tue: "le mardi", wed: "le mercredi", thu: "le jeudi", fri: "le vendredi", sat: "le samedi", sun: "le dimanche" };
+  if (!/^\d+$/.test(mi) || !/^\d+$/.test(h)) return expr;
+  const time = `${h.padStart(2, "0")}:${mi.padStart(2, "0")}`;
+  return dow === "*" ? `tous les jours à ${time}` : DAYS[dow] ? `${DAYS[dow]} à ${time}` : expr;
+}
+const CYCLE_FR = { morning: "Matin : matchs, cotes, compositions, prédictions", evening: "Soir : résultats et évaluation",
+  nightly: "Nuit : tendances", weekly: "Lundi : réentraînement" };
 async function admin() {
   const d = await (await fetch("/api/admin/overview")).json();
   const yes = (b) => (b ? '<span class="badge fact">configurée</span>' : '<span class="badge na">absente</span>');
@@ -618,14 +644,14 @@ async function admin() {
     <div class="card"><h2>Clés et configuration</h2>
       <table><tbody>${Object.entries(d.secrets).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${yes(v)}</td></tr>`).join("")}
       <tr><td>Fuseau horaire</td><td>${esc(d.timezone)}</td></tr></tbody></table>
-      ${d.secrets.API_FOOTBALL_KEY ? "" : '<p class="small">Sans API_FOOTBALL_KEY : mode dégradé (football-data.co.uk + openfootball). Coupes nationales, saison européenne en cours, compositions et formations indisponibles.</p>'}</div>
-    <div class="card"><h2>Planification</h2><p class="question">Heures en ${esc(d.timezone)} (format cron). Modifiables par les variables SCHEDULE_*.</p>
-      <table><tbody>${Object.entries(d.schedule).map(([k, v]) => `<tr><td>${esc(k)}</td><td><code>${esc(v)}</code></td>
-        <td><button class="btn" data-run="${esc(k)}">Lancer maintenant</button></td><td class="small" id="run-${esc(k)}">${esc(d.running[k]?.status || "")}</td></tr>`).join("")}</tbody></table>
+      ${d.secrets.API_FOOTBALL_KEY ? "" : '<p class="small muted">Sans API_FOOTBALL_KEY, les coupes nationales et les blessures restent indisponibles. Les compositions des championnats viennent de OneFootball.</p>'}</div>
+    <div class="card"><h2>Planification</h2><p class="question">Heures de ${esc(d.timezone)}. Modifiables avec les variables SCHEDULE_* du serveur.</p>
+      <table><tbody>${Object.entries(d.schedule).map(([k, v]) => `<tr><td>${esc(CYCLE_FR[k] || k)}</td><td class="small" title="${esc(v)}">${esc(cronFr(v))}</td>
+        <td><button class="btn ghost" style="white-space:nowrap" data-run="${esc(k)}">Lancer maintenant</button></td><td class="small" id="run-${esc(k)}">${esc(d.running[k]?.status || "")}</td></tr>`).join("")}</tbody></table>
       <p class="small muted">Un cycle déjà en cours (manuel ou planifié) est refusé grâce aux verrous.</p></div>
     <div class="card"><h2>Modèles</h2>
       <table><tbody>${d.models.map((m) => `<tr><td>${esc(m.name)} v${m.version}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
-      <p><button class="btn" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
+      <p><button class="btn ghost" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
       <p class="small muted">Critères de promotion (fixés avant évaluation) :</p>
       <ul class="small muted">${Object.entries(d.promotion).map(([k, v]) => `<li><code>${esc(k)}</code> = ${esc(String(v))}</li>`).join("")}</ul></div>
     <div class="card"><h2>Sources</h2>
@@ -660,20 +686,90 @@ async function admin() {
   return html;
 }
 
+/* ---------------- 0. Matches (start page) ---------------- */
+function strip(p, market, big = false) {
+  const [h, d, a] = p.map((x) => Math.max(0, x || 0));
+  const w = (x) => `${(100 * x).toFixed(1)}%`;
+  const mk = market ? `<div class="strip-market"><span>marché ${pct(market[0], 0)}</span><span>${pct(market[1], 0)}</span><span>${pct(market[2], 0)}</span></div>` : "";
+  return `<div class="strip${big ? " big" : ""}" role="img" aria-label="Domicile ${pct(h, 0)}, nul ${pct(d, 0)}, extérieur ${pct(a, 0)}">
+    <div class="strip-nums"><span class="h"><b>${Math.round(100 * h)}</b> %</span><span><b>${Math.round(100 * d)}</b> %</span><span class="a"><b>${Math.round(100 * a)}</b> %</span></div>
+    <div class="strip-bar"><span class="h" style="width:${w(h)}"></span><span class="d" style="width:${w(d)}"></span><span class="a" style="width:${w(a)}"></span></div>${mk}</div>`;
+}
+
+function marketGap(m) {
+  if (!m.market || m.p_home == null) return "";
+  const gaps = [m.p_home - m.market[0], m.p_draw - m.market[1], m.p_away - m.market[2]];
+  const i = gaps.reduce((b, g, k) => (Math.abs(g) > Math.abs(gaps[b]) ? k : b), 0);
+  if (Math.abs(gaps[i]) < 0.05) return "proche du marché";
+  const side = [m.home, "le nul", m.away][i];
+  return `${gaps[i] > 0 ? "+" : "−"}${Math.round(100 * Math.abs(gaps[i]))} pts sur ${side} par rapport au marché`;
+}
+
+let homeFilter = "all";
+async function home() {
+  const d = await get("/home");
+  const sub = document.getElementById("brand-sub");
+  if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
+  const comps = [...new Set(d.matches.map((m) => m.competition))];
+  const shown = d.matches.filter((m) => homeFilter === "all" || m.competition === homeFilter);
+  const head = `<div class="page-head"><div><h1>Matchs à venir</h1>
+    <p>Probabilités 1, X, 2 du modèle pour chaque match, et l'avis du marché quand il est connu.</p></div></div>`;
+  if (!d.matches.length) {
+    return head + `<div class="empty"><h2>Aucun match publié pour l'instant</h2>
+      <p class="muted">Le cycle du matin récupère les prochains matchs dès que les sources les publient, puis calcule les probabilités. Vous pouvez le lancer tout de suite depuis l'<a href="#/admin">administration</a>.</p></div>`;
+  }
+  const chips = `<div class="chips" role="group" aria-label="Filtrer par compétition">
+    <button class="chip" data-c="all" aria-pressed="${homeFilter === "all"}">Toutes</button>
+    ${comps.map((c) => `<button class="chip" data-c="${esc(c)}" aria-pressed="${homeFilter === c}">${esc(compName(c))}</button>`).join("")}</div>`;
+  const byDay = new Map();
+  shown.forEach((m) => { const k = m.kickoff_date; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); });
+  const today = new Date().toISOString().slice(0, 10);
+  const days = [...byDay.entries()].map(([day, rows]) => {
+    const label = new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    return `<section><div class="day"><h2>${day === today ? "Aujourd'hui" : label.charAt(0).toUpperCase() + label.slice(1)}</h2><span>${rows.length} match${rows.length > 1 ? "s" : ""}</span></div>
+      <div class="fixtures">${rows.map((m) => {
+        const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
+        const has = m.p_home != null;
+        const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
+        const gap = marketGap(m);
+        return `<a class="fixture" href="#/match?id=${m.id}">
+          <span class="time">${time}</span>
+          <span class="teams"><span class="team${fav === 0 ? " fav" : ""}">${esc(m.home)}</span><span class="team${fav === 2 ? " fav" : ""}">${esc(m.away)}</span>
+            <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
+          ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités calculées au prochain cycle du matin</span>`}
+          <span class="flag${gap && gap !== "proche du marché" ? " gap" : ""}">${has ? (m.market ? esc(gap) : "pas de cote de référence") : ""}</span></a>`;
+      }).join("")}</div></section>`;
+  }).join("");
+  const status = `<div class="status-line" style="margin-top:var(--space-5)">
+    <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
+    <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
+    <span><a href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
+  setTimeout(() => document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => { homeFilter = b.dataset.c; route(); })));
+  return head + chips + days + status;
+}
+
 /* ---------------- Router ---------------- */
-const PAGES = { "": overview, competitions, teams, match: matchPage, performance, picks, admin };
+const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin };
 async function route() {
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", (a.dataset.page === "overview" ? "" : a.dataset.page) === page));
+  document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === (page === "match" ? "" : page)));
+  readColors();
   const app = document.getElementById("app");
-  app.innerHTML = `<p class="muted">Chargement…</p>`;
+  app.innerHTML = `<p class="loading">Chargement…</p>`;
   try {
     app.innerHTML = await (PAGES[page] || overview)();
   } catch (e) {
-    app.innerHTML = `<div class="card"><h2>Erreur de chargement</h2><p class="muted">${esc(e.message)}</p></div>`;
+    app.innerHTML = `<div class="empty"><h2>Cette page n'a pas pu être chargée</h2><p class="muted">Le serveur a répondu : ${esc(e.message)}. Vérifiez que le service tourne, puis rechargez la page.</p></div>`;
   }
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
+document.getElementById("theme-btn").onclick = () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("fi_theme", root.dataset.theme); } catch { /* storage blocked */ }
+  route();
+};
 route();

@@ -122,11 +122,16 @@ Restauration : `pg_restore --clean --no-owner -d "$DATABASE_URL_SANS_+psycopg" d
 
 | Espace | Question à laquelle il répond |
 |---|---|
-| Vue générale | Qu'est-ce qui change, qu'est-ce qui est confirmé, que vaut le modèle, que manque-t-il ? |
+| Matchs (accueil) | Que dit le modèle sur les prochains matchs ? Probabilités 1 / X / 2 par jour, filtre par compétition, écart avec le marché. Un clic ouvre la fiche du match. |
+| Fiche d'un match | Probabilités 1X2 contre le marché, scores classés par probabilité, facteurs, fiabilité, fiches des deux équipes, mon pronostic. |
+| Cotes | Vérificateur de cotes : cote juste, valeur théorique, combiné. |
+| Mes pronostics | Mes choix horodatés contre le modèle et le résultat. |
 | Compétitions | Évolution par saison avec intervalle de confiance, saison récente contre référence, matrice des scores (cliquable → matchs), distribution des buts, mi-temps, indicateurs de jeu, tendances et particularités. |
 | Équipes | Production offensive et défensive sur 6 matchs contre la référence de l'équipe, tirs, tendances significatives, derniers matchs. |
-| Analyse pré-match | Probabilités 1X2 contre le marché, scores classés par probabilité, facteurs, fiabilité, fiches des deux équipes. |
-| Performance | Log loss, Brier, comparaisons appariées, log loss par compétition, courbes de calibration, apport mesuré des niveaux et tendances, historique des versions, résultats réels. |
+| Fiabilité | Log loss, Brier, comparaisons appariées, log loss par compétition, courbes de calibration, apport mesuré des niveaux et tendances, historique des versions, résultats réels. |
+| Tendances | Qu'est-ce qui change, qu'est-ce qui est confirmé, que manque-t-il ? |
+
+Thème clair ou sombre : suit le téléphone ou l'ordinateur, ou le bouton « Thème ».
 
 Les données non collectées (minutes des buts, xG, tactique, compositions) apparaissent comme
 telles, jamais comme zéro. Le serveur écoute sur 127.0.0.1 par défaut : pour un accès distant,
