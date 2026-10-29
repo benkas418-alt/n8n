@@ -10,6 +10,16 @@ from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
 from footintel.models.baseline import EloPoisson, MarketImplied, NaiveFrequency, PoissonFeatures
 from footintel.models.ml import CORE_FEATURES, WITH_MARKET_FEATURES, logistic, random_forest, xgboost
 
+MARKET_PROBS = ["mkt_p_home", "mkt_p_draw", "mkt_p_away"]
+
+
+def blend(p_model: np.ndarray, p_market: np.ndarray, weight: float) -> np.ndarray:
+    """Geometric mix of two (n, 3) probability arrays: weight on the model, the rest on the market."""
+    z = weight * np.log(p_model.clip(1e-12, 1)) + (1 - weight) * np.log(p_market.clip(1e-12, 1))
+    z = np.exp(z - z.max(axis=1, keepdims=True))
+    return z / z.sum(axis=1, keepdims=True)
+
+
 class Composite(ProbModel):
     """1X2 from one model, goal markets from another. Versioned as one unit."""
 
@@ -76,7 +86,8 @@ class RoutedCompetitionAware(ProbModel):
     family = "routed"
 
     def __init__(self, name: str, trend_groups: tuple[str, ...] = (), dixon_coles: bool = False,
-                 calibrate_without_odds: bool = False, scenario_flags: bool = False):
+                 calibrate_without_odds: bool = False, scenario_flags: bool = False,
+                 market_blend: bool = False):
         from footintel.analysis.ablation import COMPETITION, GOAL_TEAM
         from footintel.features.trend_features import group_columns
 
@@ -90,6 +101,8 @@ class RoutedCompetitionAware(ProbModel):
         self.goals = PoissonFeatures(f"{name}:goals", COMPETITION + GOAL_TEAM + extra,
                                      dixon_coles=dixon_coles)
         self.calibrate_without_odds, self.temperature_ = calibrate_without_odds, 1.0
+        # Weight of the odds model against the de-margined market, in log space (1.0 = model only).
+        self.market_blend, self.blend_weight_ = market_blend, 1.0
         self.features = sorted(set(self.with_odds.features) | set(self.without_odds.features)
                                | set(self.goals.features))
 
@@ -99,6 +112,8 @@ class RoutedCompetitionAware(ProbModel):
         return pd.concat([df, scenario_columns(df)], axis=1)
 
     def fit(self, train: pd.DataFrame) -> "RoutedCompetitionAware":
+        if getattr(self, "market_blend", False):
+            self.blend_weight_ = self._fit_blend(train)
         self.with_odds.fit(self._with_flags(train[train["mkt_p_home"].notna()]))
         if self.calibrate_without_odds:
             self.temperature_ = self._fit_temperature(train)
@@ -132,6 +147,32 @@ class RoutedCompetitionAware(ProbModel):
 
         return float(minimize_scalar(nll, bounds=(0.5, 2.0), method="bounded").x)
 
+    def _fit_blend(self, train: pd.DataFrame) -> float:
+        """Blend weight fitted out of sample on the training window, as for the temperature:
+        fit the odds model on the earliest 80 % of dates, score the later matches with odds."""
+        import copy
+
+        from scipy.optimize import minimize_scalar
+
+        from footintel.models.base import encode_result
+
+        rows = train[train["mkt_p_home"].notna()]
+        cut = rows["kickoff_date"].quantile(0.8)
+        early, late = rows[rows["kickoff_date"] <= cut], rows[rows["kickoff_date"] > cut]
+        late = late[late["home_goals"].notna()]
+        if len(late) < 300:
+            return 1.0
+        model = copy.deepcopy(self.with_odds).fit(self._with_flags(early))
+        p_model = model.predict(self._with_flags(late))[PROB_COLS].to_numpy(float)
+        p_market = late[MARKET_PROBS].to_numpy(float)
+        y = encode_result(late)
+
+        def nll(w: float) -> float:
+            p = blend(p_model, p_market, w)
+            return float(-np.log(p[np.arange(len(y)), y].clip(1e-12, 1)).mean())
+
+        return float(minimize_scalar(nll, bounds=(0.0, 1.0), method="bounded").x)
+
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         out = self.without_odds.predict(df)[PROB_COLS].copy()
         # Versions saved before calibration existed have no temperature: 1.0 keeps them unchanged.
@@ -142,13 +183,18 @@ class RoutedCompetitionAware(ProbModel):
             out[PROB_COLS] = z / z.sum(axis=1, keepdims=True)
         has_odds = df["mkt_p_home"].notna()
         if has_odds.any():
-            out.loc[has_odds, PROB_COLS] = self.with_odds.predict(self._with_flags(df[has_odds]))[PROB_COLS]
+            p = self.with_odds.predict(self._with_flags(df[has_odds]))[PROB_COLS].to_numpy(float)
+            weight = getattr(self, "blend_weight_", 1.0)
+            if weight != 1.0:
+                p = blend(p, df.loc[has_odds, MARKET_PROBS].to_numpy(float), weight)
+            out.loc[has_odds, PROB_COLS] = p
         return pd.concat([out, self.goals.predict(df)[GOAL_COLS]], axis=1)
 
     def params(self) -> dict:
         return {"with_odds": self.with_odds.params(), "without_odds": self.without_odds.params(),
                 "goals": self.goals.params(), "trend_groups": list(self.trend_groups),
-                "temperature_without_odds": getattr(self, "temperature_", 1.0)}
+                "temperature_without_odds": getattr(self, "temperature_", 1.0),
+                "market_blend_weight": getattr(self, "blend_weight_", 1.0)}
 
 
 MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
@@ -163,6 +209,8 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     "routed_competition_dc": lambda: RoutedCompetitionAware("routed_competition_dc", dixon_coles=True),
     # Candidate from the scenario study (D44): confirmed scenarios as inputs of the odds model.
     "routed_competition_scen": lambda: RoutedCompetitionAware("routed_competition_scen", scenario_flags=True),
+    # Candidate (D54): odds model mixed with the de-margined market, weight learned per fold.
+    "routed_competition_blend": lambda: RoutedCompetitionAware("routed_competition_blend", market_blend=True),
     "routed_odds_elo": lambda: RoutedByOdds("routed_odds_elo"),
     "logreg_market_goals": lambda: Composite(
         "logreg_market_goals", logistic(WITH_MARKET_FEATURES, "logreg_market"), EloPoisson()),

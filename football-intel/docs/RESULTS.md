@@ -1,5 +1,36 @@
 # Résultats du backtest réel
 
+## Cote de clôture (CLV) et mélange modèle-marché (2026-10-29)
+
+Question : le modèle voit-il quelque chose que le marché n'intègre qu'au coup d'envoi ?
+Commande : `footintel clv`. Étude détaillée : `scripts/clv_study.py`. Saisons 2021 à 2025,
+hors échantillon, 6 528 matchs de championnat avec la cote de clôture Pinnacle (la plus juste
+des cotes publiques). Prix pris : moyenne des bookmakers avant clôture.
+
+| Modèle | Log loss − clôture Pinnacle | Paris (avantage > 3 %) | CLV moyenne |
+|---|---|---|---|
+| Marché avant clôture | +0,0028 [+0,0012 ; +0,0045] | — | — |
+| `routed_competition` | +0,0028 [+0,0006 ; +0,0050] | 2 307 | **−2,5 %** [−2,7 ; −2,2] |
+| `routed_competition_blend` | +0,0019 [+0,0002 ; +0,0037] | 295 | −2,0 % [−3,1 ; −0,7] |
+
+Lecture :
+
+1. **Pas d'avantage mesuré.** Au prix moyen, la CLV des paris du modèle est négative, IC
+   entièrement sous zéro, quel que soit le seuil d'avantage (0, 3, 5 %).
+2. **Un vrai signal, trop faible.** Quand le modèle estime une issue au-dessus du marché, la
+   cote de cette issue baisse avant le coup d'envoi dans 60,6 % des cas, contre 51,4 % pour
+   l'ensemble des issues. Le modèle anticipe donc une partie du mouvement, mais pas assez pour
+   couvrir la marge du bookmaker (environ 5 % sur le prix moyen).
+3. **Piège écarté : le meilleur prix.** Au prix maximum des bookmakers, la CLV devient positive
+   (+1,9 % à 3 %). Mais la même règle sans modèle (probabilité du marché lui-même) fait mieux :
+   +4,5 %. Ce gain vient des cotes isolées du maximum, pas du modèle.
+
+Mélange modèle-marché (`routed_competition_blend`, D54) : moyenne géométrique des
+probabilités du modèle à cotes et du marché sans marge, poids appris hors échantillon sur les
+20 % les plus récents de chaque fenêtre d'entraînement. Backtest 2021-2025 (run 3) :
+log loss 0,9649 contre 0,9655, soit −0,0006, sous le seuil D9 de 0,002. Contre le marché :
+−0,0009 [−0,0020 ; +0,0003], IC qui contient 0. Non promu.
+
 ## Test de « qui marque en premier », saison 2026-27 (2026-10-29)
 
 Question : l'estimation du premier but de la fiche de match (D52) tient-elle sur des matchs

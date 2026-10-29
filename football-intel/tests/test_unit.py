@@ -752,3 +752,30 @@ def test_roles_follow_the_formation_lines():
     got = dict(roles("3-4-2-1", ["ST", "AM1", "AM2", "LWB", "CM1", "CM2", "RWB", "CB1", "CB2", "CB3", "GK"]))
     assert got["LWB"] == "WB" and got["CM1"] == "DM" and got["CB1"] == "CB" and got["AM1"] == "AM"
     assert roles(None, names)[0] == ("ST", "")
+
+
+def test_blend_weights_model_and_market():
+    from footintel.models.zoo import blend
+
+    model, market = np.array([[0.6, 0.25, 0.15]]), np.array([[0.4, 0.3, 0.3]])
+    assert np.allclose(blend(model, market, 1.0), model)
+    assert np.allclose(blend(model, market, 0.0), market)
+    mid = blend(model, market, 0.5)
+    assert np.isclose(mid.sum(), 1.0) and market[0, 0] < mid[0, 0] < model[0, 0]
+
+
+def test_clv_of_picks_against_the_closing_price():
+    from footintel.evaluation.clv import clv_table
+
+    preds = pd.DataFrame({"model": "m", "match_id": [1, 2], "home_goals": [1, 0], "away_goals": [0, 0],
+                          "p_home": [0.60, 0.30], "p_draw": [0.25, 0.30], "p_away": [0.15, 0.40]})
+    # Match 1: taken at 2.0 on the home side, the line then shortened to a fair 0.55.
+    # Match 2: no selection clears the 3 % edge, so no pick.
+    prices = pd.DataFrame({"match_id": [1, 2],
+                           "taken_H": [2.0, 3.0], "taken_D": [3.5, 3.2], "taken_A": [5.0, 2.4],
+                           "close_H": [1.8, 3.0], "close_D": [3.6, 3.2], "close_A": [5.5, 2.4]})
+    row = clv_table(preds, prices, edge=0.03, samples=50).iloc[0]
+    assert row.n_matches == 2 and row.n_picks == 1
+    close = np.array([1 / 1.8, 1 / 3.6, 1 / 5.5])
+    assert math.isclose(row.clv_mean, 2.0 * close[0] / close.sum() - 1, rel_tol=1e-9)
+    assert row.clv_mean > 0 and row.share_line_moved_our_way == 1.0

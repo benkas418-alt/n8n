@@ -89,6 +89,23 @@ def cmd_backtest(args, settings, engine):
     print(res.comparisons.round(4).to_string(index=False))
 
 
+def cmd_clv(args, settings, engine):
+    from footintel.evaluation.backtest import walk_forward
+    from footintel.evaluation.clv import clv_table, load_prices
+
+    feats = _features(engine)
+    last = int(feats.loc[feats["home_goals"].notna(), "season"].max())
+    seasons = list(range(last - args.seasons, last))
+    preds = walk_forward(feats, args.models, seasons)
+    table = clv_table(preds, load_prices(engine, preds["match_id"]), edge=args.edge,
+                      samples=settings.promotion.bootstrap_samples)
+    out = Path(settings.reports_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    table.to_csv(out / "clv_latest.csv", index=False)
+    print(f"Closing line value on seasons {seasons}, picks with model edge > {args.edge:.0%}")
+    print(table.round(4).to_string(index=False))
+
+
 def cmd_models(args, settings, engine):
     from footintel.db.models import ModelVersion
     from footintel.models import registry
@@ -293,6 +310,12 @@ def build_parser() -> argparse.ArgumentParser:
         "naive_frequency", "elo_poisson", "market_implied", "logreg_core", "logreg_market"])
     bt.add_argument("--seasons", type=int, default=5, help="number of complete test seasons")
     bt.set_defaults(fn=cmd_backtest)
+
+    cl = sub.add_parser("clv", help="model against the closing market (closing line value)")
+    cl.add_argument("--models", nargs="+", default=["routed_competition", "market_implied"])
+    cl.add_argument("--seasons", type=int, default=5, help="number of complete test seasons")
+    cl.add_argument("--edge", type=float, default=0.03, help="minimum model edge for a pick")
+    cl.set_defaults(fn=cmd_clv)
 
     md = sub.add_parser("models", help="model registry")
     md_sub = md.add_subparsers(dest="action", required=True)
