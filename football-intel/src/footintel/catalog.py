@@ -16,6 +16,7 @@ OPENFOOTBALL = "openfootball"
 OPENLIGADB = "openligadb"
 FOOTBALL_DATA_ORG = "football_data_org"
 THE_ODDS_API = "the_odds_api"
+ONEFOOTBALL = "onefootball"
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,19 @@ SOURCES = [
             "Free plan with a personal key (ODDS_API_KEY): 500 credits per month. Storing the "
             "data and showing it in a dashboard are permitted; reselling it as a data service "
             "is not. Used for the 1X2 prices of the cups, which have no other free odds source."
+        ),
+    ),
+    SourceDef(
+        code=ONEFOOTBALL,
+        name="OneFootball",
+        kind="scraper",
+        base_url="https://onefootball.com",
+        terms_url="https://static.onefootball.com/legal/terms-of-use/en",
+        terms_note=(
+            "Terms 7.2 and 7.4: personal use only; copying, saving or processing the content "
+            "is forbidden. Used anyway by an explicit owner decision (D50): personal use, "
+            "nothing published, raw pages not kept. Line-ups, formations, events and shots "
+            "of the four target leagues, current season."
         ),
     ),
 ]

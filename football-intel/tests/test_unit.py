@@ -647,3 +647,63 @@ def test_market_consensus_removes_each_margin_and_keeps_best_price():
     assert m["n_bookmakers"] == 2 and m["best"]["H"] == 2.5
     assert m["1"] + m["X"] + m["2"] == pytest.approx(1.0, abs=1e-3)
     assert market_consensus([]) is None
+
+
+def _of_player(name, pid):
+    return {"name": name, "nickName": name.split()[-1], "link": {"urlPath": f"/en/player/x-{pid}"}}
+
+
+def _of_team(name, first_id):
+    # Rows from the forwards to the goalkeeper: 4-3-3.
+    sizes, rows, n = [3, 3, 4, 1], [], first_id
+    for size in sizes:
+        rows.append({"players": [_of_player(f"{name} P{n + i}", n + i) for i in range(size)]})
+        n += size
+    return {"teamName": name, "variant": {"$case": "formation", "formation": {"rows": rows}}}
+
+
+def onefootball_match_page(home="Synth One", away="Synth Two"):
+    """Synthetic match data in the onefootball.com page shape (no real content)."""
+    def comp(case, body):
+        return {"contentType": {"$case": case, case: body}}
+
+    return {"props": {"components": [
+        comp("matchScore", {"timePeriod": "Full time", "homeTeam": {"name": home, "score": "1"},
+                            "awayTeam": {"name": away, "score": "0"}}),
+        comp("matchLineup", {"title": "LINE-UPS (CONFIRMED)", "variant": {"$case": "lineup", "lineup": {
+            "homeTeam": _of_team(home, 1), "awayTeam": _of_team(away, 100)}}}),
+        comp("matchEvents", {"events": [
+            {"teamSide": 0, "name": "Goal", "timeline": "45+2'", "type": {"$case": "goal", "goal": {
+                "scorer": {"name": f"{home} P2"}, "assistant": {"name": f"{home} P5"}}}},
+            {"teamSide": 1, "name": "Yellow card", "timeline": "60'", "type": {"$case": "card", "card": {
+                "type": 0, "player": {"name": f"{away} P101"}}}},
+            {"teamSide": 1, "name": "Substitution", "timeline": "70'", "type": {"$case": "substitution",
+                "substitution": {"playerIn": {"name": "Bench Man"}, "playerOut": {"name": f"{away} P100"}}}},
+            {"teamSide": 0, "name": "Other", "timeline": "80'", "type": {"$case": "var", "var": {}}}]}),
+        comp("matchStats", {"stats": [{"title": "Possession", "home": 55, "away": 45},
+                                      {"title": "Total shots", "home": 12, "away": 7},
+                                      {"title": "Shots on target", "home": 5, "away": 2},
+                                      {"title": "Duels won", "home": 40, "away": 38}]}),
+    ]}}
+
+
+def test_onefootball_parses_lineups_events_and_stats():
+    from footintel.connectors.onefootball import formation_of, parse_cards, parse_match
+
+    assert formation_of([1, 3, 2, 4, 1]) == "4-2-3-1"
+    assert formation_of([3, 3, 4]) is None  # no goalkeeper row
+    page = parse_match("42", onefootball_match_page())
+    assert page.finished and page.home.formation == "4-3-3" and len(page.away.starters) == 11
+    assert [page.home.starters[i].position for i in (0, 3, 6, 10)] == ["A", "M", "D", "G"]
+    assert page.home.starters[0].external_id == "1"
+    goal, card, sub = page.events  # the unknown event type is left out
+    assert (goal.type, goal.minute, goal.extra_minute, goal.other_player) == ("goal", 45, 2, "Synth One P5")
+    assert (card.side, card.detail) == (1, "Yellow card") and sub.player == "Bench Man"
+    assert page.stats == {"home": {"possession_pct": 55, "shots": 12, "shots_on_target": 5},
+                          "away": {"possession_pct": 45, "shots": 7, "shots_on_target": 2}}
+    cards, more = parse_cards({"lists": [{"matchCards": [
+        {"link": "/en/match/7", "kickoff": "2026-10-25T16:30:00Z", "timePeriod": "Full time",
+         "homeTeam": {"name": "A"}, "awayTeam": {"name": "B"}},
+        {"link": "/en/news/1", "kickoff": "2026-10-25T16:30:00Z", "homeTeam": {"name": "A"},
+         "awayTeam": {"name": "B"}}]}]})
+    assert [(c.external_id, c.finished) for c in cards] == [("7", True)] and more is None

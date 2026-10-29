@@ -3,10 +3,10 @@
 import logging
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import Engine, func, select
+from sqlalchemy import Engine, delete, func, select
 
 from footintel.catalog import (COMPETITIONS, FD_NEW, FOOTBALL_DATA, FOOTBALL_DATA_ORG,
-                               FOOTBALL_DATA_ORG_COMPETITIONS, OPENFOOTBALL, OPENLIGADB,
+                               FOOTBALL_DATA_ORG_COMPETITIONS, ONEFOOTBALL, OPENFOOTBALL, OPENLIGADB,
                                ODDS_API_SPORTS, OPENLIGADB_LEAGUES, THE_ODDS_API, get_source)
 from footintel.config import Settings
 from footintel.connectors.base import season_start_for
@@ -15,12 +15,15 @@ from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
 from footintel.connectors.football_data_org import UEFA_TZ, FootballDataOrg
 from footintel.connectors.openligadb import OpenLigaDB
 from footintel.connectors.the_odds_api import TheOddsApi
+from footintel.connectors.onefootball import LEAGUE_SLUGS as ONEFOOTBALL_LEAGUES, OneFootball
+from footintel.connectors.onefootball import MatchPage as OneFootballPage
 from footintel.connectors.http import SourceUnavailable
-from footintel.db.models import Competition, Match, MatchOutcome, OddsSnapshot, Team, TeamMatchStatistics
+from footintel.db.models import (Competition, Lineup, Match, MatchEvent, MatchExternalRef, MatchOutcome,
+                                 OddsSnapshot, Player, Team, TeamMatchStatistics, TeamMatchTactics)
 from footintel.db.session import session_scope
 from footintel.ingestion.store import MatchStore, remove_stale_matches
 from footintel.ingestion import teams as teams_mod
-from footintel.ingestion.teams import apply_manual_aliases, backfill_team_countries, similarity
+from footintel.ingestion.teams import apply_manual_aliases, backfill_team_countries, normalize, similarity
 from footintel.jobs import RunStats, tracked_run
 
 log = logging.getLogger(__name__)
@@ -219,7 +222,7 @@ def check_football_data_org(engine: Engine, settings: Settings, seasons: list[in
     return stats
 
 
-def _odds_api_team(session, name: str, aliases: dict[str, str], cache: dict) -> int | None:
+def _aliased_team(session, name: str, aliases: dict[str, str], cache: dict) -> int | None:
     if name not in cache:
         cache[name] = session.scalar(select(Team.id).where(Team.name == aliases.get(name, "")))
     return cache[name]
@@ -272,7 +275,7 @@ def sync_odds_api(engine: Engine, settings: Settings, connector: TheOddsApi | No
                 competition = s.scalar(select(Competition).where(Competition.code == comp))
                 cache: dict = {}
                 for ev in events:
-                    ids = [_odds_api_team(s, n, aliases, cache) for n in (ev.home_team, ev.away_team)]
+                    ids = [_aliased_team(s, n, aliases, cache) for n in (ev.home_team, ev.away_team)]
                     for n, team_id in zip((ev.home_team, ev.away_team), ids):
                         if team_id is None:
                             stats.issue("warning", "unmapped_team", f"{comp} {n!r}: no manual alias"
@@ -303,6 +306,124 @@ def sync_odds_api(engine: Engine, settings: Settings, connector: TheOddsApi | No
                     else:
                         stats.skipped += 1
             log.info("the-odds-api %s: %d events, %s credits left", sport, len(events), connector.remaining)
+    return stats
+
+
+def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPage,
+                            team_ids: tuple[int, int]) -> None:
+    """Replace this source's line-ups, formations, events and shots for one match."""
+    for model in (Lineup, MatchEvent, TeamMatchTactics, TeamMatchStatistics):
+        s.execute(delete(model).where(model.match_id == match.id, model.source_id == source_id))
+    now = datetime.now(UTC)
+    confirmed = "CONFIRMED" in (page.lineup_title or "").upper()
+    by_name: list[dict[str, int]] = [{}, {}]
+    for side, (sheet, team_id) in enumerate(zip((page.home, page.away), team_ids)):
+        if sheet is None:
+            continue
+        s.add(TeamMatchTactics(match_id=match.id, team_id=team_id, source_id=source_id,
+                               kind="official" if confirmed else "predicted", formation=sheet.formation,
+                               possession_pct=page.stats.get(("home", "away")[side], {}).get("possession_pct"),
+                               known_at=now))
+        for p in sheet.starters:
+            player = s.scalar(select(Player).where(Player.source_id == source_id,
+                                                   Player.external_id == p.external_id))
+            if player is None:
+                player = Player(source_id=source_id, external_id=p.external_id, name=p.name[:200])
+                s.add(player)
+                s.flush()
+            s.add(Lineup(match_id=match.id, team_id=team_id, player_id=player.id, source_id=source_id,
+                         is_starter=True, position=p.position, confirmed=confirmed, known_at=now))
+            by_name[side].update({p.name: player.id, p.short_name: player.id})
+    for side, key in ((0, "home"), (1, "away")):
+        st = page.stats.get(key)
+        if st and ("shots" in st or "shots_on_target" in st):
+            s.add(TeamMatchStatistics(match_id=match.id, team_id=team_ids[side], source_id=source_id,
+                                      is_home=side == 0, shots=st.get("shots"),
+                                      shots_on_target=st.get("shots_on_target")))
+    for ev in page.events:
+        names = by_name[ev.side] if ev.side in (0, 1) else {}
+        detail = ev.detail if ev.other_player is None else f"{ev.detail}: {ev.player} / {ev.other_player}"
+        s.add(MatchEvent(match_id=match.id, source_id=source_id, external_key=ev.key, minute=ev.minute,
+                         extra_minute=ev.extra_minute, team_id=team_ids[ev.side] if ev.side in (0, 1) else None,
+                         player_id=names.get(ev.player or ""), type=ev.type, detail=detail[:200]))
+
+
+def sync_onefootball(engine: Engine, settings: Settings, competitions: list[str] | None = None,
+                     max_matches: int = 150, connector: OneFootball | None = None) -> RunStats:
+    """Line-ups, formations, events and shots of finished matches of the four target leagues.
+
+    Attach only: it never creates a team or a match and never changes a score. Team names
+    go through aliases checked by a human. A match already read is not fetched again.
+    The terms of use forbid this use; it runs by owner decision (docs/DECISIONS.md D50)."""
+    source_id = _source_id(engine, ONEFOOTBALL)
+    competitions = competitions or list(ONEFOOTBALL_LEAGUES)
+    with tracked_run(engine, "sync_onefootball", source_id=source_id,
+                     params={"competitions": competitions}) as stats:
+        connector = connector or OneFootball(settings)
+        aliases = {a: t for (src, a), t in teams_mod.load_manual_aliases().items() if src == ONEFOOTBALL}
+        with session_scope(engine) as s:
+            done = set(s.scalars(select(MatchExternalRef.external_id).where(
+                MatchExternalRef.source_id == source_id)).all())
+        budget, reported = max_matches, set()
+        for comp in competitions:
+            try:
+                cards = connector.results(comp)
+            except SourceUnavailable as exc:
+                stats.issue("warning", "source_unavailable", f"{comp}: {exc}")
+                continue
+            for card in sorted(cards, key=lambda c: c.kickoff_utc, reverse=True):
+                if not card.finished or card.external_id in done:
+                    continue
+                with session_scope(engine) as s:
+                    competition = s.scalar(select(Competition).where(Competition.code == comp))
+                    cache: dict = {}
+                    ids = [_aliased_team(s, n, aliases, cache) for n in (card.home_team, card.away_team)]
+                    for n, team_id in zip((card.home_team, card.away_team), ids):
+                        if team_id is None and n not in reported:
+                            reported.add(n)
+                            stats.issue("warning", "unmapped_team", f"{comp} {n!r}: no manual alias"
+                                        + _closest_team(s, competition.id, n))
+                    if None in ids:
+                        stats.skipped += 1
+                        continue
+                    day = card.kickoff_utc.date()
+                    match = s.scalar(select(Match).where(
+                        Match.competition_id == competition.id, Match.home_team_id == ids[0],
+                        Match.away_team_id == ids[1],
+                        Match.kickoff_date.between(day - timedelta(days=2), day + timedelta(days=2))))
+                    if match is None:
+                        stats.issue("info", "match_not_found",
+                                    f"{comp} {card.home_team} - {card.away_team} {day}: no match")
+                        stats.skipped += 1
+                        continue
+                    match_id = match.id
+                if budget <= 0:
+                    stats.issue("info", "budget_reached", f"{max_matches} match pages read: stopped")
+                    return stats
+                budget -= 1
+                try:
+                    page = connector.match(card.external_id)
+                except SourceUnavailable as exc:
+                    stats.issue("warning", "source_unavailable", f"match {card.external_id}: {exc}")
+                    continue
+                if page.home is None or page.away is None:
+                    stats.issue("info", "no_lineup", f"match {card.external_id}: no line-up", match_id)
+                    stats.skipped += 1
+                    continue
+                if (normalize(page.home.team_name), normalize(page.away.team_name)) != (
+                        normalize(card.home_team), normalize(card.away_team)):
+                    stats.issue("warning", "team_mismatch",
+                                f"match {card.external_id}: page teams differ from the card", match_id)
+                    stats.skipped += 1
+                    continue
+                with session_scope(engine) as s:
+                    match = s.get(Match, match_id)
+                    _store_onefootball_page(s, match, source_id, page, (ids[0], ids[1]))
+                    s.add(MatchExternalRef(match_id=match_id, source_id=source_id,
+                                           external_id=card.external_id))
+                done.add(card.external_id)
+                stats.inserted += 1
+            log.info("onefootball %s: %d cards", comp, len(cards))
     return stats
 
 

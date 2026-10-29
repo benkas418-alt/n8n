@@ -630,3 +630,53 @@ def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkey
     low = FakeOddsApi([], remaining=10)
     assert "quota_low" in [i[1] for i in tasks.sync_odds_api(db, settings, connector=low).issues]
     assert low.calls == []
+
+
+class FakeOneFootball:
+    def __init__(self, cards, pages):
+        self.cards, self.pages, self.calls = cards, pages, []
+
+    def results(self, competition_code):
+        return self.cards if competition_code == "ENG-PL" else []
+
+    def match(self, external_id):
+        from footintel.connectors.onefootball import parse_match
+
+        self.calls.append(external_id)
+        return parse_match(external_id, self.pages[external_id])
+
+
+def test_onefootball_attaches_lineups_without_creating_teams(db, settings, monkeypatch):
+    from footintel.connectors.onefootball import MatchCard
+    from footintel.ingestion import teams as teams_mod
+
+    from .test_unit import onefootball_match_page
+
+    monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: {
+        ("onefootball", "Synth One"): "Synthetic FC 1", ("onefootball", "Synth Two"): "Synthetic FC 2"})
+    kickoff = datetime(2026, 10, 25, 15, 0, tzinfo=UTC)
+    played = MatchRecord("football_data_uk", "E0|2026|Synthetic FC 1|Synthetic FC 2", "ENG-PL", 2026,
+                         kickoff.date(), kickoff, "Synthetic FC 1", "Synthetic FC 2", "scheduled")
+    tasks.sync_fixtures(db, settings, connector=FakeConnector({}, [played]))
+    cards = [MatchCard("m1", kickoff, "Synth One", "Synth Two", True),
+             MatchCard("m2", kickoff, "Nobody", "Synth One", True),
+             MatchCard("m3", kickoff + timedelta(days=7), "Synth Two", "Synth One", False)]
+    fake = FakeOneFootball(cards, {"m1": onefootball_match_page()})
+    st = tasks.sync_onefootball(db, settings, connector=fake)
+    assert st.inserted == 1 and fake.calls == ["m1"]  # unfinished and unmapped: no page read
+    assert "unmapped_team" in [i[1] for i in st.issues]
+    again = tasks.sync_onefootball(db, settings, connector=fake)
+    assert again.inserted == 0 and fake.calls == ["m1"]  # a match already read is not fetched again
+    with db.connect() as conn:
+        def one(sql):
+            return conn.execute(text(sql)).scalar()
+
+        assert one("SELECT count(*) FROM lineups WHERE confirmed") == 22
+        assert one("SELECT string_agg(formation, ',' ORDER BY formation) FROM team_match_tactics") == "4-3-3,4-3-3"
+        assert one("SELECT count(*) FROM match_events") == 3
+        # The scorer is a starter: linked to a player. The substitute is not in the line-up.
+        assert one("SELECT count(*) FROM match_events WHERE player_id IS NOT NULL") == 2
+        assert one("SELECT shots FROM team_match_statistics s JOIN data_sources d ON d.id = s.source_id "
+                   "WHERE d.code = 'onefootball' AND s.is_home") == 12
+        assert one("SELECT count(*) FROM teams WHERE name = 'Nobody'") == 0
+        assert one("SELECT count(*) FROM match_outcomes") == 0  # scores are never written

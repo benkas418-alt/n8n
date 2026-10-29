@@ -82,6 +82,7 @@ $F ingest european                      # C1 depuis 2011, C3 depuis 2020, C4 dep
 $F ingest openligadb                    # saison en cours : C1, C3, C4, DFB-Pokal
 $F ingest football-data-org             # contrôle des résultats de C1 (clé FOOTBALL_DATA_ORG_KEY)
 $F ingest odds-api                      # cotes 1X2 des coupes (clé ODDS_API_KEY, 1 crédit par compétition)
+$F ingest onefootball                   # compositions et événements des 4 championnats (D50)
 $F ingest fixtures                       # matchs à venir + cotes
 $F backtest --seasons 5                  # évaluation chronologique
 $F models train routed_odds_elo          # crée une version candidate

@@ -65,6 +65,18 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Usage | Référence de marché dans le vérificateur de cotes (probabilité moyenne des bookmakers, marge retirée, meilleure cote). **Pas lue par le modèle actif** (D49). |
 | Conditions | `the-odds-api.com/terms-and-conditions.html` : stockage et affichage dans un tableau de bord autorisés ; revente comme service de données interdite. Mention non obligatoire, ajoutée quand même. |
 
+### OneFootball — compositions et événements des grands championnats
+
+| Élément | Constat (2026-10-29) |
+|---|---|
+| Accès | Pages publiques `onefootball.com`, sans clé. Données lues dans le bloc JSON `__NEXT_DATA__` de chaque page. `robots.txt` autorise les pages de compétition et de match. |
+| Couverture | Premier League, LaLiga, Serie A, Bundesliga : saison en cours, matchs terminés (page des résultats + bouton « Show all results »). |
+| Contenu | Compositions confirmées (11 titulaires, formation déduite des lignes), buts avec passeur, cartons, remplacements, possession, tirs, tirs cadrés. Pas de remplaçants non entrés, pas de blessures, pas d'xG. Les événements nomment les joueurs sans identifiant : seuls les titulaires sont reliés à un joueur. |
+| Volume | 4 pages de résultats + 4 appels « load more », puis 1 page par match jamais lu ; 150 pages au plus par passage. |
+| Rattachement | Jamais d'équipe, de match ni de score créé. Noms d'équipes par alias relus à la main (source `onefootball`). |
+| Conditions | `static.onefootball.com/legal/terms-of-use/en` : usage personnel seulement ; interdiction de « copy, record, or save » le contenu (7.4) et de tout « processing » (7.2). **Utilisée malgré tout par décision du propriétaire (D50)**, avec garde-fous. Arrêt immédiat si le projet devient public ou commercial. |
+| Usage | Stockée (`lineups`, `team_match_tactics`, `match_events`, `team_match_statistics`). **Pas lue par le modèle actif.** |
+
 ## Prévue, désactivée
 
 ### API-Football (api-sports.io)
@@ -91,7 +103,6 @@ et les résultats de la C1.
 | TheSportsDB (clé publique « 3 ») | HTTP 403. | Clé publique refusée. |
 | Sofascore | HTTP 403 sur le site et l'API. | **Conditions d'utilisation** : « Using website content through embedding, aggregating, scraping, or reproducing without explicit consent is prohibited » ; requêtes automatiques interdites. Les bibliothèques qui y accèdent imitent le navigateur Chrome pour franchir la protection anti-robot. Non utilisée. |
 | FotMob | `robots.txt` : `Disallow: /api/*`. | API interdite aux robots. |
-| OneFootball | Le 2026-10-29 : HTTP 200 sans clé ; `robots.txt` autorise les pages de compétition. Le JSON `__NEXT_DATA__` des pages contient le calendrier, les résultats et, par match, les compositions confirmées avec formation, les remplacements, les buts et les cartons. Pages de test supprimées après lecture. | **Conditions d'utilisation** (7.2, 7.4) : usage personnel seulement ; interdiction de « copy, record, or save the Platforms and their content either in whole or in part » et de « any form of processing, editing, and/or duplication of the content ». Non utilisée malgré sa richesse. Les scrapers publics testés (`tarun7r/Premier-League-API`) sont cassés : classes CSS changées. |
 | ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502 ; le 2026-10-28, coupure HTTPS et vérification anti-robot sur le site. | Non joignable depuis le conteneur. L'historique (copie MIT de `xgabora/Club-Football-Match-Data`, réel jusqu'au 2025-06-01) a servi au test D48. À retester depuis le VPS. |
 | openfootball football.json | C1 2024-25 seulement, finale sans score. | Couverture trouée ; le dépôt `champions-league` est utilisé à la place. |
 
