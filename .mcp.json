@@ -2,7 +2,7 @@
   "mcpServers": {
     "apify": {
       "type": "http",
-      "url": "https://mcp.apify.com/?tools=actors,docs,crawlstone/sofascore-football-scraper",
+      "url": "https://mcp.apify.com/?tools=actors,docs",
       "headers": {
         "Authorization": "Bearer ${APIFY_TOKEN}"
       }
