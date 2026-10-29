@@ -97,7 +97,7 @@ $F report prematch
 |---|---|
 | Matchs à venir | `footintel upcoming` |
 | Mon pronostic | `footintel user-predict <match_id> H 4 --score 2-1 --over25 yes --btts yes --reason "..."` |
-| Cycle du matin (fixtures, prédictions, rapport) | `footintel run morning` |
+| Cycle du matin (fixtures, coupes, cotes, compositions OneFootball, prédictions, rapport) | `footintel run morning` |
 | Cycle du soir (résultats, évaluation, rapport) | `footintel run evening` |
 | Contrôle qualité | `footintel run nightly` |
 | Réentraînement + validation | `footintel run weekly` |

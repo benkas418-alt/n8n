@@ -72,7 +72,7 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Accès | Pages publiques `onefootball.com`, sans clé. Données lues dans le bloc JSON `__NEXT_DATA__` de chaque page. `robots.txt` autorise les pages de compétition et de match. |
 | Couverture | Premier League, LaLiga, Serie A, Bundesliga : saison en cours, matchs terminés (page des résultats + bouton « Show all results »). |
 | Contenu | Compositions confirmées (11 titulaires, formation déduite des lignes), buts avec passeur, cartons, remplacements, possession, tirs, tirs cadrés. Pas de remplaçants non entrés, pas de blessures, pas d'xG. Les événements nomment les joueurs sans identifiant : seuls les titulaires sont reliés à un joueur. |
-| Volume | 4 pages de résultats + 4 appels « load more », puis 1 page par match jamais lu ; 150 pages au plus par passage. |
+| Volume | 4 pages de résultats + 4 appels « load more », puis 1 page par match jamais lu ; 150 pages au plus par passage. Planifiée dans le cycle du matin (09:00, Africa/Lubumbashi) : environ 8 à 40 requêtes par jour. |
 | Rattachement | Jamais d'équipe, de match ni de score créé. Noms d'équipes par alias relus à la main (source `onefootball`). |
 | Conditions | `static.onefootball.com/legal/terms-of-use/en` : usage personnel seulement ; interdiction de « copy, record, or save » le contenu (7.4) et de tout « processing » (7.2). **Utilisée malgré tout par décision du propriétaire (D50)**, avec garde-fous. Arrêt immédiat si le projet devient public ou commercial. |
 | Usage | Stockée (`lineups`, `team_match_tactics`, `match_events`, `team_match_statistics`). **Pas lue par le modèle actif.** |

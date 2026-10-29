@@ -51,6 +51,8 @@ def morning(engine: Engine, settings: Settings) -> dict:
     _step("check_football_data_org", lambda: tasks.check_football_data_org(engine, settings), results)
     # Cup prices for the odds checker; after the cup imports so the matches exist.
     _step("sync_odds_api", lambda: tasks.sync_odds_api(engine, settings), results)
+    # League line-ups and events of the matches finished since the last run (D50).
+    _step("sync_onefootball", lambda: tasks.sync_onefootball(engine, settings), results)
     _step("predict", lambda: predict_upcoming(engine, settings), results)
     _step("prematch_report", lambda: prematch_report(engine, settings).paths, results)
     if isinstance(results.get("prematch_report"), dict):
