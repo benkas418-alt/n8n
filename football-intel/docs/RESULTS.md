@@ -1,5 +1,26 @@
 # Résultats du backtest réel
 
+## Modèle contre marché par compétition (2026-10-30, D68)
+
+`scripts/competition_edge.py` : `routed_competition` hors échantillon, saisons 2021-22 à
+2026-27. Écart de log loss modèle moins marché (négatif = modèle meilleur), IC 95 %
+bootstrap ; CLV des choix du modèle (prix moyen avant clôture, seuil 3 %).
+
+| Compétition | n | contre prix moyen | contre clôture | choix | CLV |
+|---|---|---|---|---|---|
+| Liga | 1 999 | −0,0012 [−0,0045 ; +0,0018] | +0,0008 [−0,0038 ; +0,0052] | 549 | −1,7 % [−2,4 ; −1,1] |
+| Serie A | 1 988 | +0,0002 [−0,0035 ; +0,0040] | +0,0033 [−0,0013 ; +0,0078] | 536 | −2,9 % [−3,4 ; −2,4] |
+| Premier League | 1 980 | +0,0024 [−0,0014 ; +0,0064] | +0,0045 [−0,0003 ; +0,0094] | 719 | −2,8 % [−3,2 ; −2,4] |
+| Ligue 1 | 1 750 | +0,0023 [−0,0017 ; +0,0063] | +0,0023 [−0,0029 ; +0,0077] | 422 | −2,5 % [−3,2 ; −1,8] |
+| Bundesliga | 1 593 | −0,0009 [−0,0051 ; +0,0034] | +0,0025 [−0,0030 ; +0,0079] | 503 | −2,4 % [−3,0 ; −1,8] |
+
+Coupes et compétitions UEFA : aucune cote de marché en base sur ces saisons, pas de mesure.
+
+Lecture : dans aucun championnat le modèle ne fait mieux que le marché. Il est à égalité
+avec le prix moyen, un peu derrière la clôture, et ses choix perdent 1,7 à 2,9 % contre la
+clôture partout. La piste « un championnat où le modèle est devant » est fermée. Reste
+celle des cotes betPawa contre la cote juste (D68).
+
 ## Test des xG Understat (2026-10-29)
 
 Question : les buts attendus (xG) améliorent-ils le modèle à cotes ? Script :
