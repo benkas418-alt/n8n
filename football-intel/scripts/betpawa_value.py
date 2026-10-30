@@ -119,7 +119,8 @@ def settle(market: str, sel: str, hg: int, ag: int, goals: list[str] | None) -> 
         best["H"], best["A"] = max(best["H"], lead), max(best["A"], -lead)
     need = 1 if market == "1UP" else 2
     side = "H" if sel == "1" else "A"
-    return int(best[side] >= need)
+    # betPawa rule: paid as soon as the team leads by `need`, else settled on the final result.
+    return int(best[side] >= need or (hg > ag if side == "H" else ag > hg))
 
 
 def main() -> None:
