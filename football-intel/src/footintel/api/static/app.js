@@ -987,7 +987,7 @@ async function home() {
   const withGap = inComp.map((m) => ({ m, g: marketGaps(m) })).filter((x) => x.g);
   const top = withGap.sort((a, b) => Math.abs(b.g.gap) - Math.abs(a.g.gap))[0];
   const head = `<div class="page-head"><div><h1>Matchs à venir</h1>
-    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} avec les probabilités 1, X, 2 du modèle. Écart avec le marché quand une cote de référence existe.</p></div>
+    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} sur trois semaines, avec les probabilités 1, X, 2 du modèle. Écart avec le marché quand une cote de référence existe.</p></div>
     <a class="btn" href="value.html">Vérifier une cote</a></div>`;
   if (!d.matches.length) {
     return head + `<div class="empty"><h2>Aucun match publié pour l'instant</h2>
@@ -1028,14 +1028,17 @@ async function home() {
       ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
       : `<span class="flag">pas de pari sûr</span>`;
     const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
-    return `<a class="fixture" href="#/match?id=${m.id}">
+    // Far fixtures without probabilities have no match page yet (export size).
+    const tag = m.detail === false ? "div" : "a";
+    const href = m.detail === false ? "" : ` href="#/match?id=${m.id}"`;
+    return `<${tag} class="fixture"${href}>
       <span class="time">${time}</span>
       <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
         <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
       ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
-      ${flag}</a>`;
+      ${flag}</${tag}>`;
   }
-  const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs suivants</button></p>` : "";
+  const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs des deux semaines suivantes</button></p>` : "";
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
     <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>

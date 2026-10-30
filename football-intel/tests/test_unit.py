@@ -789,7 +789,7 @@ def test_supabase_export_paths_follow_the_dashboard_links():
                           {"code": "NED-ED", "is_target": False, "type": "league", "matches": 5},
                           {"code": "UEFA-CL", "is_target": True, "type": "cup", "matches": 0}],
         "/teams?competition=ENG-PL": [{"id": 7}, {"id": 8}],
-        "/home": {"matches": [{"id": 42}]},
+        "/home": {"matches": [{"id": 42}, {"id": 43, "detail": False}]},
     }
 
     class FakeClient:
@@ -808,6 +808,8 @@ def test_supabase_export_paths_follow_the_dashboard_links():
     # No drill-down or team pages outside the target leagues, no page for an empty cup.
     assert not any("NED-ED&" in p or "UEFA-CL" in p for p in data)
     assert sum(p.startswith("/matches?competition=ENG-PL") for p in data) == 36
+    # A far fixture without probabilities is listed on /home but gets no match page.
+    assert not any(p.startswith("/match/43") for p in data)
 
 
 def test_supabase_export_batches_stay_under_the_size_limit():
