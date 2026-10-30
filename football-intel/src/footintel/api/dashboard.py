@@ -2,6 +2,7 @@
 size and data status, so the interface never shows a number without its context."""
 
 import math
+from functools import lru_cache
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -251,13 +252,25 @@ def upcoming() -> list[dict]:
         ORDER BY m.kickoff_date, m.kickoff_utc LIMIT :cap""", days=LIST_DAYS, cap=LIST_CAP)
 
 
+@lru_cache(maxsize=2048)
+def _order_markets(ph, pa, po, eh, ea) -> tuple | None:
+    """FG home, no goal, FG away, 1UP home, 1UP away; None without goal expectations."""
+    if None in (ph, pa, eh, ea):
+        return None
+    from footintel.analysis.value import _fit_lambdas, path_markets
+
+    pm = path_markets(*_fit_lambdas(ph, pa, (eh, ea), po))
+    return tuple(round(pm[k], 4) for k in ("first_home", "none", "first_away", "up1_home", "up1_away"))
+
+
 @router.get("/home")
 def home() -> dict:
     """Upcoming matches with the latest stored prediction, for the start page."""
     matches = _rows("""
         SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
                th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
-               p.p_over_3_5, p.p_btts, p.sufficient_data, p.feature_snapshot->>'mkt_p_home' AS mkt_home,
+               p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.sufficient_data,
+               p.feature_snapshot->>'mkt_p_home' AS mkt_home,
                p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
@@ -281,6 +294,10 @@ def home() -> dict:
                                                                     "p_over_2_5", "p_over_3_5", "p_btts")})) \
             if m["p_home"] is not None else []
         m["safe"] = list_pick(picks)
+        # First goal and 1UP for the owner's "Mes équipes" view (cached: the fit costs ~20 ms).
+        order = _order_markets(m["p_home"], m["p_away"], m["p_over_2_5"], m.pop("exp_home_goals"),
+                               m.pop("exp_away_goals"))
+        m["fg"], m["up1"] = (order[:3], order[3:]) if order else (None, None)
         # The match page exists once the match has probabilities or is within a week.
         m["detail"] = m["p_home"] is not None or m["kickoff_date"] <= date.today() + timedelta(days=DETAIL_DAYS)
     status = _one("""SELECT (SELECT max(m.kickoff_date) FROM matches m JOIN match_outcomes o ON o.match_id = m.id)

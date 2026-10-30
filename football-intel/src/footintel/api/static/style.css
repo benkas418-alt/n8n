@@ -176,6 +176,7 @@ main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 24px 28px 48px; 
 .fixture:first-child { border-top: 0; }
 a.fixture:hover { background: var(--sunk); }
 .fixture:focus-visible { outline-offset: -2px; }
+.nowrap { white-space: nowrap; }
 .fixture .time { font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--muted); }
 .fixture .teams { display: grid; gap: 2px; min-width: 0; }
 .fixture .match { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
