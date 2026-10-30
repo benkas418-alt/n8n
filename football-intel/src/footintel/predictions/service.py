@@ -77,7 +77,12 @@ class PredictSummary:
     model: str | None = None
 
 
-def predict_upcoming(engine: Engine, settings: Settings, horizon_days: int = 7,
+# Same window as the start page list, so every listed match has probabilities and fair odds.
+# Each morning recomputes them with the latest results and odds (D63).
+PREDICT_DAYS = 21
+
+
+def predict_upcoming(engine: Engine, settings: Settings, horizon_days: int = PREDICT_DAYS,
                      now: datetime | None = None) -> PredictSummary:
     now = now or datetime.now(UTC)
     summary = PredictSummary()
