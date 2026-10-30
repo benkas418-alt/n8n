@@ -1009,9 +1009,12 @@ function myFlag(m) {
   if (!m.fg) return "";
   const side = mySide(m);
   const team = side === 0 ? m.home : m.away;
-  const fg = m.fg[side];
-  const up = m.up1[side === 0 ? 0 : 1];
-  return `<span class="flag safe"><b>1er but ${esc(team)}</b> <span class="nowrap">${pct(fg, 0)}</span>${fair(fg)}<br><span class="muted">1UP ${pct(up, 0)} · ${odds2(1 / up)}</span></span>`;
+  const i = side === 0 ? 0 : 1;
+  // Bookmakers' figures first when known: betPawa's price is judged against them.
+  const fg = m.fg_mkt ? m.fg_mkt[side] : m.fg[side];
+  const up = m.up1_mkt ? m.up1_mkt[i] : m.up1[i];
+  const src = m.fg_mkt ? `marché · modèle ${pct(m.fg[side], 0)}` : "modèle";
+  return `<span class="flag safe"><b>1er but ${esc(team)}</b> <span class="nowrap">${pct(fg, 0)}</span>${fair(fg)}<br><span class="muted">1UP ${pct(up, 0)} · ${odds2(1 / up)}</span><br><span class="muted small">${src}</span></span>`;
 }
 
 let homeFilter = (() => { try { return localStorage.getItem("fi_home_filter") || "mine"; } catch { return "mine"; } })();

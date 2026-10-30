@@ -20,8 +20,9 @@ RELIABILITY = {
     "first": "Même approximation (ordre aléatoire des buts) ; le premier but est vérifié sur 2026-27 "
              "(docs/RESULTS.md).",
     "no_odds": "Match sans cotes de référence : prédiction moins fiable (données insuffisantes).",
-    "market": "Marché : moyenne des bookmakers (The Odds API), marge de chacun retirée. "
-              "En coupe, aucun test ne montre encore si le modèle ou le marché est le plus juste.",
+    "market": "Marché : moyenne des bookmakers (The Odds API), marge de chacun retirée. Le 1UP, le 2UP et "
+              "le premier but du marché sont calculés à partir de cette moyenne 1X2 et du total de buts du "
+              "marché (sinon celui du modèle) : c'est la référence pour juger une cote betPawa.",
 }
 
 

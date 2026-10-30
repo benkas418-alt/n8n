@@ -284,6 +284,7 @@ def home() -> dict:
 
     # Bookmaker average from The Odds API when the model's own odds (football-data.co.uk) are missing.
     prices, _ = _odds_api_prices([m["id"] for m in matches])
+    overs = _market_over_2_5([m["id"] for m in matches])
     for m in matches:
         mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
         m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
@@ -295,9 +296,14 @@ def home() -> dict:
             if m["p_home"] is not None else []
         m["safe"] = list_pick(picks)
         # First goal and 1UP for the owner's "Mes équipes" view (cached: the fit costs ~20 ms).
-        order = _order_markets(m["p_home"], m["p_away"], m["p_over_2_5"], m.pop("exp_home_goals"),
-                               m.pop("exp_away_goals"))
+        eh, ea = m.pop("exp_home_goals"), m.pop("exp_away_goals")
+        order = _order_markets(m["p_home"], m["p_away"], m["p_over_2_5"], eh, ea)
         m["fg"], m["up1"] = (order[:3], order[3:]) if order else (None, None)
+        # The same markets implied by the bookmakers, the reference for betPawa's prices.
+        mo = (_market_order(m["market"][0], m["market"][2], overs.get(m["id"]), eh or 1.4, ea or 1.1)
+              if m["market"] else None)
+        m["fg_mkt"] = [mo["FG_1"], mo["FG_0"], mo["FG_2"]] if mo else None
+        m["up1_mkt"] = [mo["1UP_1"], mo["1UP_2"]] if mo else None
         # The match page exists once the match has probabilities or is within a week.
         m["detail"] = m["p_home"] is not None or m["kickoff_date"] <= date.today() + timedelta(days=DETAIL_DAYS)
     status = _one("""SELECT (SELECT max(m.kickoff_date) FROM matches m JOIN match_outcomes o ON o.match_id = m.id)
@@ -444,6 +450,41 @@ def _odds_api_prices(ids: list[int]) -> tuple[dict[int, list], dict[int, object]
     return prices, captured
 
 
+def _market_over_2_5(ids: list[int]) -> dict[int, float]:
+    """Bookmakers' average P(over 2.5), margin removed, from the latest football-data.co.uk snapshot."""
+    if not ids:
+        return {}
+    out: dict[int, float] = {}
+    for r in _rows("""
+        SELECT o.match_id, max(o.price) FILTER (WHERE o.selection = 'over') AS o,
+               max(o.price) FILTER (WHERE o.selection = 'under') AS u
+        FROM odds_snapshots o
+        WHERE o.market = 'OU2.5' AND o.bookmaker = 'market_avg' AND o.match_id = ANY(:ids)
+          AND o.snapshot_label = (SELECT max(o2.snapshot_label) FROM odds_snapshots o2
+                                  WHERE o2.match_id = o.match_id AND o2.market = 'OU2.5'
+                                    AND o2.bookmaker = 'market_avg')
+        GROUP BY o.match_id""", ids=ids):
+        if r["o"] and r["u"] and r["o"] > 1 and r["u"] > 1:
+            out[r["match_id"]] = (1 / r["o"]) / (1 / r["o"] + 1 / r["u"])
+    return out
+
+
+@lru_cache(maxsize=2048)
+def _market_order(p1: float, p2: float, p_over: float | None, eh: float, ea: float) -> dict[str, float]:
+    """1UP, 2UP and first-goal probabilities implied by the bookmakers' 1X2 (and their total
+    goals when known): betPawa derives these markets from its own 1X2 the same way."""
+    from footintel.analysis.value import _fit_lambdas, path_markets
+
+    pm = path_markets(*_fit_lambdas(p1, p2, (eh, ea), p_over))
+    keys = {"1UP_1": "up1_home", "1UP_2": "up1_away", "2UP_1": "up2_home", "2UP_2": "up2_away",
+            "FG_1": "first_home", "FG_2": "first_away", "FG_0": "none",
+            "FGW_1": "first_home_win", "FGW_2": "first_away_win"}
+    out = {k: round(pm[v], 4) for k, v in keys.items()}
+    if p_over is not None:
+        out |= {"O2.5": round(p_over, 4), "U2.5": round(1 - p_over, 4)}
+    return out
+
+
 @router.get("/value-board")
 def value_board(days: int = 7) -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""
@@ -464,11 +505,14 @@ def value_board(days: int = 7) -> dict:
           AND m.kickoff_date <= CURRENT_DATE + CAST(:d AS int)
         ORDER BY m.kickoff_utc NULLS LAST, m.kickoff_date""", d=days)
     prices, captured = _odds_api_prices([r["id"] for r in rows])
+    overs = _market_over_2_5([r["id"] for r in rows])
     matches = []
     for r in rows:
         market = market_consensus(prices.get(r["id"], []))
         if market:
             market["captured_at"] = captured.get(r["id"])
+            market |= _market_order(market["1"], market["2"], overs.get(r["id"]),
+                                    r["exp_home_goals"] or 1.4, r["exp_away_goals"] or 1.1)
         matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
                                           "home", "away", "predicted_at", "has_odds", "model")}
                        | {"markets": market_probabilities(r), "market": market})
