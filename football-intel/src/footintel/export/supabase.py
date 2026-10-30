@@ -33,6 +33,8 @@ def snapshot_paths(get) -> list[str]:
             paths.append(f"/teams?competition={c['code']}")
             paths += [f"/team/{t['id']}" for t in get(f"/teams?competition={c['code']}") or []]
     for m in (get("/home") or {}).get("matches", []):
+        if not m.get("detail", True):
+            continue  # far fixtures without probabilities: listed only, no match page
         paths += [f"/match/{m['id']}", f"/match/{m['id']}/insights", f"/match/{m['id']}/players"]
     return list(dict.fromkeys(paths))
 

@@ -2,7 +2,7 @@
 size and data status, so the interface never shows a number without its context."""
 
 import math
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import numpy as np
@@ -234,6 +234,10 @@ def team(team_id: int) -> dict:
 
 # --- 4. Pre-match ----------------------------------------------------------------
 
+# The start page lists three weeks of fixtures (a fixed count hid whole match days, D63).
+LIST_DAYS, LIST_CAP, DETAIL_DAYS = 21, 600, 7
+
+
 @router.get("/matches/upcoming")
 def upcoming() -> list[dict]:
     return _rows("""
@@ -242,7 +246,8 @@ def upcoming() -> list[dict]:
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE AND c.is_target
-        ORDER BY m.kickoff_date, m.kickoff_utc LIMIT 100""")
+          AND m.kickoff_date < CURRENT_DATE + :days
+        ORDER BY m.kickoff_date, m.kickoff_utc LIMIT :cap""", days=LIST_DAYS, cap=LIST_CAP)
 
 
 @router.get("/home")
@@ -258,7 +263,8 @@ def home() -> dict:
         LEFT JOIN LATERAL (SELECT * FROM predictions p WHERE p.match_id = m.id
                            ORDER BY p.predicted_at DESC LIMIT 1) p ON true
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE AND c.is_target
-        ORDER BY m.kickoff_date, m.kickoff_utc LIMIT 100""")
+          AND m.kickoff_date < CURRENT_DATE + :days
+        ORDER BY m.kickoff_date, m.kickoff_utc LIMIT :cap""", days=LIST_DAYS, cap=LIST_CAP)
     from footintel.analysis.summary import list_pick, safe_picks
     from footintel.analysis.value import market_probabilities
 
@@ -270,6 +276,8 @@ def home() -> dict:
                                                                     "p_over_2_5", "p_over_3_5", "p_btts")})) \
             if m["p_home"] is not None else []
         m["safe"] = list_pick(picks)
+        # The match page exists once the match has probabilities or is within a week.
+        m["detail"] = m["p_home"] is not None or m["kickoff_date"] <= date.today() + timedelta(days=DETAIL_DAYS)
     status = _one("""SELECT (SELECT max(m.kickoff_date) FROM matches m JOIN match_outcomes o ON o.match_id = m.id)
                             AS last_result,
                             (SELECT name || ' v' || version FROM model_versions WHERE status = 'active'
