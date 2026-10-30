@@ -52,10 +52,20 @@ def send_report(settings: Settings, subject: str, body: str, attachments: list[P
     for path in attachments:
         subtype = "pdf" if path.suffix == ".pdf" else "octet-stream"
         msg.add_attachment(path.read_bytes(), maintype="application", subtype=subtype, filename=path.name)
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=60) as smtp:
-        smtp.starttls()
-        smtp.login(settings.smtp_user, settings.smtp_password.get_secret_value())
-        smtp.send_message(msg)
+    password = settings.smtp_password.get_secret_value().strip()
+    if settings.smtp_host == "smtp.gmail.com":
+        password = "".join(password.split())  # Google shows app passwords in groups of four
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=60) as smtp:
+            smtp.starttls()
+            smtp.login(settings.smtp_user, password)
+            smtp.send_message(msg)
+    except smtplib.SMTPServerDisconnected:
+        # Some servers drop STARTTLS sessions from cloud runners; implicit TLS is the other standard port.
+        log.warning("SMTP connection closed on port %s: retrying with SSL on 465", settings.smtp_port)
+        with smtplib.SMTP_SSL(settings.smtp_host, 465, timeout=60) as smtp:
+            smtp.login(settings.smtp_user, password)
+            smtp.send_message(msg)
     log.info("Report e-mailed to %d recipient(s)", len(settings.report_to.split(",")))
     return True
 
