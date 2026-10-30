@@ -17,8 +17,13 @@ function readColors() {
   }
 }
 const COMP_FR = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie A", "GER-BL": "Bundesliga",
-  "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
-  "UEFA-ECL": "Ligue Conférence" };
+  "FRA-L1": "Ligue 1", "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
+  "UEFA-ECL": "Ligue Conférence", "ENG-FAC": "FA Cup", "ENG-EFL": "Coupe de la Ligue anglaise",
+  "ESP-CDR": "Coupe du Roi", "ITA-CI": "Coupe d'Italie", "FRA-CDF": "Coupe de France" };
+/* Tab order on the match list: leagues, then European cups, then national cups. */
+const COMP_ORDER = ["ENG-PL", "ESP-LL", "ITA-SA", "GER-BL", "FRA-L1", "UEFA-CL", "UEFA-EL", "UEFA-ECL",
+  "ENG-FAC", "ENG-EFL", "ESP-CDR", "ITA-CI", "GER-DFB", "FRA-CDF"];
+const compRank = (c) => { const i = COMP_ORDER.indexOf(c); return i < 0 ? COMP_ORDER.length : i; };
 const compName = (code, name) => COMP_FR[code] || name || code;
 /* A collapsible panel for side information: closed unless `open`; `inner` sits inside a card. */
 const fold = (title, body, { open = false, note = "", inner = false } = {}) =>
@@ -1015,7 +1020,7 @@ async function home() {
   const d = await get("/home");
   const sub = document.getElementById("brand-sub");
   if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
-  const comps = [...new Set(d.matches.map((m) => m.competition))];
+  const comps = [...new Set(d.matches.map((m) => m.competition))].sort((a, b) => compRank(a) - compRank(b) || a.localeCompare(b));
   const inComp = d.matches.filter((m) => homeFilter === "all" || (homeFilter === "mine" ? isMine(m) : m.competition === homeFilter));
   const today = new Date().toISOString().slice(0, 10);
   const horizon = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
@@ -1034,10 +1039,12 @@ async function home() {
     ? `<div class="finding"><p>Plus gros écart avec le marché : <b>${esc(top.m.home)} – ${esc(top.m.away)}</b>, le modèle donne ${signedPts(top.g.gap)} sur ${esc(top.g.side)} (${pct([top.m.p_home, top.m.p_draw, top.m.p_away][top.g.i], 0)} contre ${pct(top.m.market[top.g.i], 0)}).</p>
         <a href="#/match?id=${top.m.id}">Ouvrir le match</a></div>`
     : `<div class="finding"><p>Aucun match à venir n'a encore de cote de référence pour comparer le modèle au marché.</p></div>`;
-  const chips = `<div class="chips" role="group" aria-label="Filtrer par compétition">
-    <button class="chip" data-c="mine" aria-pressed="${homeFilter === "mine"}">Mes équipes</button>
-    <button class="chip" data-c="all" aria-pressed="${homeFilter === "all"}">Toutes</button>
-    ${comps.map((c) => `<button class="chip" data-c="${esc(c)}" aria-pressed="${homeFilter === c}">${esc(compName(c))}</button>`).join("")}</div>`;
+  // One tab per view, in a fixed order; a swipe on the list moves to the next or previous tab.
+  const views = [["all", "Tous", d.matches.length], ["mine", "Mes équipes", d.matches.filter(isMine).length],
+    ...comps.map((c) => [c, compName(c), d.matches.filter((m) => m.competition === c).length])];
+  if (!views.some(([k]) => k === homeFilter)) homeFilter = "all";
+  const tabsBar = `<div class="tabs comp-tabs" role="tablist" aria-label="Compétitions">${views.map(([k, label, n]) =>
+    `<button type="button" role="tab" class="tab${k === homeFilter ? " on" : ""}" aria-selected="${k === homeFilter}" data-c="${esc(k)}">${esc(label)}<span class="tab-n">${n}</span></button>`).join("")}</div>`;
   const byDay = new Map();
   shown.forEach((m) => { const k = m.kickoff_date; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); });
   const days = [...byDay.entries()].map(([day, rows]) => {
@@ -1062,7 +1069,7 @@ async function home() {
     const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
     // One line per match: its safest checked market and the fair odds to beat.
     const sp = m.safe;
-    const flag = homeFilter === "mine" && has ? myFlag(m) : !has || sp === undefined ? "" : sp
+    const flag = has && isMine(m) ? myFlag(m) : !has || sp === undefined ? "" : sp
       ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
       : `<span class="flag">pas de pari sûr</span>`;
     const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
@@ -1082,15 +1089,38 @@ async function home() {
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
     <span><a href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
   setTimeout(() => {
-    document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => {
-      homeFilter = b.dataset.c;
-      try { localStorage.setItem("fi_home_filter", homeFilter); } catch { /* private mode */ }
+    const keys = views.map(([k]) => k);
+    const go = (k) => {
+      homeFilter = k;
+      try { localStorage.setItem("fi_home_filter", k); } catch { /* private mode */ }
       route();
-    }));
+    };
+    const step = (dir) => {
+      const i = keys.indexOf(homeFilter) + dir;
+      if (i >= 0 && i < keys.length) go(keys[i]);
+    };
+    const bar = document.querySelector(".comp-tabs");
+    if (bar) {
+      bar.querySelectorAll(".tab").forEach((b) => (b.onclick = () => go(b.dataset.c)));
+      bar.onkeydown = (e) => { if (e.key === "ArrowRight") step(1); if (e.key === "ArrowLeft") step(-1); };
+      bar.querySelector(".tab.on")?.scrollIntoView({ block: "nearest", inline: "center" });
+    }
+    // Finger moves left: next tab (to the right), like turning a page.
+    const pane = document.getElementById("home-pane");
+    let x0 = null, y0 = null;
+    if (pane) {
+      pane.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+      pane.addEventListener("touchend", (e) => {
+        if (x0 === null) return;
+        const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+        x0 = null;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) step(dx < 0 ? 1 : -1);
+      }, { passive: true });
+    }
     const all = document.getElementById("show-all");
     if (all) all.onclick = () => { homeAll = true; route(); };
   });
-  return head + finding + chips + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + status;
+  return head + tabsBar + `<div id="home-pane">` + finding + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + `</div>` + status;
 }
 
 /* Side cards folded on each page: the title stays visible, the content opens on click. */

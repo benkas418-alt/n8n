@@ -334,6 +334,12 @@ details.fold.inner > .fold-body { padding: 0 0 8px; }
 :root[data-theme="light"] .tab { color: #555555; }
 .tab:hover { color: var(--text); }
 .tab.on { color: var(--text); border-bottom-color: var(--text); }
+button.tab { background: none; border-top: 0; border-left: 0; border-right: 0; font: inherit; cursor: pointer; }
+.comp-tabs { margin-bottom: 18px; scroll-snap-type: x proximity; }
+.comp-tabs .tab { scroll-snap-align: center; }
+.tab-n { margin-left: 6px; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.tab.on .tab-n { color: var(--muted); }
+#home-pane { touch-action: pan-y pinch-zoom; }
 .seg { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 4px; gap: 2px; }
 :root[data-theme="light"] .seg { background: var(--sunk); }
 .seg-btn { display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px;
