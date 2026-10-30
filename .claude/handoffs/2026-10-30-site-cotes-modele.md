@@ -13,12 +13,11 @@
 - football-data.co.uk fixtures.csv still listed 27-29/10 only: league odds come when it updates.
 - Weekly e-mail: SMTP login failed ("Connection unexpectedly closed"). PR #13 removes spaces
   from the Gmail app password and retries on port 465. Manual workflow
-  `util-football-intel-email-test.yml` sends one test e-mail.
+  `util-football-intel-email-test.yml` sends one test e-mail. After a new Gmail app password,
+  the test e-mail arrived (2026-10-30 15:09 UTC). First weekly PDF: Monday 2026-11-02.
+- Upstream n8n checks skip football-intel-only changes (PR #14); 11 stuck CI: Master runs cancelled.
 
 ## Open
 
-- Result of the e-mail test (run of util-football-intel-email-test.yml).
 - betPawa odds: only OddsPapi (betPawa Cameroun, 250 req/month free); terms not verified;
   owner has not created a key. betPawa site terms forbid bots (art. 6.4.2).
-- Upstream n8n CI workflows run on each PR and fail (e-mail noise for the owner); consider
-  disabling them in this fork (owner decision).

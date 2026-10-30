@@ -972,14 +972,51 @@ function marketGaps(m) {
 }
 const signedPts = (g) => `${g > 0 ? "+" : "−"}${Math.round(100 * Math.abs(g))} pts`;
 
-let homeFilter = "all";
+/* The owner's teams and the market he plays in each league (memory: betting habits).
+   "*" means every team of the league. */
+const MY_TEAMS = {
+  "ENG-PL": { teams: "*", market: "fg" },
+  "GER-BL": { teams: "*", market: "btts" },
+  "ITA-SA": { teams: ["Lazio", "Inter", "Milan", "Como"], market: "fg" },
+  "ESP-LL": { teams: ["Barcelona", "Ath Madrid", "Real Madrid", "Villarreal", "Betis"], market: "fg" },
+  "FRA-L1": { teams: ["Paris SG"], market: "fg" },
+};
+const myPref = (m) => MY_TEAMS[m.competition];
+function isMine(m) {
+  const p = myPref(m);
+  return !!p && (p.teams === "*" || p.teams.includes(m.home) || p.teams.includes(m.away));
+}
+/* The side to read: the followed team, else the likelier first scorer. */
+function mySide(m) {
+  const p = myPref(m);
+  if (p && p.teams !== "*") {
+    if (p.teams.includes(m.home) && !p.teams.includes(m.away)) return 0;
+    if (p.teams.includes(m.away) && !p.teams.includes(m.home)) return 2;
+  }
+  return m.fg && m.fg[2] > m.fg[0] ? 2 : 0;
+}
+function myFlag(m) {
+  const p = myPref(m);
+  const fair = (x) => `<br><span class="muted">cote juste ${odds2(1 / x)}</span>`;
+  if (p && p.market === "btts" && m.p_btts != null) {
+    return `<span class="flag safe"><b>2 marquent</b> <span class="nowrap">${pct(m.p_btts, 0)}</span>${fair(m.p_btts)}</span>`;
+  }
+  if (!m.fg) return "";
+  const side = mySide(m);
+  const team = side === 0 ? m.home : m.away;
+  const fg = m.fg[side];
+  const up = m.up1[side === 0 ? 0 : 1];
+  return `<span class="flag safe"><b>1er but ${esc(team)}</b> <span class="nowrap">${pct(fg, 0)}</span>${fair(fg)}<br><span class="muted">1UP ${pct(up, 0)} · ${odds2(1 / up)}</span></span>`;
+}
+
+let homeFilter = (() => { try { return localStorage.getItem("fi_home_filter") || "mine"; } catch { return "mine"; } })();
 let homeAll = false;
 async function home() {
   const d = await get("/home");
   const sub = document.getElementById("brand-sub");
   if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
   const comps = [...new Set(d.matches.map((m) => m.competition))];
-  const inComp = d.matches.filter((m) => homeFilter === "all" || m.competition === homeFilter);
+  const inComp = d.matches.filter((m) => homeFilter === "all" || (homeFilter === "mine" ? isMine(m) : m.competition === homeFilter));
   const today = new Date().toISOString().slice(0, 10);
   const horizon = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   const shown = homeAll ? inComp : inComp.filter((m) => m.kickoff_date <= horizon);
@@ -998,6 +1035,7 @@ async function home() {
         <a href="#/match?id=${top.m.id}">Ouvrir le match</a></div>`
     : `<div class="finding"><p>Aucun match à venir n'a encore de cote de référence pour comparer le modèle au marché.</p></div>`;
   const chips = `<div class="chips" role="group" aria-label="Filtrer par compétition">
+    <button class="chip" data-c="mine" aria-pressed="${homeFilter === "mine"}">Mes équipes</button>
     <button class="chip" data-c="all" aria-pressed="${homeFilter === "all"}">Toutes</button>
     ${comps.map((c) => `<button class="chip" data-c="${esc(c)}" aria-pressed="${homeFilter === c}">${esc(compName(c))}</button>`).join("")}</div>`;
   const byDay = new Map();
@@ -1024,7 +1062,7 @@ async function home() {
     const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
     // One line per match: its safest checked market and the fair odds to beat.
     const sp = m.safe;
-    const flag = !has || sp === undefined ? "" : sp
+    const flag = homeFilter === "mine" && has ? myFlag(m) : !has || sp === undefined ? "" : sp
       ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
       : `<span class="flag">pas de pari sûr</span>`;
     const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
@@ -1044,7 +1082,11 @@ async function home() {
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
     <span><a href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
   setTimeout(() => {
-    document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => { homeFilter = b.dataset.c; route(); }));
+    document.querySelectorAll(".chip").forEach((b) => (b.onclick = () => {
+      homeFilter = b.dataset.c;
+      try { localStorage.setItem("fi_home_filter", homeFilter); } catch { /* private mode */ }
+      route();
+    }));
     const all = document.getElementById("show-all");
     if (all) all.onclick = () => { homeAll = true; route(); };
   });
