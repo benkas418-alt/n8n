@@ -1,5 +1,35 @@
 # Résultats du backtest réel
 
+## betPawa (Cameroun) contre Pinnacle, saison 2026-27 (2026-10-30, D68)
+
+`scripts/oddspapi_backtest.py` (workflow « betPawa vs Pinnacle backtest », run 41104481324) :
+403 matchs joués des 5 championnats depuis le 1er août, 7 038 cotes betPawa, dernière cote
+avant le coup d'envoi chez les deux. Cote juste = Pinnacle sans marge (1X2, ±2,5, DC, DNB),
+ou tirée du 1X2 et du ±2,5 de Pinnacle par le calcul de D66 (premier but, 2UP, BTTS).
+Espérance = cote × probabilité juste − 1, IC 95 % bootstrap.
+
+| Marché | Sélection | n | Espérance | Part des cotes au-dessus de la cote juste |
+|---|---|---|---|---|
+| 2UP | extérieur | 391 | −0,1 % [−0,5 ; +0,3] | 47 % |
+| 2UP | domicile | 391 | −1,3 % [−1,6 ; −0,9] | 34 % |
+| 1X2 | nul | 391 | −1,9 % [−2,3 ; −1,5] | 31 % |
+| ±2,5 | moins | 391 | −3,1 % [−3,5 ; −2,6] | 15 % |
+| DC | 1X / X2 / 12 | 391 chacun | −3,8 % / −4,5 % / −6,6 % | 0 à 2 % |
+| BTTS | non / oui | 391 chacun | −4,4 % / −9,5 % | 8 % / 0 % |
+| Premier but | domicile / extérieur | 391 chacun | −5,0 % / −5,3 % | 1 % |
+| 1X2 | domicile / extérieur | 391 chacun | −6,1 % / −7,0 % | 3 % / 5 % |
+| DNB | 1 / 2 | 391 chacun | −9,5 % / −11,4 % | 0 % |
+| ±2,5 | plus | 391 | −6,6 % [−6,8 ; −6,3] | 0 % |
+
+Lecture : aucun marché n'est rentable en simple. Le 2UP est le seul à la cote juste, parce que
+betPawa le cote presque comme le 1X2 alors qu'il paie plus souvent ; près de la moitié des
+2UP extérieur sont au-dessus de la cote juste. Avec le Bonus Gagnant (D67), un combiné de
+sélections à la cote juste a une espérance proche du taux de bonus × (1 − probabilité de
+gain) : la seule voie positive est un combiné de 2UP choisis au-dessus de la cote juste.
+Limites : betPawa Cameroun, pas RD Congo ; la cote juste du 2UP vient d'un calcul (Poisson,
+buts dans un ordre aléatoire), un peu optimiste au milieu de l'échelle (D58) ; le « X » du
+2UP (−26,5 %) n'est pas lu, sa définition chez betPawa reste à vérifier.
+
 ## Modèle contre marché par compétition (2026-10-30, D68)
 
 `scripts/competition_edge.py` : `routed_competition` hors échantillon, saisons 2021-22 à
