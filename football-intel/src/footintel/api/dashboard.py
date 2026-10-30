@@ -267,11 +267,15 @@ def home() -> dict:
           AND m.kickoff_date < CURRENT_DATE + :days
         ORDER BY m.kickoff_date, m.kickoff_utc LIMIT :cap""", days=LIST_DAYS, cap=LIST_CAP)
     from footintel.analysis.summary import list_pick, safe_picks
-    from footintel.analysis.value import market_probabilities
+    from footintel.analysis.value import market_consensus, market_probabilities
 
+    # Bookmaker average from The Odds API when the model's own odds (football-data.co.uk) are missing.
+    prices, _ = _odds_api_prices([m["id"] for m in matches])
     for m in matches:
         mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
         m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
+        if m["market"] is None and (c := market_consensus(prices.get(m["id"], []))):
+            m["market"] = [c["1"], c["X"], c["2"]]
         # Result and goal markets only: the order-dependent ones need a fit, not useful here.
         picks = safe_picks(market_probabilities({k: m[k] for k in ("p_home", "p_draw", "p_away", "p_over_1_5",
                                                                     "p_over_2_5", "p_over_3_5", "p_btts")})) \
@@ -404,6 +408,25 @@ def performance() -> dict:
 
 # --- Odds checker --------------------------------------------------------------------
 
+def _odds_api_prices(ids: list[int]) -> tuple[dict[int, list], dict[int, object]]:
+    """Latest The Odds API snapshot of each match: the market reference shown next to the model."""
+    prices: dict[int, list] = {}
+    captured: dict[int, object] = {}
+    if not ids:
+        return prices, captured
+    for o in _rows("""
+        SELECT o.match_id, o.bookmaker, o.selection, o.price, o.captured_at
+        FROM odds_snapshots o JOIN data_sources d ON d.id = o.source_id
+        WHERE d.code = 'the_odds_api' AND o.market = '1X2' AND o.match_id = ANY(:ids)
+          AND o.snapshot_label = (SELECT max(o2.snapshot_label) FROM odds_snapshots o2
+                                  WHERE o2.match_id = o.match_id AND o2.source_id = o.source_id)""",
+                   ids=ids):
+        prices.setdefault(o["match_id"], []).append((o["bookmaker"], o["selection"], o["price"]))
+        if o["captured_at"] and (captured.get(o["match_id"]) is None or o["captured_at"] > captured[o["match_id"]]):
+            captured[o["match_id"]] = o["captured_at"]
+    return prices, captured
+
+
 @router.get("/value-board")
 def value_board(days: int = 7) -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""
@@ -423,21 +446,7 @@ def value_board(days: int = 7) -> dict:
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE
           AND m.kickoff_date <= CURRENT_DATE + CAST(:d AS int)
         ORDER BY m.kickoff_utc NULLS LAST, m.kickoff_date""", d=days)
-    # Latest The Odds API snapshot of each match: the market reference shown next to the model.
-    prices: dict[int, list] = {}
-    captured: dict[int, object] = {}
-    ids = [r["id"] for r in rows]
-    if ids:
-        for o in _rows("""
-            SELECT o.match_id, o.bookmaker, o.selection, o.price, o.captured_at
-            FROM odds_snapshots o JOIN data_sources d ON d.id = o.source_id
-            WHERE d.code = 'the_odds_api' AND o.market = '1X2' AND o.match_id = ANY(:ids)
-              AND o.snapshot_label = (SELECT max(o2.snapshot_label) FROM odds_snapshots o2
-                                      WHERE o2.match_id = o.match_id AND o2.source_id = o.source_id)""",
-                       ids=ids):
-            prices.setdefault(o["match_id"], []).append((o["bookmaker"], o["selection"], o["price"]))
-            if o["captured_at"] and (captured.get(o["match_id"]) is None or o["captured_at"] > captured[o["match_id"]]):
-                captured[o["match_id"]] = o["captured_at"]
+    prices, captured = _odds_api_prices([r["id"] for r in rows])
     matches = []
     for r in rows:
         market = market_consensus(prices.get(r["id"], []))

@@ -223,20 +223,30 @@ def check_football_data_org(engine: Engine, settings: Settings, seasons: list[in
     return stats
 
 
-def _aliased_team(session, name: str, aliases: dict[str, str], cache: dict) -> int | None:
+def _aliased_team(session, name: str, aliases: dict[str, str], cache: dict,
+                  competition_id: int | None = None) -> int | None:
+    """Manual alias first. Then, inside one competition, the only recent team whose
+    normalised name is the same ("Real Madrid CF" and "Real Madrid"); never a closest name."""
     if name not in cache:
         cache[name] = session.scalar(select(Team.id).where(Team.name == aliases.get(name, "")))
+        if cache[name] is None and competition_id is not None:
+            same = [t for t, n in _recent_teams(session, competition_id) if similarity(name, n) == 1.0]
+            cache[name] = same[0] if len(same) == 1 else None
     return cache[name]
 
 
-def _closest_team(session, competition_id: int, name: str) -> str:
-    """Closest team name among this season's teams of the competition, for alias review."""
+def _recent_teams(session, competition_id: int) -> list[tuple[int, str]]:
     since = date.today() - timedelta(days=400)
     ids = session.scalars(select(Match.home_team_id).where(
         Match.competition_id == competition_id, Match.kickoff_date >= since).union(
         select(Match.away_team_id).where(Match.competition_id == competition_id,
                                          Match.kickoff_date >= since))).all()
-    names = session.scalars(select(Team.name).where(Team.id.in_(ids))).all()
+    return session.execute(select(Team.id, Team.name).where(Team.id.in_(ids))).all()
+
+
+def _closest_team(session, competition_id: int, name: str) -> str:
+    """Closest team name among this season's teams of the competition, for alias review."""
+    names = [n for _, n in _recent_teams(session, competition_id)]
     best = max(names, key=lambda n: similarity(name, n), default=None)
     return f", closest {best!r} at {similarity(name, best):.2f}" if best else ""
 
@@ -276,7 +286,8 @@ def sync_odds_api(engine: Engine, settings: Settings, connector: TheOddsApi | No
                 competition = s.scalar(select(Competition).where(Competition.code == comp))
                 cache: dict = {}
                 for ev in events:
-                    ids = [_aliased_team(s, n, aliases, cache) for n in (ev.home_team, ev.away_team)]
+                    ids = [_aliased_team(s, n, aliases, cache, competition.id)
+                           for n in (ev.home_team, ev.away_team)]
                     for n, team_id in zip((ev.home_team, ev.away_team), ids):
                         if team_id is None:
                             stats.issue("warning", "unmapped_team", f"{comp} {n!r}: no manual alias"

@@ -59,9 +59,9 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Élément | Constat (2026-10-29, premier passage réel : 54 matchs de C1, C3 et C4 rattachés, 20 bookmakers, 3 crédits) |
 |---|---|
 | Accès | `https://api.the-odds-api.com/v4`, clé en variable d'environnement `ODDS_API_KEY` (jamais dans le dépôt). La clé passe dans l'URL : elle est masquée dans les erreurs et les journaux `httpx` sont coupés. |
-| Quota | Offre gratuite : 500 crédits par mois. `/sports` est gratuit ; un appel `/odds` en `h2h` sur une région (`eu`) coûte 1 crédit ; une réponse vide ne coûte rien. 4 compétitions × 2 passages par jour = 8 crédits par jour au plus, environ 250 par mois. Arrêt automatique sous 40 crédits restants. |
-| Couverture | Ligue des champions, Ligue Europa, Conference League, DFB-Pokal. Clé de compétition vérifiée sur `/sports` avant chaque appel. Les championnats ont déjà leurs cotes (football-data.co.uk). |
-| Rattachement | Jamais d'équipe ni de match créé, jamais de match modifié. Noms d'équipes par alias relus à la main (source `the_odds_api`) ; un nom inconnu est signalé avec le nom le plus proche, pour relecture. |
+| Quota | Offre gratuite : 500 crédits par mois. `/sports` est gratuit ; un appel `/odds` en `h2h` sur une région (`eu`) coûte 1 crédit ; une compétition hors saison ou une réponse vide ne coûte rien. 14 compétitions, un passage par jour (cycle du matin) : 14 crédits par jour au plus, environ 420 par mois. Arrêt automatique sous 40 crédits restants. |
+| Couverture | Ligue des champions, Ligue Europa, Conference League, DFB-Pokal ; depuis D64 aussi les 5 championnats, FA Cup, EFL Cup, Copa del Rey, Coppa Italia et Coupe de France. Clé de compétition vérifiée sur `/sports` avant chaque appel. Pas de betPawa (bookmakers européens). |
+| Rattachement | Jamais d'équipe ni de match créé, jamais de match modifié. Noms d'équipes par alias relus à la main (source `the_odds_api`), sinon la seule équipe récente de la compétition au nom normalisé identique (« Real Madrid CF » = « Real Madrid »), jamais le nom le plus proche. Un nom inconnu est signalé avec le nom le plus proche, pour relecture. |
 | Usage | Référence de marché dans le vérificateur de cotes (probabilité moyenne des bookmakers, marge retirée, meilleure cote). **Pas lue par le modèle actif** (D49). |
 | Conditions | `the-odds-api.com/terms-and-conditions.html` : stockage et affichage dans un tableau de bord autorisés ; revente comme service de données interdite. Mention non obligatoire, ajoutée quand même. |
 
