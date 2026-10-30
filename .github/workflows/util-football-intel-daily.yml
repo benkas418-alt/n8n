@@ -40,9 +40,10 @@ jobs:
     env:
       DATABASE_URL: postgresql+psycopg://footintel:footintel_ci@localhost:5432/footintel
       PGPASSWORD: footintel_ci
-      DATA_DIR: ${{ github.workspace }}/state/data
-      ARTIFACTS_DIR: ${{ github.workspace }}/state/artifacts
-      REPORTS_DIR: ${{ github.workspace }}/state/reports
+      # Inside football-intel/state: the Save state step archives that folder.
+      DATA_DIR: ${{ github.workspace }}/football-intel/state/data
+      ARTIFACTS_DIR: ${{ github.workspace }}/football-intel/state/artifacts
+      REPORTS_DIR: ${{ github.workspace }}/football-intel/state/reports
       FOOTBALL_DATA_ORG_KEY: ${{ secrets.FOOTBALL_DATA_ORG_KEY }}
       ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -124,11 +125,19 @@ jobs:
           if [ "$(date -u +%u)" = "1" ] || [ "${{ inputs.weekly }}" = "true" ]; then footintel run weekly; fi
 
       - name: Predictions
-        run: footintel run morning
+        id: predict
+        run: |
+          footintel run morning | tee morning.json
+          if grep -q '"predict": "failed' morning.json; then
+            echo "::error::No prediction was computed (see the predict step above)"
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Save state
         if: always() && steps.load.outcome == 'success' && steps.first.outcome != 'failure'
         run: |
+          set -o pipefail  # a missing folder must fail the step, not save a partial state
+          mkdir -p state/artifacts state/reports
           pg_dump --format=custom -h localhost -U footintel -f state/db.dump footintel
           rm -f state.tar.enc
           tar -cf - -C state db.dump artifacts reports \
@@ -143,3 +152,8 @@ jobs:
 
       - name: Export to the private site
         run: footintel export-supabase
+
+      # The export still runs, so the site keeps its other data; the run is then marked red.
+      - name: Report failed predictions
+        if: steps.predict.outputs.failed == 'true'
+        run: exit 1
