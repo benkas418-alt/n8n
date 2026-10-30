@@ -6,7 +6,7 @@ from datetime import timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from footintel.catalog import (COUNTRY_BY_CODE, FOOTBALL_DATA_ORG, OPENFOOTBALL, OPENLIGADB,
+from footintel.catalog import (COUNTRY_BY_CODE, FOOTBALL_DATA_ORG, ONEFOOTBALL, OPENFOOTBALL, OPENLIGADB,
                                OUTCOME_SOURCE_RANK, get_source)
 from footintel.connectors.base import MatchRecord, season_label
 from footintel.db.models import (
@@ -24,7 +24,7 @@ from footintel.db.models import (
 from footintel.ingestion.teams import TeamResolver, load_manual_aliases
 from footintel.jobs import RunStats
 
-SINGLE_PAIRING_LEAGUES = {"ENG-PL", "ESP-LL", "ITA-SA", "GER-BL"}
+SINGLE_PAIRING_LEAGUES = {"ENG-PL", "ESP-LL", "ITA-SA", "GER-BL", "FRA-L1"}
 
 _STAT_FIELDS = ("shots", "shots_on_target", "corners", "fouls", "yellow_cards", "red_cards", "xg")
 
@@ -37,6 +37,11 @@ class MatchStore:
         self.source = get_source(session, source_code)
         # Names from openfootball must be mapped onto the football-data.co.uk teams.
         self.resolver = TeamResolver(session, source_code) if source_code == OPENFOOTBALL else None
+        # OneFootball (D62): a league team must already exist; a cup may add a lower-tier club.
+        self.calendar = source_code == ONEFOOTBALL
+        self.calendar_resolver = TeamResolver(session, source_code) if self.calendar else None
+        self.calendar_manual = ({a: t for (src, a), t in load_manual_aliases().items() if src == ONEFOOTBALL}
+                                if self.calendar else {})
         # Names without a safe automatic match: only aliases checked by a human are used.
         self.manual_only = (
             {a: t for (src, a), t in load_manual_aliases().items() if src == source_code}
@@ -71,6 +76,8 @@ class MatchStore:
             self.s.add(TeamAlias(team_id=team.id, source_id=self.source.id, alias=name))
             self._aliases[name] = team.id
             return team.id
+        if self.calendar:
+            return self._calendar_team(name, rec, competition, stats)
         canonical, country = name, competition.country
         if self.resolver is not None:
             m = re.search(r"\(([A-Z]{3})\)$", name)
@@ -95,6 +102,29 @@ class MatchStore:
             self.s.flush()
         elif team.country is None and country:
             team.country = country
+        self.s.add(TeamAlias(team_id=team.id, source_id=self.source.id, alias=name))
+        self._aliases[name] = team.id
+        return team.id
+
+    def _calendar_team(self, name: str, rec: MatchRecord, competition: Competition,
+                       stats: RunStats) -> int | None:
+        """Manual alias, exact name, then a safe similarity match among the country's league
+        teams. In a league an unknown name is skipped: a wrong new team would corrupt the Elo."""
+        canonical = self.calendar_manual.get(name)
+        team = self.s.scalar(select(Team).where(Team.name == (canonical or name)))
+        if team is None and competition.country:
+            res = self.calendar_resolver.resolve_in_country(name, competition.country, rec.season_start_year)
+            if res.team_name:
+                team = self.s.scalar(select(Team).where(Team.name == res.team_name))
+        if team is None and competition.type == "league":
+            stats.issue("warning", "unmapped_team",
+                        f"{competition.code} {name!r}: no manual alias or safe match, match skipped")
+            return None
+        if team is None:
+            team = Team(name=name, country=competition.country)
+            self.s.add(team)
+            self.s.flush()
+            stats.issue("info", "new_cup_team", f"{competition.code} {name!r}: new team (lower tier)")
         self.s.add(TeamAlias(team_id=team.id, source_id=self.source.id, alias=name))
         self._aliases[name] = team.id
         return team.id

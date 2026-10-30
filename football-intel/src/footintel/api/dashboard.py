@@ -17,7 +17,7 @@ from footintel.reports.fiche import team_sheet
 
 router = APIRouter(prefix="/api/dash", tags=["dashboard"])
 
-TARGETS = ["ENG-PL", "ESP-LL", "ITA-SA", "GER-BL", "UEFA-CL", "UEFA-EL", "UEFA-ECL",
+TARGETS = ["ENG-PL", "ESP-LL", "ITA-SA", "GER-BL", "FRA-L1", "UEFA-CL", "UEFA-EL", "UEFA-ECL", "FRA-CDF",
            "ENG-FAC", "ENG-EFL", "ESP-CDR", "ITA-CI", "GER-DFB"]
 
 

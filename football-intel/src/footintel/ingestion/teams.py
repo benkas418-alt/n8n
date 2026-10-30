@@ -107,6 +107,19 @@ class TeamResolver:
             self._candidates[key] = list(rows)
         return self._candidates[key]
 
+    def resolve_in_country(self, raw_name: str, country: str, season: int) -> Resolution:
+        """Like resolve(), for a source that does not tag names with a country code."""
+        scored = sorted(((similarity(raw_name, c), c) for c in self._domestic_teams(country, season)),
+                        reverse=True)
+        if not scored:
+            return Resolution(None, "unresolved")
+        best_score, best = scored[0]
+        second_score = scored[1][0] if len(scored) > 1 else 0.0
+        if (best_score == 1.0 and second_score < 1.0) or (
+                best_score >= self.MIN_SCORE and best_score - second_score >= self.MIN_MARGIN):
+            return Resolution(best, "automatic", best_score, scored[1][1] if len(scored) > 1 else None)
+        return Resolution(None, "unresolved", best_score, best)
+
     def resolve(self, raw_name: str, season: int) -> Resolution:
         manual = self.manual.get((self.source_code, raw_name))
         if manual:

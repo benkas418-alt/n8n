@@ -15,6 +15,7 @@ from footintel.connectors.openfootball import FILE_TO_COMPETITION, OpenFootball
 from footintel.connectors.football_data_org import UEFA_TZ, FootballDataOrg
 from footintel.connectors.openligadb import OpenLigaDB
 from footintel.connectors.the_odds_api import TheOddsApi
+from footintel.connectors.onefootball import CALENDAR_SLUGS, CUP_SLUGS, MatchCard
 from footintel.connectors.onefootball import LEAGUE_SLUGS as ONEFOOTBALL_LEAGUES, OneFootball
 from footintel.connectors.onefootball import MatchPage as OneFootballPage
 from footintel.connectors.http import SourceUnavailable
@@ -344,6 +345,48 @@ def _store_onefootball_page(s, match: Match, source_id: int, page: OneFootballPa
         s.add(MatchEvent(match_id=match.id, source_id=source_id, external_key=ev.key, minute=ev.minute,
                          extra_minute=ev.extra_minute, team_id=team_ids[ev.side] if ev.side in (0, 1) else None,
                          player_id=names.get(ev.player or ""), type=ev.type, detail=detail[:200]))
+
+
+def _calendar_record(card: MatchCard, competition_code: str):
+    from footintel.connectors.base import MatchRecord, OutcomeRecord
+
+    outcome = None
+    if card.finished and card.home_score is not None and card.away_score is not None:
+        h, a = card.home_score, card.away_score
+        # The card shows the score after extra time when there was one: the closest we have.
+        outcome = OutcomeRecord(h, a, "H" if h > a else "A" if h < a else "D")
+    kickoff = card.kickoff_utc
+    return MatchRecord(source_code=ONEFOOTBALL, external_id=card.external_id, competition_code=competition_code,
+                       season_start_year=season_start_for(kickoff.date()), kickoff_date=kickoff.date(),
+                       kickoff_utc=kickoff, home_team=card.home_team, away_team=card.away_team,
+                       status="finished" if outcome else "scheduled", outcome=outcome)
+
+
+def sync_onefootball_calendar(engine: Engine, settings: Settings, competitions: list[str] | None = None,
+                              connector: OneFootball | None = None) -> RunStats:
+    """Upcoming matches of the five leagues and the national cups, and the cup results (D62).
+
+    League results stay with football-data.co.uk; OneFootball only adds their fixtures, and
+    never a team. A cup may add a lower-tier club. One fixtures page per competition, and one
+    results page per cup, per run."""
+    competitions = competitions or list(CALENDAR_SLUGS)
+    with tracked_run(engine, "sync_onefootball_calendar", source_id=_source_id(engine, ONEFOOTBALL),
+                     params={"competitions": competitions}) as stats:
+        connector = connector or OneFootball(settings)
+        for comp in competitions:
+            try:
+                cards = connector.fixtures(comp)
+                if comp in CUP_SLUGS:
+                    cards += [c for c in connector.results(comp) if c.finished]
+            except SourceUnavailable as exc:
+                stats.issue("warning", "source_unavailable", f"{comp}: {exc}")
+                continue
+            with session_scope(engine) as s:
+                store = MatchStore(s, ONEFOOTBALL)
+                for card in {c.external_id: c for c in cards}.values():
+                    store.upsert(_calendar_record(card, comp), stats)
+            log.info("OneFootball calendar %s: %d cards", comp, len(cards))
+    return stats
 
 
 def sync_onefootball(engine: Engine, settings: Settings, competitions: list[str] | None = None,

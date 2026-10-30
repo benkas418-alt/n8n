@@ -118,6 +118,7 @@ jobs:
       - name: Daily cycle
         if: steps.load.outputs.fresh == 'false'
         run: |
+          footintel db seed  # new competitions and target flags from the catalog
           footintel run nightly
           footintel run evening
           if [ "$(date -u +%u)" = "1" ] || [ "${{ inputs.weekly }}" = "true" ]; then footintel run weekly; fi
