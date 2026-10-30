@@ -8,7 +8,23 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const pct = (p, d = 0) => `${(100 * p).toFixed(d)} %`;
 const two = (x) => (x == null || !isFinite(x) ? "—" : x.toFixed(2));
 const COMP = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie A", "GER-BL": "Bundesliga",
-  "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa", "UEFA-ECL": "Ligue Conférence" };
+  "FRA-L1": "Ligue 1", "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
+  "UEFA-ECL": "Ligue Conférence", "ENG-FAC": "FA Cup", "ESP-CDR": "Coupe du Roi", "ITA-CI": "Coupe d'Italie" };
+
+/* betPawa RD Congo "Bonus Gagnant", read on the owner's coupons on 2026-10-30: percentage of the
+   net win (payout minus stake) by number of selections priced 1.20 or more. Combos of 3+ only. */
+const BONUS = { 3: 0.04, 4: 0.07, 5: 0.12, 6: 0.17, 7: 0.21, 8: 0.25, 9: 0.27, 10: 0.32, 11: 0.34,
+  12: 0.39, 13: 0.44, 14: 0.49, 15: 0.53, 16: 0.58 };
+const BONUS_MIN_ODDS = 1.2;
+const BONUS_MAX_KNOWN = 16;
+function bonusRate(n) { return n < 3 ? 0 : BONUS[Math.min(n, BONUS_MAX_KNOWN)]; }
+
+/* Reference probability: the bookmakers' figure when known (more accurate than the model, D66). */
+function ref(m, key) {
+  const mk = m.markets.find((x) => x.key === key);
+  const market = m.market && m.market[key] != null ? m.market[key] : null;
+  return { prob: market ?? (mk ? mk.prob : null), src: market != null ? "marché" : "modèle" };
+}
 
 function load() { try { return JSON.parse(localStorage.getItem(STORE) || "{}"); } catch { return {}; } }
 function save() { try { localStorage.setItem(STORE, JSON.stringify({ odds: state.odds, coupon: state.coupon })); } catch { /* storage blocked */ } }
@@ -41,7 +57,7 @@ function matchCard(m) {
     group = x.note;
     const key = `${m.id}:${x.key}`;
     const odds = state.odds[key];
-    const v = verdict(x.prob, odds);
+    const v = verdict(ref(m, x.key).prob, odds);
     const chosen = inCoupon && inCoupon.key === x.key;
     return `${head}<tr class="mk">
       <td class="label">${esc(x.label)}</td>
@@ -96,11 +112,17 @@ function renderCoupon() {
   document.getElementById("sel-empty").hidden = list.length > 0;
   document.getElementById("sum").hidden = list.length === 0;
   if (!list.length) { document.getElementById("c-note").textContent = ""; return; }
-  const prob = list.reduce((a, x) => a * x.mk.prob, 1);
+  const prob = list.reduce((a, x) => a * ref(x.m, x.mk.key).prob, 1);
   const allOdds = list.every((x) => x.odds > 1);
   const odds = allOdds ? list.reduce((a, x) => a * x.odds, 1) : null;
+  // The bonus counts only selections priced 1.20 or more, and applies to the net win.
+  const eligible = list.filter((x) => x.odds >= BONUS_MIN_ODDS).length;
+  const rate = bonusRate(eligible);
+  const withBonus = odds ? 1 + (odds - 1) * (1 + rate) : null;
+  document.getElementById("c-bonus").textContent = !odds ? "—"
+    : `${Math.round(100 * rate)} % (${eligible} sél. ≥ 1,20) → paiement ${two(withBonus)}`;
   const payInput = parseFloat(document.getElementById("c-pay").value);
-  const pay = payInput > 1 ? payInput : odds;
+  const pay = payInput > 1 ? payInput : withBonus;
   document.getElementById("c-prob").textContent = `${pct(prob, prob < 0.01 ? 2 : 1)} (1 sur ${Math.round(1 / prob)})`;
   document.getElementById("c-fair").textContent = two(1 / prob);
   document.getElementById("c-odds").textContent = odds ? two(odds) : "cotes manquantes";
@@ -109,11 +131,65 @@ function renderCoupon() {
   el.textContent = ev == null ? "—" : `${ev >= 0 ? "+" : ""}${(100 * ev).toFixed(1)} %`;
   el.style.color = ev == null ? "" : ev >= 0 ? "var(--good)" : "var(--bad)";
   document.getElementById("c-note").textContent = ev == null ? "Saisis la cote de chaque sélection."
-    : `Sur 100 combinés identiques à 1 de mise, le modèle attend environ ${(100 * (1 + ev)).toFixed(0)} de retour. `
-      + (list.length >= 5 ? "Plus le combiné est long, plus la marge du bookmaker se cumule." : "");
+    : `Sur 100 combinés identiques à 1 de mise, retour attendu environ ${(100 * (1 + ev)).toFixed(0)} (bonus compris). `
+      + (eligible > BONUS_MAX_KNOWN ? `Barème relevé jusqu'à ${BONUS_MAX_KNOWN} sélections : bonus réel peut-être plus haut. ` : "")
+      + (list.length - eligible > 0 ? `${list.length - eligible} sélection(s) sous 1,20 : pas de bonus pour elles. ` : "")
+      + "Le bonus compense la marge entre 6 et 10 sélections ; au-delà, elle se cumule plus vite.";
 }
 
-function render() { renderFilters(); renderList(); renderCoupon(); }
+/* The strongest teams of the period by Elo, with the 1UP of the stronger side. */
+function eloPicks() {
+  return state.data.matches
+    .filter((m) => m.elo && (state.comp === "all" || m.competition === state.comp))
+    .map((m) => {
+      const home = m.elo[0] >= m.elo[1];
+      const key = home ? "1UP_1" : "1UP_2";
+      return { m, key, team: home ? m.home : m.away, opp: home ? m.away : m.home,
+        elo: Math.max(...m.elo), gap: Math.abs(m.elo[0] - m.elo[1]), ...ref(m, key) };
+    })
+    .filter((x) => x.prob != null && x.gap >= 40)
+    .sort((a, b) => b.elo - a.elo || String(a.m.kickoff_utc || a.m.kickoff_date).localeCompare(String(b.m.kickoff_utc || b.m.kickoff_date)))
+    .filter((x, i, all) => all.findIndex((y) => y.team === x.team) === i)  // next match of each team only
+    .slice(0, 12);
+}
+
+function renderElo() {
+  const picks = eloPicks();
+  const box = document.getElementById("elo");
+  if (!picks.length) { box.innerHTML = ""; return; }
+  const rows = picks.map((x) => {
+    const k = `${x.m.id}:${x.key}`;
+    const v = verdict(x.prob, state.odds[k]);
+    const inCoupon = state.coupon.find((c) => c.match === x.m.id);
+    const low = 1 / x.prob < BONUS_MIN_ODDS;
+    return `<tr class="mk"><td class="label">${esc(x.team)} <span class="muted small">(${x.elo})</span><br>
+        <span class="muted small">contre ${esc(x.opp)} · écart ${x.gap}</span></td>
+      <td class="r num" data-h="1UP">${pct(x.prob)}<br><span class="note">${x.src}</span></td>
+      <td class="r num" data-h="Cote juste">${two(1 / x.prob)}${low ? '<br><span class="note">sous 1,20 : hors bonus</span>' : ""}</td>
+      <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote 1UP ${esc(x.team)}"
+           data-key="${esc(k)}" value="${state.odds[k] ?? ""}"></td>
+      <td><span class="verdict ${v.cls}" data-verdict="${esc(k)}">${v.text}</span></td>
+      <td><button class="add" data-match="${x.m.id}" data-market="${x.key}" ${inCoupon && inCoupon.key !== x.key ? "disabled" : ""}>
+        ${inCoupon && inCoupon.key === x.key ? "retirer" : "+ combiné"}</button></td></tr>`;
+  }).join("");
+  box.innerHTML = `<details class="match" open><summary><span class="teams">Sélection Elo : les équipes les plus fortes</span>
+      <span class="meta">1UP de l'équipe la mieux classée (écart d'au moins 40 points Elo)</span>
+      <button class="add" id="elo-ticket" type="button">Composer un ticket de 7</button></summary>
+    <div class="table-wrap"><table><thead><tr><th>Équipe (Elo)</th><th class="r">1UP</th><th class="r">Cote juste</th>
+      <th class="r">Ta cote</th><th>Verdict</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note" style="padding:0 14px 12px">Un Elo élevé ne dit pas si le pari est bien payé : seule ta cote au-dessus de la cote juste le dit. Les très grosses équipes ont souvent un 1UP sous 1,20, qui ne compte pas pour le bonus.</p></details>`;
+}
+
+function eloTicket() {
+  const picks = eloPicks().filter((x) => 1 / x.prob >= BONUS_MIN_ODDS);
+  for (const x of picks) {
+    if (state.coupon.length >= 7) break;
+    if (!state.coupon.find((c) => c.match === x.m.id)) state.coupon.push({ match: x.m.id, key: x.key });
+  }
+  save(); render();
+}
+
+function render() { renderFilters(); renderElo(); renderList(); renderCoupon(); }
 
 document.addEventListener("input", (e) => {
   const key = e.target.dataset && e.target.dataset.key;
@@ -122,10 +198,12 @@ document.addEventListener("input", (e) => {
     if (v > 1) state.odds[key] = v; else delete state.odds[key];
     const [mid, mkey] = key.split(":");
     const m = state.data.matches.find((x) => String(x.id) === mid);
-    const mk = m.markets.find((x) => x.key === mkey);
-    const vd = verdict(mk.prob, state.odds[key]);
-    const cell = document.getElementById(`v-${mid}-${mkey}`);
-    cell.className = `verdict ${vd.cls}`; cell.textContent = vd.text;
+    const vd = verdict(ref(m, mkey).prob, state.odds[key]);
+    // The same selection can appear in the Elo table and in its match card: keep both in step.
+    document.querySelectorAll(`[data-key="${CSS.escape(key)}"]`).forEach((inp) => { if (inp !== e.target) inp.value = e.target.value; });
+    document.querySelectorAll(`#v-${mid}-${CSS.escape(mkey)}, [data-verdict="${CSS.escape(key)}"]`).forEach((cell) => {
+      cell.className = `verdict ${vd.cls}`; cell.textContent = vd.text;
+    });
     save(); renderCoupon();
   }
   if (e.target.id === "c-pay") renderCoupon();
@@ -133,15 +211,16 @@ document.addEventListener("input", (e) => {
 document.addEventListener("click", (e) => {
   const t = e.target.closest("button");
   if (!t) return;
-  if (t.dataset.comp) { state.comp = t.dataset.comp; renderFilters(); renderList(); }
+  if (t.id === "elo-ticket") { e.preventDefault(); eloTicket(); return; }
+  if (t.dataset.comp) { state.comp = t.dataset.comp; renderFilters(); renderElo(); renderList(); }
   if (t.dataset.match) {
     const id = Number(t.dataset.match), key = t.dataset.market;
     const i = state.coupon.findIndex((c) => c.match === id);
     if (i >= 0 && state.coupon[i].key === key) state.coupon.splice(i, 1);
     else if (i < 0) state.coupon.push({ match: id, key });
-    save(); renderList(); renderCoupon();
+    save(); renderElo(); renderList(); renderCoupon();
   }
-  if (t.dataset.remove) { state.coupon = state.coupon.filter((c) => c.match !== Number(t.dataset.remove)); save(); renderList(); renderCoupon(); }
+  if (t.dataset.remove) { state.coupon = state.coupon.filter((c) => c.match !== Number(t.dataset.remove)); save(); renderElo(); renderList(); renderCoupon(); }
 });
 
 (async () => {

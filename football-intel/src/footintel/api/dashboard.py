@@ -495,6 +495,7 @@ def value_board(days: int = 7) -> dict:
                th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
                p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.predicted_at,
                p.sufficient_data, (p.feature_snapshot->>'mkt_p_home') IS NOT NULL AS has_odds,
+               (p.feature_snapshot->>'elo_home')::float AS elo_home, (p.feature_snapshot->>'elo_away')::float AS elo_away,
                mv.name || ' v' || mv.version AS model
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
@@ -515,5 +516,6 @@ def value_board(days: int = 7) -> dict:
                                     r["exp_home_goals"] or 1.4, r["exp_away_goals"] or 1.1)
         matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
                                           "home", "away", "predicted_at", "has_odds", "model")}
-                       | {"markets": market_probabilities(r), "market": market})
+                       | {"markets": market_probabilities(r), "market": market,
+                          "elo": [round(r["elo_home"]), round(r["elo_away"])] if r["elo_home"] and r["elo_away"] else None})
     return {"generated_for_days": days, "reliability": RELIABILITY, "matches": matches}
