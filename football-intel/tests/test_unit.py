@@ -920,3 +920,25 @@ def test_weekly_email_is_skipped_without_smtp(tmp_path):
 
     s = Settings(_env_file=None, smtp_host=None, report_to=None)
     assert send_report(s, "x", "y", []) is False
+
+
+def test_summary_picks_and_verdict():
+    from footintel.analysis.summary import key_facts, safe_picks, verdict
+    from footintel.analysis.value import market_probabilities
+
+    pred = {"p_home": 0.62, "p_draw": 0.22, "p_away": 0.16, "p_over_1_5": 0.80, "p_over_2_5": 0.58,
+            "p_over_3_5": 0.33, "p_btts": 0.50}
+    picks = safe_picks(market_probabilities(pred))
+    keys = [p["key"] for p in picks]
+    # 1X (0.84) first; one line per family: no 1 or 12 after 1X, no U3.5 next to O1.5 rule breach.
+    assert keys[0] == "1X" and len(picks) == 3 and len({k.lstrip("OU") for k in keys}) == 3
+    assert all(0.60 <= p["prob"] <= 0.93 for p in picks) and picks[0]["fair_odds"] == round(1 / 0.84, 2)
+    assert verdict(0.62, 0.22, 0.16, 0.58, "A", "B").startswith("Favori net : A")
+    assert "Match ouvert" in verdict(0.40, 0.30, 0.30, 0.35, "A", "B")
+    ins = {"teams": {"home": {"name": "A", "streaks": {"unbeaten": 6}, "scorers": []},
+                     "away": {"name": "B", "streaks": {"winless": 4}, "scorers": [{"name": "X", "goals": 7}]}},
+           "h2h": [{"home": "A", "away": "B", "score": "2-0"}, {"home": "B", "away": "A", "score": "0-1"},
+                   {"home": "A", "away": "B", "score": "3-1"}]}
+    facts = key_facts(ins)
+    assert facts[0].startswith("A reste sur 6") and any("3 dernières confrontations" in f for f in facts)
+    assert len(facts) <= 4

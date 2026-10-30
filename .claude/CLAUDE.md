@@ -54,6 +54,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | David-E-Kay/claude-session-handoff | Vendored in .claude/plugins (works locally only); replaced in cloud by skill handoff-notes |
 | ww-w-ai/super-token-saver | Not enabled: injects instructions that force sub-agent delegation and edits ~/.claude/settings.json; its report command can publish a public gist. Install on a local machine only if wanted |
 | sajidmahamud835/MarketSync-EA | Rejected: its "AI" returns random stop-loss/take-profit; would place real trades |
+| DavidHDev/react-bits (2026-10-30), web-leb.com | Not vendored: React only, and its licence (MIT + Commons Clause) forbids redistributing the components, even ported, so not in this public repo. Usable in a private React app (PitUp) via `npx shadcn@latest add @react-bits/<Name>-JS-CSS`. web-leb: community snippets, no clear licence |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 

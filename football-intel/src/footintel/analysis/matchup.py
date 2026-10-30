@@ -425,4 +425,7 @@ def match_insights(engine: Engine, match: dict, prediction: dict | None) -> dict
     out["first_goal"] = fg
     out["matchup"] = _matchup(match["home"], match["away"], profiles["home"], profiles["away"], fg)
     out["glossary"] = GLOSSARY
+    from footintel.analysis.summary import key_facts
+
+    out["key_facts"] = key_facts(out)
     return out

@@ -96,8 +96,9 @@ def market_probabilities(pred: dict) -> list[dict]:
     for line, col in ((1.5, "p_over_1_5"), (2.5, "p_over_2_5"), (3.5, "p_over_3_5")):
         p = pred.get(col)
         if p is not None:
-            rows += [(f"O{line}", f"Plus de {line} buts", p, "goals"),
-                     (f"U{line}", f"Moins de {line} buts", 1 - p, "goals")]
+            fr = str(line).replace(".", ",")
+            rows += [(f"O{line}", f"Plus de {fr} buts", p, "goals"),
+                     (f"U{line}", f"Moins de {fr} buts", 1 - p, "goals")]
     if pred.get("p_btts") is not None:
         rows += [("BTTS_Y", "Les deux marquent : oui", pred["p_btts"], "btts"),
                  ("BTTS_N", "Les deux marquent : non", 1 - pred["p_btts"], "btts")]
