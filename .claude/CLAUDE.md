@@ -58,6 +58,18 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
+## Owner's betting habits (betPawa; stated 2026-10-30)
+
+- Key days: Friday to Sunday. Bookmaker: betPawa. Main markets: first goal, 1UP/2UP, BTTS.
+- Premier League: every match; bets on the team that scores first (or against the one that cracks first).
+- Bundesliga: every match; BTTS and 1UP/2UP ("very open league": checked, 3.1-3.6 goals per match,
+  60-71 % over 2.5; BTTS 57-62 %, no higher than the Premier League).
+- Serie A: only Lazio, Inter, AC Milan, Como; first goal or leads at some point (1UP).
+- Liga: Barcelona, Atletico Madrid, Real Madrid; sometimes Villarreal and Real Betis.
+- Ligue 1: only PSG. UEFA cups: to discuss later.
+- Always give the fair odds (1/p) and say that a bet has value only above them; the model has no
+  proven edge over the market, BTTS is its weakest market, 1UP/FG assume goals in random order.
+
 ## Tools outside the repository
 
 The cloud container is reset between sessions. Reinstall the external tools with
