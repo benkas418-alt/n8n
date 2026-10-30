@@ -1075,6 +1075,23 @@ function foldCards(page) {
   });
 }
 
+/* The big percentages count up from 0 once per page (600 ms), unless reduced motion is asked. */
+function countUp(root) {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  const els = [...root.querySelectorAll(".strip.big .strip-nums b, .pick-p")];
+  const targets = els.map((el) => { const m = el.textContent.match(/^(\d+)(.*)$/); return m ? [el, Number(m[1]), m[2]] : null; }).filter(Boolean);
+  if (!targets.length) return;
+  // The page function performance() hides window.performance: time comes from the frames.
+  let start = null;
+  const step = (now) => {
+    start ??= now;
+    const t = Math.min(1, (now - start) / 600), e = 1 - (1 - t) ** 3;
+    for (const [el, v, rest] of targets) el.textContent = `${Math.round(v * e)}${rest}`;
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 /* ---------------- Router ---------------- */
 const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
   ...(window.fiPages || {}) };
@@ -1092,6 +1109,7 @@ async function route() {
   app.innerHTML = `<p class="loading">Chargement…</p>`;
   try {
     app.innerHTML = await (PAGES[page] || overview)();
+    countUp(app);
     foldCards(page);
   } catch (e) {
     app.innerHTML = `<div class="empty"><h2>Cette page n'a pas pu être chargée</h2><p class="muted">Le serveur a répondu : ${esc(e.message)}. Vérifiez que le service tourne, puis rechargez la page.</p></div>`;
