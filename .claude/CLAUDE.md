@@ -64,8 +64,8 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 - Premier League: every match; bets on the team that scores first (or against the one that cracks first).
 - Bundesliga: every match; BTTS and 1UP/2UP ("very open league": checked, 3.1-3.6 goals per match,
   60-71 % over 2.5; BTTS 57-62 %, no higher than the Premier League).
-- Serie A: only Lazio, Inter, AC Milan, Como; first goal or leads at some point (1UP).
-- Liga: Barcelona, Atletico Madrid, Real Madrid; sometimes Villarreal and Real Betis.
+- Serie A: only Como, Inter, AC Milan, Bologna, Lazio (Bologna added 2026-10-30); first goal or 1UP.
+- Liga: Barcelona, Real Madrid, Betis, Atletico Madrid, Villarreal.
 - Ligue 1: only PSG. UEFA cups: to discuss later.
 - Always give the fair odds (1/p) and say that a bet has value only above them; the model has no
   proven edge over the market, BTTS is its weakest market, 1UP/FG assume goals in random order.

@@ -982,7 +982,7 @@ const signedPts = (g) => `${g > 0 ? "+" : "−"}${Math.round(100 * Math.abs(g))}
 const MY_TEAMS = {
   "ENG-PL": { teams: "*", market: "fg" },
   "GER-BL": { teams: "*", market: "btts" },
-  "ITA-SA": { teams: ["Lazio", "Inter", "Milan", "Como"], market: "fg" },
+  "ITA-SA": { teams: ["Lazio", "Inter", "Milan", "Como", "Bologna"], market: "fg" },
   "ESP-LL": { teams: ["Barcelona", "Ath Madrid", "Real Madrid", "Villarreal", "Betis"], market: "fg" },
   "FRA-L1": { teams: ["Paris SG"], market: "fg" },
 };
