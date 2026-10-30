@@ -589,7 +589,7 @@ def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkey
 
     monkeypatch.setattr(tasks, "ODDS_API_SPORTS", {"ENG-PL": "soccer_epl", "UEFA-CL": "soccer_uefa_champs_league"})
     monkeypatch.setattr(teams_mod, "load_manual_aliases", lambda: {
-        ("the_odds_api", "Synth One"): "Synthetic FC 1", ("the_odds_api", "Synth Two"): "Synthetic FC 2"})
+        ("the_odds_api", "Synth One"): "Synthetic FC 1"})
     _load_synthetic_history(db, settings)
     feats = build_features(load_matches(db))
     v1 = registry.train_version(db, settings, feats, "logreg_market_goals")
@@ -607,7 +607,8 @@ def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkey
                     {"name": home, "price": h}, {"name": "Draw", "price": 3.4}, {"name": away, "price": a}]}]}
                     for k, h, a in (("pinnacle", 2.0, 3.9), ("betfair_ex_eu", 2.1, 3.8))]}
 
-    fake = FakeOddsApi([event("e1", "Synth One", "Synth Two"), event("e2", "Nobody", "Synth One")])
+    # "Synthetic 2" has no alias: same normalised name as "Synthetic FC 2" in this league.
+    fake = FakeOddsApi([event("e1", "Synth One", "Synthetic 2"), event("e2", "Nobody", "Synth One")])
     st = tasks.sync_odds_api(db, settings, connector=fake)
     codes = [i[1] for i in st.issues]
     assert st.inserted == 1 and "unmapped_team" in codes and "not_in_season" in codes
@@ -629,7 +630,8 @@ def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkey
     home = TestClient(api_module.app).get("/api/dash/home").json()
     assert home["model"] == "logreg_market_goals v1"
     assert len(home["matches"]) == 1 and home["matches"][0]["p_home"] is not None
-    assert home["matches"][0]["market"] is None  # cup prices never feed the model snapshot
+    # The list shows the bookmaker average; it never feeds the model snapshot (checked above).
+    assert home["matches"][0]["market"] == [m["market"]["1"], m["market"]["X"], m["market"]["2"]]
 
     low = FakeOddsApi([], remaining=10)
     assert "quota_low" in [i[1] for i in tasks.sync_odds_api(db, settings, connector=low).issues]

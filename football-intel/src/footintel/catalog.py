@@ -135,7 +135,14 @@ SOURCES = [
 # football-data.co.uk, so they are left out to keep within the free quota.
 ODDS_API_SPORTS = {"UEFA-CL": "soccer_uefa_champs_league", "UEFA-EL": "soccer_uefa_europa_league",
                    "UEFA-ECL": "soccer_uefa_europa_conference_league",
-                   "GER-DFB": "soccer_germany_dfb_pokal"}
+                   "GER-DFB": "soccer_germany_dfb_pokal",
+                   # Bookmaker reference for the leagues and national cups too (D64). A key that
+                   # /sports does not list as active costs no credit and is reported.
+                   "ENG-PL": "soccer_epl", "ESP-LL": "soccer_spain_la_liga", "ITA-SA": "soccer_italy_serie_a",
+                   "GER-BL": "soccer_germany_bundesliga", "FRA-L1": "soccer_france_ligue_one",
+                   "ENG-FAC": "soccer_fa_cup", "ENG-EFL": "soccer_england_efl_cup",
+                   "ESP-CDR": "soccer_spain_copa_del_rey", "ITA-CI": "soccer_italy_coppa_italia",
+                   "FRA-CDF": "soccer_france_coupe_de_france"}
 
 # football-data.org codes (free plan). It never creates teams. For the cups it only checks
 # matches that exist; for the four leagues it also adds the full season calendar and

@@ -90,7 +90,7 @@ def evening(engine: Engine, settings: Settings) -> dict:
     _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings, jitter_seconds=90),
           results)
     _step("check_football_data_org", lambda: tasks.check_football_data_org(engine, settings), results)
-    _step("sync_odds_api", lambda: tasks.sync_odds_api(engine, settings), results)
+    # No odds here: once a day (morning) keeps 14 competitions inside the free 500 credits.
     # Foreign clubs' domestic form, used to rate opponents in European cups.
     _step("sync_context_leagues",
           lambda: tasks.import_context_leagues(engine, settings, current - 1, current), results)
