@@ -27,9 +27,17 @@ from footintel.connectors.http import HttpClient, SourceUnavailable
 log = logging.getLogger(__name__)
 
 SITE = "https://onefootball.com"
-# Competition page slugs. Only the four target leagues: the cups have other sources.
+# Competition page slugs (checked on 2026-10-30). Leagues: line-ups, events and the fixture
+# list. Cups: fixtures and results, because no other free source has them (D62). The
+# DFB-Pokal stays on OpenLigaDB.
 LEAGUE_SLUGS = {"ENG-PL": "premier-league-9", "ESP-LL": "laliga-10", "ITA-SA": "serie-a-13",
-                "GER-BL": "bundesliga-1"}
+                "GER-BL": "bundesliga-1", "FRA-L1": "ligue-1-23"}
+# Coupe de France: no page found yet ("coupe-de-france-20" holds national teams).
+CUP_SLUGS = {"ENG-FAC": "fa-cup-17", "ENG-EFL": "efl-cup-41", "ESP-CDR": "copa-del-rey-18",
+             "ITA-CI": "coppa-italia-19"}
+# Bracket slots shown before a draw ("Home", "Winner Quarter Final 1"): not teams.
+PLACEHOLDER = re.compile(r"^(Home|Guest|Away|Winner|Loser|TBD|TBA)\b", re.I)
+CALENDAR_SLUGS = {**LEAGUE_SLUGS, **CUP_SLUGS}
 
 _NEXT_DATA = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
 _MINUTE = re.compile(r"^(\d+)(?:\+(\d+))?'?$")
@@ -45,6 +53,8 @@ class MatchCard:
     home_team: str
     away_team: str
     finished: bool
+    home_score: int | None = None
+    away_score: int | None = None
 
 
 @dataclass
@@ -115,6 +125,13 @@ def _ts(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
 
 
+def _score(value) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_cards(data: dict) -> tuple[list[MatchCard], str | None]:
     """Match cards of a results or fixtures page, and the URL of the older results."""
     cards, more = [], None
@@ -124,10 +141,13 @@ def parse_cards(data: dict) -> tuple[list[MatchCard], str | None]:
                 link = c.get("link", "")
                 if not link.startswith("/en/match/") or not c.get("kickoff"):
                     continue
+                if PLACEHOLDER.match(c["homeTeam"]["name"]) or PLACEHOLDER.match(c["awayTeam"]["name"]):
+                    continue
                 cards.append(MatchCard(
                     external_id=link.rsplit("/", 1)[-1], kickoff_utc=_ts(c["kickoff"]),
                     home_team=c["homeTeam"]["name"], away_team=c["awayTeam"]["name"],
-                    finished=c.get("timePeriod") == "Full time"))
+                    finished=c.get("timePeriod") == "Full time",
+                    home_score=_score(c["homeTeam"].get("score")), away_score=_score(c["awayTeam"].get("score"))))
         more = more or (appender.get("loadMoreButton") or {}).get("apiUrl")
     return cards, more
 
@@ -207,9 +227,15 @@ class OneFootball:
     def __init__(self, settings: Settings, client: HttpClient | None = None):
         self.client = client or HttpClient(settings)
 
+    def fixtures(self, competition_code: str) -> list[MatchCard]:
+        """The next match cards shown on the fixtures page (about the next 30)."""
+        url = f"{SITE}/en/competition/{CALENDAR_SLUGS[competition_code]}/fixtures"
+        cards, _ = parse_cards(next_data(self.client.get(url).text))
+        return [c for c in cards if not c.finished]
+
     def results(self, competition_code: str) -> list[MatchCard]:
         """Every match card of the current season shown on the results pages."""
-        url = f"{SITE}/en/competition/{LEAGUE_SLUGS[competition_code]}/results"
+        url = f"{SITE}/en/competition/{CALENDAR_SLUGS[competition_code]}/results"
         cards, more = parse_cards(next_data(self.client.get(url).text))
         if more:
             older, _ = parse_cards(self.client.get(more).json())

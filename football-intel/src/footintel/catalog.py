@@ -145,7 +145,7 @@ FOOTBALL_DATA_ORG_COMPETITIONS = {"UEFA-CL": "CL", "ENG-PL": "PL", "ITA-SA": "SA
 
 # When two sources give a different score, the higher rank wins and the disagreement
 # is logged. Volunteer-entered data rank lowest.
-OUTCOME_SOURCE_RANK = {FOOTBALL_DATA: 3, FOOTBALL_DATA_ORG: 3, OPENFOOTBALL: 2, OPENLIGADB: 1}
+OUTCOME_SOURCE_RANK = {FOOTBALL_DATA: 3, FOOTBALL_DATA_ORG: 3, OPENFOOTBALL: 2, OPENLIGADB: 1, ONEFOOTBALL: 1}
 
 # OpenLigaDB league shortcuts per season. They are chosen by hand: several community
 # leagues can cover one competition (e.g. "ucl2026" is an empty copy of "ucl").
@@ -161,14 +161,16 @@ FD_NEW = "new:"  # prefix for football-data.co.uk files under /new/ (one file pe
 COMPETITIONS = [
     CompetitionDef("ENG-PL", "Premier League", "England", "league", {FOOTBALL_DATA: "E0"},
                    country_code="ENG"),
-    CompetitionDef("ENG-FAC", "FA Cup", "England", "cup", {}, country_code="ENG"),
-    CompetitionDef("ENG-EFL", "EFL Cup", "England", "cup", {}, country_code="ENG"),
+    # National cups from OneFootball (D62). A club absent from the imported divisions plays
+    # below them: same prior as the DFB-Pokal (D37), an assumption to check on results.
+    CompetitionDef("ENG-FAC", "FA Cup", "England", "cup", {}, country_code="ENG", unknown_team_prior=1240),
+    CompetitionDef("ENG-EFL", "EFL Cup", "England", "cup", {}, country_code="ENG", unknown_team_prior=1240),
     CompetitionDef("ESP-LL", "La Liga", "Spain", "league", {FOOTBALL_DATA: "SP1"},
                    country_code="ESP"),
-    CompetitionDef("ESP-CDR", "Copa del Rey", "Spain", "cup", {}, country_code="ESP"),
+    CompetitionDef("ESP-CDR", "Copa del Rey", "Spain", "cup", {}, country_code="ESP", unknown_team_prior=1240),
     CompetitionDef("ITA-SA", "Serie A", "Italy", "league", {FOOTBALL_DATA: "I1"},
                    country_code="ITA"),
-    CompetitionDef("ITA-CI", "Coppa Italia", "Italy", "cup", {}, country_code="ITA"),
+    CompetitionDef("ITA-CI", "Coppa Italia", "Italy", "cup", {}, country_code="ITA", unknown_team_prior=1240),
     CompetitionDef("GER-BL", "Bundesliga", "Germany", "league", {FOOTBALL_DATA: "D1"},
                    country_code="GER"),
     # Clubs absent from the two imported German divisions play in the 3. Liga or lower:
@@ -181,9 +183,12 @@ COMPETITIONS = [
                    {OPENFOOTBALL: "el.txt"}),
     CompetitionDef("UEFA-ECL", "UEFA Conference League", None, "continental",
                    {OPENFOOTBALL: "conf.txt"}),
-    # Context leagues: domestic form of clubs met in European cups. Not predicted.
+    # Ligue 1 and the Coupe de France are predicted since 2026-10-30 (D62).
     CompetitionDef("FRA-L1", "Ligue 1", "France", "league", {FOOTBALL_DATA: "F1"},
-                   is_target=False, elo_prior=1480, country_code="FRA"),
+                   elo_prior=1480, country_code="FRA"),
+    CompetitionDef("FRA-CDF", "Coupe de France", "France", "cup", {}, country_code="FRA",
+                   unknown_team_prior=1240),
+    # Context leagues: domestic form of clubs met in European cups. Not predicted.
     CompetitionDef("NED-ERE", "Eredivisie", "Netherlands", "league", {FOOTBALL_DATA: "N1"},
                    is_target=False, elo_prior=1440, country_code="NED"),
     CompetitionDef("POR-PL", "Primeira Liga", "Portugal", "league", {FOOTBALL_DATA: "P1"},

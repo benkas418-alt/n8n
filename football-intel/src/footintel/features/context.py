@@ -37,7 +37,8 @@ _STAGE_PATTERNS = [
 
 
 def stage_of(round_text: str | None, competition_type: str) -> str:
-    if competition_type == "league" or not round_text:
+    # A missing round arrives from pandas as NaN, a float: treat it as unknown.
+    if competition_type == "league" or not isinstance(round_text, str) or not round_text:
         return "league" if competition_type == "league" else "unknown"
     text = round_text.lower()
     for stage, pattern in _STAGE_PATTERNS:

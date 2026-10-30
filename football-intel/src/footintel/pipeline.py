@@ -53,6 +53,8 @@ def morning(engine: Engine, settings: Settings) -> dict:
     """Fixtures and odds, then predictions and the pre-match report."""
     results: dict = {}
     _step("sync_fixtures", lambda: tasks.sync_fixtures(engine, settings), results)
+    # Full fixture lists of the five leagues and the national cups (D62).
+    _step("sync_onefootball_calendar", lambda: tasks.sync_onefootball_calendar(engine, settings), results)
     # Current-season UEFA cups and DFB-Pokal: no other authorised free source has them.
     _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings, jitter_seconds=90),
           results)
@@ -84,6 +86,7 @@ def evening(engine: Engine, settings: Settings) -> dict:
     results: dict = {}
     current = season_start_for(date.today())
     _step("sync_results", lambda: tasks.sync_results(engine, settings), results)
+    _step("sync_onefootball_calendar", lambda: tasks.sync_onefootball_calendar(engine, settings), results)
     _step("sync_openligadb", lambda: tasks.import_openligadb(engine, settings, jitter_seconds=90),
           results)
     _step("check_football_data_org", lambda: tasks.check_football_data_org(engine, settings), results)

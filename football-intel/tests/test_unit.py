@@ -942,3 +942,26 @@ def test_summary_picks_and_verdict():
     facts = key_facts(ins)
     assert facts[0].startswith("A reste sur 6") and any("3 dernières confrontations" in f for f in facts)
     assert len(facts) <= 4
+
+
+def test_onefootball_cards_skip_bracket_slots_and_keep_scores():
+    from footintel.connectors.onefootball import parse_cards
+
+    card = lambda link, h, a, hs=None, as_=None, period=None: {  # noqa: E731
+        "link": link, "kickoff": "2026-11-06T19:45:00Z", "timePeriod": period,
+        "homeTeam": {"name": h, "score": hs}, "awayTeam": {"name": a, "score": as_}}
+    data = {"lists": [{"matchCards": [
+        card("/en/match/1", "Barnet", "Wealdstone"),
+        card("/en/match/2", "Winner Quarter Final 1", "Winner Quarter Final 2"),
+        card("/en/match/3", "Home", "Guest"),
+        card("/en/match/4", "Inter", "Milan", "2", "1", "Full time")]}]}
+    cards, _ = parse_cards(data)
+    assert [c.external_id for c in cards] == ["1", "4"]
+    assert cards[1].finished and (cards[1].home_score, cards[1].away_score) == (2, 1)
+    assert cards[0].home_score is None
+
+
+def test_stage_of_accepts_a_missing_round():
+    from footintel.features.context import stage_of
+
+    assert stage_of(float("nan"), "cup") == "unknown" and stage_of(None, "league") == "league"
