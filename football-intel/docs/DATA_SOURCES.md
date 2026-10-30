@@ -65,6 +65,23 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 | Usage | Référence de marché dans le vérificateur de cotes (probabilité moyenne des bookmakers, marge retirée, meilleure cote). **Pas lue par le modèle actif** (D49). |
 | Conditions | `the-odds-api.com/terms-and-conditions.html` : stockage et affichage dans un tableau de bord autorisés ; revente comme service de données interdite. Mention non obligatoire, ajoutée quand même. |
 
+### OddsPapi — cotes betPawa et Pinnacle (en préparation, D68)
+
+| Élément | Constat (2026-10-30, documentation et conditions lues ; pas encore de clé) |
+|---|---|
+| Accès | `https://api.oddspapi.io/v4`, clé en variable d'environnement `ODDS_PAPI_KEY` (secret GitHub, jamais dans le dépôt). La clé passe dans l'URL. |
+| Quota | Offre gratuite : 250 requêtes par mois, 1 par appel quel que soit le contenu. `/v4/historical-odds` est gratuit et ne compte pas. Remise à zéro le 1er du mois. |
+| Couverture | betPawa Cameroun (`betpawa.cm`), pas la RD Congo ; Pinnacle. Marchés réels de betPawa à confirmer par la sonde `scripts/oddspapi_probe.py` (workflow « OddsPapi probe », 4 requêtes). |
+| Conditions | `oddspapi.io/en/legal/terms` : revente ou redistribution des données comme produit interdites ; clé personnelle. Usage personnel et calculs affichés aux invités du site : autorisés. |
+| Usage prévu | Comparer les cotes betPawa à la cote juste de Pinnacle sur des matchs joués (historique gratuit), puis avant les matchs. |
+
+### betPawa RD Congo — relevés du propriétaire (D68)
+
+Cotes lues sur les captures d'écran que le propriétaire envoie dans la conversation, écrites à la main
+dans `reference/betpawa_prices.csv` (heure du relevé, match, marché, sélection, cote). Aucun robot :
+les conditions de betPawa l'interdisent (D64). Évaluées par `scripts/betpawa_value.py`, chaque matin
+dans le résumé du cycle quotidien.
+
 ### OneFootball — compositions et événements des grands championnats
 
 | Élément | Constat (2026-10-29) |

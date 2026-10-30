@@ -153,6 +153,13 @@ jobs:
       - name: Export to the private site
         run: footintel export-supabase
 
+      # D68: betPawa prices recorded by hand, against the market's fair price and the results.
+      - name: betPawa price journal
+        continue-on-error: true
+        run: |
+          { echo '### betPawa price journal'; echo '```'
+            python scripts/betpawa_value.py 2>&1 | tail -n 60; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
       # The export still runs, so the site keeps its other data; the run is then marked red.
       - name: Report failed predictions
         if: steps.predict.outputs.failed == 'true'
