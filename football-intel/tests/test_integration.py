@@ -627,11 +627,15 @@ def test_odds_api_attaches_prices_without_feeding_the_model(db, settings, monkey
     board = TestClient(api_module.app).get("/api/dash/value-board").json()
     m = board["matches"][0]
     assert m["has_odds"] is False and m["market"]["n_bookmakers"] == 2 and m["market"]["best"]["H"] == 2.1
+    # 1UP and first goal implied by the bookmakers: consistent with their 1X2.
+    mk = m["market"]
+    assert mk["1UP_1"] > mk["1"] and mk["FG_1"] + mk["FG_2"] + mk["FG_0"] == pytest.approx(1, abs=1e-3)
     home = TestClient(api_module.app).get("/api/dash/home").json()
     assert home["model"] == "logreg_market_goals v1"
     assert len(home["matches"]) == 1 and home["matches"][0]["p_home"] is not None
     # The list shows the bookmaker average; it never feeds the model snapshot (checked above).
     assert home["matches"][0]["market"] == [m["market"]["1"], m["market"]["X"], m["market"]["2"]]
+    assert home["matches"][0]["fg_mkt"][0] == mk["FG_1"]
 
     low = FakeOddsApi([], remaining=10)
     assert "quota_low" in [i[1] for i in tasks.sync_odds_api(db, settings, connector=low).issues]
