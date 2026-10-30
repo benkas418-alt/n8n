@@ -375,3 +375,18 @@ table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }
 .fixture .flag.safe { line-height: 1.35; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 640px) { .pick { grid-template-columns: minmax(0, 1fr) auto; } .pick-odds { grid-column: 1 / -1; } }
+
+/* Motion, written for this site: content rises in once per page, the big percentages count
+   up and their bars grow. Short, once, and off when the system asks for reduced motion. */
+@keyframes fi-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fi-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+#app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top {
+  animation: fi-rise 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#app .grid > .card:nth-child(2), #app .pick:nth-child(2) { animation-delay: 60ms; }
+#app .grid > .card:nth-child(3), #app .pick:nth-child(3) { animation-delay: 120ms; }
+#app .grid > .card:nth-child(n+4) { animation-delay: 160ms; }
+#app .strip.big .strip-bar span { transform-origin: left center; animation: fi-grow 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#app .strip.big .strip-bar span.a { transform-origin: right center; }
+@media (prefers-reduced-motion: reduce) {
+  #app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top, #app .strip.big .strip-bar span { animation: none; }
+}
