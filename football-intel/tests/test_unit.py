@@ -924,6 +924,33 @@ def test_weekly_email_is_skipped_without_smtp(tmp_path):
     assert send_report(s, "x", "y", []) is False
 
 
+def test_weekly_email_retries_with_ssl_and_cleans_gmail_password(monkeypatch):
+    import smtplib
+
+    from footintel.config import Settings
+    from footintel.notify import email
+
+    logins = []
+
+    class Dropping:
+        def __init__(self, *a, **k): pass
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def starttls(self): pass
+        def login(self, user, pw): raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+
+    class Ssl(Dropping):
+        def login(self, user, pw): logins.append(pw)
+        def send_message(self, msg): logins.append(msg["To"])
+
+    monkeypatch.setattr(email.smtplib, "SMTP", Dropping)
+    monkeypatch.setattr(email.smtplib, "SMTP_SSL", Ssl)
+    s = Settings(_env_file=None, smtp_host="smtp.gmail.com", smtp_user="me@example.com",
+                 smtp_password=" abcd efgh ijkl mnop\n", report_to="me@example.com")
+    assert email.send_report(s, "x", "y", []) is True
+    assert logins == ["abcdefghijklmnop", "me@example.com"]
+
+
 def test_summary_picks_and_verdict():
     from footintel.analysis.summary import key_facts, safe_picks, verdict
     from footintel.analysis.value import market_probabilities
