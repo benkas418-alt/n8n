@@ -73,3 +73,10 @@ The cloud container is reset between sessions. Reinstall the external tools with
 - Shot/feature files change column names between seasons: check coverage per period.
 - Environment setup script runs before the repo exists: it must be self-contained and end with `exit 0`.
 - Never trust a "best price" CLV or a random-split score; compare on recent data.
+- GitHub Actions: env paths use `github.workspace` (repo root) while `working-directory` steps
+  use relative paths; keep both pointing to the same folder, and use `set -o pipefail` with tar.
+  A mismatch lost the trained model after every run (fixed 2026-10-30, PR #10).
+- After a cycle, check `last_prediction` and the step summary, not only the green run: the
+  pipeline logs a failed step and still exits 0.
+- Container restarts lose the local venv and Postgres: recreate the venv in the scratchpad,
+  `service postgresql start`; the local model file lives in /tmp/claude-0/fi-run (run from there).
