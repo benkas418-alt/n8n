@@ -1,5 +1,56 @@
 # Résultats du backtest réel
 
+## betPawa (Cameroun) contre Pinnacle, saison 2026-27 (2026-10-30, D68)
+
+`scripts/oddspapi_backtest.py` (workflow « betPawa vs Pinnacle backtest », run 41104481324) :
+403 matchs joués des 5 championnats depuis le 1er août, 7 038 cotes betPawa, dernière cote
+avant le coup d'envoi chez les deux. Cote juste = Pinnacle sans marge (1X2, ±2,5, DC, DNB),
+ou tirée du 1X2 et du ±2,5 de Pinnacle par le calcul de D66 (premier but, 2UP, BTTS).
+Espérance = cote × probabilité juste − 1, IC 95 % bootstrap.
+
+| Marché | Sélection | n | Espérance | Part des cotes au-dessus de la cote juste |
+|---|---|---|---|---|
+| 2UP | extérieur | 391 | −0,1 % [−0,5 ; +0,3] | 47 % |
+| 2UP | domicile | 391 | −1,3 % [−1,6 ; −0,9] | 34 % |
+| 1X2 | nul | 391 | −1,9 % [−2,3 ; −1,5] | 31 % |
+| ±2,5 | moins | 391 | −3,1 % [−3,5 ; −2,6] | 15 % |
+| DC | 1X / X2 / 12 | 391 chacun | −3,8 % / −4,5 % / −6,6 % | 0 à 2 % |
+| BTTS | non / oui | 391 chacun | −4,4 % / −9,5 % | 8 % / 0 % |
+| Premier but | domicile / extérieur | 391 chacun | −5,0 % / −5,3 % | 1 % |
+| 1X2 | domicile / extérieur | 391 chacun | −6,1 % / −7,0 % | 3 % / 5 % |
+| DNB | 1 / 2 | 391 chacun | −9,5 % / −11,4 % | 0 % |
+| ±2,5 | plus | 391 | −6,6 % [−6,8 ; −6,3] | 0 % |
+
+Lecture : aucun marché n'est rentable en simple. Le 2UP est le seul à la cote juste, parce que
+betPawa le cote presque comme le 1X2 alors qu'il paie plus souvent ; près de la moitié des
+2UP extérieur sont au-dessus de la cote juste. Avec le Bonus Gagnant (D67), un combiné de
+sélections à la cote juste a une espérance proche du taux de bonus × (1 − probabilité de
+gain) : la seule voie positive est un combiné de 2UP choisis au-dessus de la cote juste.
+Limites : betPawa Cameroun, pas RD Congo ; la cote juste du 2UP vient d'un calcul (Poisson,
+buts dans un ordre aléatoire), un peu optimiste au milieu de l'échelle (D58) ; le « X » du
+2UP (−26,5 %) n'est pas lu, sa définition chez betPawa reste à vérifier.
+
+## Modèle contre marché par compétition (2026-10-30, D68)
+
+`scripts/competition_edge.py` : `routed_competition` hors échantillon, saisons 2021-22 à
+2026-27. Écart de log loss modèle moins marché (négatif = modèle meilleur), IC 95 %
+bootstrap ; CLV des choix du modèle (prix moyen avant clôture, seuil 3 %).
+
+| Compétition | n | contre prix moyen | contre clôture | choix | CLV |
+|---|---|---|---|---|---|
+| Liga | 1 999 | −0,0012 [−0,0045 ; +0,0018] | +0,0008 [−0,0038 ; +0,0052] | 549 | −1,7 % [−2,4 ; −1,1] |
+| Serie A | 1 988 | +0,0002 [−0,0035 ; +0,0040] | +0,0033 [−0,0013 ; +0,0078] | 536 | −2,9 % [−3,4 ; −2,4] |
+| Premier League | 1 980 | +0,0024 [−0,0014 ; +0,0064] | +0,0045 [−0,0003 ; +0,0094] | 719 | −2,8 % [−3,2 ; −2,4] |
+| Ligue 1 | 1 750 | +0,0023 [−0,0017 ; +0,0063] | +0,0023 [−0,0029 ; +0,0077] | 422 | −2,5 % [−3,2 ; −1,8] |
+| Bundesliga | 1 593 | −0,0009 [−0,0051 ; +0,0034] | +0,0025 [−0,0030 ; +0,0079] | 503 | −2,4 % [−3,0 ; −1,8] |
+
+Coupes et compétitions UEFA : aucune cote de marché en base sur ces saisons, pas de mesure.
+
+Lecture : dans aucun championnat le modèle ne fait mieux que le marché. Il est à égalité
+avec le prix moyen, un peu derrière la clôture, et ses choix perdent 1,7 à 2,9 % contre la
+clôture partout. La piste « un championnat où le modèle est devant » est fermée. Reste
+celle des cotes betPawa contre la cote juste (D68).
+
 ## Test des xG Understat (2026-10-29)
 
 Question : les buts attendus (xG) améliorent-ils le modèle à cotes ? Script :
