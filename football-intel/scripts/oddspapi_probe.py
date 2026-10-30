@@ -8,6 +8,7 @@ never the key. Run: ODDS_PAPI_KEY=... python scripts/oddspapi_probe.py
 import json
 import os
 import sys
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -22,7 +23,12 @@ SAMPLE = 6
 
 
 def get(path: str, **params):
-    r = httpx.get(f"{BASE}{path}", params={"apiKey": KEY, **params}, timeout=60)
+    for _ in range(4):
+        r = httpx.get(f"{BASE}{path}", params={"apiKey": KEY, **params}, timeout=60)
+        if r.status_code != 429:
+            break
+        # Each endpoint has a cooldown of a few seconds; the answer says how long.
+        time.sleep(float(r.json().get("error", {}).get("retryMs", 3000)) / 1000 + 0.5)
     if r.status_code >= 400:
         sys.exit(f"{path}: HTTP {r.status_code} {r.text[:300].replace(KEY, '***')}")
     data = r.json()
@@ -31,9 +37,10 @@ def get(path: str, **params):
     return data
 
 
-def last_price(history: list[dict]) -> float | None:
-    """Latest price of one outcome, entries newest first or not: sort by createdAt."""
-    rows = sorted((h for h in history if h.get("price")), key=lambda h: h["createdAt"])
+def last_price(history: list[dict], start: str) -> float | None:
+    """Last price of one outcome before kick-off (later entries are in-play prices)."""
+    rows = sorted((h for h in history if h.get("price") and h["createdAt"] < start),
+                  key=lambda h: h["createdAt"])
     return rows[-1]["price"] if rows else None
 
 
@@ -77,7 +84,8 @@ def main() -> None:
                 for mid in mk:
                     seen[mid] = seen.get(mid, 0) + 1
             one = mk.get("101", {}).get("outcomes", {})
-            prices = [last_price(one.get(o, {}).get("players", {}).get("0", [])) for o in ("101", "102", "103")]
+            prices = [last_price(one.get(o, {}).get("players", {}).get("0", []), f["startTime"][:19])
+                      for o in ("101", "102", "103")]
             line += f" 1X2 {prices};"
         print(line)
 
