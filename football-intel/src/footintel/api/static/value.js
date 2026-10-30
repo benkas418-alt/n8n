@@ -2,7 +2,7 @@
 const root = document.getElementById("root");
 const SRC = root.dataset.src;
 const STORE = "fi_value_odds";
-const state = { data: null, comp: "all", odds: {}, coupon: [] };
+const state = { data: null, comp: "all", odds: {}, coupon: [], eloMkt: "2UP" };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const pct = (p, d = 0) => `${(100 * p).toFixed(d)} %`;
@@ -137,13 +137,14 @@ function renderCoupon() {
       + "Le bonus compense la marge entre 6 et 10 sélections ; au-delà, elle se cumule plus vite.";
 }
 
-/* The strongest teams of the period by Elo, with the 1UP of the stronger side. */
+/* The strongest teams of the period by Elo, with the 2UP (default) or 1UP of the stronger side.
+   2UP is the betPawa market closest to its fair price (docs/RESULTS.md, D68). */
 function eloPicks() {
   return state.data.matches
     .filter((m) => m.elo && (state.comp === "all" || m.competition === state.comp))
     .map((m) => {
       const home = m.elo[0] >= m.elo[1];
-      const key = home ? "1UP_1" : "1UP_2";
+      const key = `${state.eloMkt}_${home ? 1 : 2}`;
       return { m, key, team: home ? m.home : m.away, opp: home ? m.away : m.home,
         elo: Math.max(...m.elo), gap: Math.abs(m.elo[0] - m.elo[1]), ...ref(m, key) };
     })
@@ -164,20 +165,21 @@ function renderElo() {
     const low = 1 / x.prob < BONUS_MIN_ODDS;
     return `<tr class="mk"><td class="label">${esc(x.team)} <span class="muted small">(${x.elo})</span><br>
         <span class="muted small">contre ${esc(x.opp)} · écart ${x.gap}</span></td>
-      <td class="r num" data-h="1UP">${pct(x.prob)}<br><span class="note">${x.src}</span></td>
+      <td class="r num" data-h="${state.eloMkt}">${pct(x.prob)}<br><span class="note">${x.src}</span></td>
       <td class="r num" data-h="Cote juste">${two(1 / x.prob)}${low ? '<br><span class="note">sous 1,20 : hors bonus</span>' : ""}</td>
-      <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote 1UP ${esc(x.team)}"
+      <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote ${state.eloMkt} ${esc(x.team)}"
            data-key="${esc(k)}" value="${state.odds[k] ?? ""}"></td>
       <td><span class="verdict ${v.cls}" data-verdict="${esc(k)}">${v.text}</span></td>
       <td><button class="add" data-match="${x.m.id}" data-market="${x.key}" ${inCoupon && inCoupon.key !== x.key ? "disabled" : ""}>
         ${inCoupon && inCoupon.key === x.key ? "retirer" : "+ combiné"}</button></td></tr>`;
   }).join("");
   box.innerHTML = `<details class="match" open><summary><span class="teams">Sélection Elo : les équipes les plus fortes</span>
-      <span class="meta">1UP de l'équipe la mieux classée (écart d'au moins 40 points Elo)</span>
+      <span class="meta">${state.eloMkt} de l'équipe la mieux classée (écart d'au moins 40 points Elo)</span>
+      ${["2UP", "1UP"].map((k) => `<button class="chip" data-elo-mkt="${k}" type="button" aria-pressed="${state.eloMkt === k}">${k}</button>`).join("")}
       <button class="add" id="elo-ticket" type="button">Composer un ticket de 7</button></summary>
-    <div class="table-wrap"><table><thead><tr><th>Équipe (Elo)</th><th class="r">1UP</th><th class="r">Cote juste</th>
+    <div class="table-wrap"><table><thead><tr><th>Équipe (Elo)</th><th class="r">${state.eloMkt}</th><th class="r">Cote juste</th>
       <th class="r">Ta cote</th><th>Verdict</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="note" style="padding:0 14px 12px">Un Elo élevé ne dit pas si le pari est bien payé : seule ta cote au-dessus de la cote juste le dit. Les très grosses équipes ont souvent un 1UP sous 1,20, qui ne compte pas pour le bonus.</p></details>`;
+    <p class="note" style="padding:0 14px 12px">Un Elo élevé ne dit pas si le pari est bien payé : seule ta cote au-dessus de la cote juste le dit. Sur 403 matchs comparés à Pinnacle, le 2UP de betPawa est en moyenne à sa cote juste, le 1UP et le premier but environ 5 % en dessous. Une cote sous 1,20 ne compte pas pour le bonus.</p></details>`;
 }
 
 function eloTicket() {
@@ -212,6 +214,7 @@ document.addEventListener("click", (e) => {
   const t = e.target.closest("button");
   if (!t) return;
   if (t.id === "elo-ticket") { e.preventDefault(); eloTicket(); return; }
+  if (t.dataset.eloMkt) { e.preventDefault(); state.eloMkt = t.dataset.eloMkt; renderElo(); return; }
   if (t.dataset.comp) { state.comp = t.dataset.comp; renderFilters(); renderElo(); renderList(); }
   if (t.dataset.match) {
     const id = Number(t.dataset.match), key = t.dataset.market;
