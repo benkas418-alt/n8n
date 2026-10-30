@@ -206,7 +206,8 @@ a.fixture:hover { background: var(--sunk); }
 .grid.kpis { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: var(--space-4); }
 .grid.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
 .grid.three { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-.card { background: var(--surface); border-radius: var(--radius); padding: var(--space-5); min-width: 0; }
+/* A wide table scrolls inside its card instead of widening the page on phones. */
+.card { background: var(--surface); border-radius: var(--radius); padding: var(--space-5); min-width: 0; overflow-x: auto; }
 :root[data-theme="light"] .card, :root[data-theme="light"] .fixtures, :root[data-theme="light"] .essentials,
 :root[data-theme="light"] .empty { border: 1px solid var(--line); }
 @media (max-width: 600px) { .card { padding: 16px; } }
