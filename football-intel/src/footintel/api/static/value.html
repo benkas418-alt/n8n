@@ -76,6 +76,7 @@ input[type="number"] { width: 84px; padding: 6px 8px; border: 1px solid var(--li
 .coupon li button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 1rem; }
 .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.9rem; }
 .kv[hidden] { display: none; }
+#elo summary .add { margin-left: auto; }
 .kv .big { font-size: 1.15rem; font-weight: 700; }
 .empty { color: var(--muted); font-size: 0.88rem; }
 .foot { margin-top: 28px; font-size: 0.8rem; color: var(--muted); }
@@ -111,9 +112,12 @@ tr.group td { background: var(--bg); padding-top: 10px; }
       Tape la cote proposée par ton bookmaker. <strong>Cote juste</strong> = 1 / probabilité du modèle.
       <strong>Valeur théorique</strong> = probabilité × cote − 1. Une valeur positive n'est ni un gain garanti
       ni une preuve de rentabilité : le modèle est au niveau du marché, sans avantage démontré.
+      Le verdict utilise la probabilité du marché quand elle existe, sinon celle du modèle. Le combiné
+      ajoute le Bonus Gagnant betPawa (barème relevé le 30/10/2026, sélections à 1,20 ou plus).
     </div>
   </header>
   <div class="filters" role="group" aria-label="Filtrer les compétitions" id="filters"></div>
+  <section id="elo" aria-label="Sélection Elo"></section>
   <div class="layout">
     <main id="list" aria-live="polite"></main>
     <aside class="coupon" aria-label="Combiné">
@@ -121,10 +125,11 @@ tr.group td { background: var(--bg); padding-top: 10px; }
       <ul id="sel"></ul>
       <p class="empty" id="sel-empty">Ajoute des sélections avec « + combiné ». Une seule sélection par match.</p>
       <div class="kv" id="sum" hidden>
-        <span>Probabilité (modèle)</span><span class="num" id="c-prob"></span>
+        <span>Probabilité (marché, sinon modèle)</span><span class="num" id="c-prob"></span>
         <span>Cote juste du combiné</span><span class="num" id="c-fair"></span>
         <span>Cote du combiné (tes cotes)</span><span class="num" id="c-odds"></span>
-        <label for="c-pay">Paiement affiché pour 1 misé</label>
+        <span>Bonus Gagnant betPawa</span><span class="num" id="c-bonus"></span>
+        <label for="c-pay">Paiement affiché par betPawa pour 1 misé (si différent)</label>
         <input type="number" id="c-pay" step="0.01" min="1" inputmode="decimal" placeholder="auto">
         <span>Valeur théorique</span><span class="num big" id="c-ev"></span>
       </div>
