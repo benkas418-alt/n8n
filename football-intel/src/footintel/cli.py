@@ -344,7 +344,7 @@ def build_parser() -> argparse.ArgumentParser:
     md.set_defaults(fn=cmd_models)
 
     pd_ = sub.add_parser("predict", help="predict upcoming matches with the active model")
-    pd_.add_argument("--horizon", type=int, default=7, help="days ahead")
+    pd_.add_argument("--horizon", type=int, default=21, help="days ahead")
     pd_.set_defaults(fn=cmd_predict)
 
     up = sub.add_parser("user-predict", help="save my own prediction (before kick-off)")

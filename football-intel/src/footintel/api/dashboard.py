@@ -13,6 +13,7 @@ from sqlalchemy import text
 from footintel.analysis.events import DEFINITION_WARNINGS, NOT_COLLECTED
 from footintel.catalog import COMPETITION_BY_CODE
 from footintel.db.session import get_engine
+from footintel.predictions.service import PREDICT_DAYS as LIST_DAYS
 from footintel.reports.fiche import team_sheet
 
 router = APIRouter(prefix="/api/dash", tags=["dashboard"])
@@ -234,8 +235,8 @@ def team(team_id: int) -> dict:
 
 # --- 4. Pre-match ----------------------------------------------------------------
 
-# The start page lists three weeks of fixtures (a fixed count hid whole match days, D63).
-LIST_DAYS, LIST_CAP, DETAIL_DAYS = 21, 600, 7
+# The start page lists the predicted window (a fixed count hid whole match days, D63).
+LIST_CAP, DETAIL_DAYS = 600, 7
 
 
 @router.get("/matches/upcoming")
