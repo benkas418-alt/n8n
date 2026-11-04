@@ -242,11 +242,16 @@ document.addEventListener("click", (e) => {
     document.getElementById("stamp").textContent = "Prédictions indisponibles pour le moment.";
     return;
   }
+  // The site shows the last export: drop matches already played (kept 2 h after kick-off).
+  const now = Date.now(), today = new Date().toLocaleDateString("en-CA");
+  state.data.matches = state.data.matches.filter((m) =>
+    m.kickoff_utc ? new Date(m.kickoff_utc).getTime() > now - 2 * 36e5 : String(m.kickoff_date) >= today);
   const ids = new Set(state.data.matches.map((m) => m.id));
   state.coupon = (saved.coupon || []).filter((c) => ids.has(c.match));
   const last = state.data.matches.map((m) => m.predicted_at).sort().pop();
   document.getElementById("stamp").textContent = `${state.data.matches.length} matchs prédits sur ${state.data.generated_for_days} jours`
     + (last ? ` · dernière prédiction le ${new Date(last).toLocaleString("fr-FR")}` : "")
+    + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · données anciennes : le cycle quotidien n'a pas tourné depuis" : "")
     + (state.data.matches[0] ? ` · modèle ${state.data.matches[0].model}` : "");
   render();
 })();
