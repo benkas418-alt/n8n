@@ -302,6 +302,18 @@ def cmd_export_supabase(args, settings, engine):
     _print(export(settings.supabase_url, settings.supabase_secret_key.get_secret_value()))
 
 
+def cmd_email_tickets(args, settings, engine):
+    from footintel.api.dashboard import tickets
+    from footintel.notify.email import send_report
+    from footintel.notify.tickets import local_today, tickets_text
+
+    subject, body = tickets_text(tickets(), local_today())
+    if args.dry_run:
+        print(subject, body, sep="\n\n")
+        return
+    print("e-mail sent" if send_report(settings, subject, body, []) else "e-mail not sent (SMTP not configured)")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="footintel", description="Football intelligence platform")
     p.add_argument("--log-level", default="INFO")
@@ -407,6 +419,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("export-supabase", help="copy the dashboard data to the private site").set_defaults(
         fn=cmd_export_supabase)
+
+    et = sub.add_parser("email-tickets", help="e-mail the Tickets du jour (D71)")
+    et.add_argument("--dry-run", action="store_true", help="print the e-mail instead of sending it")
+    et.set_defaults(fn=cmd_email_tickets)
     return p
 
 

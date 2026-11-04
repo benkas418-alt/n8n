@@ -182,6 +182,11 @@ jobs:
       - name: Export to the private site
         run: footintel export-supabase
 
+      # D71: the Tickets du jour by e-mail (skipped when SMTP is not configured).
+      - name: E-mail the Tickets du jour
+        continue-on-error: true
+        run: footintel email-tickets
+
       # D68: betPawa prices recorded by hand, against the market's fair price and the results.
       - name: betPawa price journal
         continue-on-error: true
