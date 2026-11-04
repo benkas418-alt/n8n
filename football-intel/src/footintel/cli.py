@@ -313,6 +313,19 @@ def cmd_scenario_weights(args, settings, engine):
     _print(learnt)
 
 
+def cmd_write_lectures(args, settings, engine):
+    from footintel.agents.analysts import write
+    from footintel.api.dashboard import tickets
+    from footintel.notify.tickets import local_today
+
+    days = [d for d in tickets().get("days", []) if d["date"] >= local_today().isoformat()]
+    if not days:
+        print("no match day: nothing to write")
+        return
+    r = write(days[0], settings.artifacts_dir)
+    print(f"{len(r['groups'])} lecture(s) for {r['date']}" + (f" ({r['skipped']})" if r.get("skipped") else ""))
+
+
 def cmd_archive_tickets(args, settings, engine):
     from footintel.analysis.bilan import archive
     from footintel.api.dashboard import tickets
@@ -327,6 +340,12 @@ def cmd_email_tickets(args, settings, engine):
     from footintel.notify.tickets import local_today, tickets_text
 
     subject, body = tickets_text(tickets(), local_today())
+    from footintel.agents.analysts import latest
+
+    lec = latest(settings.artifacts_dir, local_today())
+    if lec and lec.get("groups"):
+        body += "\nLECTURE DU JOUR (écrite par Claude à partir des chiffres ci-dessus, puis vérifiée)\n" + "".join(
+            f"\n{g['competition']}\n{g['text']}\n" for g in lec["groups"])
     if args.dry_run:
         print(subject, body, sep="\n\n")
         return
@@ -441,6 +460,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("scenario-weights", help="learn the scenario weights that adjust the market (D72)").set_defaults(
         fn=cmd_scenario_weights)
+
+    sub.add_parser("write-lectures", help="lecture du jour per competition, by Claude Haiku (D77)").set_defaults(
+        fn=cmd_write_lectures)
 
     sub.add_parser("archive-tickets", help="keep today's tickets for the Bilan (D76)").set_defaults(
         fn=cmd_archive_tickets)
