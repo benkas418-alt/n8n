@@ -485,6 +485,34 @@ def _market_order(p1: float, p2: float, p_over: float | None, eh: float, ea: flo
     return out
 
 
+@router.get("/tickets")
+def tickets() -> dict:
+    """Tickets du jour (D69): three combos of 10 or more for each of the next two match days,
+    with every alternative of each match. Market 1X2 and over 2.5 when known, else the model's."""
+    from datetime import UTC, datetime
+
+    from footintel.analysis.tickets import LOCAL_OFFSET, day_tickets, load_journal
+
+    board = value_board(days=4)["matches"]
+    matches = []
+    now = datetime.now(UTC)
+    for m in board:
+        if m["kickoff_utc"] and m["kickoff_utc"] <= now:
+            continue  # already started: no longer playable
+        mk = m.get("market") or {}
+        model = {r["key"]: r["prob"] for r in m["markets"]}
+        p1, p2 = (mk["1"], mk["2"]) if mk.get("1") else (model.get("1"), model.get("2"))
+        if p1 is None or p2 is None:
+            continue
+        matches.append({k: m[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "home", "away")}
+                       | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or model.get("O2.5"),
+                          "source": "marché" if mk.get("1") else "modèle"})
+    today = (datetime.now(UTC) + LOCAL_OFFSET).date()
+    return {"days": day_tickets(matches, load_journal(), today),
+            "note": "Cotes betPawa vérifiées sur les captures du propriétaire quand « vérifiée », sinon estimées "
+                    "par la marge mesurée de chaque marché (docs/RESULTS.md). Aucun avantage démontré sur le marché."}
+
+
 @router.get("/value-board")
 def value_board(days: int = 7) -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""

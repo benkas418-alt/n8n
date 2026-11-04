@@ -1017,6 +1017,41 @@ function myFlag(m) {
   return `<span class="flag safe"><b>1er but ${esc(team)}</b> <span class="nowrap">${pct(fg, 0)}</span>${fair(fg)}<br><span class="muted">1UP ${pct(up, 0)} · ${odds2(1 / up)}</span><br><span class="muted small">${src}</span></span>`;
 }
 
+/* Tickets du jour (D69): three combos of 10 or more per match day, with every alternative
+   of each match. Prices marked "vérifiée" come from the owner's betPawa screenshots. */
+function ticketsView(t) {
+  if (!t || !t.days || !t.days.length) {
+    return `<div class="empty"><p class="muted">Pas encore de tickets : ils sont calculés au cycle du matin pour les deux prochains jours de matchs.</p></div>`;
+  }
+  const time = (k) => (k ? new Date(k).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—");
+  const price = (x) => `${odds2(x.price)}${x.known ? ' <span class="ok" title="cote vérifiée sur betPawa">✔</span>' : ' <span class="muted small">est.</span>'}`;
+  const evTxt = (e) => `${e >= 0 ? "+" : "−"}${Math.abs(100 * e).toFixed(1).replace(".", ",")} %`;
+  const altTable = (alts, chosen) => `<div class="table-wrap"><table class="tight alts"><thead><tr><th>Pronostic</th><th class="num">Proba</th>
+      <th class="num">Juste</th><th class="num">betPawa</th><th class="num">Écart</th></tr></thead><tbody>${alts.map((a) =>
+      `<tr${a.key === chosen ? ' class="me"' : ""}><td>${esc(a.label)}</td><td class="num">${pct(a.prob, 0)}</td><td class="num">${odds2(a.fair)}</td>
+        <td class="num">${price(a)}</td><td class="num ${a.ev >= 0 ? "pos" : "neg"}">${evTxt(a.ev)}</td></tr>`).join("")}</tbody></table></div>`;
+  return t.days.map((d) => {
+    const byId = new Map(d.matches.map((m) => [m.match_id, m]));
+    const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    const tickets = d.tickets.map((tk) => {
+      const once = Math.round(1 / tk.prob);
+      const legs = tk.legs.map((l) => fold(
+        `<span class="leg"><span class="muted">${time(l.kickoff_utc)}</span> <b>${esc(l.match)}</b> · ${esc(l.label)}
+          <span class="leg-odds">${pct(l.prob, 0)} · ${price(l)}</span></span>`,
+        altTable(byId.get(l.match_id)?.alternatives || [], l.key), { inner: true, note: "autres choix" })).join("");
+      return `<div class="card ticket"><h2>Ticket ${esc(tk.tag)} · ${esc(tk.name)}</h2>
+        <p class="question">${tk.legs.length} sélections · cote ${odds2(tk.odds)} · passe environ 1 fois sur ${once} ·
+          espérance avec le Bonus Gagnant ${evTxt(tk.ev)}</p>${legs}</div>`;
+    }).join("");
+    const all = d.matches.map((m) => fold(`<span class="muted">${time(m.kickoff_utc)}</span> ${esc(m.match)}${m.followed ? "" : ' <span class="badge">autre</span>'}`,
+      altTable(m.alternatives, null), { inner: true })).join("");
+    return `<section><div class="day"><h2>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</h2><span>${d.tickets.length} tickets</span></div>
+      <div class="grid">${tickets}</div>
+      <div class="card" style="margin-top:var(--space-4)"><h2>Toutes les alternatives du jour</h2>
+        <p class="question">Chaque match avec tous ses pronostics, du plus sûr au moins sûr après la marge de betPawa.</p>${all}</div></section>`;
+  }).join("") + `<p class="meta">Un ticket vise une cote d'au moins 10 avec la meilleure chance de passer. Ne prends une sélection que si betPawa affiche au moins la cote indiquée. ✔ = cote vérifiée sur betPawa ; « est. » = cote estimée, à vérifier. ${esc(t.note || "")}</p>`;
+}
+
 let homeFilter = (() => { try { return localStorage.getItem("fi_home_filter") || "mine"; } catch { return "mine"; } })();
 let homeAll = false;
 async function home() {
@@ -1043,11 +1078,11 @@ async function home() {
         <a href="#/match?id=${top.m.id}">Ouvrir le match</a></div>`
     : `<div class="finding"><p>Aucun match à venir n'a encore de cote de référence pour comparer le modèle au marché.</p></div>`;
   // One tab per view, in a fixed order; a swipe on the list moves to the next or previous tab.
-  const views = [["all", "Tous", d.matches.length], ["mine", "Mes équipes", d.matches.filter(isMine).length],
+  const views = [["all", "Tous", d.matches.length], ["mine", "Mes équipes", d.matches.filter(isMine).length], ["tickets", "Tickets du jour", null],
     ...comps.map((c) => [c, compName(c), d.matches.filter((m) => m.competition === c).length])];
   if (!views.some(([k]) => k === homeFilter)) homeFilter = "all";
   const tabsBar = `<div class="tabs comp-tabs" role="tablist" aria-label="Compétitions">${views.map(([k, label, n]) =>
-    `<button type="button" role="tab" class="tab${k === homeFilter ? " on" : ""}" aria-selected="${k === homeFilter}" data-c="${esc(k)}">${esc(label)}<span class="tab-n">${n}</span></button>`).join("")}</div>`;
+    `<button type="button" role="tab" class="tab${k === homeFilter ? " on" : ""}" aria-selected="${k === homeFilter}" data-c="${esc(k)}">${esc(label)}${n == null ? "" : `<span class="tab-n">${n}</span>`}</button>`).join("")}</div>`;
   const byDay = new Map();
   shown.forEach((m) => { const k = m.kickoff_date; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); });
   const days = [...byDay.entries()].map(([day, rows]) => {
@@ -1123,6 +1158,10 @@ async function home() {
     const all = document.getElementById("show-all");
     if (all) all.onclick = () => { homeAll = true; route(); };
   });
+  if (homeFilter === "tickets") {
+    const t = await get("/tickets").catch(() => null);
+    return head + tabsBar + `<div id="home-pane">` + ticketsView(t) + `</div>` + status;
+  }
   return head + tabsBar + `<div id="home-pane">` + finding + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + `</div>` + status;
 }
 

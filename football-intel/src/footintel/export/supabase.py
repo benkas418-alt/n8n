@@ -20,7 +20,7 @@ BATCH_BYTES = 2_000_000
 
 def snapshot_paths(get) -> list[str]:
     """Every path the dashboard can ask for, discovered from the list endpoints."""
-    paths = ["/overview", "/competitions", "/home", "/performance", "/value-board",
+    paths = ["/overview", "/competitions", "/home", "/performance", "/value-board", "/tickets",
              "/matches/upcoming"]
     competitions = get("/competitions") or []
     for c in competitions:
