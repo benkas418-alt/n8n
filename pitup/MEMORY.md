@@ -120,3 +120,15 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Dans ce dépôt** (`pitup/`) : cette mémoire, les scripts `tools/`, les sources HTML des 26 vidéos, les ressources communes et les visuels du storytelling.
 - **Hors dépôt** (perdus à la fin de la session cloud) : les vidéos livrées (MP4), les musiques, les détourages et les GLB. Les livrables ont été envoyés au fondateur.
 - Avant de livrer une vidéo : planche contact des captures, earshot sur l'audio, puis envoi en version WhatsApp.
+
+## Mise à jour du 4 novembre (soir) : vidéos produits avec la voix de l'égérie
+- **Voix officielle : « voix 3 »** (clone v2, « Pite-Eupe »). Style : `(voix douce et posée, chaleureuse, avec le sourire)`.
+- « Les articles sélectionnés ne sont pas flatteurs » : choisir des **pièces tendance façon Europe et États-Unis pour les 15-35 ans** (Mary Jane, Samba, Campus, Asics, Shox, TN, sacs type Longchamp ou Coach, Ray-Ban, Kayali, robe en jean, veste en cuir). Toujours montrer une **planche de candidats à valider** avant de traiter.
+- **Marques** : autorisées à l'image (logo visible sur la photo). Nom de marque écrit ou dit **seulement pour les sneakers**.
+- **Article en plus de 5 variantes** (couleurs ou modèles) : en faire une **vidéo dédiée**. On montre les variantes et le nom de l'article, puis « Retrouve-les sur PitUp, chez [boutique] ». Candidats : Jordan 4 Nigel Sylvester (MB Ephphatha), Mary Jane (Rogatienne), gourdes (Wees fk), huile de parfum (Maella online shopping), Club de Nuit (Natty boutique), casquettes (ETS GOD BLESS), Stanley (Maison Rossa, tenue en main).
+- Les autres articles vont dans des vidéos **Pour elle** et **Pour lui**, au format P1 habituel (`tools/build_voix2.py` + `cfg/*.json`).
+- **Mix voix** : musique presque inaudible quand l'égérie parle (environ −23 dB), qui remonte entre les phrases et après la dernière (`tools/mix_duck.py`). Laisser environ 1 s de musique après chaque phrase (`gap: 1.0`).
+- **Accroche** : « Les pièces tendance d'Europe et des States… sont déjà à Lubumbashi. » / « Les sneakers que tout le monde veut… sont déjà à Lubumbashi. »
+- **Prononciation** : « Nike Shox TL » devient « Night Shocks DL ». Dire « Les Nike Shox, en noir. » Écrire « Asiks » pour Asics.
+- Musique : Tiakola « Mode de vie » (134 BPM, gros temps à 29,664 s) pour Femme, Blockkids (130 BPM) pour Homme.
+- **Piège** : ne jamais mettre en file d'attente avec `while pgrep -f vox_clone_texts`, parce que les lignes de commande des files d'attente se détectent entre elles et bloquent tout.
