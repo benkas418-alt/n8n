@@ -302,6 +302,17 @@ def cmd_export_supabase(args, settings, engine):
     _print(export(settings.supabase_url, settings.supabase_secret_key.get_secret_value()))
 
 
+def cmd_scenario_weights(args, settings, engine):
+    from footintel.analysis import scenario_adjust
+    from footintel.connectors.base import season_start_for
+    from footintel.features.builder import build_features
+    from footintel.features.dataset import load_matches
+
+    learnt = scenario_adjust.learn(build_features(load_matches(engine)), season_start_for(date.today()))
+    scenario_adjust.save(learnt, settings.artifacts_dir)
+    _print(learnt)
+
+
 def cmd_email_tickets(args, settings, engine):
     from footintel.api.dashboard import tickets
     from footintel.notify.email import send_report
@@ -419,6 +430,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("export-supabase", help="copy the dashboard data to the private site").set_defaults(
         fn=cmd_export_supabase)
+
+    sub.add_parser("scenario-weights", help="learn the scenario weights that adjust the market (D72)").set_defaults(
+        fn=cmd_scenario_weights)
 
     et = sub.add_parser("email-tickets", help="e-mail the Tickets du jour (D71)")
     et.add_argument("--dry-run", action="store_true", help="print the e-mail instead of sending it")

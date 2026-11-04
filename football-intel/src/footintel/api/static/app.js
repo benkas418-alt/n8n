@@ -1043,8 +1043,11 @@ function ticketsView(t) {
         <p class="question">${tk.legs.length} sélections · cote ${odds2(tk.odds)} · passe environ 1 fois sur ${once} ·
           espérance avec le Bonus Gagnant ${evTxt(tk.ev)}</p>${legs}</div>`;
     }).join("");
-    const all = d.matches.map((m) => fold(`<span class="muted">${time(m.kickoff_utc)}</span> ${esc(m.match)}${m.followed ? "" : ' <span class="badge">autre</span>'}`,
-      altTable(m.alternatives, null), { inner: true })).join("");
+    // D72: scenarios that moved the market price, in plain words.
+    const notes = (m) => (m.scenarios || []).length
+      ? `<div class="finding"><b>Ce que la machine a remarqué</b>${m.scenarios.map((n) => `<p>${esc(n.text)}</p>`).join("")}</div>` : "";
+    const all = d.matches.map((m) => fold(`<span class="muted">${time(m.kickoff_utc)}</span> ${esc(m.match)}${m.followed ? "" : ' <span class="badge">autre</span>'}${(m.scenarios || []).length ? ' <span class="badge">scénario</span>' : ""}`,
+      notes(m) + altTable(m.alternatives, null), { inner: true })).join("");
     return `<section><div class="day"><h2>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</h2><span>${d.tickets.length} tickets</span></div>
       <div class="grid">${tickets}</div>
       <div class="card" style="margin-top:var(--space-4)"><h2>Toutes les alternatives du jour</h2>

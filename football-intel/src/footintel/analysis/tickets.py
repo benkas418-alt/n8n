@@ -238,9 +238,10 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
         for m in sorted(by_day[d], key=lambda m: str(m.get("kickoff_utc") or "")):
             legs = match_legs(m, journal)
             base = {"match_id": m["id"], "match": f"{m['home']} – {m['away']}", "kickoff_utc": m.get("kickoff_utc"),
-                    "competition": m["competition"], "followed": is_followed(m), "source": m.get("source", "marché")}
+                    "competition": m["competition"], "followed": is_followed(m), "source": m.get("source", "marché"),
+                    "scenarios": m.get("scenarios", [])}
             rows.append(base | {"alternatives": legs})
-        pool_all = [{k: v for k, v in r.items() if k != "alternatives"} | x for r in rows for x in r["alternatives"]]
+        pool_all = [{k: v for k, v in r.items() if k not in ("alternatives", "scenarios")} | x for r in rows for x in r["alternatives"]]
         pool_mine = [x for x in pool_all if x["followed"]]
         n_mine = len({x["match_id"] for x in pool_mine})
         tickets = []

@@ -148,6 +148,12 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
 
         stories = run_stories(engine, feats, days=7)
         results["stories_report"] = str(stories_report(engine, settings, stories).paths["md"])
+        # D72: scenario weights that adjust the market price, with their own check.
+        from footintel.analysis import scenario_adjust
+
+        learnt = scenario_adjust.learn(feats, current)
+        scenario_adjust.save(learnt, settings.artifacts_dir)
+        results["scenario_adjust"] = {k: v for k, v in learnt.items() if k != "weights"}
         results["drift_run"] = run_drift(engine, feats)
         results["calibration_run"] = store_calibration(
             engine, feats, [model_name, "market_implied", "naive_frequency"],

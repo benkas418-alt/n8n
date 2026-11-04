@@ -1,5 +1,24 @@
 # Résultats du backtest réel
 
+## Scénarios qui ajustent le marché (2026-11-04, D72)
+
+`analysis/scenario_adjust.py` : 164 142 matchs de championnat avec cote de marché. Chaque saison de 2016
+à 2026 est jugée avec des poids appris sur les saisons d'avant uniquement. Gain = log loss du marché
+moins log loss du marché ajusté, en millièmes (positif = l'ajustement fait mieux). IC 95 % bootstrap.
+
+| Scénarios utilisés | Gain | IC 95 % | Saisons gagnées |
+|---|---|---|---|
+| Les 12 | +0,49 | +0,24 ; +0,72 | 11/11 |
+| Sans les grands favoris | +0,29 | +0,09 ; +0,46 | 8/11 |
+| Grands favoris seuls | +0,27 | +0,10 ; +0,44 | 10/11 |
+| Forme trompeuse (unlucky, lucky, outsider en forme, favori en méforme) | +0,23 | +0,07 ; +0,39 | 9/11 |
+| Fatigue (Coupe d'Europe, repos court, calendrier chargé) | +0,03 | −0,04 ; +0,09 | 6/11 |
+
+Le résultat ne dépend presque pas de la pénalité (+0,47, +0,49 et +0,45 pour 50, 200 et 1 000).
+L'ajustement moyen d'un match touché est de 0,9 point de probabilité, et de 9 points au plus.
+Le gain est petit à côté de la marge de betPawa (4 à 15 %) : il aide à choisir les sélections les plus
+sûres, il ne rend pas un pari rentable à lui seul.
+
 ## betPawa (Cameroun) contre Pinnacle, saison 2026-27 (2026-10-30, D68)
 
 `scripts/oddspapi_backtest.py` (workflow « betPawa vs Pinnacle backtest », run 41104481324) :
