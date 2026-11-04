@@ -99,6 +99,26 @@ tr.group td { background: var(--bg); padding-top: 10px; }
   .probs { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* 2026-11-04: plain words, a search box, and a combo that takes no room while empty. */
+.lead { margin: 4px 0 0; font-size: 1rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.search input { width: 100%; max-width: 420px; height: 44px; margin-top: 10px; padding: 0 14px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 16px; }
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.formula > summary { cursor: pointer; color: var(--muted); }
+.formula[open] > summary { margin-bottom: 6px; }
+.coupon-head { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 0; border: 0; background: none; color: var(--text);
+  font: inherit; text-align: left; cursor: default; }
+.coupon.is-empty { display: none; }
+.coupon-head h2 { white-space: nowrap; }
+.kv input { height: 40px; align-self: center; }
+@media (max-width: 860px) {
+  .coupon-head { cursor: pointer; min-height: 32px; }
+  .coupon-head::after { content: "Ouvrir"; margin-left: auto; font-size: 0.85rem; color: var(--accent); }
+  .coupon.open .coupon-head::after { content: "Réduire"; }
+  .coupon:not(.open) > :not(.coupon-head) { display: none; }
+  .coupon { max-height: 70vh; }
+}
 /* Phone tab bar: same four destinations as the dashboard. */
 .tabbar { display: none; }
 @media (max-width: 900px) {
@@ -119,32 +139,35 @@ tr.group td { background: var(--bg); padding-top: 10px; }
 <div class="wrap" id="root" data-src="/api/dash/value-board">
   <header class="intro">
     <a class="back" href="./#/">Retour à Aujourd'hui</a>
-    <h1>Vérificateur de cotes</h1>
-    <p class="muted" id="stamp">Chargement des prédictions…</p>
-    <div class="formula small">
+    <h1>Vérifier une cote</h1>
+    <p class="lead">Trouvez le match, tapez la cote affichée par betPawa : le site vous dit si elle vaut le coup.</p>
+    <p class="muted small" id="stamp">Chargement des prédictions…</p>
+    <label class="search"><span class="sr">Chercher une équipe</span>
+      <input type="search" id="q" placeholder="Chercher une équipe" autocomplete="off" enterkeyhint="search"></label>
+    <details class="formula small"><summary>Comment le verdict est calculé</summary>
       Tape la cote proposée par ton bookmaker. <strong>Cote juste</strong> = 1 / probabilité du modèle.
       <strong>Valeur théorique</strong> = probabilité × cote − 1. Une valeur positive n'est ni un gain garanti
       ni une preuve de rentabilité : le modèle est au niveau du marché, sans avantage démontré.
       Le verdict utilise la probabilité du marché quand elle existe, sinon celle du modèle. Le combiné
       ajoute le Bonus Gagnant betPawa (barème relevé le 30/10/2026, sélections à 1,20 ou plus).
-    </div>
+    </details>
   </header>
   <div class="filters" role="group" aria-label="Filtrer les compétitions" id="filters"></div>
   <section id="elo" aria-label="Sélection Elo"></section>
   <div class="layout">
     <main id="list" aria-live="polite"></main>
-    <aside class="coupon" aria-label="Combiné">
-      <h2>Mon combiné</h2>
+    <aside class="coupon is-empty" id="coupon" aria-label="Combiné">
+      <button class="coupon-head" id="coupon-toggle" type="button" aria-expanded="false"><h2>Mon combiné</h2><span id="c-short" class="muted small"></span></button>
       <ul id="sel"></ul>
       <p class="empty" id="sel-empty">Ajoute des sélections avec « + combiné ». Une seule sélection par match.</p>
       <div class="kv" id="sum" hidden>
-        <span>Probabilité (marché, sinon modèle)</span><span class="num" id="c-prob"></span>
-        <span>Cote juste du combiné</span><span class="num" id="c-fair"></span>
-        <span>Cote du combiné (tes cotes)</span><span class="num" id="c-odds"></span>
-        <span>Bonus Gagnant betPawa</span><span class="num" id="c-bonus"></span>
-        <label for="c-pay">Paiement affiché par betPawa pour 1 misé (si différent)</label>
+        <span>Chances de passer</span><span class="num" id="c-prob"></span>
+        <span>Cote juste</span><span class="num" id="c-fair"></span>
+        <span>Votre cote totale</span><span class="num" id="c-odds"></span>
+        <span>Bonus betPawa</span><span class="num" id="c-bonus"></span>
+        <label for="c-pay">Gain affiché par betPawa pour 1 misé</label>
         <input type="number" id="c-pay" step="0.01" min="1" inputmode="decimal" placeholder="auto">
-        <span>Valeur théorique</span><span class="num big" id="c-ev"></span>
+        <span>Verdict</span><span class="num big" id="c-ev"></span>
       </div>
       <p class="note" id="c-note"></p>
     </aside>
