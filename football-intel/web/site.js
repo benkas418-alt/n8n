@@ -121,8 +121,15 @@
     suspendu: ["Compte suspendu", "Ce compte est suspendu. Contactez l'administrateur."],
   };
 
+  // A session unused for 14 days ends: a lost phone does not stay signed in.
+  const IDLE_MS = 14 * 24 * 3600 * 1000;
+  const seenAt = () => { try { return Number(localStorage.getItem("fi_seen")) || 0; } catch { return 0; } };
+  const markSeen = () => { try { localStorage.setItem("fi_seen", String(Date.now())); } catch { /* storage blocked */ } };
+
   async function onSession(session) {
     if (!session) { profile = null; return signInScreen(); }
+    if (seenAt() && Date.now() - seenAt() > IDLE_MS) { await sb.auth.signOut(); return; }
+    markSeen();
     const { data, error } = await sb.from("profiles").select("id,email,display_name,role,status").eq("id", session.user.id).maybeSingle();
     if (error || !data) {
       screen("Profil introuvable", `<p>${h(error?.message || "Aucun profil pour ce compte.")}</p><button class="btn" id="fi-out" type="button">Se déconnecter</button>`);

@@ -1089,3 +1089,14 @@ def test_scenario_weights_switch_off_a_league_that_failed_its_check():
     assert SA.weights_for(learnt, "FRA-L1") is None
     assert SA.weights_for(learnt, "GER-BL")["unlucky"] == SA.MAX_WEIGHT  # 0.1 + 0.3, capped
     assert SA.weights_for(learnt, "ENG-CH")["unlucky"] == 0.1  # other leagues: shared weights
+
+
+def test_bilan_settles_every_ticket_market():
+    from footintel.analysis.bilan import settle
+
+    assert settle("1", 2, 1, None) == 1 and settle("X2", 2, 1, None) == 0 and settle("-2.5", 1, 1, None) == 1
+    assert settle("BTTS_Y", 1, 1, None) == 1 and settle("FG_1", 0, 0, []) == 0
+    assert settle("FG_2", 1, 1, None) is None  # goal order unknown
+    assert settle("1UP_1", 1, 2, ["H", "A", "A"]) == 1  # led 1-0, paid early
+    assert settle("2UP_1", 2, 2, ["H", "H", "A", "A"]) == 1 and settle("2UP_1", 2, 2, ["H", "A", "H", "A"]) == 0
+    assert settle("DC1UP_X2", 2, 1, ["A", "H", "H"]) == 1 and settle("DC2UP_X2", 2, 1, ["A", "H", "H"]) == 0

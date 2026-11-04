@@ -99,13 +99,26 @@ tr.group td { background: var(--bg); padding-top: 10px; }
   .probs { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* Phone tab bar: same four destinations as the dashboard. */
+.tabbar { display: none; }
+@media (max-width: 900px) {
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--bg); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .tabbar a { display: flex; align-items: center; justify-content: center; min-height: 56px; font-size: 13px; font-weight: 500;
+    color: var(--muted); text-decoration: none; border-top: 2px solid transparent; }
+  .tabbar a.active { color: var(--text); border-top-color: var(--accent); }
+  .coupon { bottom: calc(57px + env(safe-area-inset-bottom, 0px)); }
+}
 </style>
 
 </head>
 <body>
+<nav class="tabbar" aria-label="Pages principales">
+  <a href="./#/">Aujourd'hui</a><a href="./#/matchs">Matchs</a><a href="value.html" class="active" aria-current="page">Cote</a><a href="./#/bilan">Bilan</a>
+</nav>
 <div class="wrap" id="root" data-src="/api/dash/value-board">
   <header class="intro">
-    <a class="back" href="./#/">Retour aux matchs</a>
+    <a class="back" href="./#/">Retour à Aujourd'hui</a>
     <h1>Vérificateur de cotes</h1>
     <p class="muted" id="stamp">Chargement des prédictions…</p>
     <div class="formula small">
