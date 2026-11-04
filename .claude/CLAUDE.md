@@ -55,6 +55,9 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | ww-w-ai/super-token-saver | Not enabled: injects instructions that force sub-agent delegation and edits ~/.claude/settings.json; its report command can publish a public gist. Install on a local machine only if wanted |
 | sajidmahamud835/MarketSync-EA | Rejected: its "AI" returns random stop-loss/take-profit; would place real trades |
 | DavidHDev/react-bits (2026-10-30), web-leb.com | Not vendored: React only, and its licence (MIT + Commons Clause) forbids redistributing the components, even ported, so not in this public repo. Usable in a private React app (PitUp) via `npx shadcn@latest add @react-bits/<Name>-JS-CSS`. web-leb: community snippets, no clear licence |
+| github/spec-kit (2026-11-04) | Not installed here: our DECISIONS.md and PR process already cover it. MIT; worth using (`uv tool install specify-cli`) when a new app starts from zero, e.g. PitUp |
+| nadimtuhin/claude-token-optimizer (2026-11-04) | Not used: its prune targets session notes we do not keep; startup docs here are ~7.7k tokens (n8n AGENTS.md 5.7k, upstream file we must not edit). Usage goes to long sessions and tool output |
+| black-dash77/ora-mcp (2026-11-04) | Rejected: local SQLite memory, lost at each cloud container reset; its CLAUDE.md text ("never read a file without first consulting ORA") trades verification for stale memory |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
