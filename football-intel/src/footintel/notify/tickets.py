@@ -27,12 +27,25 @@ def tickets_text(data: dict, today: date) -> tuple[str, str]:
     """Subject and body for the next match day (today first)."""
     days = data.get("days") or []
     if not days:
-        return ("Tickets du jour — aucun match", "Aucun match des compétitions suivies dans les deux prochains jours.\n")
+        return ("Tickets du jour — aucun match", "Aucun match de vos équipes dans les deux prochains jours.\n")
+    lines = []
     day = days[0]
+    if not day["tickets"] and len(days) > 1 and days[1]["tickets"]:
+        # Nothing for the owner's teams on the first day: say so, then show the next one.
+        lines += [f"{_day(day['date']).capitalize()} : {_few(day.get('n_followed', 0))}, pas de ticket.", ""]
+        day = days[1]
     when = "aujourd'hui" if day["date"] == today.isoformat() else _day(day["date"])
-    lines = [f"Tickets du {_day(day['date'])} ({when}), heure de Lubumbashi.", ""]
+    lines += [f"Tickets du {_day(day['date'])} ({when}), heure de Lubumbashi.",
+              "Uniquement vos équipes : toute la Premier League et la Bundesliga, Inter, Milan, Como, Bologne,",
+              "Lazio, Barcelone, Real Madrid, Atlético, Betis, Villarreal et le PSG, dans toutes les compétitions.", ""]
     if not day["tickets"]:
-        lines.append("Pas assez de matchs pour un ticket à 10 ou plus.")
+        lines.append(f"{_few(day.get('n_followed', 0)).capitalize()} : pas assez pour un ticket à 10 ou plus.")
+    for m in day.get("missing", []):
+        if day["tickets"]:
+            lines.append(f"Pas de ticket {m['tag']} ({m['name']}) : il faut au moins {m['needs']} matchs de vos "
+                         f"équipes, il y en a {day.get('n_followed', 0)}.")
+    if day.get("missing") and day["tickets"]:
+        lines.append("")
     for t in day["tickets"]:
         chance = f"1 chance sur {round(1 / t['prob'])}" if t["prob"] > 0 else "—"
         lines.append(f"TICKET {t['tag']} — {t['name']} ({len(t['legs'])} sélections)")
@@ -59,6 +72,10 @@ def tickets_text(data: dict, today: date) -> tuple[str, str]:
     n = len(day["tickets"])
     subject = f"Tickets du {_day(day['date'])} — {n} ticket{'s' if n > 1 else ''}"
     return subject, "\n".join(lines) + "\n"
+
+
+def _few(n: int) -> str:
+    return "aucun match de vos équipes" if n == 0 else f"{n} match{'s' if n > 1 else ''} de vos équipes"
 
 
 def local_today() -> date:

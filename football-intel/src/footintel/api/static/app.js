@@ -1049,6 +1049,7 @@ function ticketsView(t) {
     const all = d.matches.map((m) => fold(`<span class="muted">${time(m.kickoff_utc)}</span> ${esc(m.match)}${m.followed ? "" : ' <span class="badge">autre</span>'}${(m.scenarios || []).length ? ' <span class="badge">scénario</span>' : ""}`,
       notes(m) + altTable(m.alternatives, null), { inner: true })).join("");
     return `<section><div class="day"><h2>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</h2><span>${d.tickets.length} tickets</span></div>
+      ${(d.missing || []).map((m) => `<p class="muted">Pas de ticket ${esc(m.tag)} : il faut au moins ${m.needs} matchs de vos équipes, il y en a ${d.n_followed}.</p>`).join("")}
       <div class="grid">${tickets}</div>
       <div class="card" style="margin-top:var(--space-4)"><h2>Toutes les alternatives du jour</h2>
         <p class="question">Chaque match avec tous ses pronostics, du plus sûr au moins sûr après la marge de betPawa.</p>${all}</div></section>`;

@@ -153,7 +153,7 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
 
         learnt = scenario_adjust.learn(feats, current)
         scenario_adjust.save(learnt, settings.artifacts_dir)
-        results["scenario_adjust"] = {k: v for k, v in learnt.items() if k != "weights"}
+        results["scenario_adjust"] = {k: learnt[k] for k in ("active", "active_leagues", "check")}
         results["drift_run"] = run_drift(engine, feats)
         results["calibration_run"] = store_calibration(
             engine, feats, [model_name, "market_implied", "naive_frequency"],

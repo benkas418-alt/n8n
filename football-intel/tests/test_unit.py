@@ -1063,3 +1063,29 @@ def test_scenario_adjustment_moves_the_flagged_side_and_explains_it():
     assert p1 > 0.40 and p2 > 0.30 and abs((1 - p1 - p2) - 0.30) > 0.01
     assert any("Lens" in n["text"] for n in notes) and notes[-1]["scenario"] == "total"
     assert SA.adjust(0.40, 0.30, snap, learnt | {"active": False}, "Lens", "Como") == (0.40, 0.30, [])
+
+
+def test_tickets_use_the_owner_teams_in_every_competition_only():
+    from datetime import date
+
+    from footintel.analysis.tickets import day_tickets, is_followed
+
+    ucl = {"competition": "UEFA-CL", "home": "Dortmund", "away": "Betis",
+           "home_league": "GER-BL", "away_league": "ESP-LL"}
+    assert is_followed(ucl)
+    assert not is_followed({"competition": "ESP-CDR", "home": "Reus", "away": "Barakaldo",
+                            "home_league": "ESP-RFEF", "away_league": "ESP-RFEF"})
+    others = [{"id": i, "kickoff_date": date(2026, 11, 4), "kickoff_utc": None, "competition": "ESP-CDR",
+               "home": f"H{i}", "away": f"A{i}", "p1": 0.45, "p2": 0.3, "p_over": 0.5} for i in range(8)]
+    day = day_tickets(others, {}, date(2026, 11, 4))[0]
+    assert day["tickets"] == [] and day["n_followed"] == 0 and len(day["missing"]) == 3
+
+
+def test_scenario_weights_switch_off_a_league_that_failed_its_check():
+    from footintel.analysis import scenario_adjust as SA
+
+    learnt = {"active": True, "active_leagues": ["GER-BL", "other"],
+              "weights": {"unlucky": 0.1}, "league_weights": {"GER-BL": {"unlucky": 0.3}}}
+    assert SA.weights_for(learnt, "FRA-L1") is None
+    assert SA.weights_for(learnt, "GER-BL")["unlucky"] == SA.MAX_WEIGHT  # 0.1 + 0.3, capped
+    assert SA.weights_for(learnt, "ENG-CH")["unlucky"] == 0.1  # other leagues: shared weights
