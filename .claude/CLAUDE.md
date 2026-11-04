@@ -61,6 +61,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | nextlevelbuilder/ui-ux-pro-max-skill (2026-11-04) | Installed as ui-ux-pro-max (MIT; core skill only, tests dropped). Use for UX checks (touch 44px, bottom nav ≤5, forms, a11y) via `scripts/search.py`; design-taste-frontend still decides the look when they disagree |
 | dickwu/apple-design-skill (2026-11-04) | Not vendored: reproduces Apple's copyrighted HIG text with no licence. Clone to the scratchpad and read a page (tab bars, navigation) when needed |
 | designmodo/Flat-UI, nexu-io/open-design, hendurhance/ui-ux (2026-11-04) | Not used. Flat-UI: 2013-2018 Bootstrap 3 kit. open-design: a 363 MB design-agent app with telemetry on by default and a paid cloud. ui-ux: a reading list whose book mirrors come from shadow libraries (Anna's Archive, LibGen): never copy those files |
+| santmun/crear-agente (2026-11-04) | Not vendored: Spanish beginner course (LATAM tone, OpenAI) that would talk to the owner in Spanish. Its Cloudflare Workers cron-agent pattern is distilled into ai-agent-engineering (useful for PitUp automations) |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
@@ -73,6 +74,8 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 - Serie A: only Como, Inter, AC Milan, Bologna, Lazio (Bologna added 2026-10-30); first goal or 1UP.
 - Liga: Barcelona, Real Madrid, Betis, Atletico Madrid, Villarreal.
 - Ligue 1: only PSG. UEFA cups: to discuss later.
+- Maintenance (2026-11-04): the owner declined a scheduled Claude Code guard task; do not create
+  one again unless asked. Lecture du jour (D77) runs on an Anthropic API key once he adds it.
 - Always give the fair odds (1/p) and say that a bet has value only above them; the model has no
   proven edge over the market, BTTS is its weakest market, 1UP/FG assume goals in random order.
 
