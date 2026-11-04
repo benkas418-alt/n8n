@@ -1054,8 +1054,20 @@ function ticketsView(t) {
 
 let homeFilter = (() => { try { return localStorage.getItem("fi_home_filter") || "mine"; } catch { return "mine"; } })();
 let homeAll = false;
+/* Matches still to play (kept 2 h after kick-off), whatever the date of the last export. */
+function upcomingOnly(m) {
+  return m.kickoff_utc ? new Date(m.kickoff_utc).getTime() > Date.now() - 2 * 36e5
+    : String(m.kickoff_date) >= new Date().toLocaleDateString("en-CA");
+}
+/* A warning when the data was not refreshed by the daily cycle for more than 30 hours. */
+function staleNote(last) {
+  if (!last || Date.now() - new Date(last).getTime() < 30 * 36e5) return "";
+  const when = new Date(last).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  return `<div class="finding warn"><p><b>Données du ${esc(when)}.</b> Le cycle quotidien n'a pas tourné depuis : les matchs déjà joués sont masqués, mais les probabilités et les cotes ne sont pas à jour.</p></div>`;
+}
 async function home() {
   const d = await get("/home");
+  d.matches = d.matches.filter(upcomingOnly);
   const sub = document.getElementById("brand-sub");
   if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
   const comps = [...new Set(d.matches.map((m) => m.competition))].sort((a, b) => compRank(a) - compRank(b) || a.localeCompare(b));
@@ -1160,9 +1172,10 @@ async function home() {
   });
   if (homeFilter === "tickets") {
     const t = await get("/tickets").catch(() => null);
-    return head + tabsBar + `<div id="home-pane">` + ticketsView(t) + `</div>` + status;
+    if (t && t.days) t.days = t.days.filter((x) => x.date >= new Date().toLocaleDateString("en-CA"));
+    return head + staleNote(d.last_prediction) + tabsBar + `<div id="home-pane">` + ticketsView(t) + `</div>` + status;
   }
-  return head + tabsBar + `<div id="home-pane">` + finding + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + `</div>` + status;
+  return head + staleNote(d.last_prediction) + tabsBar + `<div id="home-pane">` + finding + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + `</div>` + status;
 }
 
 /* Side cards folded on each page: the title stays visible, the content opens on click. */
