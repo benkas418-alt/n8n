@@ -29,6 +29,7 @@
 - Voix féminine acceptée : **Vivienne** (`fr-FR-VivienneMultilingualNeural`). Elle a été utilisée pour Octobre Rose.
 - Voix refusées : **Liam** (accent québécois). Aucune voix gratuite n'a d'accent africain : le mieux serait une vraie voix enregistrée à Lubumbashi.
 - Ne pas modifier la voix (pas d'égaliseur ni de compression) : la garder brute.
+- **VoxCPM2** (moteur de VoiceStudio, pip `voxcpm`, CPU, environ 30 s par phrase, modèle `openbmb/VoxCPM2`) : crée une voix à partir d'une description, au format `(description)texte`. Script : `tools/vox_design.py`. Essais du 4 novembre (« jeune femme congolaise, douce et dynamique ») : earshot p_real 0,95 et 0,98, transcription exacte. **Le fondateur doit encore les valider.** Il sait aussi **cloner** une voix à partir de 15 à 30 s d'enregistrement : c'est la piste pour une vraie voix de Lubumbashi, avec l'accord écrit de la personne.
 
 ### Musique
 - Instrumental sous la voix. **Jamais d'amapiano.** Éviter les chansons romantiques (Babydoll, Cheap Cologne, white keys et Has to be you ont été écartées).
@@ -90,7 +91,7 @@
 ### Outils et crédits
 - **Higgsfield** : 3,5 crédits restants (plan gratuit). SAM 3D coûte 1 crédit par objet.
 - **vidIQ** : 2 crédits (renouvellement le 31 octobre). Une voix vidIQ coûte 14 crédits.
-- Compétences installées dans `~/.claude/skills` (à réinstaller dans une nouvelle session) : earshot, real-sound, watch, ad-creative, copywriting, marketing-psychology, creative-director, competitive-ads-extractor, brainstorming, banner-design, poster-hero, design, brand, design-system, ui-ux-pro-max, slides, ui-styling, ecommerce-image-workflow, motion-design, design-motion-principles, emilkowalski-motion, gsap-timeline, frame-logo-outro, threejs, mockup-device-3d, apple-design, context-compression, paywall-upgrade-cro, brand-guidelines. Sources : ui-ux-pro-max-skill, Leonxlnx/earshot, bradautomates/claude-video, nexu-io/open-design, kylezantos/design-motion-principles, LottieFiles/motion-design-skill, dickwu/apple-design-skill, muratcankoylan/Agent-Skills-for-Context-Engineering.
+- Compétences installées dans `~/.claude/skills` (à réinstaller dans une nouvelle session) : earshot, real-sound, watch, ad-creative, copywriting, marketing-psychology, creative-director, competitive-ads-extractor, brainstorming, banner-design, poster-hero, design, brand, design-system, ui-ux-pro-max, slides, ui-styling, ecommerce-image-workflow, motion-design, design-motion-principles, emilkowalski-motion, gsap-timeline, frame-logo-outro, threejs, mockup-device-3d, apple-design, context-compression, paywall-upgrade-cro, brand-guidelines, voicestudio, et les 15 compétences de motion design de charlie947/motion-graphics-skills (launch-video, reference-to-motion, motion-effects, reel-export…). Le dépôt aedev-tools/adobe-agent-skills (After Effects) exige un Mac avec After Effects : il n'est pas installable ici. Sources : ui-ux-pro-max-skill, Leonxlnx/earshot, bradautomates/claude-video, nexu-io/open-design, kylezantos/design-motion-principles, LottieFiles/motion-design-skill, dickwu/apple-design-skill, muratcankoylan/Agent-Skills-for-Context-Engineering.
 
 ## 6. Idées de campagne retenues (inspirées des grandes marques)
 
