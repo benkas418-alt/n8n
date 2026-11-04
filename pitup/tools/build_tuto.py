@@ -19,8 +19,8 @@ intro_end = t
 for st in CFG["steps"]:
     a, z = speech_span(f"{V}/{st['vo']}.wav"); vo.append((st["vo"], t + 0.25, a))
     segs, s0 = [], t
-    for name, natural in st["segs"]:
-        segs.append((name, s0, natural)); s0 += natural
+    for name, sa, sb, speed in st["segs"]:
+        natural = (sb - sa) / speed; segs.append((name, s0, natural)); s0 += natural
     end = max(t + 0.25 + (z - a) + 0.6, s0 + 0.3)
     steps.append(dict(head=st["head"], word=st["word"], bg=st["bg"], t=round(t, 3), end=round(end, 3),
                       segs=[(n, round(s, 3), round(nat, 3)) for n, s, nat in segs], taps=st.get("taps", [])))
@@ -28,7 +28,7 @@ for st in CFG["steps"]:
 END = t
 a, z = speech_span(f"{V}/{CFG['outro_vo']}.wav"); vo.append((CFG["outro_vo"], END + 0.3, a))
 DUR = END + 0.3 + (z - a) + 3.6
-json.dump({"vo": vo, "dur": DUR}, open(f"{P}/timing.json", "w"), indent=1)
+json.dump({"vo": vo, "dur": DUR, "steps": [dict(t=s["t"], end=s["end"]) for s in steps]}, open(f"{P}/timing.json", "w"), indent=1)
 
 tpl = open(f"{SP}/hf/videos/pitup-tendance5/index.html").read()
 css = tpl[tpl.index("<style>") + 7: tpl.index("</style>")]
@@ -37,12 +37,8 @@ end_html = end_html[: end_html.rindex("</div>")]
 
 # screen: content area of the 720x1280 recording is x 64..654 (591 px); scale it to 560 px wide
 SW, SC = 560, 560 / 591
-vids = []
-for i, s in enumerate(steps):
-    for name, start, natural in s["segs"]:
-        last = name == s["segs"][-1][0]
-        d = (s["end"] - start) if last else natural
-        vids.append(f'<video id="v_{name}" class="clip vid" src="assets/seg/{name}.mp4" muted playsinline data-start="{start:.3f}" data-duration="{d:.3f}" data-track-index="{2 + len(vids) % 2}"></video>')
+T0 = steps[0]["t"]
+vids = [f'<video id="screenvid" class="clip vid" src="assets/seg/master.mp4" muted playsinline data-start="{T0:.3f}" data-duration="{END - T0:.3f}" data-track-index="2"></video>']
 taps = [(s["segs"][0][1] + tt, (x - 64) * SC, y * SC) for s in steps for tt, x, y in s["taps"]]
 html = f'''<!doctype html>
 <html lang="fr">
@@ -59,8 +55,16 @@ html = f'''<!doctype html>
       #introT {{ z-index: 30; position: absolute; left: 76px; top: 250px; font-weight: 800; font-size: 100px; letter-spacing: -3px; line-height: 1.02; color: #17120d; }}
       #introT b {{ color: #1f88c9; }}
       #anchor {{ z-index: 45; }}
-      #phone {{ position: absolute; left: {(1080 - SW - 36) / 2}px; top: 560px; width: {SW + 36}px; height: {1280 * SC + 36:.0f}px; border-radius: 74px; background: #0c0d10; padding: 18px; box-sizing: border-box; box-shadow: 0 60px 90px rgba(0,0,0,.28), 0 0 0 3px #2a2c31 inset; z-index: 50; }}
-      #screen {{ position: relative; width: {SW}px; height: {1280 * SC:.0f}px; border-radius: 56px; overflow: hidden; background: #f3f4f6; }}
+      #stage {{ position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 55%; z-index: 50; pointer-events: none; }}
+      #pshadow {{ position: absolute; left: 290px; top: 1790px; width: 500px; height: 70px; border-radius: 50%; background: rgba(0,0,0,.35); filter: blur(26px); z-index: 49; }}
+      #phone {{ position: absolute; left: {(1080 - SW - 36) / 2}px; top: 540px; width: {SW + 36}px; height: {1280 * SC + 36:.0f}px; transform-style: preserve-3d; }}
+      .slab {{ position: absolute; inset: 0; border-radius: 84px; background: linear-gradient(90deg, #5d6167 0%, #c9cdd2 18%, #8b9096 50%, #d7dade 82%, #5a5e63 100%); }}
+      .slab .btn {{ position: absolute; width: 8px; border-radius: 4px; background: linear-gradient(90deg, #8d9197, #c4c8cd); }}
+      .slab.back {{ background: #1b1c20; }}
+      #front {{ position: absolute; inset: 0; border-radius: 84px; background: #0b0c0f; padding: 18px; box-sizing: border-box; box-shadow: inset 0 0 0 3px #2b2d32, 0 0 0 2px #a9adb3; }}
+      #screen {{ position: relative; width: {SW}px; height: {1280 * SC:.0f}px; border-radius: 66px; overflow: hidden; background: #f3f4f6; }}
+      #island {{ position: absolute; left: 50%; top: 22px; width: 150px; height: 42px; margin-left: -75px; border-radius: 22px; background: #050506; z-index: 6; }}
+      #glare {{ position: absolute; inset: 0; border-radius: 66px; z-index: 5; background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.16) 47%, rgba(255,255,255,0) 58%); background-size: 260% 100%; background-position: 100% 0; }}
       #screen .vid {{ position: absolute; left: {-64 * SC:.1f}px; top: 0; width: {720 * SC:.1f}px; height: {1280 * SC:.1f}px; }}
       .tap {{ position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 6px solid #1f88c9; background: rgba(31,136,201,.18); opacity: 0; }}
     </style>
@@ -81,11 +85,14 @@ html = f'''<!doctype html>
         <div id="vignette"></div>
         <div id="grain"></div>
       </div>
-      <div id="phone"><div id="screen">
+      <div id="pshadow"></div>
+      <div id="stage"><div id="phone">
+        {"".join(f'<div class="slab{" back" if k == 20 else ""}" style="transform:translateZ(-{k}px)">' + ("" if k in (1, 20) else '<i class="btn" style="left:-5px;top:300px;height:70px"></i><i class="btn" style="left:-5px;top:400px;height:120px"></i><i class="btn" style="left:-5px;top:540px;height:120px"></i><i class="btn" style="right:-5px;top:420px;height:180px"></i>') + '</div>' for k in range(20, 0, -1))}
+        <div id="front"><div id="screen"><div id="island"></div><div id="glare"></div>
         <img id="still" src="assets/seg/first.jpg" alt="" style="position:absolute;left:{-64 * SC:.1f}px;top:0;width:{720 * SC:.1f}px;height:{1280 * SC:.1f}px" />
         {"".join(vids)}
         {"".join(f'<div class="tap" id="tap{k}" style="left:{x:.0f}px;top:{y:.0f}px"></div>' for k, (_, x, y) in enumerate(taps))}
-      </div></div>
+      </div></div></div></div>
     </div>
     <script>
       // the égérie walks through each step; the app recording plays in the phone, cut to her words
@@ -93,7 +100,9 @@ html = f'''<!doctype html>
       const INTRO_END = {intro_end:.3f}, END = {END:.3f}, DUR = {DUR:.3f};
       const tl = gsap.timeline({{ paused: true }});
       tl.fromTo("#introT", {{ yPercent: 30, opacity: 0 }}, {{ yPercent: 0, opacity: 1, duration: 0.45, ease: "power3.out" }}, 0.1);
-      tl.fromTo("#phone", {{ y: 700, rotation: 4 }}, {{ y: 0, rotation: 0, duration: 0.8, ease: "power3.out" }}, 0.25);
+      tl.fromTo("#phone", {{ y: 900, rotationY: -75, rotationX: 14 }}, {{ y: 0, rotationY: -18, rotationX: 7, duration: 1.3, ease: "power3.out" }}, 0.2);
+      tl.fromTo("#pshadow", {{ opacity: 0, scaleX: 0.5 }}, {{ opacity: 1, scaleX: 1, duration: 1.3, ease: "power3.out" }}, 0.2);
+      tl.fromTo("#glare", {{ backgroundPositionX: "100%" }}, {{ backgroundPositionX: "20%", duration: 1.3, ease: "power2.out" }}, 0.2);
       tl.fromTo("#introBg .giant", {{ x: 40 }}, {{ x: -40, duration: INTRO_END, ease: "none" }}, 0);
       tl.to("#introT", {{ opacity: 0, duration: 0.2 }}, INTRO_END - 0.2);
       S.forEach((s, i) => {{
@@ -101,14 +110,18 @@ html = f'''<!doctype html>
         tl.fromTo("#bg" + i + " .giant", {{ x: 40 }}, {{ x: -40, duration: s.end - s.t, ease: "none" }}, s.t);
         tl.fromTo("#h" + i, {{ opacity: 0, yPercent: 25 }}, {{ opacity: 1, yPercent: 0, duration: 0.35, ease: "power3.out" }}, s.t + 0.05);
         tl.set("#h" + i, {{ opacity: 0 }}, s.end);
-        tl.fromTo("#phone", {{ scale: 0.97 }}, {{ scale: 1, duration: 0.4, ease: "power2.out" }}, s.t);
+        const side = i % 2 ? -1 : 1;
+        tl.to("#phone", {{ rotationY: 16 * side, rotationX: 6, duration: 1.2, ease: "sine.inOut" }}, s.t);
+        tl.to("#phone", {{ rotationY: 11 * side, duration: Math.max(0.5, s.end - s.t - 1.2), ease: "sine.inOut" }}, s.t + 1.2);
+        tl.fromTo("#glare", {{ backgroundPositionX: side > 0 ? "80%" : "10%" }}, {{ backgroundPositionX: side > 0 ? "10%" : "80%", duration: 1.2, ease: "sine.inOut" }}, s.t);
       }});
       TAPS.forEach((at, k) => {{
         tl.fromTo("#tap" + k, {{ scale: 0.4, opacity: 0.95 }}, {{ scale: 1.5, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }}, at);
       }});
       tl.set("#still", {{ opacity: 0 }}, S[0].t);
       // end card
-      tl.to("#phone", {{ y: 1500, duration: 0.45, ease: "power3.in" }}, END - 0.45);
+      tl.to("#phone", {{ y: 1600, rotationY: 40, duration: 0.5, ease: "power3.in" }}, END - 0.5);
+      tl.to("#pshadow", {{ opacity: 0, duration: 0.4 }}, END - 0.5);
       tl.set("#flash", {{ opacity: 1 }}, END); tl.set("#flash", {{ opacity: 0 }}, END + 1 / 30);
       tl.set("#end", {{ opacity: 1, zIndex: 43 }}, END);
       tl.set("#anchor", {{ opacity: 0 }}, END);
