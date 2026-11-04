@@ -8,7 +8,7 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
 - The owner writes in French; answer in French. Preferences: direct, verified results,
   honest limits, no automatic agreement.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D56), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D77), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
