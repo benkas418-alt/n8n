@@ -134,3 +134,18 @@ format (SFT) → strategy (RL, only when some attempts already succeed).
 - [ ] Evaluation set with real cases + regression cases, with a confidence interval
 - [ ] Tracing, cost and error monitoring, user feedback
 - [ ] Fallback when the model or a tool is down
+
+## Scheduled agents on Cloudflare Workers (distilled from santmun/crear-agente, MIT)
+
+A cheap way to run a small agent every day without a server or a Claude session:
+- A Worker with a `scheduled()` handler and a cron in `wrangler.jsonc` (`"triggers": {"crons": ["0 14 * * *"]}`,
+  UTC). Free tier is enough for a daily job.
+- State in a Durable Object (Cloudflare Agents SDK, `agents` package: `class X extends Agent`), so the agent
+  remembers what it already sent (for example items already summarised) and does not repeat itself.
+- Secrets with `wrangler secret put NAME`, never in `wrangler.jsonc`; a `/run` endpoint to trigger by hand
+  and `/state` to inspect.
+- Pipeline = fragments: fetch (RSS, a website, Apify for social networks) -> LLM summary -> save (Notion)
+  -> notify (Pushover push). The repo uses OpenAI `gpt-4o-mini`; with Claude use `claude-haiku-5-5`
+  (see the claude-api skill).
+- Choose it over GitHub Actions only when the job must run often (every few minutes), answer HTTP calls,
+  or keep state; for one daily job in a repository, a scheduled GitHub workflow is simpler.
