@@ -48,7 +48,7 @@ a, z = speech_span(f"{V}/{CFG['outro_vo']}.wav")
 vo.append((CFG["outro_vo"], recap_t + 0.3, a))
 outro_speech = (recap_t + 0.3, recap_t + 0.3 + (z - a))
 end_t = snap(recap_t + 4 * B)            # end card while the URL is spelled
-DUR = max(outro_speech[1] + 2.6, end_t + 6.0)
+DUR = max(outro_speech[1] + 3.6, end_t + 6.0)   # a few seconds of full music after she stops
 json.dump({"vo": vo, "shot_t": shot_t, "intro_end": intro_end, "recap_t": recap_t, "end_t": end_t, "dur": DUR,
            "outro": outro_speech}, open(f"{P}/timing.json", "w"), indent=1)
 

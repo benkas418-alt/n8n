@@ -122,12 +122,13 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - Avant de livrer une vidéo : planche contact des captures, earshot sur l'audio, puis envoi en version WhatsApp.
 
 ## Mise à jour du 4 novembre (soir) : vidéos produits avec la voix de l'égérie
-- **Voix officielle : « voix 3 »** (clone v2, « Pite-Eupe »). Style : `(voix douce et posée, chaleureuse, avec le sourire)`.
+- **Voix officielle : « voix 3 »**. Style des phrases produits : `(voix douce et posée, chaleureuse, avec le sourire)`.
+- **« PitUp » se dit à l'anglaise, d'un trait** (version C validée le 4 novembre) : écrire « PitUp » normalement, avec le style `(voix claire et naturelle, débit normal, avec le sourire)`. « Pite-Eupe » est **refusé** (trop lent, sonne « érotique »). Seule l'adresse du site est épelée : « pé, i, tiret, té, u, pé, point com ».
 - « Les articles sélectionnés ne sont pas flatteurs » : choisir des **pièces tendance façon Europe et États-Unis pour les 15-35 ans** (Mary Jane, Samba, Campus, Asics, Shox, TN, sacs type Longchamp ou Coach, Ray-Ban, Kayali, robe en jean, veste en cuir). Toujours montrer une **planche de candidats à valider** avant de traiter.
 - **Marques** : autorisées à l'image (logo visible sur la photo). Nom de marque écrit ou dit **seulement pour les sneakers**.
 - **Article en plus de 5 variantes** (couleurs ou modèles) : en faire une **vidéo dédiée**. On montre les variantes et le nom de l'article, puis « Retrouve-les sur PitUp, chez [boutique] ». Candidats : Jordan 4 Nigel Sylvester (MB Ephphatha), Mary Jane (Rogatienne), gourdes (Wees fk), huile de parfum (Maella online shopping), Club de Nuit (Natty boutique), casquettes (ETS GOD BLESS), Stanley (Maison Rossa, tenue en main).
 - Les autres articles vont dans des vidéos **Pour elle** et **Pour lui**, au format P1 habituel (`tools/build_voix2.py` + `cfg/*.json`).
-- **Mix voix** : musique presque inaudible quand l'égérie parle (environ −23 dB), qui remonte entre les phrases et après la dernière (`tools/mix_duck.py`). Laisser environ 1 s de musique après chaque phrase (`gap: 1.0`).
+- **Mix voix (règle du fondateur)** : la musique baisse dès le premier mot et reste très basse (environ −23 dB), **sans remonter entre les phrases**, jusqu'à la fin de la dernière phrase. Elle reprend pleinement sur la carte de fin, avec environ 3,5 s de musique seule (`tools/mix_duck.py`, `gap: 0.5`).
 - **Accroche** : « Les pièces tendance d'Europe et des States… sont déjà à Lubumbashi. » / « Les sneakers que tout le monde veut… sont déjà à Lubumbashi. »
 - **Prononciation** : « Nike Shox TL » devient « Night Shocks DL ». Dire « Les Nike Shox, en noir. » Écrire « Asiks » pour Asics.
 - Musique : Tiakola « Mode de vie » (134 BPM, gros temps à 29,664 s) pour Femme, Blockkids (130 BPM) pour Homme.

@@ -4,7 +4,7 @@
  "song": "Michael_Olise___Blockkids_thizzy52.mp3",
  "song_off": 0.1,
  "intro_vo": "hook_1",
- "outro_vo": "f_10",
+ "outro_vo": "out_4",
  "intro_word": "POUR LUI",
  "intro_l1": "Les sneakers",
  "intro_l2": "sont ici.",
@@ -86,5 +86,5 @@
    360
   ]
  ],
- "gap": 1.0
+ "gap": 0.5
 }

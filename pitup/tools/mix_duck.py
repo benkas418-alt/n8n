@@ -1,10 +1,10 @@
-# Music + égérie voice: music nearly silent under every spoken line, back to full between lines and after the last one.
+# Music + égérie voice: music stays very low from her first word to her last, then comes back in full on the end card.
 import json, subprocess, sys, numpy as np, soundfile as sf
 SP = "/tmp/claude-0/-home-user-n8n/3a1d2361-6d15-5131-aa88-7efcec5ec51a/scratchpad"
 cfg = json.load(open(sys.argv[1])); P = f"{SP}/hf/videos/{cfg['project']}"; out = sys.argv[2]
 T = json.load(open(f"{P}/timing.json")); SR = 48000; DUR = T["dur"]
 HI, LO, VOX = 0.45, 0.45 * 0.07, 1.65          # LO ≈ -23 dB under the voice
-RAMP_DOWN, RAMP_UP, PAD, MIN_GAP = 0.12, 0.35, 0.08, 0.45
+RAMP_DOWN, RAMP_UP, PAD, MIN_GAP = 0.12, 0.6, 0.08, 1e9   # MIN_GAP: never swell between lines
 def load(f, ss=0, t=None, filt=None):
     cmd = ["ffmpeg", "-v", "error", "-ss", str(ss)] + (["-t", str(t)] if t else []) + ["-i", f] + (["-af", filt] if filt else []) + ["-ac", "2", "-ar", str(SR), "-f", "f32le", "-"]
     return np.frombuffer(subprocess.run(cmd, capture_output=True).stdout, np.float32).reshape(-1, 2)

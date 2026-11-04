@@ -4,7 +4,7 @@
  "song": "Tiakola_-_Mode_de_vie_Track3.mp3",
  "song_off": 29.664,
  "intro_vo": "hook_0",
- "outro_vo": "f_10",
+ "outro_vo": "out_4",
  "intro_word": "POUR ELLE",
  "intro_l1": "Les tendances",
  "intro_l2": "sont ici.",
@@ -102,5 +102,5 @@
    300
   ]
  ],
- "gap": 1.0
+ "gap": 0.5
 }
