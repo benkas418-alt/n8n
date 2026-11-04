@@ -27,6 +27,9 @@ jobs:
     if: github.repository == 'benkas418-alt/n8n'
     runs-on: ubuntu-24.04
     timeout-minutes: 340
+    permissions:
+      contents: read
+      actions: write # read the state backup of an earlier run; keep this workflow enabled
     services:
       postgres:
         image: postgres:16
@@ -89,6 +92,22 @@ jobs:
           key: footintel-state-${{ github.run_id }}
           restore-keys: footintel-state-
 
+      # GitHub deletes a cache that is not used for 7 days. The backup artifact stays 90 days.
+      - name: Restore state from the backup artifact
+        if: hashFiles('football-intel/state.tar.enc') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" -w util-football-intel-daily.yml \
+                        --status success -L 20 --json databaseId -q '.[].databaseId'); do
+            if gh run download "$id" -R "$GITHUB_REPOSITORY" -n footintel-state -D backup 2>/dev/null; then
+              mv backup/state.tar.enc state.tar.enc
+              echo "::notice::State restored from the backup of run $id"
+              exit 0
+            fi
+          done
+          echo "::warning::No state backup found: the first data load runs"
+
       - name: Load state
         id: load
         run: |
@@ -150,6 +169,16 @@ jobs:
           path: football-intel/state.tar.enc
           key: footintel-state-${{ github.run_id }}-${{ github.run_attempt }}
 
+      # Same encrypted file as the cache; anyone can download it from this public repo,
+      # but only STATE_KEY opens it.
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.load.outcome == 'success' && steps.first.outcome != 'failure'
+        with:
+          name: footintel-state
+          path: football-intel/state.tar.enc
+          retention-days: 90
+          compression-level: 0
+
       - name: Export to the private site
         run: footintel export-supabase
 
@@ -164,3 +193,12 @@ jobs:
       - name: Report failed predictions
         if: steps.predict.outputs.failed == 'true'
         run: exit 1
+
+      # GitHub disables a scheduled workflow after 60 days without repository activity.
+      # Enabling it again from each run keeps the daily schedule alive.
+      - name: Keep the schedule enabled
+        if: always() && github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/util-football-intel-daily.yml/enable"
