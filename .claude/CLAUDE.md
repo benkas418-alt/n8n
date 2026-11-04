@@ -58,6 +58,9 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | github/spec-kit (2026-11-04) | Not installed here: our DECISIONS.md and PR process already cover it. MIT; worth using (`uv tool install specify-cli`) when a new app starts from zero, e.g. PitUp |
 | nadimtuhin/claude-token-optimizer (2026-11-04) | Not used: its prune targets session notes we do not keep; startup docs here are ~7.7k tokens (n8n AGENTS.md 5.7k, upstream file we must not edit). Usage goes to long sessions and tool output |
 | black-dash77/ora-mcp (2026-11-04) | Rejected: local SQLite memory, lost at each cloud container reset; its CLAUDE.md text ("never read a file without first consulting ORA") trades verification for stale memory |
+| nextlevelbuilder/ui-ux-pro-max-skill (2026-11-04) | Installed as ui-ux-pro-max (MIT; core skill only, tests dropped). Use for UX checks (touch 44px, bottom nav ≤5, forms, a11y) via `scripts/search.py`; design-taste-frontend still decides the look when they disagree |
+| dickwu/apple-design-skill (2026-11-04) | Not vendored: reproduces Apple's copyrighted HIG text with no licence. Clone to the scratchpad and read a page (tab bars, navigation) when needed |
+| designmodo/Flat-UI, nexu-io/open-design, hendurhance/ui-ux (2026-11-04) | Not used. Flat-UI: 2013-2018 Bootstrap 3 kit. open-design: a 363 MB design-agent app with telemetry on by default and a paid cloud. ui-ux: a reading list whose book mirrors come from shadow libraries (Anna's Archive, LibGen): never copy those files |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
