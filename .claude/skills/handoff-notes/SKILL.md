@@ -23,6 +23,9 @@ Create one file per session (French, short, factual). Sections:
 Then: `git add .claude/handoffs && git commit -m "docs: session handoff <topic>"` and push to
 the work branches. If a lesson must apply to every future session, also add one line to
 `.claude/CLAUDE.md` (Lessons or project status), not only to the note.
+Before you write, scan the session for the owner's corrections ("non", "pas ça",
+"je t'ai dit") and for refused or failed tool calls: each one that will recur becomes a
+Lessons line (idea from BayramAnnakov/claude-reflect, MIT).
 
 ## Read
 
