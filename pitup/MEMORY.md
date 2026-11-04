@@ -31,6 +31,16 @@
 - Ne pas modifier la voix (pas d'égaliseur ni de compression) : la garder brute.
 - **VoxCPM2** (moteur de VoiceStudio, pip `voxcpm`, CPU, environ 30 s par phrase, modèle `openbmb/VoxCPM2`) : crée une voix à partir d'une description, au format `(description)texte`. Script : `tools/vox_design.py`. Essais du 4 novembre (« jeune femme congolaise, douce et dynamique ») : earshot p_real 0,95 et 0,98, transcription exacte. **Le fondateur doit encore les valider.** Il sait aussi **cloner** une voix à partir de 15 à 30 s d'enregistrement : c'est la piste pour une vraie voix de Lubumbashi, avec l'accord écrit de la personne.
 
+### Voix de l'égérie (clonée, 4 novembre)
+- L'égérie de PitUp est la sœur du fondateur. Sa voix est clonée avec **VoxCPM2** (`tools/vox_clone_texts.py`), en mode « référence + style ».
+- **Référence** : les 21,3 premières secondes de sa vidéo TikTok (micro studio, sans musique), envoyée dans le chat par le fondateur le 4 novembre. **Le fichier audio n'est pas dans le dépôt** (donnée personnelle) : il faut le redemander au fondateur.
+- Style qui marche : `(voix douce et posée, chaleureuse, avec le sourire)`.
+- **Écrire « Pitt-Eup » ou « Pite-Eupe » à la place de « PitUp »**, sinon elle dit « Pitop ». Lubumbashi est bien prononcé en mode style.
+- À éviter : le mode « continuation » (prompt_wav + prompt_text), qui ajoute la fin de sa phrase de référence (« Je te dis… »), et le mode référence seule, qui déforme Lubumbashi.
+- Mesures earshot : p_real d'environ 0,93, timbre proche de l'original (brillance 1 900 à 2 300 Hz contre 2 880 Hz).
+- Garder l'**accord écrit** de l'égérie pour l'usage de sa voix clonée.
+- En attente de validation : v1 (« Pitt-Eup », plus claire) ou v2 (« Pite-Eupe », plus chaude).
+
 ### Musique
 - Instrumental sous la voix. **Jamais d'amapiano.** Éviter les chansons romantiques (Babydoll, Cheap Cologne, white keys et Has to be you ont été écartées).
 - **On peut réutiliser une chanson**, avec un passage différent à chaque fois. L'ancienne règle « une chanson par vidéo » est abandonnée.
