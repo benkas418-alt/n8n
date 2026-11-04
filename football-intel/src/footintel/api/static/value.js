@@ -2,7 +2,24 @@
 const root = document.getElementById("root");
 const SRC = root.dataset.src;
 const STORE = "fi_value_odds";
-const state = { data: null, comp: "all", odds: {}, coupon: [], eloMkt: "2UP" };
+const state = { data: null, comp: "mine", q: "", odds: {}, coupon: [], eloMkt: "2UP" };
+/* The owner's teams (same list as MY_TEAMS in app.js), learnt by name from their league
+   matches so they count in the cups too. */
+const MY_TEAMS = { "ENG-PL": "*", "GER-BL": "*", "ITA-SA": ["Lazio", "Inter", "Milan", "Como", "Bologna"],
+  "ESP-LL": ["Barcelona", "Ath Madrid", "Real Madrid", "Villarreal", "Betis"], "FRA-L1": ["Paris SG"] };
+const MINE = new Set();
+function learnMine(ms) {
+  for (const m of ms) {
+    const t = MY_TEAMS[m.competition];
+    if (t) for (const n of [m.home, m.away]) if (t === "*" || t.includes(n)) MINE.add(n);
+  }
+}
+const isMine = (m) => MINE.has(m.home) || MINE.has(m.away);
+const norm = (x) => String(x).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function shown(m) {
+  if (state.q) return norm(`${m.home} ${m.away}`).includes(norm(state.q));
+  return state.comp === "all" || (state.comp === "mine" ? isMine(m) : m.competition === state.comp);
+}
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const pct = (p, d = 0) => `${(100 * p).toFixed(d)} %`;
@@ -32,9 +49,10 @@ function save() { try { localStorage.setItem(STORE, JSON.stringify({ odds: state
 function verdict(prob, odds) {
   if (!odds || odds <= 1) return { cls: "v-neutral", text: "—", value: null };
   const v = prob * odds - 1;
-  if (v >= 0.05) return { cls: "v-good", text: `+${(100 * v).toFixed(1)} % valeur`, value: v };
-  if (v <= -0.05) return { cls: "v-bad", text: `${(100 * v).toFixed(1)} % défavorable`, value: v };
-  return { cls: "v-neutral", text: `${v >= 0 ? "+" : ""}${(100 * v).toFixed(1)} % neutre`, value: v };
+  const sig = `${v >= 0 ? "+" : "−"}${Math.abs(100 * v).toFixed(1).replace(".", ",")} %`;
+  if (v >= 0.05) return { cls: "v-good", text: `Bonne cote (${sig})`, value: v };
+  if (v <= -0.05) return { cls: "v-bad", text: `Trop basse (${sig})`, value: v };
+  return { cls: "v-neutral", text: `Au prix (${sig})`, value: v };
 }
 
 const BEST = { "1": "H", X: "D", "2": "A" };
@@ -44,6 +62,9 @@ function marketCell(mk, key) {
   return `${pct(mk[key], 1)}${best}`;
 }
 
+/* "1 (victoire domicile)" reads "1 (victoire Everton)": the team, not its side. */
+const named = (label, m) => String(label).replace(/domicile/g, m.home).replace(/extérieur/g, m.away);
+
 function matchCard(m) {
   const p = Object.fromEntries(m.markets.map((x) => [x.key, x.prob]));
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : m.kickoff_date;
@@ -52,7 +73,7 @@ function matchCard(m) {
   let group = "";
   const rows = m.markets.map((x) => {
     const head = x.note !== group
-      ? `<tr class="group"><td colspan="7"><strong>${esc(GROUPS[x.note] || x.note)}</strong> <span class="note">${esc(state.data.reliability[x.note] || "")}</span></td></tr>`
+      ? `<tr class="group"><td colspan="7"><strong>${esc(GROUPS[x.note] || x.note)}</strong></td></tr>`
       : "";
     group = x.note;
     const key = `${m.id}:${x.key}`;
@@ -60,11 +81,11 @@ function matchCard(m) {
     const v = verdict(ref(m, x.key).prob, odds);
     const chosen = inCoupon && inCoupon.key === x.key;
     return `${head}<tr class="mk">
-      <td class="label">${esc(x.label)}</td>
-      <td class="r num" data-h="Modèle">${pct(x.prob, 1)}</td>
+      <td class="label">${esc(named(x.label, m))}</td>
+      <td class="r num" data-h="Chances">${pct(x.prob, 1)}</td>
       <td class="r num" data-h="Cote juste">${two(1 / x.prob)}</td>
-      <td class="r num" data-h="Marché">${marketCell(m.market, x.key)}</td>
-      <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote ${esc(x.label)}"
+      <td class="r num" data-h="Bookmakers">${marketCell(m.market, x.key)}</td>
+      <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote betPawa ${esc(x.label)}" placeholder="betPawa"
            id="o-${m.id}-${esc(x.key)}" data-key="${esc(key)}" value="${odds ?? ""}"></td>
       <td><span class="verdict ${v.cls}" id="v-${m.id}-${esc(x.key)}">${v.text}</span></td>
       <td><button class="add" data-match="${m.id}" data-market="${esc(x.key)}" ${inCoupon && !chosen ? "disabled" : ""}>
@@ -73,18 +94,20 @@ function matchCard(m) {
   return `<details class="match" ${inCoupon ? "open" : ""}>
     <summary><span class="teams">${esc(m.home)} – ${esc(m.away)}</span>
       <span class="meta">${esc(COMP[m.competition] || m.competition)} · ${esc(when)}</span>
-      ${m.has_odds ? '<span class="pill ok">avec cotes de référence</span>' : `<span class="pill warn" title="${esc(state.data.reliability.no_odds)}">sans cotes : moins fiable</span>`}
-      ${m.market ? `<span class="pill ok" title="${esc(state.data.reliability.market || "")}">marché : ${m.market.n_bookmakers} bookmakers</span>` : ""}
-      <span class="probs" aria-label="Probabilités 1, X, 2"><span>1 ${pct(p["1"])}</span><span>X ${pct(p["X"])}</span><span>2 ${pct(p["2"])}</span></span>
+      ${m.market ? `<span class="pill ok" title="${esc(state.data.reliability.market || "")}">cotes de ${m.market.n_bookmakers} bookmakers</span>` : `<span class="pill warn" title="${esc(state.data.reliability.no_odds)}">sans cote de bookmaker : moins fiable</span>`}
+      <span class="probs" aria-label="Chances de victoire"><span>${esc(m.home)} ${pct(p["1"])}</span><span>nul ${pct(p["X"])}</span><span>${esc(m.away)} ${pct(p["2"])}</span></span>
     </summary>
     <div class="table-wrap"><table>
-      <thead><tr><th>Sélection</th><th class="r">Modèle</th><th class="r">Cote juste</th><th class="r">Marché</th><th class="r">Ta cote</th><th>Verdict</th><th></th></tr></thead>
+      <thead><tr><th>Pari</th><th class="r">Chances</th><th class="r">Cote juste</th><th class="r">Bookmakers</th><th class="r">Cote betPawa</th><th>Verdict</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div></details>`;
 }
 
 function renderList() {
-  const ms = state.data.matches.filter((m) => state.comp === "all" || m.competition === state.comp);
-  if (!ms.length) { document.getElementById("list").innerHTML = '<p class="empty">Aucun match prédit dans cette sélection.</p>'; return; }
+  const ms = state.data.matches.filter(shown);
+  if (!ms.length) {
+    document.getElementById("list").innerHTML = `<p class="empty">${state.q ? `Aucun match à venir pour « ${esc(state.q)} ».` : "Aucun match prédit dans cette sélection."}</p>`;
+    return;
+  }
   let html = "", day = "";
   for (const m of ms) {
     const d = new Date(m.kickoff_utc || m.kickoff_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -97,7 +120,7 @@ function renderList() {
 function renderFilters() {
   const comps = [...new Set(state.data.matches.map((m) => m.competition))];
   const btn = (c, label) => `<button aria-pressed="${state.comp === c}" data-comp="${esc(c)}">${esc(label)}</button>`;
-  document.getElementById("filters").innerHTML = btn("all", "Toutes") + comps.map((c) => btn(c, COMP[c] || c)).join("");
+  document.getElementById("filters").innerHTML = btn("mine", "Mes équipes") + btn("all", "Tous les matchs") + comps.map((c) => btn(c, COMP[c] || c)).join("");
 }
 
 function renderCoupon() {
@@ -107,15 +130,17 @@ function renderCoupon() {
     return m && mk ? { c, m, mk, odds: state.odds[`${m.id}:${mk.key}`] } : null;
   }).filter(Boolean);
   document.getElementById("sel").innerHTML = list.map(({ m, mk, odds }) =>
-    `<li><span>${esc(m.home)} – ${esc(m.away)}<br><span class="muted small">${esc(mk.label)} · ${pct(mk.prob)} · cote ${odds ? two(odds) : "à saisir"}</span></span>
+    `<li><span>${esc(m.home)} – ${esc(m.away)}<br><span class="muted small">${esc(named(mk.label, m))} · ${pct(mk.prob)} · cote ${odds ? two(odds) : "à saisir"}</span></span>
      <button data-remove="${m.id}" aria-label="Retirer">×</button></li>`).join("");
   document.getElementById("sel-empty").hidden = list.length > 0;
   document.getElementById("sum").hidden = list.length === 0;
+  document.getElementById("coupon").classList.toggle("is-empty", list.length === 0);
   if (!list.length) { document.getElementById("c-note").textContent = ""; return; }
   const prob = list.reduce((a, x) => a * ref(x.m, x.mk.key).prob, 1);
   const allOdds = list.every((x) => x.odds > 1);
   const odds = allOdds ? list.reduce((a, x) => a * x.odds, 1) : null;
   // The bonus counts only selections priced 1.20 or more, and applies to the net win.
+  document.getElementById("c-short").textContent = `${list.length} sélection${list.length > 1 ? "s" : ""}`;
   const eligible = list.filter((x) => x.odds >= BONUS_MIN_ODDS).length;
   const rate = bonusRate(eligible);
   const withBonus = odds ? 1 + (odds - 1) * (1 + rate) : null;
@@ -128,8 +153,10 @@ function renderCoupon() {
   document.getElementById("c-odds").textContent = odds ? two(odds) : "cotes manquantes";
   const ev = pay ? prob * pay - 1 : null;
   const el = document.getElementById("c-ev");
-  el.textContent = ev == null ? "—" : `${ev >= 0 ? "+" : ""}${(100 * ev).toFixed(1)} %`;
+  el.textContent = ev == null ? "—" : `${ev >= 0 ? "Bonne affaire" : "Défavorable"} (${ev >= 0 ? "+" : "−"}${Math.abs(100 * ev).toFixed(1).replace(".", ",")} %)`;
   el.style.color = ev == null ? "" : ev >= 0 ? "var(--good)" : "var(--bad)";
+  document.getElementById("c-short").textContent = `${list.length} sélection${list.length > 1 ? "s" : ""}`
+    + (odds ? ` · cote ${two(odds)}` : "") + (ev != null ? ` · ${ev >= 0 ? "bonne affaire" : "défavorable"}` : "");
   document.getElementById("c-note").textContent = ev == null ? "Saisis la cote de chaque sélection."
     : `Sur 100 combinés identiques à 1 de mise, retour attendu environ ${(100 * (1 + ev)).toFixed(0)} (bonus compris). `
       + (eligible > BONUS_MAX_KNOWN ? `Barème relevé jusqu'à ${BONUS_MAX_KNOWN} sélections : bonus réel peut-être plus haut. ` : "")
@@ -141,7 +168,7 @@ function renderCoupon() {
    2UP is the betPawa market closest to its fair price (docs/RESULTS.md, D68). */
 function eloPicks() {
   return state.data.matches
-    .filter((m) => m.elo && (state.comp === "all" || m.competition === state.comp))
+    .filter((m) => m.elo && shown(m))
     .map((m) => {
       const home = m.elo[0] >= m.elo[1];
       const key = `${state.eloMkt}_${home ? 1 : 2}`;
@@ -173,7 +200,7 @@ function renderElo() {
       <td><button class="add" data-match="${x.m.id}" data-market="${x.key}" ${inCoupon && inCoupon.key !== x.key ? "disabled" : ""}>
         ${inCoupon && inCoupon.key === x.key ? "retirer" : "+ combiné"}</button></td></tr>`;
   }).join("");
-  box.innerHTML = `<details class="match" open><summary><span class="teams">Sélection Elo : les équipes les plus fortes</span>
+  box.innerHTML = `<details class="match"><summary><span class="teams">Les équipes les plus fortes de la semaine</span>
       <span class="meta">${state.eloMkt} de l'équipe la mieux classée (écart d'au moins 40 points Elo)</span>
       ${["2UP", "1UP"].map((k) => `<button class="chip" data-elo-mkt="${k}" type="button" aria-pressed="${state.eloMkt === k}">${k}</button>`).join("")}
       <button class="add" id="elo-ticket" type="button">Composer un ticket de 7</button></summary>
@@ -209,11 +236,18 @@ document.addEventListener("input", (e) => {
     save(); renderCoupon();
   }
   if (e.target.id === "c-pay") renderCoupon();
+  if (e.target.id === "q") { state.q = e.target.value.trim(); renderElo(); renderList(); }
 });
 document.addEventListener("click", (e) => {
   const t = e.target.closest("button");
   if (!t) return;
   if (t.id === "elo-ticket") { e.preventDefault(); eloTicket(); return; }
+  if (t.id === "coupon-toggle") {
+    const c = document.getElementById("coupon");
+    c.classList.toggle("open");
+    t.setAttribute("aria-expanded", String(c.classList.contains("open")));
+    return;
+  }
   if (t.dataset.eloMkt) { e.preventDefault(); state.eloMkt = t.dataset.eloMkt; renderElo(); return; }
   if (t.dataset.comp) { state.comp = t.dataset.comp; renderFilters(); renderElo(); renderList(); }
   if (t.dataset.match) {
@@ -246,12 +280,13 @@ document.addEventListener("click", (e) => {
   const now = Date.now(), today = new Date().toLocaleDateString("en-CA");
   state.data.matches = state.data.matches.filter((m) =>
     m.kickoff_utc ? new Date(m.kickoff_utc).getTime() > now - 2 * 36e5 : String(m.kickoff_date) >= today);
+  learnMine(state.data.matches);
+  if (!state.data.matches.some(isMine)) state.comp = "all";
   const ids = new Set(state.data.matches.map((m) => m.id));
   state.coupon = (saved.coupon || []).filter((c) => ids.has(c.match));
   const last = state.data.matches.map((m) => m.predicted_at).sort().pop();
-  document.getElementById("stamp").textContent = `${state.data.matches.length} matchs prédits sur ${state.data.generated_for_days} jours`
-    + (last ? ` · dernière prédiction le ${new Date(last).toLocaleString("fr-FR")}` : "")
-    + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · données anciennes : le cycle quotidien n'a pas tourné depuis" : "")
-    + (state.data.matches[0] ? ` · modèle ${state.data.matches[0].model}` : "");
+  document.getElementById("stamp").textContent = `${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
+    + (last ? ` · mis à jour le ${new Date(last).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}` : "")
+    + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · données anciennes : le cycle quotidien n'a pas tourné depuis" : "");
   render();
 })();
