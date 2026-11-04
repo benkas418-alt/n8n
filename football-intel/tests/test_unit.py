@@ -1032,3 +1032,20 @@ def test_tickets_reach_ten_with_one_selection_per_match(tmp_path):
     chelsea_like = next(x for x in days[0]["matches"] if x["match_id"] == 0)["alternatives"]
     assert any(x["key"] == "DC1UP_1X" and x["known"] and x["price"] == 1.22 for x in chelsea_like)
     assert best_ticket([], 5, 5) is None
+
+
+def test_tickets_email_lists_each_leg_with_its_fair_odds():
+    from datetime import date
+
+    from footintel.notify.tickets import tickets_text
+
+    leg = {"match": "Inter – Como", "kickoff_utc": "2026-11-04T19:45:00+00:00", "label": "1UP Inter",
+           "price": 1.45, "fair": 1.40, "prob": 0.71, "known": True}
+    data = {"days": [{"date": "2026-11-04", "tickets": [
+        {"tag": "A", "name": "Restreint", "odds": 10.2, "prob": 0.09, "ev": -0.03, "legs": [leg]}],
+        "matches": []}], "note": ""}
+    subject, body = tickets_text(data, date(2026, 11, 4))
+    assert subject == "Tickets du mercredi 04/11 — 1 ticket"
+    assert "(aujourd'hui)" in body and "21:45  Inter – Como" in body
+    assert "1UP Inter @ 1.45 (relevée) · juste 1.40" in body and "1 chance sur 11" in body
+    assert tickets_text({"days": []}, date(2026, 11, 4))[0] == "Tickets du jour — aucun match"

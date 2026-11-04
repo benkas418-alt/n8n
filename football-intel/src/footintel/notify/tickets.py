@@ -1,0 +1,57 @@
+"""Tickets du jour (D69) by e-mail, every morning after the site export (D71).
+
+Plain text, readable on a phone. Same SMTP settings as the weekly report.
+"""
+
+from datetime import UTC, date, datetime
+
+from footintel.analysis.tickets import LOCAL_OFFSET
+
+SITE = "https://benkassiyfootball.vercel.app"
+DAYS_FR = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+
+
+def _hour(kickoff) -> str:
+    if not kickoff:
+        return "--:--"
+    k = kickoff if isinstance(kickoff, datetime) else datetime.fromisoformat(str(kickoff))
+    return (k + LOCAL_OFFSET).strftime("%H:%M")
+
+
+def _day(iso: str) -> str:
+    d = date.fromisoformat(iso)
+    return f"{DAYS_FR[d.weekday()]} {d.day:02d}/{d.month:02d}"
+
+
+def tickets_text(data: dict, today: date) -> tuple[str, str]:
+    """Subject and body for the next match day (today first)."""
+    days = data.get("days") or []
+    if not days:
+        return ("Tickets du jour — aucun match", "Aucun match des compétitions suivies dans les deux prochains jours.\n")
+    day = days[0]
+    when = "aujourd'hui" if day["date"] == today.isoformat() else _day(day["date"])
+    lines = [f"Tickets du {_day(day['date'])} ({when}), heure de Lubumbashi.", ""]
+    if not day["tickets"]:
+        lines.append("Pas assez de matchs pour un ticket à 10 ou plus.")
+    for t in day["tickets"]:
+        chance = f"1 chance sur {round(1 / t['prob'])}" if t["prob"] > 0 else "—"
+        lines.append(f"TICKET {t['tag']} — {t['name']} ({len(t['legs'])} sélections)")
+        lines.append(f"Cote totale {t['odds']:.2f} · {chance} · espérance avec bonus {t['ev']:+.1%}")
+        for x in t["legs"]:
+            mark = "relevée" if x.get("known") else "estimée"
+            lines.append(f"  {_hour(x.get('kickoff_utc'))}  {x['match']}")
+            lines.append(f"         {x['label']} @ {x['price']:.2f} ({mark}) · juste {x['fair']:.2f}"
+                         f" · proba {x['prob']:.0%}")
+        lines.append("")
+    lines += ["Une sélection n'a de valeur que si la cote betPawa dépasse sa cote juste.",
+              "Vérifiez chaque cote sur betPawa avant de jouer : les cotes « estimées » viennent de la marge",
+              "mesurée, pas de betPawa. " + data.get("note", ""), "",
+              f"Toutes les alternatives : {SITE} (onglet Tickets du jour)."]
+    n = len(day["tickets"])
+    subject = f"Tickets du {_day(day['date'])} — {n} ticket{'s' if n > 1 else ''}"
+    return subject, "\n".join(lines) + "\n"
+
+
+def local_today() -> date:
+    return (datetime.now(UTC) + LOCAL_OFFSET).date()
+
