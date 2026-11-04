@@ -1100,3 +1100,30 @@ def test_bilan_settles_every_ticket_market():
     assert settle("1UP_1", 1, 2, ["H", "A", "A"]) == 1  # led 1-0, paid early
     assert settle("2UP_1", 2, 2, ["H", "H", "A", "A"]) == 1 and settle("2UP_1", 2, 2, ["H", "A", "H", "A"]) == 0
     assert settle("DC1UP_X2", 2, 1, ["A", "H", "H"]) == 1 and settle("DC2UP_X2", 2, 1, ["A", "H", "H"]) == 0
+
+
+def test_lecture_keeps_checked_texts_and_rejects_invented_figures(tmp_path):
+    from types import SimpleNamespace
+
+    from footintel.agents import analysts
+
+    day = {"date": "2026-11-07", "matches": [
+        {"match": "Arsenal – Hull", "competition": "ENG-PL", "followed": True, "kickoff_utc": "2026-11-07T15:00:00Z",
+         "alternatives": [{"label": "1UP Arsenal", "prob": 0.85, "fair": 1.18}], "scenarios": []},
+        {"match": "Mainz – Bayern Munich", "competition": "GER-BL", "followed": True, "kickoff_utc": None,
+         "alternatives": [{"label": "Les 2 marquent", "prob": 0.63, "fair": 1.59}], "scenarios": []}]}
+    replies = {"Premier League": "Arsenal a 85 % de chances en 1UP : à jouer au-dessus de 1,18.",
+               "Bundesliga": "Bayern gagne 3-1, les 2 marquent à 63 %."}  # 3-1 is invented
+
+    class Fake:
+        def __init__(self):
+            self.messages = self
+
+        def create(self, **kw):
+            name = __import__("json").loads(kw["messages"][0]["content"])["competition"]
+            return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=replies[name])])
+
+    r = analysts.write(day, tmp_path, client=Fake())
+    assert [g["competition"] for g in r["groups"]] == ["Premier League"]
+    assert analysts.latest(tmp_path, __import__("datetime").date(2026, 11, 6))["groups"][0]["text"].startswith("Arsenal")
+    assert analysts.check("Bayern gagne 3-1", '{"x": "63 %"}') == ["1", "3"]

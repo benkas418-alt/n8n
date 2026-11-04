@@ -21,6 +21,7 @@ dependencies = [
     "apscheduler>=3.10,<4",
     "python-dotenv>=1.0",
     "joblib>=1.4",
+    "anthropic>=2.0",  # D77: lecture du jour (Claude Haiku), off without ANTHROPIC_API_KEY
 ]
 
 [project.optional-dependencies]

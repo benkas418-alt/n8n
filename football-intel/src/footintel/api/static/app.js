@@ -1253,7 +1253,7 @@ function ticketCard(tk) {
 }
 
 async function today() {
-  const [d, t] = await Promise.all([get("/home"), get("/tickets").catch(() => null)]);
+  const [d, t, lec] = await Promise.all([get("/home"), get("/tickets").catch(() => null), get("/lecture").catch(() => null)]);
   learnMine(d.matches);
   const now = localToday();
   const tday = (t?.days || []).find((x) => x.date >= now);
@@ -1282,7 +1282,13 @@ async function today() {
       <div class="fixtures">${myDay.map(fixtureRow).join("")}</div>
       <p class="more"><a href="#/matchs">Tous les matchs</a></p></section>`
     : `<section class="today-block"><h2>Vos matchs</h2><div class="empty"><p class="muted">Aucun match de vos équipes dans les trois prochaines semaines.</p></div></section>`;
-  return head + staleNote(d.last_prediction) + `<section class="today-block"><h2>Vos tickets</h2>${tickets}</section>` + notes + matches;
+  // D77: one short text per competition, written by Claude Haiku from these figures only.
+  const lecture = lec && (lec.groups || []).length && lec.date >= now
+    ? `<section class="today-block"><h2>Lecture du jour</h2>
+        <p class="lead">Un résumé par compétition, écrit par une IA (Claude) à partir des seuls chiffres du site, puis vérifié.</p>
+        <div class="card">${lec.groups.map((g) => `<p><b>${esc(g.competition)}</b></p><p class="muted">${esc(g.text)}</p>`).join("")}</div></section>`
+    : "";
+  return head + staleNote(d.last_prediction) + `<section class="today-block"><h2>Vos tickets</h2>${tickets}</section>` + lecture + notes + matches;
 }
 
 async function ticketsPage() {

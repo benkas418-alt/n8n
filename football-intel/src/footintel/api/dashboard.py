@@ -539,6 +539,16 @@ def tickets() -> dict:
                     "par la marge mesurée de chaque marché (docs/RESULTS.md). Aucun avantage démontré sur le marché."}
 
 
+@router.get("/lecture")
+def lecture() -> dict:
+    """Lecture du jour (D77): one checked text per competition, or no groups."""
+    from footintel.agents.analysts import latest
+    from footintel.config import get_settings
+    from footintel.notify.tickets import local_today
+
+    return latest(get_settings().artifacts_dir, local_today()) or {"date": None, "groups": []}
+
+
 @router.get("/bilan")
 def bilan() -> dict:
     """Bilan (D76): the archived tickets of the last 7 days settled, and the model's and the

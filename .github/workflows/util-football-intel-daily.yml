@@ -51,6 +51,7 @@ jobs:
       ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}  # D77: lecture du jour, optional
       SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       STATE_KEY: ${{ secrets.FOOTINTEL_STATE_KEY }}
@@ -150,6 +151,7 @@ jobs:
         run: |
           footintel run morning | tee morning.json
           footintel archive-tickets || echo "::warning::archive-tickets failed"  # D76: before Save state
+          footintel write-lectures || echo "::warning::write-lectures failed"  # D77: skipped without the key
           if grep -q '"predict": "failed' morning.json; then
             echo "::error::No prediction was computed (see the predict step above)"
             echo "failed=true" >> "$GITHUB_OUTPUT"
