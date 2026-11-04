@@ -64,3 +64,15 @@ D70 à D77 dans `football-intel/docs/DECISIONS.md`. Résultats chiffrés dans `d
 Vérifier le run du 05/11 (05:23, heure de Lubumbashi) : étapes vertes, artefact
 `footintel-state` créé, `scenario_weights.json` appris, tickets archivés, courriel des tickets
 reçu, `/bilan` et `/tickets` à jour dans Supabase.
+
+## Mise à jour 04/11, 18:20 UTC — run manuel #17 (master a0716586)
+
+- Toutes les étapes vertes. Vérifié dans le journal : `scenario-weights` appris (12 poids
+  communs + poids par championnat), artefact `footintel-state` créé (48 Mo, 90 jours),
+  export Supabase 1 226 lignes sans échec, `email-tickets` accepté par le serveur SMTP.
+- `archive-tickets` : 0 ticket, normal à 20:15 heure locale (moins de 5 matchs des équipes
+  suivies encore à jouer ce soir ; D76 n'utilise que ces équipes). Lecture du jour : en veille
+  (pas de clé).
+- Non vérifié : arrivée du courriel. Il ne passe pas par la boîte benkas418 (ni envoyé ni
+  reçu) ; le rapport du 29/10 allait à une autre adresse : le propriétaire doit regarder là.
+- Reste à voir : le run planifié du 05/11 03:23 UTC (premier run `schedule` depuis le 30/10).
