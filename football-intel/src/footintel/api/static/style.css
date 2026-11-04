@@ -148,7 +148,7 @@ main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 24px 28px 48px; 
 .strip-bar .h { background: var(--home); }
 .strip-bar .d { background: var(--draw); }
 .strip-bar .a { background: var(--away); }
-.strip-nums { display: grid; grid-template-columns: repeat(3, 1fr); font-family: var(--display); font-size: 14px; color: var(--muted); }
+.strip-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); font-family: var(--display); font-size: 14px; color: var(--muted); }
 .strip-nums span:nth-child(2) { text-align: center; }
 .strip-nums span:nth-child(3) { text-align: right; }
 .strip-nums b { font-weight: 700; font-size: 17px; color: var(--text); }
@@ -408,3 +408,47 @@ table.alts td, table.alts th { padding-left: 4px; padding-right: 4px; font-size:
 .ticket .ok { color: var(--accent); }
 td.pos { color: var(--accent); } td.neg { color: var(--muted); }
 .finding.warn { border-left: 3px solid var(--warn); }
+
+/* --- 2026-11-04 redesign: four destinations, plain words on each match ------------------
+   Desktop keeps the sidebar; phones get a bottom tab bar of the four destinations and the
+   Menu sheet for the analyses. Tab bar: 56px + the phone's safe area, labels 13px, the active
+   page in ink with a 2px rule in the data hue (no fill, no icons). */
+.nav-more { margin-top: 18px; }
+.tabbar { display: none; }
+@media (max-width: 900px) {
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--bg); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .tabbar a { border-radius: 0; display: flex; align-items: center; justify-content: center; min-height: 56px; font-size: 13px; font-weight: 500;
+    color: var(--muted); text-decoration: none; border-top: 2px solid transparent; }
+  .tabbar a.active, .tabbar a:hover { color: var(--text); border-top-color: var(--home); background: none; }
+  .tabbar a:focus-visible { outline: 2px solid var(--home); outline-offset: -4px; }
+  .main-col { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+/* Who each percentage is for: the team name in grey before its figure. */
+.strip-nums span { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
+.strip-nums span:nth-child(2) { justify-content: center; }
+.strip-nums span:nth-child(3) { justify-content: flex-end; }
+.strip-nums small { font-family: var(--font); font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; min-width: 0; }
+@media (min-width: 761px) { .fixture { grid-template-columns: 54px minmax(0, 1fr) minmax(260px, 1.1fr) 200px; } }
+.fixture .flag b { color: var(--text); font-weight: 600; }
+.fixture .flag .play { color: var(--home); }
+/* Today page */
+.today-block { margin-top: var(--space-5, 28px); }
+.today-block > h2 { font-size: 18px; margin: 0 0 4px; }
+.today-block > p.lead { margin: 0 0 14px; color: var(--muted); }
+.legs-plain { display: grid; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.legs-plain li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.legs-plain .t { color: var(--muted); font-family: var(--display); }
+.legs-plain .o { font-family: var(--display); font-weight: 700; text-align: right; }
+.state { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.state.won { background: var(--home-soft); color: var(--home); }
+.state.lost { background: var(--down-soft); color: var(--down); }
+.state.open { background: var(--sunk); color: var(--muted); }
+.term { border-bottom: 1px dotted var(--muted); cursor: help; }
+.strip { min-width: 0; }
+.strip-bar { min-width: 0; overflow: hidden; }
+.results li { padding: 8px 0; border-top: 1px solid var(--line); }
+.results li:first-child { border-top: 0; }
+.results .state { margin-left: 4px; }
+.today-block h3 { font-size: 15px; margin: 18px 0 8px; color: var(--muted); font-weight: 500; }

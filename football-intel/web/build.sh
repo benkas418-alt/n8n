@@ -10,7 +10,7 @@ mkdir -p "$dist"
 cp "$static"/{index.html,app.js,style.css,value.html,value.js} "$here"/{site.js,site.css,config.js} "$dist"/
 cp "$here/vercel.json" "$dist"/
 
-SUPABASE_JS='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>'
+SUPABASE_JS='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>'
 for page in index.html:app.js value.html:value.js; do
   file="$dist/${page%%:*}"
   script="${page##*:}"

@@ -539,6 +539,18 @@ def tickets() -> dict:
                     "par la marge mesurée de chaque marché (docs/RESULTS.md). Aucun avantage démontré sur le marché."}
 
 
+@router.get("/bilan")
+def bilan() -> dict:
+    """Bilan (D76): the archived tickets of the last 7 days settled, and the model's and the
+    bookmakers' favourite against the result for the finished matches."""
+    from footintel.analysis.bilan import forecast_results, ticket_results
+    from footintel.config import get_settings
+
+    engine = get_engine()
+    return {"tickets": ticket_results(engine, get_settings().artifacts_dir),
+            "matches": forecast_results(engine)}
+
+
 @router.get("/value-board")
 def value_board(days: int = 7) -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""

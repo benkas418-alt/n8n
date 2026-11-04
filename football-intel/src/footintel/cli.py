@@ -313,6 +313,14 @@ def cmd_scenario_weights(args, settings, engine):
     _print(learnt)
 
 
+def cmd_archive_tickets(args, settings, engine):
+    from footintel.analysis.bilan import archive
+    from footintel.api.dashboard import tickets
+    from footintel.notify.tickets import local_today
+
+    print(f"{archive(settings.artifacts_dir, tickets(), local_today())} ticket(s) archived")
+
+
 def cmd_email_tickets(args, settings, engine):
     from footintel.api.dashboard import tickets
     from footintel.notify.email import send_report
@@ -433,6 +441,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("scenario-weights", help="learn the scenario weights that adjust the market (D72)").set_defaults(
         fn=cmd_scenario_weights)
+
+    sub.add_parser("archive-tickets", help="keep today's tickets for the Bilan (D76)").set_defaults(
+        fn=cmd_archive_tickets)
 
     et = sub.add_parser("email-tickets", help="e-mail the Tickets du jour (D71)")
     et.add_argument("--dry-run", action="store_true", help="print the e-mail instead of sending it")

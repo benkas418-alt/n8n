@@ -149,6 +149,7 @@ jobs:
         id: predict
         run: |
           footintel run morning | tee morning.json
+          footintel archive-tickets || echo "::warning::archive-tickets failed"  # D76: before Save state
           if grep -q '"predict": "failed' morning.json; then
             echo "::error::No prediction was computed (see the predict step above)"
             echo "failed=true" >> "$GITHUB_OUTPUT"

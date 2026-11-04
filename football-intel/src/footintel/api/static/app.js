@@ -178,7 +178,7 @@ document.getElementById("drawer").onclick = (e) => { if (e.target.id === "drawer
 function matchTable(rows) {
   if (!rows.length) return `<p class="muted">Aucun match.</p>`;
   return `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Saison</th><th>Match</th><th class="num">Score</th><th class="num">Mi-temps</th></tr></thead><tbody>${
-    rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.id}})"><td>${fdate(r.kickoff_date)}</td><td>${season(r.season)}</td><td>${esc(r.home)} – ${esc(r.away)}${r.round ? `<div class="small muted">${esc(r.round)}</div>` : ""}</td><td class="num">${r.home_goals}-${r.away_goals}${r.aet_home_goals != null ? " (a.p.)" : ""}</td><td class="num">${r.ht_home_goals ?? "n/d"}-${r.ht_away_goals ?? "n/d"}</td></tr>`).join("")
+    rows.map((r) => `<tr class="clickable" data-go="match" data-id="${r.id}" tabindex="0"><td>${fdate(r.kickoff_date)}</td><td>${season(r.season)}</td><td>${esc(r.home)} – ${esc(r.away)}${r.round ? `<div class="small muted">${esc(r.round)}</div>` : ""}</td><td class="num">${r.home_goals}-${r.away_goals}${r.aet_home_goals != null ? " (a.p.)" : ""}</td><td class="num">${r.ht_home_goals ?? "n/d"}-${r.ht_away_goals ?? "n/d"}</td></tr>`).join("")
   }</tbody></table></div>`;
 }
 
@@ -201,14 +201,14 @@ async function overview() {
     <div class="card"><div class="kpi-label">Matchs analysés</div><div class="kpi-value">${c.matches.toLocaleString("fr-FR")}</div>
       <div class="kpi-note">${c.competitions} compétitions · ${fdate(c.first_date)} → ${fdate(c.last_result)}</div>
       <div class="meta"><span class="badge fact">fait</span> résultats réels</div></div>
-    <div class="card clickable" onclick="go('competitions')"><div class="kpi-label">Tendances de compétition</div>
+    <div class="card clickable" data-go="competitions" tabindex="0"><div class="kpi-label">Tendances de compétition</div>
       <div class="kpi-value">${cnt("rising") + cnt("falling")}</div>
       <div class="kpi-note">${cnt("rising")} en hausse · ${cnt("falling")} en baisse · ${cnt("emerging")} émergentes · ${cnt("unconfirmed")} non confirmées</div>
       <div class="meta">Calcul n° ${d.trend_run} · fenêtre de 380 matchs contre les 1 900 précédents</div></div>
-    <div class="card clickable" onclick="go('competitions')"><div class="kpi-label">Particularités validées</div>
+    <div class="card clickable" data-go="competitions" tabindex="0"><div class="kpi-label">Particularités validées</div>
       <div class="kpi-value">${d.validated_effects}</div>
       <div class="kpi-note">Écarts à un modèle qui ignore la compétition, significatifs sur 2006-2020 et confirmés sur 2021-2026</div></div>
-    <div class="card clickable" onclick="go('performance')"><div class="kpi-label">Modèle actif</div>
+    <div class="card clickable" data-go="performance" tabindex="0"><div class="kpi-label">Modèle actif</div>
       <div class="kpi-value" style="font-size:1.1rem">${esc(active.name)} v${active.version}</div>
       <div class="kpi-note">Promu le ${fdate(active.promoted_at)} · entraîné sur ${(active.n_train || 0).toLocaleString("fr-FR")} matchs</div>
       <div class="meta">Calibration la moins bonne : ${worst ? esc(EVENT_FR[worst.segment.split(":").slice(2).join(":")]) + " (ECE " + num(worst.value, 3) + ")" : "n/d"}</div></div>
@@ -217,7 +217,7 @@ async function overview() {
     <div class="card"><h2>Tendances à surveiller</h2>
       <p class="question">Quelles fréquences s'écartent de leur référence historique dans les compétitions cibles ?</p>
       <ul class="list">${watch.length ? watch.map((t) => `
-        <li class="clickable" onclick="go('competitions',{c:'${esc(t.competition)}'})">
+        <li class="clickable" data-go="competitions" data-c="${esc(t.competition)}" tabindex="0">
           <div class="row-title">${esc(t.competition)} — ${esc(mname(t.metric))} ${badge(t.status)}</div>
           <div>${val(t.metric, t.observed)} contre ${val(t.metric, t.reference)} (${diff(t.metric, t.abs_diff)})</div>
           <div class="meta">n = ${t.n} · ${fdate(t.period_start)} → ${fdate(t.period_end)} · p ajusté ${num(t.adjusted_p_value, 3)} · confiance ${esc(t.confidence)}</div>
@@ -226,7 +226,7 @@ async function overview() {
       <p class="question">Qu'est-ce qui distingue une compétition, au-delà du niveau des équipes engagées ?</p>
       <ul class="list">${d.validated_targets.map((p) => {
         const [, comp, , metric] = p.key.split("|");
-        return `<li class="clickable" onclick="go('competitions',{c:'${esc(comp)}'})">
+        return `<li class="clickable" data-go="competitions" data-c="${esc(comp)}" tabindex="0">
           <div class="row-title">${esc(comp)} — ${esc(mname(metric))} <span class="badge fact">validé hors échantillon</span></div>
           <div>${diff(metric, p.effect)} sur 2006-2020 (n = ${p.n}), puis ${diff(metric, p.out_of_sample_effect)} sur 2021-2026 (n = ${p.out_of_sample_n})</div></li>`;
       }).join("")}</ul></div>
@@ -440,7 +440,7 @@ async function teams() {
   return html;
 }
 function matchList(rows) {
-  return `<div class="table-wrap"><table><tbody>${rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.id}})"><td>${fdate(r.kickoff_date)}</td><td>${esc(r.competition)}</td><td>${r.at_home ? "dom." : "ext."} ${esc(r.opponent)}</td><td class="num">${r.gf}-${r.ga}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><tbody>${rows.map((r) => `<tr class="clickable" data-go="match" data-id="${r.id}" tabindex="0"><td>${fdate(r.kickoff_date)}</td><td>${esc(r.competition)}</td><td>${r.at_home ? "dom." : "ext."} ${esc(r.opponent)}</td><td class="num">${r.gf}-${r.ga}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 /* ---------------- 4. Pre-match ---------------- */
@@ -471,7 +471,7 @@ async function matchPage() {
   const H = x?.teams?.home, A = x?.teams?.away;
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : fdate(m.kickoff_date);
   const played = m.home_goals != null;
-  let html = `<p class="small"><a href="#/">Retour aux matchs</a></p>
+  let html = `<p class="small"><a href="#/matchs">Retour aux matchs</a></p>
     <div class="match-top">
       <div class="team-side">${crest(m.home, "h")}<span class="team-name">${esc(m.home)}</span>${H ? formDots(H.form_all.slice(0, 5)) : ""}</div>
       <div class="match-mid"><h1>${esc(m.home)} ${played ? `${m.home_goals} – ${m.away_goals}` : "–"} ${esc(m.away)}</h1>
@@ -866,7 +866,7 @@ async function picks() {
     return html + `<div class="card"><p class="muted">Aucun pronostic pour l'instant. Ouvrez un match programmé dans <a href="#/match">Analyse pré-match</a> pour en saisir un.</p></div>`;
   }
   html += `<div class="card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Choix</th><th class="num">Confiance</th><th>Modèle avant match</th><th>Résultat</th><th>Raisonnement</th></tr></thead><tbody>
-    ${d.rows.map((r) => `<tr class="clickable" onclick="go('match',{id:${r.match_id}})"><td>${fdate(r.kickoff_date)} · ${esc(r.competition)}<div>${esc(r.home)} – ${esc(r.away)}</div><div class="small muted">saisi le ${new Date(r.submitted_at).toLocaleString("fr-FR")}</div></td>
+    ${d.rows.map((r) => `<tr class="clickable" data-go="match" data-id="${r.match_id}" tabindex="0"><td>${fdate(r.kickoff_date)} · ${esc(r.competition)}<div>${esc(r.home)} – ${esc(r.away)}</div><div class="small muted">saisi le ${new Date(r.submitted_at).toLocaleString("fr-FR")}</div></td>
       <td>${pickTxt[r.pick]}${r.home_goals != null ? ` (${r.home_goals}-${r.away_goals})` : ""}</td><td class="num">${r.confidence}/5</td>
       <td class="small">${r.model ? `1 ${pct(r.model.p_home, 0)} · X ${pct(r.model.p_draw, 0)} · 2 ${pct(r.model.p_away, 0)}` : '<span class="badge na">aucune prédiction</span>'}</td>
       <td>${r.res_home != null ? `${r.res_home}-${r.res_away} ${r.correct == null ? "" : r.correct ? '<span class="badge rising">juste</span>' : '<span class="badge falling">faux</span>'}` : '<span class="muted">à venir</span>'}</td>
@@ -960,12 +960,12 @@ async function admin() {
 }
 
 /* ---------------- 0. Matches (start page) ---------------- */
-function strip(p, market, big = false) {
+function strip(p, market, big = false, names = null) {
   const [h, d, a] = p.map((x) => Math.max(0, x || 0));
   const w = (x) => `${(100 * x).toFixed(1)}%`;
   const mk = market ? `<div class="strip-market"><span>marché ${pct(market[0], 0)}</span><span>${pct(market[1], 0)}</span><span>${pct(market[2], 0)}</span></div>` : "";
   return `<div class="strip${big ? " big" : ""}" role="img" aria-label="Domicile ${pct(h, 0)}, nul ${pct(d, 0)}, extérieur ${pct(a, 0)}">
-    <div class="strip-nums"><span class="h"><b>${Math.round(100 * h)}</b> %</span><span><b>${Math.round(100 * d)}</b> %</span><span class="a"><b>${Math.round(100 * a)}</b> %</span></div>
+    <div class="strip-nums">${[h, d, a].map((x, i) => `<span${i === 0 ? ' class="h"' : i === 2 ? ' class="a"' : ""}>${names ? `<small>${esc(names[i])}</small>` : ""}<b>${Math.round(100 * x)}</b> %</span>`).join("")}</div>
     <div class="strip-bar"><span class="h" style="width:${w(h)}"></span><span class="d" style="width:${w(d)}"></span><span class="a" style="width:${w(a)}"></span></div>${mk}</div>`;
 }
 
@@ -987,9 +987,20 @@ const MY_TEAMS = {
   "FRA-L1": { teams: ["Paris SG"], market: "fg" },
 };
 const myPref = (m) => MY_TEAMS[m.competition];
+/* The owner's teams by name, learnt from their league matches, so Dortmund or Como count in
+   the Champions League too. */
+const MINE = new Set();
+function learnMine(matches) {
+  for (const m of matches) {
+    const p = myPref(m);
+    if (!p) continue;
+    for (const t of [m.home, m.away]) if (p.teams === "*" || p.teams.includes(t)) MINE.add(t);
+  }
+}
 function isMine(m) {
   const p = myPref(m);
-  return !!p && (p.teams === "*" || p.teams.includes(m.home) || p.teams.includes(m.away));
+  return (!!p && (p.teams === "*" || p.teams.includes(m.home) || p.teams.includes(m.away)))
+    || MINE.has(m.home) || MINE.has(m.away);
 }
 /* The side to read: the followed team, else the likelier first scorer. */
 function mySide(m) {
@@ -1002,9 +1013,9 @@ function mySide(m) {
 }
 function myFlag(m) {
   const p = myPref(m);
-  const fair = (x) => `<br><span class="muted">cote juste ${odds2(1 / x)}</span>`;
+  const fair = (x) => `<br><span class="muted">intéressant si betPawa paie plus de <b>${odds2(1 / x)}</b></span>`;
   if (p && p.market === "btts" && m.p_btts != null) {
-    return `<span class="flag safe"><b>2 marquent</b> <span class="nowrap">${pct(m.p_btts, 0)}</span>${fair(m.p_btts)}</span>`;
+    return `<span class="flag safe"><span class="play">À surveiller</span> · <b>les 2 équipes marquent</b> ${pct(m.p_btts, 0)}${fair(m.p_btts)}<br><span class="muted small">source : modèle</span></span>`;
   }
   if (!m.fg) return "";
   const side = mySide(m);
@@ -1013,8 +1024,8 @@ function myFlag(m) {
   // Bookmakers' figures first when known: betPawa's price is judged against them.
   const fg = m.fg_mkt ? m.fg_mkt[side] : m.fg[side];
   const up = m.up1_mkt ? m.up1_mkt[i] : m.up1[i];
-  const src = m.fg_mkt ? `marché · modèle ${pct(m.fg[side], 0)}` : "modèle";
-  return `<span class="flag safe"><b>1er but ${esc(team)}</b> <span class="nowrap">${pct(fg, 0)}</span>${fair(fg)}<br><span class="muted">1UP ${pct(up, 0)} · ${odds2(1 / up)}</span><br><span class="muted small">${src}</span></span>`;
+  const src = m.fg_mkt ? "source : bookmakers" : "source : modèle";
+  return `<span class="flag safe"><span class="play">À surveiller</span> · <b>${esc(team)} marque en 1er</b> ${pct(fg, 0)}${fair(fg)}<br><span class="muted">1UP ${esc(team)} ${pct(up, 0)}, plus de ${odds2(1 / up)}</span><br><span class="muted small">${src}</span></span>`;
 }
 
 /* Tickets du jour (D69): three combos of 10 or more per match day, with every alternative
@@ -1069,8 +1080,30 @@ function staleNote(last) {
   const when = new Date(last).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   return `<div class="finding warn"><p><b>Données du ${esc(when)}.</b> Le cycle quotidien n'a pas tourné depuis : les matchs déjà joués sont masqués, mais les probabilités et les cotes ne sont pas à jour.</p></div>`;
 }
+function fixtureRow(m) {
+  const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
+  const has = m.p_home != null;
+  const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
+  // One line per match: its safest checked market and the fair odds to beat.
+  const sp = m.safe;
+  const flag = has && isMine(m) ? myFlag(m) : !has || sp === undefined ? "" : sp
+    ? `<span class="flag safe"><span class="play">Le plus sûr</span> · <b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">intéressant si betPawa paie plus de <b>${odds2(sp.fair_odds)}</b></span></span>`
+    : `<span class="flag">aucun pari assez sûr</span>`;
+  const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
+  // Far fixtures without probabilities have no match page yet (export size).
+  const tag = m.detail === false ? "div" : "a";
+  const href = m.detail === false ? "" : ` href="#/match?id=${m.id}"`;
+  return `<${tag} class="fixture"${href}>
+    <span class="time">${time}</span>
+    <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
+      <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
+    ${has ? strip([m.p_home, m.p_draw, m.p_away], null, false, [m.home, "Nul", m.away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
+    ${flag}</${tag}>`;
+}
+
 async function home() {
   const d = await get("/home");
+  learnMine(d.matches);
   d.matches = d.matches.filter(upcomingOnly);
   const sub = document.getElementById("brand-sub");
   if (sub) sub.textContent = d.last_result ? `résultats jusqu'au ${fdate(d.last_result)}` : "";
@@ -1082,9 +1115,8 @@ async function home() {
   const hidden = inComp.length - shown.length;
   const withGap = inComp.map((m) => ({ m, g: marketGaps(m) })).filter((x) => x.g);
   const top = withGap.sort((a, b) => Math.abs(b.g.gap) - Math.abs(a.g.gap))[0];
-  const head = `<div class="page-head"><div><h1>Matchs à venir</h1>
-    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} sur trois semaines, avec les probabilités 1, X, 2 du modèle. Écart avec le marché quand une cote de référence existe.</p></div>
-    <a class="btn" href="value.html">Vérifier une cote</a></div>`;
+  const head = `<div class="page-head"><div><h1>Matchs</h1>
+    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} sur trois semaines. Chaque ligne donne les chances de chaque équipe et le pari à surveiller, avec la cote à partir de laquelle il devient intéressant.</p></div></div>`;
   if (!d.matches.length) {
     return head + `<div class="empty"><h2>Aucun match publié pour l'instant</h2>
       <p class="muted">Le cycle du matin récupère les prochains matchs dès que les sources les publient, puis calcule les probabilités. Vous pouvez le lancer tout de suite depuis l'<a href="#/admin">administration</a>.</p></div>`;
@@ -1092,9 +1124,9 @@ async function home() {
   const finding = top
     ? `<div class="finding"><p>Plus gros écart avec le marché : <b>${esc(top.m.home)} – ${esc(top.m.away)}</b>, le modèle donne ${signedPts(top.g.gap)} sur ${esc(top.g.side)} (${pct([top.m.p_home, top.m.p_draw, top.m.p_away][top.g.i], 0)} contre ${pct(top.m.market[top.g.i], 0)}).</p>
         <a href="#/match?id=${top.m.id}">Ouvrir le match</a></div>`
-    : `<div class="finding"><p>Aucun match à venir n'a encore de cote de référence pour comparer le modèle au marché.</p></div>`;
+    : "";
   // One tab per view, in a fixed order; a swipe on the list moves to the next or previous tab.
-  const views = [["all", "Tous", d.matches.length], ["mine", "Mes équipes", d.matches.filter(isMine).length], ["tickets", "Tickets du jour", null],
+  const views = [["all", "Tous", d.matches.length], ["mine", "Mes équipes", d.matches.filter(isMine).length],
     ...comps.map((c) => [c, compName(c), d.matches.filter((m) => m.competition === c).length])];
   if (!views.some(([k]) => k === homeFilter)) homeFilter = "all";
   const tabsBar = `<div class="tabs comp-tabs" role="tablist" aria-label="Compétitions">${views.map(([k, label, n]) =>
@@ -1117,26 +1149,6 @@ async function home() {
     return `<section><div class="day"><h2>${title}</h2><span>${count(rows.length)}</span></div>
       <div class="fixtures">${ready.map(fixtureRow).join("")}</div>${later}</section>`;
   }).join("");
-  function fixtureRow(m) {
-    const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
-    const has = m.p_home != null;
-    const fav = has ? [m.p_home, m.p_draw, m.p_away].indexOf(Math.max(m.p_home, m.p_draw, m.p_away)) : -1;
-    // One line per match: its safest checked market and the fair odds to beat.
-    const sp = m.safe;
-    const flag = has && isMine(m) ? myFlag(m) : !has || sp === undefined ? "" : sp
-      ? `<span class="flag safe"><b>${esc(shortKey(sp.key))}</b> ${pct(sp.prob, 0)}<br><span class="muted">cote juste ${odds2(sp.fair_odds)}</span></span>`
-      : `<span class="flag">pas de pari sûr</span>`;
-    const name = (n, i) => (fav === i ? `<b>${esc(n)}</b>` : esc(n));
-    // Far fixtures without probabilities have no match page yet (export size).
-    const tag = m.detail === false ? "div" : "a";
-    const href = m.detail === false ? "" : ` href="#/match?id=${m.id}"`;
-    return `<${tag} class="fixture"${href}>
-      <span class="time">${time}</span>
-      <span class="teams"><span class="match">${name(m.home, 0)} – ${name(m.away, 2)}</span>
-        <span class="comp">${esc(compName(m.competition, m.competition_name))}</span></span>
-      ${has ? strip([m.p_home, m.p_draw, m.p_away]) : `<span class="nopred">Probabilités au prochain cycle du matin</span>`}
-      ${flag}</${tag}>`;
-  }
   const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs des deux semaines suivantes</button></p>` : "";
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
     <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
@@ -1174,11 +1186,6 @@ async function home() {
     const all = document.getElementById("show-all");
     if (all) all.onclick = () => { homeAll = true; route(); };
   });
-  if (homeFilter === "tickets") {
-    const t = await get("/tickets").catch(() => null);
-    if (t && t.days) t.days = t.days.filter((x) => x.date >= new Date().toLocaleDateString("en-CA"));
-    return head + staleNote(d.last_prediction) + tabsBar + `<div id="home-pane">` + ticketsView(t) + `</div>` + status;
-  }
   return head + staleNote(d.last_prediction) + tabsBar + `<div id="home-pane">` + finding + (days || `<div class="empty"><p class="muted">Aucun match dans les 7 prochains jours pour ce filtre.</p></div>`) + more + `</div>` + status;
 }
 
@@ -1226,14 +1233,104 @@ function countUp(root) {
   requestAnimationFrame(step);
 }
 
+
+/* ---------------- Aujourd'hui (home, 2026-11-04) ----------------
+   The owner opens the site to know what to play today: his tickets first, then his teams'
+   matches, then what the machine noticed. Every figure says what it is in words. */
+const dayLabel = (iso) => { const l = new Date(`${iso}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }); return l.charAt(0).toUpperCase() + l.slice(1); };
+const hhmm = (k) => (k ? new Date(k).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—");
+const localToday = () => new Date().toLocaleDateString("en-CA");
+
+function ticketCard(tk) {
+  const once = Math.round(1 / tk.prob);
+  const legs = tk.legs.map((l) => `<li><span class="t">${hhmm(l.kickoff_utc)}</span>
+    <span>${esc(l.match)}<br><span class="muted">${esc(l.label)} · ${pct(l.prob, 0)} de chances</span></span>
+    <span class="o">${odds2(l.fair)}</span></li>`).join("");
+  return `<div class="card ticket"><h2>Ticket ${esc(tk.tag)} · ${esc(tk.name)}</h2>
+    <p class="question">Cote totale <b>${odds2(tk.odds)}</b> · passe environ 1 fois sur ${once}</p>
+    <ul class="legs-plain">${legs}</ul>
+    <p class="meta">À droite, la cote juste : ne prenez une sélection que si betPawa paie plus.</p></div>`;
+}
+
+async function today() {
+  const [d, t] = await Promise.all([get("/home"), get("/tickets").catch(() => null)]);
+  learnMine(d.matches);
+  const now = localToday();
+  const tday = (t?.days || []).find((x) => x.date >= now);
+  const mine = d.matches.filter(upcomingOnly).filter((m) => m.p_home != null && isMine(m));
+  const firstDay = mine.map((m) => m.kickoff_date).sort()[0];
+  const myDay = mine.filter((m) => m.kickoff_date === firstDay);
+  const head = `<div class="page-head"><div><h1>Aujourd'hui</h1>
+    <p>${esc(dayLabel(now))}. Vos tickets et les matchs de vos équipes.</p></div></div>`;
+
+  let tickets;
+  if (!tday) {
+    tickets = `<div class="empty"><p class="muted">Pas de ticket pour l'instant : ils sont calculés chaque matin pour les deux prochains jours de matchs.</p></div>`;
+  } else {
+    const when = tday.date === now ? "" : ` pour ${dayLabel(tday.date).toLowerCase()}`;
+    const missing = (tday.missing || []).map((m) => `<p class="muted">Pas de ticket ${esc(m.tag)} : il faut au moins ${m.needs} matchs de vos équipes, il y en a ${tday.n_followed}.</p>`).join("");
+    tickets = `<p class="lead">Les combinaisons de vos équipes les plus susceptibles de passer, à une cote d'au moins 10${esc(when)}.</p>
+      ${missing}<div class="grid">${tday.tickets.map(ticketCard).join("")}</div>
+      <p class="more"><a class="btn ghost" href="#/tickets">Voir tous les choix possibles, match par match</a></p>`;
+  }
+  const noticed = (tday?.matches || []).filter((m) => m.followed && (m.scenarios || []).length);
+  const notes = noticed.length ? `<section class="today-block"><h2>Ce que la machine a remarqué</h2>
+      <p class="lead">Des situations déjà vues souvent par le passé, qui ont changé le pronostic de ces matchs.</p>
+      <div class="card">${noticed.map((m) => `<p><b>${esc(m.match)}</b></p>${m.scenarios.map((n) => `<p class="muted">${esc(n.text)}</p>`).join("")}`).join("")}</div></section>` : "";
+  const matches = myDay.length
+    ? `<section class="today-block"><h2>${firstDay === now ? "Vos matchs aujourd'hui" : `Prochains matchs de vos équipes : ${esc(dayLabel(firstDay).toLowerCase())}`}</h2>
+      <div class="fixtures">${myDay.map(fixtureRow).join("")}</div>
+      <p class="more"><a href="#/matchs">Tous les matchs</a></p></section>`
+    : `<section class="today-block"><h2>Vos matchs</h2><div class="empty"><p class="muted">Aucun match de vos équipes dans les trois prochaines semaines.</p></div></section>`;
+  return head + staleNote(d.last_prediction) + `<section class="today-block"><h2>Vos tickets</h2>${tickets}</section>` + notes + matches;
+}
+
+async function ticketsPage() {
+  const t = await get("/tickets").catch(() => null);
+  if (t && t.days) t.days = t.days.filter((x) => x.date >= localToday());
+  return `<div class="page-head"><div><h1>Tous les choix</h1><p>Chaque ticket avec ses autres choix possibles, et tous les pronostics de chaque match de vos équipes.</p></div></div>` + ticketsView(t);
+}
+
+/* ---------------- Bilan ---------------- */
+async function bilan() {
+  const b = await get("/bilan").catch(() => ({ tickets: [], matches: [] }));
+  const mark = (w) => (w === 1 ? `<span class="state won">gagné</span>` : w === 0 ? `<span class="state lost">perdu</span>` : `<span class="state open">en attente</span>`);
+  const stateCls = { "gagné": "won", "perdu": "lost", "en cours": "open" };
+  const tk = b.tickets.length
+    ? b.tickets.map((d) => `<h3>${esc(dayLabel(d.date))}</h3><div class="grid">${d.tickets.map((t) => `<div class="card">
+        <h2>Ticket ${esc(t.tag)} · cote ${odds2(t.odds)} <span class="state ${stateCls[t.state]}">${esc(t.state)}</span></h2>
+        <p class="question">${t.right} sélection${t.right > 1 ? "s" : ""} juste${t.right > 1 ? "s" : ""} sur ${t.legs.length}</p>
+        <ul class="legs-plain">${t.legs.map((l) => `<li><span class="t">${esc(l.score || "—")}</span>
+          <span>${esc(l.match)}<br><span class="muted">${esc(l.label)}</span></span><span>${mark(l.won)}</span></li>`).join("")}</ul></div>`).join("")}</div>`).join("")
+    : `<div class="empty"><p class="muted">Les tickets sont archivés chaque matin depuis le 5 novembre 2026. Leur bilan s'affiche ici dès que leurs matchs sont joués.</p></div>`;
+  const ms = b.matches || [];
+  const both = ms.filter((m) => m.market);
+  const n = (xs, k) => xs.filter((m) => m[k]).length;
+  const side = (m, p) => { const i = p.indexOf(Math.max(...p)); return `${[m.home, "nul", m.away][i]} ${pct(p[i], 0)}`; };
+  const summary = ms.length
+    ? `<p class="lead">Sur les 7 derniers jours, le favori du modèle a eu raison <b>${n(ms, "model_right")} fois sur ${ms.length}</b>.
+       ${both.length ? `Sur les ${both.length} matchs où l'on connaît aussi la cote des bookmakers : modèle ${n(both, "model_right")}, bookmakers ${n(both, "market_right")}.` : ""}</p>`
+    : `<p class="lead">Aucun match joué ces 7 derniers jours.</p>`;
+  const ok = (r) => (r ? `<span class="state won">juste</span>` : `<span class="state lost">raté</span>`);
+  const byDate = [...new Set(ms.map((m) => m.date))];
+  const list = byDate.map((dt) => `<h3>${esc(dayLabel(dt))}</h3><div class="card"><ul class="legs-plain results">${ms.filter((m) => m.date === dt).map((m) =>
+    `<li><span class="t">${esc(m.score)}</span><span>${esc(m.home)} – ${esc(m.away)}<br>
+      <span class="muted">Modèle : ${esc(side(m, m.model))} ${ok(m.model_right)}${m.market ? ` · Bookmakers : ${esc(side(m, m.market))} ${ok(m.market_right)}` : ""}</span></span><span></span></li>`).join("")}</ul></div>`).join("");
+  return `<div class="page-head"><div><h1>Bilan</h1><p>Ce qu'ont donné vos tickets et les pronostics des derniers jours.</p></div></div>
+    <section class="today-block"><h2>Vos tickets</h2>${tk}</section>
+    <section class="today-block"><h2>Les pronostics</h2>${summary}
+      ${list}</section>`;
+}
+
 /* ---------------- Router ---------------- */
-const PAGES = { "": home, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
+const PAGES = { "": today, matchs: home, tickets: ticketsPage, bilan, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
   ...(window.fiPages || {}) };
 async function route() {
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
-  document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === (page === "match" ? "" : page)));
-  const CRUMB = { "": "Matchs à venir", match: "Matchs", picks: "Mes pronostics", competitions: "Compétitions", teams: "Équipes",
+  const navPage = page === "match" ? "matchs" : page === "tickets" ? "" : page;
+  document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === navPage));
+  const CRUMB = { "": "Aujourd'hui", matchs: "Matchs", tickets: "Tous les choix", bilan: "Bilan", match: "Matchs", picks: "Mes pronostics", competitions: "Compétitions", teams: "Équipes",
     performance: "Fiabilité du modèle", tendances: "Tendances", admin: "Administration", ...(window.fiCrumbs || {}) };
   document.getElementById("crumb").textContent = CRUMB[page] || "Football Intel";
   document.getElementById("sidebar").classList.remove("open");
@@ -1251,6 +1348,13 @@ async function route() {
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
+// Navigation from rows and cards (data-go), without inline handlers: the site's CSP forbids them.
+function goFrom(el) { const { go: page, ...p } = el.dataset; go(page, p); }
+document.addEventListener("click", (e) => { const el = e.target.closest("[data-go]"); if (el) goFrom(el); });
+document.addEventListener("keydown", (e) => {
+  const el = e.key === "Enter" && e.target.closest && e.target.closest("[data-go]");
+  if (el) goFrom(el);
+});
 const themeBtn = document.getElementById("theme-btn");
 const themeLabel = () => { themeBtn.textContent = document.documentElement.dataset.theme === "light" ? "Mode sombre" : "Mode clair"; };
 themeBtn.onclick = () => {
