@@ -43,6 +43,15 @@ def tickets_text(data: dict, today: date) -> tuple[str, str]:
             lines.append(f"         {x['label']} @ {x['price']:.2f} ({mark}) · juste {x['fair']:.2f}"
                          f" · proba {x['prob']:.0%}")
         lines.append("")
+    # D72: the scenarios that moved a probability, in plain words.
+    in_tickets = {x["match_id"] for t in day["tickets"] for x in t["legs"] if "match_id" in x}
+    seen = [m for m in day.get("matches", []) if m.get("scenarios") and m["match_id"] in in_tickets]
+    if seen:
+        lines += ["CE QUE LA MACHINE A REMARQUÉ", "Situations déjà vues souvent par le passé, qui ont changé le pronostic :"]
+        for m in seen:
+            lines.append(f"- {m['match']}")
+            lines += [f"    {n['text']}" for n in m["scenarios"]]
+        lines.append("")
     lines += ["Une sélection n'a de valeur que si la cote betPawa dépasse sa cote juste.",
               "Vérifiez chaque cote sur betPawa avant de jouer : les cotes « estimées » viennent de la marge",
               "mesurée, pas de betPawa. " + data.get("note", ""), "",

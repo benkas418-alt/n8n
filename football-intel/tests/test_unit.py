@@ -1049,3 +1049,17 @@ def test_tickets_email_lists_each_leg_with_its_fair_odds():
     assert "(aujourd'hui)" in body and "21:45  Inter – Como" in body
     assert "1UP Inter @ 1.45 (relevée) · juste 1.40" in body and "1 chance sur 11" in body
     assert tickets_text({"days": []}, date(2026, 11, 4))[0] == "Tickets du jour — aucun match"
+
+
+def test_scenario_adjustment_moves_the_flagged_side_and_explains_it():
+    from footintel.analysis import scenario_adjust as SA
+
+    snap = {f"{c}_{s}": v for s in "ha" for c, v in
+            {"form5_ppg": 1.0, "gf5": 1.2, "ga5": 1.0, "sot5_for": 6.0, "sot5_against": 4.0,
+             "rest_days": 6, "games_14d": 2, "europe_7d": 0}.items()}
+    learnt = {"active": True, "weights": {c: 0.0 for c in SA.CODES} | {"unlucky": 0.2}}
+    p1, p2, notes = SA.adjust(0.40, 0.30, snap, learnt, "Lens", "Como")
+    # Both sides play better than their results: both rise, the draw falls.
+    assert p1 > 0.40 and p2 > 0.30 and abs((1 - p1 - p2) - 0.30) > 0.01
+    assert any("Lens" in n["text"] for n in notes) and notes[-1]["scenario"] == "total"
+    assert SA.adjust(0.40, 0.30, snap, learnt | {"active": False}, "Lens", "Como") == (0.40, 0.30, [])

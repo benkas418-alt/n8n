@@ -491,9 +491,17 @@ def tickets() -> dict:
     with every alternative of each match. Market 1X2 and over 2.5 when known, else the model's."""
     from datetime import UTC, datetime
 
+    from footintel.analysis import scenario_adjust
     from footintel.analysis.tickets import LOCAL_OFFSET, day_tickets, load_journal
+    from footintel.config import get_settings
 
     board = value_board(days=4)["matches"]
+    learnt = scenario_adjust.load(get_settings().artifacts_dir)
+    ids = [m["id"] for m in board]
+    snaps = {r["match_id"]: r for r in _rows("""
+        SELECT DISTINCT ON (p.match_id) p.match_id, p.feature_snapshot AS snap, c.type AS ctype
+        FROM predictions p JOIN matches m ON m.id = p.match_id JOIN competitions c ON c.id = m.competition_id
+        WHERE p.match_id = ANY(:ids) ORDER BY p.match_id, p.predicted_at DESC""", ids=ids)} if ids else {}
     matches = []
     now = datetime.now(UTC)
     for m in board:
@@ -504,9 +512,14 @@ def tickets() -> dict:
         p1, p2 = (mk["1"], mk["2"]) if mk.get("1") else (model.get("1"), model.get("2"))
         if p1 is None or p2 is None:
             continue
+        # D72: league matches only, where the scenario weights were learnt.
+        s = snaps.get(m["id"]) or {}
+        notes = []
+        if s.get("ctype") == "league":
+            p1, p2, notes = scenario_adjust.adjust(p1, p2, s.get("snap"), learnt, m["home"], m["away"])
         matches.append({k: m[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "home", "away")}
                        | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or model.get("O2.5"),
-                          "source": "marché" if mk.get("1") else "modèle"})
+                          "source": "marché" if mk.get("1") else "modèle", "scenarios": notes})
     today = (datetime.now(UTC) + LOCAL_OFFSET).date()
     return {"days": day_tickets(matches, load_journal(), today),
             "note": "Cotes betPawa vérifiées sur les captures du propriétaire quand « vérifiée », sinon estimées "

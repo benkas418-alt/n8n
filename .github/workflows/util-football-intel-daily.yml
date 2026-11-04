@@ -142,6 +142,8 @@ jobs:
           footintel run nightly
           footintel run evening
           if [ "$(date -u +%u)" = "1" ] || [ "${{ inputs.weekly }}" = "true" ]; then footintel run weekly; fi
+          # D72: weights learnt each Monday; first learnt here when the file is missing.
+          [ -f "$ARTIFACTS_DIR/scenario_weights.json" ] || footintel scenario-weights || echo "::warning::scenario-weights failed"
 
       - name: Predictions
         id: predict
