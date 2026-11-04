@@ -502,6 +502,16 @@ def tickets() -> dict:
         SELECT DISTINCT ON (p.match_id) p.match_id, p.feature_snapshot AS snap, c.type AS ctype
         FROM predictions p JOIN matches m ON m.id = p.match_id JOIN competitions c ON c.id = m.competition_id
         WHERE p.match_id = ANY(:ids) ORDER BY p.match_id, p.predicted_at DESC""", ids=ids)} if ids else {}
+    # Each team's domestic league (its latest league match), to find the owner's teams in cups.
+    leagues = {r["id"]: r for r in _rows("""
+        SELECT m.id,
+          (SELECT c.code FROM matches x JOIN competitions c ON c.id = x.competition_id
+           WHERE c.type = 'league' AND m.home_team_id IN (x.home_team_id, x.away_team_id)
+           ORDER BY x.kickoff_date DESC LIMIT 1) AS home_league,
+          (SELECT c.code FROM matches x JOIN competitions c ON c.id = x.competition_id
+           WHERE c.type = 'league' AND m.away_team_id IN (x.home_team_id, x.away_team_id)
+           ORDER BY x.kickoff_date DESC LIMIT 1) AS away_league
+        FROM matches m WHERE m.id = ANY(:ids)""", ids=ids)} if ids else {}
     matches = []
     now = datetime.now(UTC)
     for m in board:
@@ -516,10 +526,13 @@ def tickets() -> dict:
         s = snaps.get(m["id"]) or {}
         notes = []
         if s.get("ctype") == "league":
-            p1, p2, notes = scenario_adjust.adjust(p1, p2, s.get("snap"), learnt, m["home"], m["away"])
+            p1, p2, notes = scenario_adjust.adjust(p1, p2, s.get("snap"), learnt, m["home"], m["away"],
+                                                     m["competition"])
         matches.append({k: m[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "home", "away")}
                        | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or model.get("O2.5"),
-                          "source": "marché" if mk.get("1") else "modèle", "scenarios": notes})
+                          "source": "marché" if mk.get("1") else "modèle", "scenarios": notes,
+                          "home_league": (leagues.get(m["id"]) or {}).get("home_league"),
+                          "away_league": (leagues.get(m["id"]) or {}).get("away_league")})
     today = (datetime.now(UTC) + LOCAL_OFFSET).date()
     return {"days": day_tickets(matches, load_journal(), today),
             "note": "Cotes betPawa vérifiées sur les captures du propriétaire quand « vérifiée », sinon estimées "

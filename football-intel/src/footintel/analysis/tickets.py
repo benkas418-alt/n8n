@@ -135,9 +135,16 @@ def load_journal(path: Path = JOURNAL) -> dict[tuple[str, str, str], float]:
     return {k: v for k, (_, v) in latest.items()}
 
 
+def _team_followed(team: str, league: str | None) -> bool:
+    teams = FOLLOWED.get(league)
+    return teams == "*" or bool(teams and team in teams)
+
+
 def is_followed(m: dict) -> bool:
-    teams = FOLLOWED.get(m["competition"])
-    return teams == "*" or bool(teams and {m["home"], m["away"]} & teams)
+    """A followed team plays, in any competition: its domestic league (home_league,
+    away_league) decides, so Dortmund counts in the Champions League too."""
+    return (_team_followed(m["home"], m.get("home_league") or m["competition"])
+            or _team_followed(m["away"], m.get("away_league") or m["competition"]))
 
 
 def match_legs(m: dict, journal: dict) -> list[dict]:
@@ -225,8 +232,8 @@ def local_day(m: dict) -> date:
 
 
 def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2) -> list[dict]:
-    """Tickets A, B and C for the next `n_days` local days with matches, followed teams
-    first; other matches complete a ticket only when the followed ones are too few."""
+    """Tickets A, B and C for the next `n_days` local days with matches, built from the
+    owner's teams only. A size with too few of their matches is listed in `missing`."""
     by_day: dict[date, list[dict]] = {}
     for m in matches:
         d = local_day(m)
@@ -242,18 +249,21 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
                     "scenarios": m.get("scenarios", [])}
             rows.append(base | {"alternatives": legs})
         pool_all = [{k: v for k, v in r.items() if k not in ("alternatives", "scenarios")} | x for r in rows for x in r["alternatives"]]
+        # Tickets use the owner's teams only; a size needs that many of their matches.
         pool_mine = [x for x in pool_all if x["followed"]]
         n_mine = len({x["match_id"] for x in pool_mine})
-        tickets = []
+        tickets, missing = [], []
         for tag, name, lo, hi in SIZES:
             t = best_ticket(pool_mine, lo, hi) if n_mine >= lo else None
-            t = t or best_ticket(pool_all, lo, hi)
             if t:
                 tickets.append({"tag": tag, "name": name, "size": [lo, hi]} | t)
+            else:
+                missing.append({"tag": tag, "name": name, "needs": lo})
         # Shown: the 12 best alternatives of each match, plus any selection a ticket uses.
         chosen = {(x["match_id"], x["key"]) for t in tickets for x in t["legs"]}
         for r in rows:
             r["alternatives"] = [x for i, x in enumerate(r["alternatives"])
                                  if i < 12 or (r["match_id"], x["key"]) in chosen]
-        out.append({"date": d.isoformat(), "tickets": tickets, "matches": rows})
+        out.append({"date": d.isoformat(), "tickets": tickets, "missing": missing, "n_followed": n_mine,
+                    "matches": rows})
     return out

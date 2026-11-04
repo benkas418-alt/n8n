@@ -1,5 +1,19 @@
 # Résultats du backtest réel
 
+## Étape 2 : oubli et poids par championnat (2026-11-04, D73)
+
+Même test que ci-dessous (2016-2026, chaque saison jugée avec les saisons d'avant), gain en millièmes.
+
+| Variante | Toutes les ligues | 5 grands championnats | PL | BL | SA | Liga | L1 |
+|---|---|---|---|---|---|---|---|
+| Poids communs (D72) | +0,49 | +0,38 (IC −0,26 ; +1,03) | +0,47 | −0,95 | +0,94 | +0,87 | +0,30 |
+| Plus poids par championnat, pénalité 1 000 | +0,46 | +0,57 (IC +0,15 ; +1,01) | +0,71 | −0,24 | +1,19 | +0,71 | +0,30 |
+| Plus poids par championnat, pénalité 3 000 | +0,33 | +0,44 (IC +0,21 ; +0,70) | +0,49 | −0,10 | +0,80 | +0,64 | +0,27 |
+
+Oubli des vieilles saisons (poids communs) : demi-vie de 8, 4, 2 et 1 saison, gain de +0,48, +0,46, +0,40
+et +0,29, contre +0,49 sans oubli. Sur les 3 dernières saisons seules, même ordre : +0,54, +0,50, +0,43 et +0,29,
+contre +0,57. Les tendances ne s'usent pas : il n'y a rien à oublier.
+
 ## Scénarios qui ajustent le marché (2026-11-04, D72)
 
 `analysis/scenario_adjust.py` : 164 142 matchs de championnat avec cote de marché. Chaque saison de 2016

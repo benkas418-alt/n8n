@@ -61,27 +61,38 @@ def probs(ms: MatchSet, w: np.ndarray, idx=slice(None)) -> np.ndarray:
     return e / e.sum(axis=1, keepdims=True)
 
 
-def fit(ms: MatchSet, idx: np.ndarray, ridge: float = 200.0) -> np.ndarray:
-    """Weights on matches `idx` (played ones). Ridge: a weight needs many matches to move."""
-    idx = idx[ms.y[idx] >= 0]
+def recency(ms: MatchSet, idx: np.ndarray, target_season: int, half_life: float | None) -> np.ndarray:
+    """Weight of each training match: a season `half_life` seasons older counts half."""
+    if not half_life:
+        return np.ones(len(idx))
+    return 0.5 ** ((target_season - ms.season[idx]) / half_life)
+
+
+def fit(ms: MatchSet, idx: np.ndarray, ridge: float = 200.0, sw: np.ndarray | None = None) -> np.ndarray:
+    """Weights on matches `idx` (played ones), each match counted `sw` times (default 1).
+    Ridge: a weight needs many matches to move."""
+    keep = ms.y[idx] >= 0
+    idx = idx[keep]
+    sw = np.ones(len(idx)) if sw is None else np.asarray(sw)[keep]
     y = ms.y[idx]
     onehot = np.eye(3)[y]
 
     def loss(w):
         p = probs(ms, w, idx)
-        nll = -np.log(p[np.arange(len(y)), y]).sum() + 0.5 * ridge * (w @ w)
-        g_score = p - onehot  # d nll / d score
+        nll = -(sw * np.log(p[np.arange(len(y)), y])).sum() + 0.5 * ridge * (w @ w)
+        g_score = (p - onehot) * sw[:, None]  # d nll / d score
         grad = ms.fh[idx].T @ g_score[:, 0] + ms.fa[idx].T @ g_score[:, 2] + ridge * w
         return nll, grad
 
-    return minimize(loss, np.zeros(len(CODES)), jac=True, method="L-BFGS-B").x
+    return minimize(loss, np.zeros(ms.fh.shape[1]), jac=True, method="L-BFGS-B").x
 
 
 def log_loss(p: np.ndarray, y: np.ndarray) -> float:
     return float(-np.log(p[np.arange(len(y)), y]).mean())
 
 
-def walk_forward(ms: MatchSet, test_seasons: list[int], ridge: float = 200.0) -> pd.DataFrame:
+def walk_forward(ms: MatchSet, test_seasons: list[int], ridge: float = 200.0,
+                 half_life: float | None = None) -> pd.DataFrame:
     """Per test season: matches, market log loss, adjusted log loss, and the weights used."""
     out = []
     for s in test_seasons:
@@ -89,7 +100,7 @@ def walk_forward(ms: MatchSet, test_seasons: list[int], ridge: float = 200.0) ->
         test = np.where((ms.season == s) & (ms.y >= 0))[0]
         if len(train) < 1000 or len(test) == 0:
             continue
-        w = fit(ms, train, ridge)
+        w = fit(ms, train, ridge, recency(ms, train, s, half_life))
         y = ms.y[test]
         market = np.exp(ms.logp[test])
         adj = probs(ms, w, test)
@@ -98,33 +109,69 @@ def walk_forward(ms: MatchSet, test_seasons: list[int], ridge: float = 200.0) ->
                     "market": log_loss(market, y), "adjusted": log_loss(adj, y),
                     "max_shift": float(np.abs(adj - market).max()),
                     "mean_shift": float(np.abs(adj - market)[touched].mean()) if touched.any() else 0.0}
-                   | {f"w_{c}": wi for c, wi in zip(CODES, w, strict=True)})
+                   | {f"w_{c}": wi for c, wi in zip(CODES, w[:len(CODES)], strict=True)})
     return pd.DataFrame(out)
 
 
-# --- Weekly learning and daily use (D72) ---------------------------------------------
+# --- Weekly learning and daily use (D72, D73) ----------------------------------------
 
 WEIGHTS_FILE = "scenario_weights.json"
-CHECK_SEASONS = 3  # the adjustment stays on only if it beat the market over these seasons
+CHECK_SEASONS = 5  # seasons of the weekly self-check (walk-forward)
 MAX_WEIGHT = 0.25  # about 5 points of probability at most per scenario
+RIDGE = 1000.0  # D73: chosen on 2016-2026 among 200, 1 000 and 3 000
+# D73: a league's own weights add to the shared ones; "other" covers every other league.
+LEAGUES = ("ENG-PL", "GER-BL", "ITA-SA", "ESP-LL", "FRA-L1")
 # Shown to the owner only when it matters: a weight of 0.05 or more, a move of 1 point or more.
 NOTE_MIN_WEIGHT = 0.05
 NOTE_MIN_SHIFT = 0.01
 
 
-def learn(features: pd.DataFrame, current_season: int, ridge: float = 200.0) -> dict:
-    """Self-check on the last seasons (walk-forward), then weights from all played matches.
-    `active` is False when the adjustment did not beat the market in the self-check."""
-    ms = match_set(features)
-    check = walk_forward(ms, list(range(current_season - CHECK_SEASONS, current_season + 1)), ridge)
-    n = int(check["n"].sum()) if len(check) else 0
-    gain = float((check["n"] * (check["market"] - check["adjusted"])).sum() / n) if n else 0.0
-    w = np.clip(fit(ms, np.where(ms.y >= 0)[0], ridge), -MAX_WEIGHT, MAX_WEIGHT)
-    return {"weights": {c: round(float(x), 4) for c, x in zip(CODES, w, strict=True)},
-            "n_matches": int((ms.y >= 0).sum()), "check_matches": n,
-            "check_gain_per_1000": round(gain * 1000, 3), "active": gain > 0,
-            "seasons_won": int((check["adjusted"] < check["market"]).sum()) if len(check) else 0,
-            "seasons_checked": len(check)}
+def by_league(ms: MatchSet) -> MatchSet:
+    """Flags repeated once per big league: shared weights, plus a league weight that the
+    ridge keeps near 0 until that league's own matches support it."""
+    from copy import copy
+
+    out = copy(ms)
+    out.fh = np.hstack([ms.fh] + [ms.fh * (ms.competition == c)[:, None] for c in LEAGUES])
+    out.fa = np.hstack([ms.fa] + [ms.fa * (ms.competition == c)[:, None] for c in LEAGUES])
+    return out
+
+
+def check(ms: MatchSet, seasons: list[int], ridge: float) -> dict:
+    """Walk-forward gain over the market (log loss, per 1 000) overall and per league."""
+    diffs, comps, won = [], [], 0
+    for s in seasons:
+        train = np.where((ms.season < s) & (ms.y >= 0))[0]
+        test = np.where((ms.season == s) & (ms.y >= 0))[0]
+        if len(train) < 1000 or len(test) == 0:
+            continue
+        w = fit(ms, train, ridge)
+        y = ms.y[test]
+        d = np.log(probs(ms, w, test)[np.arange(len(y)), y]) - ms.logp[test][np.arange(len(y)), y]
+        diffs.append(d)
+        comps.append(ms.competition[test])
+        won += d.mean() > 0
+    if not diffs:
+        return {"gain": 0.0, "n": 0, "seasons_won": 0, "seasons": 0, "leagues": {}}
+    d, c = np.concatenate(diffs), np.concatenate(comps)
+    groups = {lg: d[c == lg] for lg in LEAGUES} | {"other": d[~np.isin(c, LEAGUES)]}
+    return {"gain": round(float(d.mean()) * 1000, 3), "n": len(d), "seasons_won": int(won), "seasons": len(diffs),
+            "leagues": {k: {"gain": round(float(v.mean()) * 1000, 3), "n": len(v)} for k, v in groups.items() if len(v)}}
+
+
+def learn(features: pd.DataFrame, current_season: int, ridge: float = RIDGE) -> dict:
+    """Weekly self-check on the last seasons, then weights from all played matches.
+    A league stays adjusted only if its own check beat the market (D73)."""
+    ms = by_league(match_set(features))
+    chk = check(ms, list(range(current_season - CHECK_SEASONS + 1, current_season + 1)), ridge)
+    w = fit(ms, np.where(ms.y >= 0)[0], ridge)
+    k = len(CODES)
+    shared = {c: round(float(x), 4) for c, x in zip(CODES, w[:k], strict=True)}
+    league = {lg: {c: round(float(x), 4) for c, x in zip(CODES, w[k * (i + 1):k * (i + 2)], strict=True)}
+              for i, lg in enumerate(LEAGUES)}
+    active = sorted(lg for lg, v in chk["leagues"].items() if v["gain"] > 0)
+    return {"weights": shared, "league_weights": league, "active_leagues": active, "active": bool(active),
+            "check": chk, "n_matches": int((ms.y >= 0).sum()), "ridge": ridge}
 
 
 def save(result: dict, artifacts_dir) -> None:
@@ -155,17 +202,30 @@ def _side_rows(snap: dict, p_home: float, p_draw: float, p_away: float) -> pd.Da
     return pd.DataFrame(out).astype({f"{c}_{x}": float for c in cols for x in "so"})
 
 
+def weights_for(learnt: dict | None, competition: str) -> dict | None:
+    """Shared plus league weights, or None when the adjustment is off for this league."""
+    if not learnt or not learnt.get("active"):
+        return None
+    key = competition if competition in LEAGUES else "other"
+    if "active_leagues" in learnt and key not in learnt["active_leagues"]:
+        return None
+    extra = (learnt.get("league_weights") or {}).get(competition, {})
+    return {c: float(np.clip(learnt["weights"].get(c, 0.0) + extra.get(c, 0.0), -MAX_WEIGHT, MAX_WEIGHT))
+            for c in CODES}
+
+
 def adjust(p_home: float, p_away: float, snap: dict | None, learnt: dict | None,
-           home: str, away: str) -> tuple[float, float, list[dict]]:
+           home: str, away: str, competition: str = "other") -> tuple[float, float, list[dict]]:
     """Market 1X2 moved by the scenarios that apply. Returns the new home and away win
     probabilities and one plain sentence per scenario that moved them."""
-    if not snap or not learnt or not learnt.get("active"):
+    weights = weights_for(learnt, competition)
+    if not snap or not weights:
         return p_home, p_away, []
     from footintel.analysis.stories import SCENARIO_BY_CODE
 
     p_draw = max(1e-6, 1 - p_home - p_away)
     fl = flags(_side_rows(snap, p_home, p_draw, p_away))
-    w = np.array([learnt["weights"].get(c, 0.0) for c in CODES])
+    w = np.array([weights[c] for c in CODES])
     logp = np.log([p_home, p_draw, p_away])
     s = logp + np.array([fl.iloc[0][CODES].to_numpy(float) @ w, 0.0, fl.iloc[1][CODES].to_numpy(float) @ w])
     p = np.exp(s - s.max())
@@ -173,8 +233,8 @@ def adjust(p_home: float, p_away: float, snap: dict | None, learnt: dict | None,
     notes = []
     for i, team in ((0, home), (1, away)):
         for c in CODES:
-            if fl.iloc[i][c] and abs(learnt["weights"].get(c, 0.0)) >= NOTE_MIN_WEIGHT:
-                up = learnt["weights"][c] > 0
+            if fl.iloc[i][c] and abs(weights[c]) >= NOTE_MIN_WEIGHT:
+                up = weights[c] > 0
                 notes.append({"team": team, "scenario": c,
                               "text": f"{team} : {SCENARIO_BY_CODE[c].label}. Dans ce cas, par le passé, "
                                       f"l'équipe a {'gagné un peu plus' if up else 'gagné un peu moins'} "
