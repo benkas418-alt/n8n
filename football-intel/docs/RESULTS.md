@@ -1,5 +1,21 @@
 # Résultats du backtest réel
 
+## Étape 3 : scénarios combinés (2026-11-04, D74)
+
+91 combinaisons, chacune vue au moins 500 fois : la situation d'une équipe face à celle de l'adversaire,
+ou deux situations de la même équipe. Elles s'ajoutent aux scénarios simples et aux poids par championnat
+(D73). Gain en millièmes de log loss, 2016-2026, IC 95 % bootstrap.
+
+| Variante | Toutes les ligues | 5 grands championnats | Apport des combinaisons |
+|---|---|---|---|
+| Scénarios simples (D73) | +0,46 | +0,57 | — |
+| + combinaisons, poids plein | +0,48 | +0,50 | +0,020 (IC −0,035 ; +0,076) |
+| + combinaisons, mi-poids | +0,48 | +0,56 | +0,015 (IC −0,006 ; +0,035) |
+| + combinaisons, quart de poids | +0,47 | +0,57 | +0,005 (IC −0,001 ; +0,011) |
+
+Le plus fort poids appris est −0,024 (équipe en forme qui est aussi un outsider). C'est cinq fois moins
+qu'un scénario simple. Ce que les scénarios simples ne disent pas, le marché le sait déjà.
+
 ## Étape 2 : oubli et poids par championnat (2026-11-04, D73)
 
 Même test que ci-dessous (2016-2026, chaque saison jugée avec les saisons d'avant), gain en millièmes.
