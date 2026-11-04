@@ -398,3 +398,12 @@ table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }
 @media (prefers-reduced-motion: reduce) {
   #app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top, #app .strip.big .strip-bar span { animation: none; }
 }
+
+/* Tickets du jour */
+.ticket .leg { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.ticket .leg-odds { color: var(--muted); white-space: nowrap; }
+table.alts tr.me td { background: var(--sunk); font-weight: 600; }
+table.alts td.num { white-space: nowrap; }
+table.alts td, table.alts th { padding-left: 4px; padding-right: 4px; font-size: 13px; }
+.ticket .ok { color: var(--accent); }
+td.pos { color: var(--accent); } td.neg { color: var(--muted); }

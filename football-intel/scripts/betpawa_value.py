@@ -25,13 +25,15 @@ import numpy as np
 from sqlalchemy import text
 
 sys.path.insert(0, "src")
+from footintel.analysis.tickets import dc_up  # noqa: E402
 from footintel.analysis.value import _fit_lambdas  # noqa: E402
 from footintel.api.dashboard import _market_order  # noqa: E402
 from footintel.db.session import get_engine  # noqa: E402
 from footintel.evaluation.metrics import bootstrap_mean_ci  # noqa: E402
 
 MARKETS = {"1X2": {"H", "D", "A"}, "DC": {"1X", "12", "X2"}, "BTTS": {"Y", "N"}, "OU2.5": {"O", "U"},
-           "1UP": {"1", "2"}, "2UP": {"1", "2"}, "FG": {"1", "2", "0"}}
+           "1UP": {"1", "2"}, "2UP": {"1", "2"}, "FG": {"1", "2", "0"},
+           "DC1UP": {"1X", "X2", "12"}, "DC2UP": {"1X", "X2", "12"}}
 # Sharpest first: (bookmaker, snapshot label or None for the latest The Odds API snapshot).
 # Only a starting point for the goal-rate fit when no prediction is stored.
 DEFAULT_GOALS = (1.4, 1.1)
@@ -93,6 +95,9 @@ def fair_prob(market: str, sel: str, p: tuple, p_over: float | None,
         lh, la = _fit_lambdas(h, a, (eh, ea), p_over)
         yes = (1 - np.exp(-lh)) * (1 - np.exp(-la))
         return yes if sel == "Y" else 1 - yes
+    if market in ("DC1UP", "DC2UP"):
+        lh, la = _fit_lambdas(h, a, (eh, ea), p_over)
+        return dict(zip(("1X", "X2", "12"), dc_up(lh, la, 1 if market == "DC1UP" else 2)))[sel]
     m = _market_order(round(h, 4), round(a, 4), None if p_over is None else round(p_over, 4),
                       round(eh, 3), round(ea, 3))
     return m.get(f"{market}_{sel}")
@@ -117,7 +122,16 @@ def settle(market: str, sel: str, hg: int, ag: int, goals: list[str] | None) -> 
     for g in goals:
         lead += 1 if g == "H" else -1
         best["H"], best["A"] = max(best["H"], lead), max(best["A"], -lead)
-    need = 1 if market == "1UP" else 2
+    need = 2 if market in ("2UP", "DC2UP") else 1
+    if market in ("DC1UP", "DC2UP"):
+        # Early payout at a `need`-goal lead of a covered team, else a double chance on the final score.
+        final = {"1X": hg >= ag, "X2": ag >= hg, "12": hg != ag}[sel]
+        covered = {"1X": ("H",), "X2": ("A",), "12": ("H", "A")}[sel]
+        lead, best = 0, {"H": 0, "A": 0}
+        for g in goals:
+            lead += 1 if g == "H" else -1
+            best["H"], best["A"] = max(best["H"], lead), max(best["A"], -lead)
+        return int(final or any(best[t] >= need for t in covered))
     side = "H" if sel == "1" else "A"
     # betPawa rule: paid as soon as the team leads by `need`, else settled on the final result.
     return int(best[side] >= need or (hg > ag if side == "H" else ag > hg))

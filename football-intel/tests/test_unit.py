@@ -994,3 +994,41 @@ def test_stage_of_accepts_a_missing_round():
     from footintel.features.context import stage_of
 
     assert stage_of(float("nan"), "cup") == "unknown" and stage_of(None, "league") == "league"
+
+
+def test_double_chance_early_payout_bounds_and_settled_cases():
+    from footintel.analysis.tickets import dc_up, probabilities
+
+    p = probabilities(0.5, 0.25, 0.55)
+    # The early payout only adds winning paths to the plain double chance.
+    assert p["DC1UP_1X"] >= p["1X"] - 1e-9 and p["DC2UP_1X"] >= p["1X"] - 1e-9
+    assert p["DC1UP_X2"] >= p["X2"] - 1e-9 and p["DC2UP_12"] >= p["12"] - 1e-9
+    assert p["DC1UP_1X"] >= p["DC2UP_1X"] - 1e-9
+    # "12" with a one-goal trigger only fails at 0-0.
+    lh, la = 1.5, 1.1
+    assert abs(dc_up(lh, la, 1)[2] - (1 - np.exp(-(lh + la)))) < 1e-4
+
+
+def test_tickets_reach_ten_with_one_selection_per_match(tmp_path):
+    from footintel.analysis.tickets import best_ticket, day_tickets, load_journal
+
+    journal = tmp_path / "prices.csv"
+    journal.write_text("captured_at,source,book,match_date,home,away,market,selection,price\n"
+                       "2026-10-30T16:00,screenshot,betpawa.cd,2026-10-31,H0,A0,DC1UP,1X,1.22\n"
+                       "2026-10-30T16:00,screenshot,betpawa.cd,2026-10-31,H0,A0,2UP,1,1.80\n", encoding="utf-8")
+    prices = load_journal(journal)
+    assert prices[("H0", "A0", "DC1UP_1X")] == 1.22 and prices[("H0", "A0", "2UP_1")] == 1.8
+    matches = [{"id": i, "kickoff_date": "2026-10-31", "kickoff_utc": f"2026-10-31T{12 + i % 8:02d}:00:00Z",
+                "competition": "ENG-PL", "home": f"H{i}", "away": f"A{i}", "p1": 0.45 + 0.01 * (i % 5),
+                "p2": 0.27, "p_over": 0.55} for i in range(16)]
+    days = day_tickets(matches, prices, date(2026, 10, 31))
+    tickets = {t["tag"]: t for t in days[0]["tickets"]}
+    assert set(tickets) == {"A", "B", "C"}
+    for t in tickets.values():
+        assert t["odds"] >= 10
+        ids = [x["match_id"] for x in t["legs"]]
+        assert len(ids) == len(set(ids))
+    assert len(tickets["A"]["legs"]) == 5 and 12 <= len(tickets["C"]["legs"]) <= 15
+    chelsea_like = next(x for x in days[0]["matches"] if x["match_id"] == 0)["alternatives"]
+    assert any(x["key"] == "DC1UP_1X" and x["known"] and x["price"] == 1.22 for x in chelsea_like)
+    assert best_ticket([], 5, 5) is None
