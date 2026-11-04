@@ -1,0 +1,8 @@
+{"project":"pitup-tuto-boutique","song":"Kairo_Keyz__Thiago_Sub_-_float_2_0M4A_128K.m4a","song_off":0,
+ "intro_vo":"tuto_0","outro_vo":"tuto_6","intro_l1":"Créer sa boutique","intro_l2":"sur PitUp.",
+ "steps":[
+  {"vo":"tuto_1","head":"Marché, puis « Créer son business ».","word":"MARCHÉ","bg":["#EFE6D8","#E3D6C2"],"segs":[["s1",4.6]],"taps":[[2.9,360,592],[3.95,238,1116]]},
+  {"vo":"tuto_2","head":"Le nom et la description.","word":"NOM","bg":["#F6D9E2","#EEC8D4"],"segs":[["s2",5.44],["s3",5.0]]},
+  {"vo":"tuto_3","head":"Téléphone et catégorie.","word":"CONTACT","bg":["#D9CCB6","#CDBEA5"],"segs":[["s4",4.65],["s5",1.8]]},
+  {"vo":"tuto_4","head":"Adresse et position GPS.","word":"ADRESSE","bg":["#DCEBF5","#C9DFEE"],"segs":[["s6",4.95],["s7",2.0]]},
+  {"vo":"tuto_5","head":"Logo, puis « Créer ma boutique ».","word":"LOGO","bg":["#EFE6D8","#E3D6C2"],"segs":[["s8",1.45]],"taps":[[1.2,392,1168]]}]}
