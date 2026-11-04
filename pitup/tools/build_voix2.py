@@ -79,6 +79,7 @@ html = f'''<!doctype html>
       #recap .mini {{ position: absolute; width: 270px; height: 270px; display: flex; align-items: center; justify-content: center; }}
       #recap .mini img {{ width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 20px 18px rgba(0,0,0,.5)); }}
       #cta .ch {{ display: inline-block; }}
+      {CFG.get('extra_css', '')}
     </style>
   </head>
   <body>
@@ -88,7 +89,7 @@ html = f'''<!doctype html>
         <div id="cam">
           <div id="intro"><div class="giant">{CFG["intro_word"]}</div><div id="introT"><span style="display:block">{CFG["intro_l1"]}</span><b style="display:block">{CFG["intro_l2"]}</b></div></div>
           <div id="shots"></div>
-          <div id="recap"><div id="recapT"><span style="display:block">Tout ça,</span><b style="display:block">sur PitUp.</b></div></div>
+          <div id="recap"><div id="recapT"><span style="display:block">{CFG.get("recap_l1", "Tout ça,")}</span><b style="display:block">{CFG.get("recap_l2", "sur PitUp.")}</b></div></div>
 {end_html}
         </div>
         <div id="anchor"><img id="anchorIcon" src="assets/icon.png" alt="" /><span id="anchorTxt">PitUp · Lubumbashi</span></div>

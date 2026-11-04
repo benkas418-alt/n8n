@@ -133,3 +133,6 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Prononciation** : « Nike Shox TL » devient « Night Shocks DL ». Dire « Les Nike Shox, en noir. » Écrire « Asiks » pour Asics.
 - Musique : Tiakola « Mode de vie » (134 BPM, gros temps à 29,664 s) pour Femme, Blockkids (130 BPM) pour Homme.
 - **Piège** : ne jamais mettre en file d'attente avec `while pgrep -f vox_clone_texts`, parce que les lignes de commande des files d'attente se détectent entre elles et bloquent tout.
+- **Vidéos dédiées, refusées par le fondateur** : Jordan 4 (« bizarre ») et Mary Jane (déjà traitées). **Réalisée le 4 novembre** : Club de Nuit, 6 parfums chez Natty boutique, sur Tiakola « Cléopâtre » (113 BPM, temps fort à 17,085 s), `cfg/cdn1.json`. Les photos ne se détourent pas (carte ARMAF devant, rayons derrière) : on les présente en **cartes photo arrondies** (`extra_css` dans la config).
+- Accroche validée pour Pour elle : « Les pièces tendance du moment… sont déjà à Lubumbashi. » **Ne pas dire « Europe et States ».**
+- Prononciation : « Untold » devient « Untold. Couleur bordeaux. », et « Club Night Woman » devient « Et la Club Night Woman. ».
