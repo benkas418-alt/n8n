@@ -144,3 +144,12 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Prononciation** : « Wees fk » s'écrit « Wiz, èf, ka ». Ne jamais commencer une phrase par « PitUp » (elle dit « Pitop ») : écrire « bienvenue sur PitUp » ou « sur PitUp ». Pour « tu commandes, on te livre », écrire des phrases courtes séparées par des points. Pour les noms de parfums difficiles (Badée al Oud), dire « un parfum oud » et afficher le vrai nom à l'écran. Faire 3 prises d'une phrase délicate et garder celle que la transcription reconnaît.
 - **Vérification de la voix** : faster-whisper `medium`, avec `initial_prompt` pour les noms propres.
 - **Disque plein** : les renders intermédiaires (`hf/videos/*/renders`) et les caches pip/uv se suppriment ; les livrables restent dans `livrables/`.
+- **Public : jeunes noirs africains (RDC).** Toute personne visible à l'écran doit être noire africaine. Refuser les plans de stock avec des personnes non africaines ou des décors étrangers (montagne enneigée, marché européen).
+- **Le fondateur veut de vraies images, pas du graphisme** : un vrai téléphone en main, une vraie carte ou une vue satellite de Lubumbashi, de vraies boutiques. Sources utilisées :
+  - satellite Esri (avec crédit) et plan OpenStreetMap (avec crédit) via `tools/mapzoom.py` ;
+  - photos des boutiques partenaires prises dans le catalogue de l'API ;
+  - vraies captures de pi-tup.com via Playwright (`/marketplace` montre les boutiques, sans prix) ;
+  - vidéos libres Mixkit (gratuites, usage commercial permis), uniquement avec des personnes noires ;
+  - vidéo de rues de Lubumbashi envoyée par le fondateur, signée « DJEUDY / @djeudy243 » : **son accord est à confirmer avant publication**.
+  Pexels, Pixabay et Wikimedia sont bloqués depuis le conteneur.
+- La page `/shopping` du site affiche les prix : ne pas l'utiliser.
