@@ -153,3 +153,5 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - vidéo de rues de Lubumbashi envoyée par le fondateur, signée « DJEUDY / @djeudy243 » : **son accord est à confirmer avant publication**.
   Pexels, Pixabay et Wikimedia sont bloqués depuis le conteneur.
 - La page `/shopping` du site affiche les prix : ne pas l'utiliser.
+- **Règle du fondateur (redite deux fois)** : **l'appli et le site apparaissent toujours dans un téléphone 3D**, jamais à plat en plein écran. Le site sur ordinateur apparaît dans un **ordinateur portable 3D** avec la **vraie page `/marketplace`** qui défile (la page d'accueil « Pour vous » n'est pas représentative). Voir `tools/build_quoi3.py` : téléphone et ordinateur en 3D placés à la racine du document, ce qui permet de mettre des vidéos sur l'écran du téléphone.
+- Vidéo de DJEUDY : accord confirmé ; le badge Instagram « @djeudy243 » est retiré par `delogo=x=500:y=288:w=216:h=120` sur la source 720x1280 ; la signature « Directed by DJEUDY » reste.
