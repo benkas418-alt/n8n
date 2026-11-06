@@ -62,6 +62,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | dickwu/apple-design-skill (2026-11-04) | Not vendored: reproduces Apple's copyrighted HIG text with no licence. Clone to the scratchpad and read a page (tab bars, navigation) when needed |
 | designmodo/Flat-UI, nexu-io/open-design, hendurhance/ui-ux (2026-11-04) | Not used. Flat-UI: 2013-2018 Bootstrap 3 kit. open-design: a 363 MB design-agent app with telemetry on by default and a paid cloud. ui-ux: a reading list whose book mirrors come from shadow libraries (Anna's Archive, LibGen): never copy those files |
 | santmun/crear-agente (2026-11-04) | Not vendored: Spanish beginner course (LATAM tone, OpenAI) that would talk to the owner in Spanish. Its Cloudflare Workers cron-agent pattern is distilled into ai-agent-engineering (useful for PitUp automations) |
+| Graphify-Labs/graphify (2026-11-06) | Installed: skill `/graphify` in .claude/skills/graphify; CLI `graphifyy` 0.9.103 via the setup script. Its Read/Grep hooks and root CLAUDE.md block were removed (hooks fail when the CLI is missing). Use on football-intel/, not on all of n8n. `graphify update <dir>` = local AST, no API cost |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
@@ -101,3 +102,7 @@ The cloud container is reset between sessions. Reinstall the external tools with
   pipeline logs a failed step and still exits 0.
 - Container restarts lose the local venv and Postgres: recreate the venv in the scratchpad,
   `service postgresql start`; the local model file lives in /tmp/claude-0/fi-run (run from there).
+
+# graphify
+- **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
