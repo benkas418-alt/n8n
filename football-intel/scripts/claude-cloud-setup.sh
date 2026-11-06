@@ -46,7 +46,15 @@ if ! command -v fcc-server >/dev/null 2>&1; then
   "$UV" tool install -q --python 3.14.10 "$SRC/free-claude-code"
 fi
 
+# graphify CLI (Apache-2.0): the /graphify skill in .claude/skills calls it.
+# Only the CLI: `graphify install` would add Read/Grep hooks to .claude/settings.json.
+step "graphify"
+if ! command -v graphify >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/graphify" ]; then
+  "$UV" tool install -q graphifyy==0.9.103
+fi
+
 step "done"
+"$HOME/.local/bin/graphify" --version 2>/dev/null | tail -1
 "$V/sofascore/bin/ssc" version 2>/dev/null | tail -1
 "$V/soccerdata/bin/python" -c "import soccerdata; print('soccerdata', soccerdata.__version__)" 2>/dev/null | tail -1
 command -v fcc-server >/dev/null && echo "free-claude-code ok"
