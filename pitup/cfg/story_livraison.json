@@ -1,0 +1,110 @@
+{
+ "project": "pitup-livraison",
+ "style": "kin",
+ "song": "Michael_Olise_-_Raindance_Dave_Tems.mp3",
+ "song_off": 40.0,
+ "scenes": [
+  {
+   "vo": "vb_0",
+   "head": [
+    "Et si tu",
+    "reçois rien ?"
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "L15"
+    }
+   ]
+  },
+  {
+   "vo": "vb_1",
+   "head": [
+    "Pas comme",
+    "la photo ?"
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "L19"
+    }
+   ]
+  },
+  {
+   "vo": "vb_2",
+   "beats": [
+    {
+     "k": "v",
+     "src": "doubt",
+     "cap": "Ces doutes, on les connaît."
+    }
+   ]
+  },
+  {
+   "vo": "vb_3",
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phs_a",
+     "cap": "Rien à payer à l'avance."
+    }
+   ]
+  },
+  {
+   "vo": "vb_4",
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phs_b",
+     "cap": "Tu commandes."
+    },
+    {
+     "k": "v",
+     "src": "L10",
+     "cap": "Le livreur arrive."
+    },
+    {
+     "k": "v",
+     "src": "handoff",
+     "cap": "Tu reçois ton article."
+    }
+   ]
+  },
+  {
+   "vo": "vb_5",
+   "head": [
+    "Et là,",
+    "tu paies."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "L27"
+    }
+   ]
+  },
+  {
+   "vo": "vb_6",
+   "head": [
+    "Zéro",
+    "risque."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "rooftop"
+    }
+   ]
+  },
+  {
+   "vo": "vc_1",
+   "end_at": 0.42,
+   "beats": [
+    {
+     "k": "lap",
+     "cap": "Essaie, et tu verras."
+    }
+   ]
+  }
+ ]
+}

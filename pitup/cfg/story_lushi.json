@@ -1,0 +1,140 @@
+{
+ "project": "pitup-lushi",
+ "style": "city",
+ "song": "Michael_Olise___Blockkids_thizzy52.mp3",
+ "song_off": 0.1,
+ "scenes": [
+  {
+   "vo": "vd_0",
+   "head": [
+    "Lubumbashi",
+    "ne s'arrête jamais."
+   ],
+   "beats": [
+    {
+     "k": "rapid",
+     "srcs": [
+      "L24",
+      "L0",
+      "L23",
+      "L33",
+      "L9"
+     ]
+    }
+   ]
+  },
+  {
+   "vo": "vd_1",
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "couple",
+      "L32",
+      "suit"
+     ],
+     "cap": "Les cours. Le boulot. Les sorties.",
+     "cap_top": 1700
+    }
+   ]
+  },
+  {
+   "vo": "vd_2",
+   "head": [
+    "Le tour des boutiques ?",
+    "Pas le temps."
+   ],
+   "beats": [
+    {
+     "k": "rapid",
+     "srcs": [
+      "L2",
+      "L33",
+      "L39",
+      "L28",
+      "L26",
+      "L16"
+     ]
+    }
+   ]
+  },
+  {
+   "vo": "vd_3",
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phs_full",
+     "cap": "Tes articles viennent à toi."
+    }
+   ]
+  },
+  {
+   "vo": "vx_4",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "robe_jean.png",
+     "word": "MODE",
+     "bg": "#EFE6D8",
+     "tone": "#E3D6C2",
+     "cap": "Mode."
+    },
+    {
+     "k": "cut",
+     "src": "kayali.png",
+     "word": "BEAUTÉ",
+     "bg": "#F6D9E2",
+     "tone": "#EEC8D4",
+     "cap": "Beauté."
+    },
+    {
+     "k": "cut",
+     "src": "samba.png",
+     "word": "SNEAKERS",
+     "bg": "#D9CCB6",
+     "tone": "#CDBEA5",
+     "cap": "Chaussures."
+    },
+    {
+     "k": "cut",
+     "src": "rayban.png",
+     "word": "STYLE",
+     "bg": "#DCEBF5",
+     "tone": "#C9DFEE",
+     "cap": "Accessoires."
+    }
+   ]
+  },
+  {
+   "vo": "vx_6",
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "L10",
+      "handoff"
+     ],
+     "cap": "Tu commandes, on te livre.",
+     "cap_top": 1700
+    }
+   ]
+  },
+  {
+   "vo": "vc_2",
+   "end_at": 0.42,
+   "head": [
+    "Lubumbashi,",
+    "en mieux."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "L11"
+    },
+    {
+     "k": "flag"
+    }
+   ]
+  }
+ ]
+}

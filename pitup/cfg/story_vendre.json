@@ -1,0 +1,126 @@
+{
+ "project": "pitup-vendre",
+ "style": "glass",
+ "song": "Hallelujah.m4a",
+ "song_off": 26.0,
+ "scenes": [
+  {
+   "vo": "va_0",
+   "head": [
+    "Tu as une boutique",
+    "à Lubumbashi ?"
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "L0"
+    },
+    {
+     "k": "v",
+     "src": "L9"
+    }
+   ]
+  },
+  {
+   "vo": "va_1",
+   "beats": [
+    {
+     "k": "v",
+     "src": "L17",
+     "cap": "Tu attends les clients…"
+    },
+    {
+     "k": "v",
+     "src": "shoes",
+     "cap": "…devant ta porte."
+    }
+   ]
+  },
+  {
+   "vo": "vx_0",
+   "head": [
+    "Mais tes clients sont",
+    "sur leur téléphone."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "youth"
+    },
+    {
+     "k": "v",
+     "src": "L13"
+    }
+   ]
+  },
+  {
+   "vo": "va_3",
+   "head": [
+    "Ouvre ta boutique",
+    "à toute la ville."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phs_full"
+    }
+   ]
+  },
+  {
+   "vo": "va_4",
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phapp",
+     "cap": "Ta boutique, en quelques minutes."
+    },
+    {
+     "k": "cut",
+     "src": "longchamp.png",
+     "word": "ARTICLES",
+     "bg": "#F6D9E2",
+     "tone": "#EEC8D4",
+     "cap": "Tu ajoutes tes articles."
+    }
+   ]
+  },
+  {
+   "vo": "va_5",
+   "beats": [
+    {
+     "k": "phone",
+     "src": "phs_b",
+     "cap": "Les clients commandent."
+    },
+    {
+     "k": "v",
+     "src": "L10",
+     "cap": "La livraison ? On s'en occupe."
+    }
+   ]
+  },
+  {
+   "vo": "vx_3",
+   "beats": [
+    {
+     "k": "mosaic",
+     "cap": "boutiques ont déjà fait le pas.",
+     "cap_top": 1200
+    }
+   ]
+  },
+  {
+   "vo": "vc_0",
+   "end_at": 0.42,
+   "head": [
+    "Et toi ?",
+    "Ouvre ta boutique."
+   ],
+   "beats": [
+    {
+     "k": "lap"
+    }
+   ]
+  }
+ ]
+}

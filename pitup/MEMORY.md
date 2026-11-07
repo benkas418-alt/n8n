@@ -156,3 +156,13 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Règle du fondateur (redite deux fois)** : **l'appli et le site apparaissent toujours dans un téléphone 3D**, jamais à plat en plein écran. Le site sur ordinateur apparaît dans un **ordinateur portable 3D** avec la **vraie page `/marketplace`** qui défile (la page d'accueil « Pour vous » n'est pas représentative). Voir `tools/build_quoi3.py` : téléphone et ordinateur en 3D placés à la racine du document, ce qui permet de mettre des vidéos sur l'écran du téléphone.
 - Vidéo de DJEUDY : accord confirmé. **Aucun flou ni aucun nom dans une pub** (règle du fondateur) : la signature « Directed by DJEUDY » et le badge « @djeudy243 » sont **effacés et le décor reconstruit** avec LaMa (`tools/lama_wm.py` et `tools/lama_clip.py` ; modèle ONNX dans `/root/.cache/lama/lama.onnx`, à retélécharger depuis HF `Carve/LaMa-ONNX`). Ne jamais utiliser `delogo` ni le flou.
 - **5 novembre** : « PitUp, c'est quoi ? » v4 **validée** (« C'est bon, on passe »).
+- **7 novembre — succès** : « PitUp, c'est quoi ? » v4 a fait 8 000 vues en 1 jour, environ 600 likes, 22 commentaires, 250 enregistrements et 150 abonnés. **On continue sur cette formule** (histoire racontée + vraies images de Lubumbashi + téléphone 3D), **mais sans redondance artistique** : chaque vidéo a sa propre direction de motion design, inspirée de prompt-motion.com.
+- `tools/build_story.py` (config dans `cfg/story_*.json`) propose plusieurs styles :
+  - `glass` : cartes et légendes en verre dépoli, mots qui apparaissent un à un ;
+  - `kin` : typographie géante évidée (on voit Lubumbashi à travers les lettres) ;
+  - `city` : coupes rapides, écrans partagés, légendes discrètes avec trait bleu ;
+  - `base` : le style de « c'est quoi ».
+  Types de plans disponibles : v, rapid, split, img, cut, phone, lap, mosaic, flag.
+- Les **images de Lubumbashi passent en premier** : la vidéo de DJEUDY est nettoyée en entier (`real/lushi_clean.mp4`, via `tools/lama_wm2.py`) et découpée en plans L0 à L39 (`tools/lushi_shots.sh`). En complément : images Mixkit avec uniquement des personnes noires (youth, couple, suit, rooftop, smile, doubt, phoneman, dad), et rayons de boutique sans personne.
+- Traces de badge restées après nettoyage sur L12, L14 et L29 : éviter ces plans.
+- Le quota hebdomadaire du fondateur est limité : livrer chaque vidéo en une fois, et grouper les retours.
