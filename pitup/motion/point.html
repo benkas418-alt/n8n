@@ -24,8 +24,8 @@
 #end{inset:0;z-index:30;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;color:#fff}
 #end img{width:300px} #end .url{background:#fff;color:#1f88c9;font-weight:800;font-size:64px;padding:18px 54px;border-radius:60px}
 </style></head><body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="16.0" data-width="1080" data-height="1920">
-<audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="16.0" data-track-index="11"></audio>
+<div id="root" data-composition-id="main" data-start="0" data-duration="18.5" data-width="1080" data-height="1920">
+<audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="18.5" data-track-index="11"></audio>
 <div id="toggle" class="abs"><div class="lb"><span>P</span><span>a</span><span>y</span><span>e</span><span>r</span><span>&nbsp;</span><span>à</span><span>&nbsp;</span><span>l</span><span>a</span><span>&nbsp;</span><span>l</span><span>i</span><span>v</span><span>r</span><span>a</span><span>i</span><span>s</span><span>o</span><span>n</span></div><div id="sw"></div></div>
 <div id="search" class="abs"><span class="ph">Rechercher…</span><span class="q" id="q"></span></div>
 <svg id="cart" class="abs" viewBox="0 0 24 24" fill="none" stroke="#101418" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
@@ -35,8 +35,14 @@
 <svg id="route" class="abs" width="1080" height="1920"><path id="rp" d="M200,1450 C 300,1100 700,1300 620,900 S 820,560 880,480" fill="none" stroke="#1f88c9" stroke-width="12" stroke-linecap="round" stroke-dasharray="14 22"/></svg>
 <svg class="pin abs" id="pinA" viewBox="0 0 24 24" style="left:140px;top:1340px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#101418"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
 <svg class="pin abs" id="pinB" viewBox="0 0 24 24" style="left:820px;top:370px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#1f88c9"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
-<div class="big abs" id="t2" style="top:1560px;font-size:84px">On te livre<br><span style="color:#1f88c9">chez toi.</span></div>
+<div class="big abs" id="t2" style="top:1560px;font-size:84px;z-index:12;background:rgba(243,245,247,.92);padding:20px 30px;border-radius:30px;left:60px;right:auto">On te livre<br><span style="color:#1f88c9">chez toi.</span></div>
 <div class="big abs" id="t0" style="top:300px;font-size:84px">Commander,<br><span style="color:#1f88c9">simplement.</span></div>
+<div id="mapv" class="abs" style="inset:0;overflow:hidden;opacity:0;z-index:4"><div id="mapc" style="position:absolute;left:0;top:0;width:1300px;height:2300px;transform-origin:0 0">
+<img src="assets/map.jpg" style="position:absolute;left:0;top:0;width:1300px;height:2300px">
+<svg width="1300" height="2300" style="position:absolute;left:0;top:0"><path id="mp" d="M240,2050 L330,1820 L470,1640 L520,1420 L700,1300 L760,1080 L640,900 L700,700 L900,560 L980,380" fill="none" stroke="#1f88c9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4000" stroke-dashoffset="4000"/></svg>
+<svg class="pin" viewBox="0 0 24 24" style="position:absolute;left:190px;top:1955px;width:100px;height:100px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#101418"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+<svg class="pin" viewBox="0 0 24 24" style="position:absolute;left:930px;top:285px;width:100px;height:100px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#1f88c9"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+</div><div style="position:absolute;right:24px;bottom:20px;font-size:20px;color:#5b6b78">Carte © OpenStreetMap</div></div>
 <div id="fill" class="abs"></div>
 <div id="pay" class="abs"><span><i>Et tu paies</i></span><span><i>à la</i></span><span><i>livraison.</i></span></div>
 <div id="end" class="abs"><img src="assets/icon_white.png"><img src="assets/logo_word_white.png" style="width:520px"><div class="url">pi-tup.com</div><div id="stores">
@@ -47,7 +53,7 @@
 <div id="dot" class="abs"></div>
 </div>
 <script>
-const tl=gsap.timeline({paused:true}); const D=16.0;
+const tl=gsap.timeline({paused:true}); const D=18.5;
 // beat grid ~ 129 BPM (0.465 s)
 // 0 toggle: cursor clicks, the knob (blue dot) slides, springs free
 gsap.set("#dot",{x:768,y:905}); gsap.set("#cursor",{x:700,y:1300});
@@ -79,18 +85,20 @@ tl.to("#dot",{keyframes:[{x:600,y:300,duration:.4,ease:"power2.out"},{x:875,y:40
 tl.fromTo("#badge",{opacity:0,scale:0},{opacity:1,scale:1,duration:.4,ease:"back.out(3)"},6.25);
 // route across the city
 tl.to(["#search","#p0","#p1","#p2","#p3","#p4","#p5","#t1","#cart","#badge"],{opacity:0,duration:.35,ease:"power2.in"},6.9);
-tl.set("#route",{opacity:1},7.1); tl.fromTo("#pinA",{opacity:0,y:-60},{opacity:1,y:0,duration:.4,ease:"back.out(2)"},7.1); tl.fromTo("#pinB",{opacity:0,y:-60},{opacity:1,y:0,duration:.4,ease:"back.out(2)"},7.3);
-tl.to("#dot",{x:200,y:1450,duration:.4,ease:"power2.inOut"},6.9);
-const rp=document.getElementById("rp"), L=rp.getTotalLength(); const pr={t:0};
-tl.to(pr,{t:1,duration:2.6,ease:"power1.inOut",onUpdate:()=>{const p=rp.getPointAtLength(pr.t*L);gsap.set("#dot",{x:p.x,y:p.y});}},7.35);
-tl.fromTo("#t2",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},7.6);
+tl.set("#mapv",{opacity:1},7.0); tl.fromTo("#mapv",{opacity:0},{opacity:1,duration:.4},7.0);
+const mp=document.getElementById("mp"), ML=mp.getTotalLength(), mo={t:0};
+const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v)); const cam=(t)=>{const p=mp.getPointAtLength(t*ML), s=1.0+0.6*Math.min(1,t*3); const tx=cl(540-p.x*s,1080-1300*s,0), ty=cl(1000-p.y*s,1920-2300*s,0); gsap.set("#mapc",{x:tx,y:ty,scale:s}); gsap.set("#dot",{x:p.x*s+tx,y:p.y*s+ty}); mp.style.strokeDashoffset=4000-t*ML;};
+tl.to("#dot",{x:240,y:1650,duration:.4,ease:"power2.inOut"},6.9); tl.call(()=>cam(0),null,7.0);
+tl.fromTo(mo,{t:0},{t:1,duration:5.0,ease:"power1.inOut",onUpdate:()=>cam(mo.t)},7.4);
+tl.fromTo("#t2",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},8.2);
+tl.to(["#mapv","#t2"],{opacity:0,duration:.3},12.6);
 // dot lands, grows past every corner
-tl.to(["#route","#pinA","#pinB","#t2"],{opacity:0,duration:.3},10.1);
-tl.to("#dot",{x:540,y:960,duration:.45,ease:"power3.inOut"},10.1);
-tl.set("#fill",{opacity:1},10.55); tl.set("#dot",{opacity:0},10.55);
-tl.fromTo("#fill",{scale:1},{scale:65,duration:.7,ease:"expo.in"},10.55);
-tl.set("#pay",{opacity:1},11.15); tl.fromTo("#pay i",{yPercent:110},{yPercent:0,duration:.6,stagger:.12,ease:"expo.out"},11.15);
-tl.to("#pay",{opacity:0,duration:.3},13.0);
-tl.set("#end",{opacity:1},13.2); tl.fromTo("#end > *",{opacity:0,y:50},{opacity:1,y:0,duration:.5,stagger:.12,ease:"back.out(1.6)"},13.2);
+
+tl.to("#dot",{x:540,y:960,duration:.45,ease:"power3.inOut"},12.6);
+tl.set("#fill",{opacity:1},13.05); tl.set("#dot",{opacity:0},13.05);
+tl.fromTo("#fill",{scale:1},{scale:65,duration:.7,ease:"expo.in"},13.05);
+tl.set("#pay",{opacity:1},13.65); tl.fromTo("#pay i",{yPercent:110},{yPercent:0,duration:.6,stagger:.12,ease:"expo.out"},13.65);
+tl.to("#pay",{opacity:0,duration:.3},15.5);
+tl.set("#end",{opacity:1},15.7); tl.fromTo("#end > *",{opacity:0,y:50},{opacity:1,y:0,duration:.5,stagger:.12,ease:"back.out(1.6)"},15.7);
 tl.set({},{},D); window.__timelines["main"]=tl; tl.seek(0);
 </script></body></html>

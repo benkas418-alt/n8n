@@ -180,5 +180,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - V5 « Survol 3D » de `/marketplace` (prompt 4, Hallelujah, coup fort à 9,97 s) ;
   - V6 « Lancement verre dépoli » (prompt 3, Tiakola « Mode de vie », coup fort à 6 s).
   Pour le survol 3D : mettre la rotation sur un conteneur parent et faire glisser la page dans ce conteneur (sinon la page sort du cadre).
+- **Retours du 7 novembre (motion v2)** :
+  - V4 : vraie carte OpenStreetMap de Lubumbashi (`real/osm16.jpg`), long trajet suivi par la caméra (de 7,4 s à 12,4 s), durée 18,5 s. La voix mo_1 est à 13,7 s.
+  - V5 : la caméra doit être **très près** de la page (échelle 2,1, inclinaison 14°). Elle suit un trajet lisse de boutique en boutique, puis recule et plonge sur la carte finale.
+  - V6 : **plus de robe en jean, sandales, sacs pour femme, parfums, tissus ni bodys.** Utiliser des articles tendance « à l'européenne » vendus sur PitUp : ensemble Nike Tech, survêtement adidas, veste sherpa à capuche, montre DW, baskets cuir, mocassins, polo maille, joggings adidas, plus TN, Shox, Asics, Campus, Samba, veste en cuir, lunettes. Détourages dans `prod/tr/*_s.png`.
+  - Toutes les vidéos durent **20 s au maximum**.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.

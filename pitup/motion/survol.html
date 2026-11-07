@@ -4,10 +4,10 @@
 #root{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(120% 90% at 50% 45%,#f9fbfb 0%,#f2f3f6 100%);font-family:P,sans-serif;color:#0f1419}
 #cam{position:absolute;inset:0;perspective:1800px;perspective-origin:50% 30%}
 #tilt{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 55%}
-#world{position:absolute;left:90px;top:760px;width:900px;height:3750px;transform-style:preserve-3d;transform-origin:50% 0}
+#world{position:absolute;left:0;top:0;width:900px;height:3750px;transform-style:preserve-3d;transform-origin:0 0}
 #page{position:absolute;inset:0;border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(15,20,25,.16),0 4px 12px rgba(15,20,25,.08)}
 #page img{width:900px;display:block}
-.tile{position:absolute;width:240px;height:240px;border-radius:28px;background:#fff;box-shadow:0 30px 40px rgba(15,20,25,.18);display:flex;align-items:center;justify-content:center}
+.tile{position:absolute;width:210px;height:210px;border-radius:26px;background:#fff;box-shadow:0 30px 40px rgba(15,20,25,.18);display:flex;align-items:center;justify-content:center}
 .tile img{width:82%;height:82%;object-fit:contain}
 .logo{position:absolute;width:120px;height:120px;border-radius:28px;background:#1f88c9;display:flex;align-items:center;justify-content:center;box-shadow:0 20px 34px rgba(31,136,201,.35)}
 .logo img{width:70%}
@@ -22,9 +22,10 @@
 <audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="14.5" data-track-index="11"></audio>
 <div id="cam"><div id="tilt"><div id="world">
 <div id="page"><img src="assets/page.jpg"></div>
-<div class="tile" style="left:80px;top:700px;transform:translateZ(40px)"><img src="assets/img/samba.png"></div><div class="tile" style="left:640px;top:1250px;transform:translateZ(34px)"><img src="assets/img/kayali.png"></div><div class="tile" style="left:60px;top:2050px;transform:translateZ(38px)"><img src="assets/img/coach_rose.png"></div><div class="tile" style="left:620px;top:2700px;transform:translateZ(30px)"><img src="assets/img/rayban.png"></div><div class="tile" style="left:90px;top:3300px;transform:translateZ(36px)"><img src="assets/img/tn.png"></div><div class="tile" style="left:600px;top:3800px;transform:translateZ(32px)"><img src="assets/img/longchamp.png"></div>
-<div class="logo lt" style="left:-40px;top:140px;transform:translateZ(36px)"><img src="assets/icon_white.png"></div><div class="logo lt" style="left:820px;top:90px;transform:translateZ(36px)"><img src="assets/icon_white.png"></div><div class="logo lt" style="left:-30px;top:420px;transform:translateZ(36px)"><img src="assets/icon_white.png"></div><div class="logo lt" style="left:830px;top:470px;transform:translateZ(36px)"><img src="assets/icon_white.png"></div>
+<div class="tile" style="left:380px;top:560px;transform:translateZ(70px) rotate(-6deg)"><img src="assets/img/sneak.png"></div><div class="tile" style="left:560px;top:900px;transform:translateZ(70px) rotate(5deg)"><img src="assets/img/jacket.png"></div><div class="tile" style="left:330px;top:1230px;transform:translateZ(70px) rotate(-4deg)"><img src="assets/img/watch.png"></div><div class="tile" style="left:580px;top:1560px;transform:translateZ(70px) rotate(6deg)"><img src="assets/img/sherpa.png"></div><div class="tile" style="left:360px;top:1870px;transform:translateZ(70px) rotate(-5deg)"><img src="assets/img/loafers.png"></div><div class="tile" style="left:520px;top:2230px;transform:translateZ(70px) rotate(4deg)"><img src="assets/img/jogging.png"></div>
+
 </div></div></div>
+<svg width="0" height="0" style="position:absolute"><path id="cp" d="M230,150 C218,198 123,337 160,440 C197,543 352,662 450,770 C548,878 750,983 750,1090 C750,1197 548,1303 450,1410 C352,1517 112,1622 160,1730 C208,1838 692,1950 740,2060 C788,2170 547,2283 450,2390 C353,2497 208,2648 160,2700"/></svg>
 <div id="card"><div class="bd"><img src="assets/icon.png">PitUp · Lubumbashi</div><h1>Tout Lubumbashi,<em>dans ta poche.</em></h1><div class="url">pi-tup.com · l'appli</div><div id="stores">
               <div class="bdg"><svg viewBox="0 0 24 24"><path fill="#fff" d="M16.4 1.4c0 1.1-.5 2.3-1.2 3.1-.7.9-2 1.6-3 1.6-.1 0-.2 0-.3-.1 0-.1 0-.2 0-.4 0-1.1.6-2.3 1.2-3 .8-.9 2.1-1.6 3.2-1.7.1.2.1.3.1.5zm4.6 15.7c0 .1-.5 1.6-1.5 3.1-.9 1.3-1.9 2.7-3.4 2.7s-1.9-.9-3.6-.9c-1.7 0-2.3.9-3.7.9-1.4 0-2.3-1.3-3.4-2.8C4.1 18.3 3 15.5 3 12.8c0-4.3 2.8-6.5 5.6-6.5 1.4 0 2.7.9 3.6.9.9 0 2.2-1 3.9-1 .6 0 2.9.1 4.4 2.2-.1.1-2.4 1.4-2.4 4.2 0 3.3 2.9 4.4 2.9 4.5z"/></svg><span><small>Disponible sur</small><b>App Store</b></span></div>
               <div class="bdg"><svg viewBox="0 0 24 24"><path fill="#00d7fe" d="M3.6 1.8 13.6 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1z"/><path fill="#00f076" d="M3.6 1.8 16.9 9.4 13.6 12z"/><path fill="#f8384b" d="M3.6 22.2 13.6 12l3.3 2.6z"/><path fill="#fdbd00" d="M16.9 9.4 21 11.7c.5.3.5.9 0 1.2l-4.1 1.7-3.3-2.6z"/></svg><span><small>Disponible sur</small><b>Google Play</b></span></div>
@@ -32,15 +33,21 @@
 </div>
 <script>
 const tl=gsap.timeline({paused:true}); const D=14.5, H=3750;
-// one continuous camera: glide down the page, rise overhead, dive into the hero, hero becomes the title card
-gsap.set("#tilt",{rotationX:50,z:-260});
-tl.to("#world",{y:-(3750-1500),duration:8.2,ease:"power1.inOut"},0);
-tl.to("#tilt",{rotationX:0,z:0,duration:1.5,ease:"power2.inOut"},7.75);
-tl.to("#world",{scale:0.4,y:-560,duration:1.5,ease:"power2.inOut"},7.75);
-tl.to("#world",{scale:1.5,y:-430,duration:0.5,ease:"power3.in"},9.47);
+// close-up camera: travel shop to shop along a smooth path, then pull back, dive and land on the title card
+const cp=document.getElementById("cp"), CL=cp.getTotalLength(); const C={t:0,s:2.1,bx:0,by:0,blend:0};
+const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const cam=()=>{const p=cp.getPointAtLength(C.t*CL); const px=p.x*(1-C.blend)+C.bx*C.blend, py=p.y*(1-C.blend)+C.by*C.blend, s=C.s;
+  const tx=cl(540-px*s,Math.min(0,1080-900*s),Math.max(0,(1080-900*s)/2)), ty0=960-py*s, ty=3750*s>1920?cl(ty0,1920-3750*s,0):ty0; gsap.set("#world",{x:tx,y:ty,scale:s});};
+gsap.set("#tilt",{rotationX:14}); cam();
+tl.to(C,{t:1,duration:7.9,ease:"sine.inOut",onUpdate:cam},0);
+tl.to(C,{s:2.35,duration:1.2,ease:"sine.inOut",yoyo:true,repeat:5,onUpdate:cam},0.2);
+tl.to(C,{blend:1,bx:450,by:1800,s:0.44,duration:1.6,ease:"power2.inOut",onUpdate:cam},7.75);
+tl.to("#tilt",{rotationX:28,duration:1.6,ease:"power2.inOut"},7.75);
+tl.to(C,{by:250,s:1.6,duration:0.5,ease:"power3.in",onUpdate:cam},9.47);
+tl.to("#tilt",{rotationX:0,duration:0.5,ease:"power3.in"},9.47);
 tl.to("#cam",{opacity:0,duration:0.25},9.8);
 tl.fromTo("#card",{opacity:0,scale:1.25,rotationX:20},{opacity:1,scale:1,rotationX:0,duration:0.6,ease:"expo.out"},9.97);
 tl.fromTo("#card > *",{opacity:0,y:40},{opacity:1,y:0,duration:0.5,stagger:0.15,ease:"power3.out"},10.1);
-tl.fromTo(".tile",{y:0},{y:-14,duration:2,ease:"sine.inOut",yoyo:true,repeat:3,stagger:0.3},0);
+tl.fromTo(".tile",{y:0},{y:-18,duration:1.6,ease:"sine.inOut",yoyo:true,repeat:5,stagger:0.25},0);
 tl.set({},{},D); window.__timelines["main"]=tl; tl.seek(0);
 </script></body></html>
