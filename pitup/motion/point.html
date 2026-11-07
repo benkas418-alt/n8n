@@ -1,0 +1,96 @@
+<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=1080, height=1920"><script src="assets/gsap.min.js"></script>
+<style>@font-face{font-family:P;src:url(assets/fonts/poppins-600.woff2);font-weight:600}@font-face{font-family:P;src:url(assets/fonts/poppins-800.woff2);font-weight:800}@font-face{font-family:P;src:url(assets/fonts/poppins-500.woff2);font-weight:500}
+#stores{display:flex;gap:22px;justify-content:center}.bdg{display:flex;align-items:center;gap:14px;background:#000;border:2px solid #444;border-radius:18px;padding:12px 24px;color:#fff}.bdg svg{width:46px;height:46px}.bdg span{display:flex;flex-direction:column;line-height:1}.bdg small{font-size:18px;font-weight:500}.bdg b{font-size:34px;font-weight:600}
+*{box-sizing:border-box} body{margin:0}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:#F3F5F7;font-family:P,sans-serif;color:#101418}
+.abs{position:absolute}
+#toggle{left:140px;top:820px;width:800px;height:170px;border-radius:40px;background:#fff;box-shadow:0 20px 50px rgba(16,20,24,.08);display:flex;align-items:center;padding:0 50px;gap:40px}
+#toggle .lb{font-weight:600;font-size:46px;flex:1;letter-spacing:-1px} #toggle .lb span{display:inline-block}
+#sw{width:170px;height:96px;border-radius:48px;background:#D5DBE1;position:relative}
+#cursor{left:0;top:0;width:70px;height:70px}
+#dot{left:0;top:0;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;background:#1f88c9;z-index:20}
+#search{left:90px;top:520px;width:900px;height:150px;border-radius:75px;background:#fff;box-shadow:0 20px 50px rgba(16,20,24,.08);display:flex;align-items:center;padding:0 60px;font-size:58px;font-weight:600;opacity:0}
+#search .q{color:#101418} #search .ph{color:#9aa6b2;position:absolute;left:60px}
+.prod{width:280px;height:280px;background:#fff;border-radius:36px;box-shadow:0 18px 40px rgba(16,20,24,.07);display:flex;align-items:center;justify-content:center;opacity:0}
+.prod img{width:84%;height:84%;object-fit:contain}
+#cart{left:800px;top:330px;width:150px;height:150px;opacity:0}
+#badge{left:890px;top:320px;width:64px;height:64px;border-radius:50%;background:#e5484d;color:#fff;font-weight:800;font-size:38px;display:flex;align-items:center;justify-content:center;opacity:0;z-index:21}
+.big{left:80px;right:80px;font-weight:800;letter-spacing:-4px;line-height:.98;opacity:0}
+#route{left:0;top:0;opacity:0}
+.pin{width:120px;height:120px;opacity:0}
+#fill{left:540px;top:960px;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;background:#1f88c9;opacity:0;z-index:15}
+#pay{left:80px;right:80px;top:760px;color:#fff;font-weight:800;font-size:130px;letter-spacing:-5px;line-height:.96;z-index:16;opacity:0}
+#pay span{display:block;overflow:hidden} #pay i{display:block;font-style:normal}
+#end{inset:0;z-index:30;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;color:#fff}
+#end img{width:300px} #end .url{background:#fff;color:#1f88c9;font-weight:800;font-size:64px;padding:18px 54px;border-radius:60px}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="16.0" data-width="1080" data-height="1920">
+<audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="16.0" data-track-index="11"></audio>
+<div id="toggle" class="abs"><div class="lb"><span>P</span><span>a</span><span>y</span><span>e</span><span>r</span><span>&nbsp;</span><span>à</span><span>&nbsp;</span><span>l</span><span>a</span><span>&nbsp;</span><span>l</span><span>i</span><span>v</span><span>r</span><span>a</span><span>i</span><span>s</span><span>o</span><span>n</span></div><div id="sw"></div></div>
+<div id="search" class="abs"><span class="ph">Rechercher…</span><span class="q" id="q"></span></div>
+<svg id="cart" class="abs" viewBox="0 0 24 24" fill="none" stroke="#101418" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+<div id="badge" class="abs">1</div>
+<div class="prod abs" id="p0" style="left:90px;top:760px"><img src="assets/img/samba.png"></div><div class="prod abs" id="p1" style="left:400px;top:760px"><img src="assets/img/tn.png"></div><div class="prod abs" id="p2" style="left:710px;top:760px"><img src="assets/img/campus.png"></div><div class="prod abs" id="p3" style="left:90px;top:1080px"><img src="assets/img/asics.png"></div><div class="prod abs" id="p4" style="left:400px;top:1080px"><img src="assets/img/shox.png"></div><div class="prod abs" id="p5" style="left:710px;top:1080px"><img src="assets/img/jacket.png"></div>
+<div class="big abs" id="t1" style="top:1440px;font-size:92px">Tu trouves.<br><span style="color:#1f88c9">Tu commandes.</span></div>
+<svg id="route" class="abs" width="1080" height="1920"><path id="rp" d="M200,1450 C 300,1100 700,1300 620,900 S 820,560 880,480" fill="none" stroke="#1f88c9" stroke-width="12" stroke-linecap="round" stroke-dasharray="14 22"/></svg>
+<svg class="pin abs" id="pinA" viewBox="0 0 24 24" style="left:140px;top:1340px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#101418"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+<svg class="pin abs" id="pinB" viewBox="0 0 24 24" style="left:820px;top:370px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#1f88c9"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+<div class="big abs" id="t2" style="top:1560px;font-size:84px">On te livre<br><span style="color:#1f88c9">chez toi.</span></div>
+<div class="big abs" id="t0" style="top:300px;font-size:84px">Commander,<br><span style="color:#1f88c9">simplement.</span></div>
+<div id="fill" class="abs"></div>
+<div id="pay" class="abs"><span><i>Et tu paies</i></span><span><i>à la</i></span><span><i>livraison.</i></span></div>
+<div id="end" class="abs"><img src="assets/icon_white.png"><img src="assets/logo_word_white.png" style="width:520px"><div class="url">pi-tup.com</div><div id="stores">
+              <div class="bdg"><svg viewBox="0 0 24 24"><path fill="#fff" d="M16.4 1.4c0 1.1-.5 2.3-1.2 3.1-.7.9-2 1.6-3 1.6-.1 0-.2 0-.3-.1 0-.1 0-.2 0-.4 0-1.1.6-2.3 1.2-3 .8-.9 2.1-1.6 3.2-1.7.1.2.1.3.1.5zm4.6 15.7c0 .1-.5 1.6-1.5 3.1-.9 1.3-1.9 2.7-3.4 2.7s-1.9-.9-3.6-.9c-1.7 0-2.3.9-3.7.9-1.4 0-2.3-1.3-3.4-2.8C4.1 18.3 3 15.5 3 12.8c0-4.3 2.8-6.5 5.6-6.5 1.4 0 2.7.9 3.6.9.9 0 2.2-1 3.9-1 .6 0 2.9.1 4.4 2.2-.1.1-2.4 1.4-2.4 4.2 0 3.3 2.9 4.4 2.9 4.5z"/></svg><span><small>Disponible sur</small><b>App Store</b></span></div>
+              <div class="bdg"><svg viewBox="0 0 24 24"><path fill="#00d7fe" d="M3.6 1.8 13.6 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1z"/><path fill="#00f076" d="M3.6 1.8 16.9 9.4 13.6 12z"/><path fill="#f8384b" d="M3.6 22.2 13.6 12l3.3 2.6z"/><path fill="#fdbd00" d="M16.9 9.4 21 11.7c.5.3.5.9 0 1.2l-4.1 1.7-3.3-2.6z"/></svg><span><small>Disponible sur</small><b>Google Play</b></span></div>
+            </div></div>
+<svg id="cursor" class="abs" viewBox="0 0 24 24" style="z-index:25"><path d="M4 2l16 9-7 2-3 7z" fill="#101418" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+<div id="dot" class="abs"></div>
+</div>
+<script>
+const tl=gsap.timeline({paused:true}); const D=16.0;
+// beat grid ~ 129 BPM (0.465 s)
+// 0 toggle: cursor clicks, the knob (blue dot) slides, springs free
+gsap.set("#dot",{x:768,y:905}); gsap.set("#cursor",{x:700,y:1300});
+tl.fromTo("#toggle",{y:80,opacity:0},{y:0,opacity:1,duration:.5,ease:"back.out(1.6)"},0.1);
+tl.fromTo("#toggle .lb span",{opacity:0,y:30},{opacity:1,y:0,duration:.3,stagger:.025,ease:"power2.out"},0.2);
+tl.fromTo("#t0",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},0.3);
+tl.fromTo("#dot",{scale:0},{scale:1,duration:.4,ease:"back.out(2)"},0.4);
+tl.to("#cursor",{x:800,y:920,duration:.7,ease:"power2.inOut"},0.6);
+tl.to("#cursor",{scale:.85,duration:.08,yoyo:true,repeat:1},1.32);
+tl.to("#dot",{x:842,duration:.35,ease:"back.out(2.4)"},1.38);
+tl.to("#sw",{backgroundColor:"#bfe0f4",duration:.2},1.38);
+tl.to("#cursor",{opacity:0,duration:.3},1.8);
+// the dot jumps to the search bar
+tl.to(["#toggle","#t0"],{opacity:0,y:-60,duration:.4,ease:"power2.in"},2.0);
+tl.fromTo("#search",{opacity:0,y:60},{opacity:1,y:0,duration:.5,ease:"back.out(1.6)"},2.1);
+tl.to("#dot",{keyframes:[{x:700,y:420,duration:.3,ease:"power2.out"},{x:910,y:595,duration:.3,ease:"power2.in"}]},2.0);
+tl.fromTo("#dot",{scaleX:1.3,scaleY:.75},{scaleX:1,scaleY:1,duration:.4,ease:"elastic.out(1,.4)"},2.6);
+const word="sneakers"; tl.set("#search .ph",{opacity:0},2.7);
+for(let i=1;i<=word.length;i++) tl.call(()=>{},null,0); 
+const q={n:0}; tl.to(q,{n:word.length,duration:.9,ease:"none",onUpdate:()=>{document.getElementById("q").textContent=word.slice(0,Math.round(q.n))}},2.75);
+tl.to("#dot",{scale:1.35,duration:.12,yoyo:true,repeat:1},3.7);
+// results spring in, dot picks a product, drops it in the cart
+for(let k=0;k<6;k++) tl.fromTo("#p"+k,{opacity:0,scale:.6,y:80},{opacity:1,scale:1,y:0,duration:.5,ease:"back.out(1.7)"},3.9+k*.08);
+tl.fromTo("#t1",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},4.3);
+tl.to("#dot",{keyframes:[{x:500,y:700,duration:.3,ease:"power2.out"},{x:230,y:900,duration:.3,ease:"power2.in"}]},4.6);
+tl.to("#p0",{scale:1.12,duration:.3,ease:"back.out(2)"},5.2);
+tl.fromTo("#cart",{opacity:0,scale:.5},{opacity:1,scale:1,duration:.4,ease:"back.out(2)"},5.3);
+tl.to("#dot",{keyframes:[{x:600,y:300,duration:.4,ease:"power2.out"},{x:875,y:405,duration:.35,ease:"power2.in"}]},5.5);
+tl.fromTo("#badge",{opacity:0,scale:0},{opacity:1,scale:1,duration:.4,ease:"back.out(3)"},6.25);
+// route across the city
+tl.to(["#search","#p0","#p1","#p2","#p3","#p4","#p5","#t1","#cart","#badge"],{opacity:0,duration:.35,ease:"power2.in"},6.9);
+tl.set("#route",{opacity:1},7.1); tl.fromTo("#pinA",{opacity:0,y:-60},{opacity:1,y:0,duration:.4,ease:"back.out(2)"},7.1); tl.fromTo("#pinB",{opacity:0,y:-60},{opacity:1,y:0,duration:.4,ease:"back.out(2)"},7.3);
+tl.to("#dot",{x:200,y:1450,duration:.4,ease:"power2.inOut"},6.9);
+const rp=document.getElementById("rp"), L=rp.getTotalLength(); const pr={t:0};
+tl.to(pr,{t:1,duration:2.6,ease:"power1.inOut",onUpdate:()=>{const p=rp.getPointAtLength(pr.t*L);gsap.set("#dot",{x:p.x,y:p.y});}},7.35);
+tl.fromTo("#t2",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},7.6);
+// dot lands, grows past every corner
+tl.to(["#route","#pinA","#pinB","#t2"],{opacity:0,duration:.3},10.1);
+tl.to("#dot",{x:540,y:960,duration:.45,ease:"power3.inOut"},10.1);
+tl.set("#fill",{opacity:1},10.55); tl.set("#dot",{opacity:0},10.55);
+tl.fromTo("#fill",{scale:1},{scale:65,duration:.7,ease:"expo.in"},10.55);
+tl.set("#pay",{opacity:1},11.15); tl.fromTo("#pay i",{yPercent:110},{yPercent:0,duration:.6,stagger:.12,ease:"expo.out"},11.15);
+tl.to("#pay",{opacity:0,duration:.3},13.0);
+tl.set("#end",{opacity:1},13.2); tl.fromTo("#end > *",{opacity:0,y:50},{opacity:1,y:0,duration:.5,stagger:.12,ease:"back.out(1.6)"},13.2);
+tl.set({},{},D); window.__timelines["main"]=tl; tl.seek(0);
+</script></body></html>

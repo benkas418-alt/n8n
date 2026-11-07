@@ -169,3 +169,14 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **7 novembre** : compte GitHub du fondateur **suspendu** (envoi impossible). Sauvegarde de la mémoire et des outils sur une page claude.ai privée « PitUp mémoire projet ». Défilement du site : utiliser `tools/make_pans.py` (défilement fluide, sans saccade). Plan L9 (abribus) : un homme qui fume, **à exclure**.
 - **Nouvelles musiques (7 novembre)** : Gaillard Jules « Reculer » (beat à partir de 16 s), Ravyn Lenae « Love Me Not », Mai Mai « Why Me » (énergique dès 12 s). Elles s'ajoutent à Tiakola, que le fondateur aime aussi. **Remix d'OLISE** : le fondateur veut **le couplet de la rappeuse**, en anglais, de **39,8 s à 53 s**. Le caler pour qu'il démarre au moment où la carte de fin arrive.
 - Vidéos du 7 novembre : « Vendre » (style glass, Reculer), « Paie à la livraison » (style kin, remix d'OLISE), « Lubumbashi ne s'arrête jamais » (style city, Why Me). Leurs fichiers finaux sont `livrables/PitUp-Story-*-v3`.
+- **Retours du 7 novembre (soir)** :
+  - jamais deux fois le même plan, ni dans une vidéo ni d'une vidéo à l'autre ;
+  - pas d'écran partagé qui coupe les gens au torse ;
+  - **pas de moto pour la livraison** (PitUp ne livre pas à moto) : utiliser le monsieur aux cartons (handoff, handoffB, handoffC) ;
+  - « Vendre » passe sur Samuel Petra « Blame » ;
+  - le fondateur **aime beaucoup « Paie à la livraison »** (style kin).
+- **Vidéos de motion design** (musique seule, `pitup/motion/*.html`) :
+  - V4 « Le point bleu » (prompts 8 et 9, Tiakola « Wu Tang Clan » à partir de 12 s) ;
+  - V5 « Survol 3D » de `/marketplace` (prompt 4, Hallelujah, coup fort à 9,97 s) ;
+  - V6 « Lancement verre dépoli » (prompt 3, Tiakola « Mode de vie », coup fort à 6 s).
+  Pour le survol 3D : mettre la rotation sur un conteneur parent et faire glisser la page dans ce conteneur (sinon la page sort du cadre).
