@@ -38,7 +38,7 @@ vids, scene_html, js, PW, n = [], [], [], [], [0]
 STYLE = C.get("style", "base")
 # "plate": false keeps the word-by-word glass typography but drops the frosted card behind headlines and captions
 NOPLATE = "" if C.get("plate", True) else ("#root .gl { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; padding: 0 !important; left: 70px !important; right: 70px !important; text-shadow: 0 4px 30px rgba(0,0,0,.6), 0 1px 4px rgba(0,0,0,.35) !important; }"
-  " #root .gcap span { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 1px 4px rgba(0,0,0,.4) !important; font-size: 56px !important; }")
+  " #root .gl .em { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; } #root .gcap span { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 1px 4px rgba(0,0,0,.4) !important; font-size: 56px !important; }")
 root_html = []
 
 LAPPH = {}
@@ -102,6 +102,28 @@ for i, sc in enumerate(C["scenes"]):
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/mosaic.jpg" alt="" style="height:auto"><div style="position:absolute;inset:0;background:rgba(10,14,20,.62)"></div><div class="big100">+<span id="num{j}">0</span></div></div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.2); tl.fromTo("#b{j} img", {{ y: 0 }}, {{ y: -60, duration: {bb - ba:.3f}, ease: "none" }}, {ba});'
                       f'const c{j} = {{ v: 0 }}; tl.fromTo(c{j}, {{ v: 0 }}, {{ v: 100, duration: 1.4, ease: "power2.out", onUpdate: () => (document.getElementById("num{j}").textContent = Math.round(c{j}.v)) }}, {ba + 0.1});')
+        elif kind == "drc":   # real DRC outline (Natural Earth 50m) filled with PitUp: brand blue, logo pattern, Lubumbashi pin
+            import math
+            ring = json.load(open(f"{SP}/real/drc/drc.json"))[0]; k0 = math.cos(math.radians(4))
+            xs = [x * k0 for x, y in ring]; ys = [-y for x, y in ring]; sc = 880 / (max(xs) - min(xs)); hgt = (max(ys) - min(ys)) * sc
+            ox, oy = 540 - (max(xs) + min(xs)) / 2 * sc, 930 - (max(ys) + min(ys)) / 2 * sc
+            prj = lambda lon, lat: (lon * k0 * sc + ox, -lat * sc + oy)
+            dd = "M" + " L".join(f"{prj(x, y)[0]:.1f},{prj(x, y)[1]:.1f}" for x, y in ring) + "Z"
+            lx, ly = prj(27.4793, -11.6647)
+            pat = "".join(f'<image href="assets/icon_white.png" x="{x}" y="{y}" width="34" height="34" opacity="0.16"/>' for y in range(int(930 - hgt / 2) - 40, int(930 + hgt / 2) + 40, 70) for x in range(60 + (35 if (y // 70) % 2 else 0), 1030, 70))
+            scene_html.append(f'<div class="full" id="b{j}" style="background:radial-gradient(90% 60% at 50% 48%,#123a5c 0%,#07131f 100%)">'
+                              f'<svg class="drc" viewBox="0 0 1080 1920" width="1080" height="1920" style="position:absolute;left:0;top:0"><defs><clipPath id="drcclip{j}"><path d="{dd}"/></clipPath>'
+                              f'<linearGradient id="drcg{j}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3aa3e3"/><stop offset="1" stop-color="#1668a8"/></linearGradient></defs>'
+                              f'<path class="dfill" d="{dd}" fill="url(#drcg{j})"/><g class="dpat" clip-path="url(#drcclip{j})">{pat}</g>'
+                              f'<path class="dline" d="{dd}" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round" stroke-dasharray="6000" stroke-dashoffset="6000"/>'
+                              f'<circle class="dring" cx="{lx:.0f}" cy="{ly:.0f}" r="18" fill="none" stroke="#fff" stroke-width="5"/><circle class="dpin" cx="{lx:.0f}" cy="{ly:.0f}" r="15" fill="#fff"/></svg>'
+                              f'<div class="dlogo" style="position:absolute;left:0;right:0;top:{870 - 40:.0f}px;display:flex;align-items:center;justify-content:center;gap:22px;color:#fff;font-weight:800;font-size:112px;letter-spacing:-4px"><img src="assets/icon_white.png" style="width:120px" alt="">PitUp</div>'
+                              f'<div class="dlab" style="position:absolute;right:{1080 - lx + 30:.0f}px;top:{ly - 26:.0f}px;color:#fff;font-weight:700;font-size:36px;text-shadow:0 2px 12px rgba(0,0,0,.4)">Lubumbashi</div></div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.3); tl.fromTo("#b{j} .dline", {{ strokeDashoffset: 6000 }}, {{ strokeDashoffset: 0, duration: 1.0, ease: "power2.inOut" }}, {ba + 0.1});'
+                      f'tl.fromTo("#b{j} .dfill", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, {ba + 0.6}); tl.fromTo("#b{j} .dpat", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.8 }}, {ba + 0.8});'
+                      f'tl.fromTo("#b{j} .dlogo", {{ opacity: 0, scale: 0.7 }}, {{ opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }}, {ba + 1.0});'
+                      f'tl.fromTo("#b{j} .dpin", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.3 }}, {ba + 1.3}); tl.fromTo("#b{j} .dlab", {{ opacity: 0, x: 20 }}, {{ opacity: 1, x: 0, duration: 0.4 }}, {ba + 1.4});'
+                      f'tl.fromTo("#b{j} .dring", {{ attr: {{ r: 18 }}, opacity: 1 }}, {{ attr: {{ r: 70 }}, opacity: 0, duration: 1.0, repeat: 2, ease: "power2.out" }}, {ba + 1.4});')
         elif kind == "flag":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/aerial.jpg" alt=""><div style="position:absolute;inset:0;background:rgba(0,0,0,.25)"></div>'
                               f'<div class="flag"><svg viewBox="0 0 800 600" width="700" height="525"><rect width="800" height="600" fill="#007FFF"/><polygon points="0,510 680,0 800,0 800,90 120,600 0,600" fill="#F7D618"/><polygon points="0,555 740,0 800,0 800,45 60,600 0,600" fill="#CE1021"/><polygon points="150,40 172,108 244,108 186,150 208,218 150,176 92,218 114,150 56,108 128,108" fill="#F7D618"/></svg></div><div class="credit" style="opacity:1">Imagerie © Esri, Maxar</div></div>')
