@@ -185,5 +185,11 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - V5 : la caméra doit être **très près** de la page (échelle 2,1, inclinaison 14°). Elle suit un trajet lisse de boutique en boutique, puis recule et plonge sur la carte finale.
   - V6 : **plus de robe en jean, sandales, sacs pour femme, parfums, tissus ni bodys.** Utiliser des articles tendance « à l'européenne » vendus sur PitUp : ensemble Nike Tech, survêtement adidas, veste sherpa à capuche, montre DW, baskets cuir, mocassins, polo maille, joggings adidas, plus TN, Shox, Asics, Campus, Samba, veste en cuir, lunettes. Détourages dans `prod/tr/*_s.png`.
   - Toutes les vidéos durent **20 s au maximum**.
+- **Retours du 7 novembre (storytelling v5)** : la vidéo Livraison (style kin, OLISE) est **parfaite, ne pas y toucher**. Pour Vendre et Lushi :
+  - **Aucun plan déjà vu dans « C'est quoi » v4** : L0=djA, L2=djD, L11=djF, L28=djC et L29=djB sont des doublons exacts, comme box, phapp et toutes les captures phs_*. Vérifier avec une comparaison image par image avant chaque nouvelle vidéo.
+  - **Aucun plan répété dans une vidéo** : le montage rapide (`rapid`) joue maintenant chaque plan une seule fois.
+  - **Plus de plaque en verre** derrière les textes (`"plate": false` dans la config) : le texte est blanc avec une ombre.
+  - Nouvelles captures du téléphone faites à partir des vraies pages de pi-tup.com (`tools/make_pp.py`) : ph_store (boutique MB Ephphatha), ph_swipe (Nike Tech, sherpa, adidas, Ralph Lauren, Timberland), ph_buy (appui sur « Acheter maintenant »), lap_store (boutique sur ordinateur). **Les prix sont masqués automatiquement.**
+  - Produits à montrer : des articles beaux et tendance (Nike Tech, montre DW, Timberland, parfum Yara pour « beauté »). Plus de robe en jean.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.

@@ -15,10 +15,9 @@
      "k": "rapid",
      "srcs": [
       "L24",
-      "L0",
+      "L35",
       "L23",
-      "L33",
-      "L20"
+      "L33"
      ]
     }
    ]
@@ -27,14 +26,19 @@
    "vo": "vd_1",
    "beats": [
     {
-     "k": "split",
-     "srcs": [
-      "couple",
-      "L32",
-      "suit"
-     ],
-     "cap": "Les cours. Le boulot. Les sorties.",
-     "cap_top": 1700
+     "k": "v",
+     "src": "L32",
+     "cap": "Les cours."
+    },
+    {
+     "k": "v",
+     "src": "L8",
+     "cap": "Le boulot."
+    },
+    {
+     "k": "v",
+     "src": "L25",
+     "cap": "Les sorties."
     }
    ]
   },
@@ -48,11 +52,10 @@
     {
      "k": "rapid",
      "srcs": [
-      "L2",
-      "L33",
       "L39",
-      "L28",
+      "sweaters",
       "L26",
+      "loafers",
       "L16"
      ]
     }
@@ -63,8 +66,9 @@
    "beats": [
     {
      "k": "phone",
-     "src": "phs_full",
-     "cap": "Tes articles viennent à toi."
+     "src": "ph_swipe",
+     "cap": "Tes articles viennent à toi.",
+     "cap_top": 1790
     }
    ]
   },
@@ -73,23 +77,23 @@
    "beats": [
     {
      "k": "cut",
-     "src": "robe_jean.png",
+     "src": "tech.png",
      "word": "MODE",
-     "bg": "#EFE6D8",
-     "tone": "#E3D6C2",
+     "bg": "#EFEBD8",
+     "tone": "#E4DEC2",
      "cap": "Mode."
     },
     {
      "k": "cut",
-     "src": "kayali.png",
+     "src": "yc0.png",
      "word": "BEAUTÉ",
-     "bg": "#F6D9E2",
-     "tone": "#EEC8D4",
+     "bg": "#F3E9DC",
+     "tone": "#E9DAC6",
      "cap": "Beauté."
     },
     {
      "k": "cut",
-     "src": "samba.png",
+     "src": "sneak.png",
      "word": "SNEAKERS",
      "bg": "#D9CCB6",
      "tone": "#CDBEA5",
@@ -97,7 +101,7 @@
     },
     {
      "k": "cut",
-     "src": "rayban.png",
+     "src": "watch.png",
      "word": "STYLE",
      "bg": "#DCEBF5",
      "tone": "#C9DFEE",
@@ -109,13 +113,15 @@
    "vo": "vx_6",
    "beats": [
     {
-     "k": "split",
-     "srcs": [
-      "L10",
-      "handoff"
-     ],
-     "cap": "Tu commandes, on te livre.",
-     "cap_top": 1700
+     "k": "phone",
+     "src": "ph_buy",
+     "cap": "Tu commandes…",
+     "cap_top": 1790
+    },
+    {
+     "k": "v",
+     "src": "handoffC",
+     "cap": "…on te livre chez toi."
     }
    ]
   },
@@ -129,7 +135,7 @@
    "beats": [
     {
      "k": "v",
-     "src": "L11"
+     "src": "L14"
     },
     {
      "k": "flag"

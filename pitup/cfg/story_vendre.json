@@ -1,7 +1,7 @@
 {
  "project": "pitup-vendre",
  "style": "glass",
- "song": "Gaillard_Jules_-_RECULER.mp3",
+ "song": "Samuel_Petra_-_BLAME.mp3",
  "song_off": 16.0,
  "scenes": [
   {
@@ -13,7 +13,7 @@
    "beats": [
     {
      "k": "v",
-     "src": "L0"
+     "src": "L1"
     },
     {
      "k": "v",
@@ -61,8 +61,8 @@
    ],
    "beats": [
     {
-     "k": "phone",
-     "src": "phs_full"
+     "k": "v",
+     "src": "suit"
     }
    ]
   },
@@ -71,15 +71,16 @@
    "beats": [
     {
      "k": "phone",
-     "src": "phapp",
-     "cap": "Ta boutique, en quelques minutes."
+     "src": "ph_store",
+     "cap": "Ta boutique, en quelques minutes.",
+     "cap_top": 1790
     },
     {
      "k": "cut",
-     "src": "longchamp.png",
+     "src": "adidas.png",
      "word": "ARTICLES",
-     "bg": "#F6D9E2",
-     "tone": "#EEC8D4",
+     "bg": "#E4E8EC",
+     "tone": "#D5DBE1",
      "cap": "Tu ajoutes tes articles."
     }
    ]
@@ -88,13 +89,13 @@
    "vo": "va_5",
    "beats": [
     {
-     "k": "phone",
-     "src": "phs_b",
+     "k": "v",
+     "src": "phoneman",
      "cap": "Les clients commandent."
     },
     {
      "k": "v",
-     "src": "L10",
+     "src": "L20",
      "cap": "La livraison ? On s'en occupe."
     }
    ]
@@ -118,9 +119,11 @@
    ],
    "beats": [
     {
-     "k": "lap"
+     "k": "lap",
+     "src": "lap_store"
     }
    ]
   }
- ]
+ ],
+ "plate": false
 }

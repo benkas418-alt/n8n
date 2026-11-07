@@ -36,8 +36,12 @@ end_html = end_html[: end_html.rindex("</div>")]
 
 vids, scene_html, js, PW, n = [], [], [], [], [0]
 STYLE = C.get("style", "base")
+# "plate": false keeps the word-by-word glass typography but drops the frosted card behind headlines and captions
+NOPLATE = "" if C.get("plate", True) else ("#root .gl { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; padding: 0 !important; left: 70px !important; right: 70px !important; text-shadow: 0 4px 30px rgba(0,0,0,.6), 0 1px 4px rgba(0,0,0,.35) !important; }"
+  " #root .gcap span { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 1px 4px rgba(0,0,0,.4) !important; font-size: 56px !important; }")
 root_html = []
 
+LAPPH = {}
 def nid(): n[0] += 1; return n[0]
 for i, sc in enumerate(C["scenes"]):
     a, b = S[i], S[i + 1]; beats = sc["beats"]; w = (b - a) / len(beats)
@@ -66,9 +70,10 @@ for i, sc in enumerate(C["scenes"]):
             vids.append(f'<video id="v{j}" class="clip vid" src="assets/v/{bt["src"]}.mp4" muted playsinline data-start="{ba}" data-duration="{bb - ba:.3f}" data-track-index="{2 + j % 2}"></video>')
             js.append(f'tl.fromTo("#v{j}", {{ scale: 1.0 }}, {{ scale: 1.05, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
         elif kind == "rapid":   # quick cuts on the music grid
-            step = bt.get("step", 0.46); m, t0 = 0, ba
-            while t0 < bb - 0.05:
-                t1 = min(bb, t0 + step); jj = nid()
+            # each shot plays once: stretch the cut length (whole beats) rather than loop the list
+            nn_ = len(bt["srcs"]); g = bt.get("step", 0.46); step = g * max(1, -(-(bb - ba) // (nn_ * g))); m, t0 = 0, ba
+            while t0 < bb - 0.05 and m < nn_:
+                t1 = bb if m == nn_ - 1 else min(bb, t0 + step); jj = nid()
                 vids.append(f'<video id="v{jj}" class="clip vid" src="assets/v/{bt["srcs"][m % len(bt["srcs"])]}.mp4" muted playsinline data-start="{t0:.3f}" data-duration="{t1 - t0:.3f}" data-track-index="{2 + jj % 2}"></video>')
                 js.append(f'tl.fromTo("#v{jj}", {{ scale: 1.08 }}, {{ scale: 1.0, duration: {t1 - t0:.3f}, ease: "power2.out" }}, {t0:.3f});')
                 m += 1; t0 = t1
@@ -87,7 +92,7 @@ for i, sc in enumerate(C["scenes"]):
         elif kind == "phone":
             PW.append((ba, bb, bt["src"], False))
         elif kind == "lap":
-            PW.append((ba, bb, bt.get("src", "phs_full"), True))
+            PW.append((ba, bb, bt.get("src", "lapscroll"), True)); LAPPH[ba] = bt.get("phone", "ph_swipe")
             js.append(f'tl.set("#lapstage", {{ opacity: 1 }}, {ba}); tl.set("#lapstage", {{ opacity: 0 }}, {bb});'
                       f'tl.fromTo("#lap", {{ rotationY: 22, rotationX: 8, y: 120 }}, {{ rotationY: 8, rotationX: 4, y: 0, duration: 0.8, ease: "power3.out" }}, {ba});'
                       f'tl.to("#lap", {{ rotationY: -6, duration: {max(0.3, bb - ba - 0.8):.3f}, ease: "sine.inOut" }}, {ba + 0.8});'
@@ -109,8 +114,8 @@ for i, sc in enumerate(C["scenes"]):
 
 SW, SH = 520, 1126
 slabs = "".join(f'<div class="slab{" back" if k == 20 else ""}" style="transform:translateZ(-{k}px)">' + ("" if k in (1, 20) else '<i class="btn" style="left:-5px;top:280px;height:64px"></i><i class="btn" style="left:-5px;top:370px;height:110px"></i><i class="btn" style="right:-5px;top:400px;height:160px"></i>') + '</div>' for k in range(20, 0, -1))
-lv = "".join(f'<video id="lv{k}" class="clip lv" src="assets/v/lapscroll.mp4" muted playsinline data-start="{a:.3f}" data-duration="{min(5.0, b - a):.3f}" data-track-index="{8 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW) if s7)
-pv = "".join(f'<video id="pv{k}" class="clip pv" src="assets/v/{c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + k % 2}"></video>' for k, (a, b, c, _) in enumerate(PW))
+lv = "".join(f'<video id="lv{k}" class="clip lv" src="assets/v/{c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{min(5.0, b - a):.3f}" data-track-index="{8 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW) if s7)
+pv = "".join(f'<video id="pv{k}" class="clip pv" src="assets/v/{LAPPH.get(a, "ph_swipe") if s7 else c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW))
 html = f'''<!doctype html>
 <html lang="fr"><head><meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" /><script src="assets/gsap.min.js"></script>
 <style>{css}
@@ -165,6 +170,7 @@ html = f'''<!doctype html>
 #lscreen .body {{ position: absolute; left: 0; top: 41px; width: 916px; }}
 #deck {{ position: relative; width: 1060px; height: 34px; margin-left: -50px; border-radius: 0 0 26px 26px; background: linear-gradient(180deg, #d9dce0, #9ea2a8); box-shadow: 0 30px 50px rgba(0,0,0,.35); }}
 #deck i {{ position: absolute; left: 50%; top: 0; width: 170px; height: 10px; margin-left: -85px; border-radius: 0 0 10px 10px; background: #8d9196; }}
+{NOPLATE}
 </style></head>
 <body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="{DUR:.3f}" data-width="1080" data-height="1920">
