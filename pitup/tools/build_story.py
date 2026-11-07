@@ -92,7 +92,7 @@ for i, sc in enumerate(C["scenes"]):
                       f'tl.fromTo("#lap", {{ rotationY: 22, rotationX: 8, y: 120 }}, {{ rotationY: 8, rotationX: 4, y: 0, duration: 0.8, ease: "power3.out" }}, {ba});'
                       f'tl.to("#lap", {{ rotationY: -6, duration: {max(0.3, bb - ba - 0.8):.3f}, ease: "sine.inOut" }}, {ba + 0.8});'
                       f'tl.fromTo("#lid", {{ rotationX: -70 }}, {{ rotationX: 0, duration: 0.8, ease: "power3.out" }}, {ba});'
-                      f'tl.fromTo("#lbody", {{ y: 0 }}, {{ y: -1150, duration: {max(0.3, bb - ba - 0.6):.3f}, ease: "sine.inOut" }}, {ba + 0.5});')
+                      '')
         elif kind == "mosaic":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/mosaic.jpg" alt="" style="height:auto"><div style="position:absolute;inset:0;background:rgba(10,14,20,.62)"></div><div class="big100">+<span id="num{j}">0</span></div></div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.2); tl.fromTo("#b{j} img", {{ y: 0 }}, {{ y: -60, duration: {bb - ba:.3f}, ease: "none" }}, {ba});'
@@ -109,6 +109,7 @@ for i, sc in enumerate(C["scenes"]):
 
 SW, SH = 520, 1126
 slabs = "".join(f'<div class="slab{" back" if k == 20 else ""}" style="transform:translateZ(-{k}px)">' + ("" if k in (1, 20) else '<i class="btn" style="left:-5px;top:280px;height:64px"></i><i class="btn" style="left:-5px;top:370px;height:110px"></i><i class="btn" style="right:-5px;top:400px;height:160px"></i>') + '</div>' for k in range(20, 0, -1))
+lv = "".join(f'<video id="lv{k}" class="clip lv" src="assets/v/lapscroll.mp4" muted playsinline data-start="{a:.3f}" data-duration="{min(5.0, b - a):.3f}" data-track-index="{8 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW) if s7)
 pv = "".join(f'<video id="pv{k}" class="clip pv" src="assets/v/{c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + k % 2}"></video>' for k, (a, b, c, _) in enumerate(PW))
 html = f'''<!doctype html>
 <html lang="fr"><head><meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" /><script src="assets/gsap.min.js"></script>
@@ -130,7 +131,7 @@ html = f'''<!doctype html>
 .flag {{ position: absolute; left: 190px; top: 760px; width: 700px; height: 525px; border-radius: 34px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,.45); }}
 .credit {{ position: absolute; right: 30px; bottom: 26px; font-size: 22px; color: rgba(255,255,255,.75); font-weight: 600; }}
 #anchor {{ z-index: 45; }}
-.gl {{ position: absolute; left: 60px; right: 60px; top: 230px; padding: 34px 44px 40px; border-radius: 44px; z-index: 9; opacity: 0;
+.gl {{ position: absolute; left: 60px; right: 60px; top: 330px; padding: 34px 44px 40px; border-radius: 44px; z-index: 9; opacity: 0;
   background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.10)); backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5);
   box-shadow: inset 0 1.5px 0 rgba(255,255,255,.75), inset 0 0 0 1.5px rgba(255,255,255,.35), 0 30px 60px rgba(0,0,0,.25);
   font-weight: 800; font-size: 84px; letter-spacing: -2.5px; line-height: 1.05; color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,.25); }}
@@ -159,6 +160,7 @@ html = f'''<!doctype html>
 #lap {{ position: absolute; left: 60px; top: 640px; width: 960px; transform-style: preserve-3d; }}
 #lid {{ position: relative; width: 960px; height: 620px; border-radius: 30px 30px 8px 8px; background: #0d0e11; padding: 22px 22px 30px; box-sizing: border-box; box-shadow: 0 0 0 2px #b9bdc2; transform-origin: 50% 100%; }}
 #lscreen {{ position: relative; width: 916px; height: 568px; overflow: hidden; border-radius: 8px; background: #fff; }}
+#lscreen .lv {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
 #lscreen .hd2 {{ position: absolute; left: 0; top: 0; width: 916px; z-index: 2; }}
 #lscreen .body {{ position: absolute; left: 0; top: 41px; width: 916px; }}
 #deck {{ position: relative; width: 1060px; height: 34px; margin-left: -50px; border-radius: 0 0 26px 26px; background: linear-gradient(180deg, #d9dce0, #9ea2a8); box-shadow: 0 30px 50px rgba(0,0,0,.35); }}
@@ -170,7 +172,7 @@ html = f'''<!doctype html>
 {"".join(vids)}
 {"".join(root_html)}
 <div id="pbg"></div>
-<div id="lapstage"><div id="lap"><div id="lid"><div id="lscreen"><img class="hd2" src="assets/img/desk_head.png" alt=""><img class="body" id="lbody" src="assets/img/desk_body.jpg" alt=""></div></div><div id="deck"><i></i></div></div></div>
+<div id="lapstage"><div id="lap"><div id="lid"><div id="lscreen">{lv}</div></div><div id="deck"><i></i></div></div></div>
 <div id="pshadow"></div>
 <div id="stage"><div id="phone">{slabs}<div id="front"><div id="screen"><div id="island"></div><div id="glare"></div>{pv}</div></div></div></div>
 <div id="scene" class="clip layer" data-start="0" data-duration="{DUR:.3f}" data-track-index="0"><div id="cam">

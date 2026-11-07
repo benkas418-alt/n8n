@@ -166,3 +166,4 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - Les **images de Lubumbashi passent en premier** : la vidéo de DJEUDY est nettoyée en entier (`real/lushi_clean.mp4`, via `tools/lama_wm2.py`) et découpée en plans L0 à L39 (`tools/lushi_shots.sh`). En complément : images Mixkit avec uniquement des personnes noires (youth, couple, suit, rooftop, smile, doubt, phoneman, dad), et rayons de boutique sans personne.
 - Traces de badge restées après nettoyage sur L12, L14 et L29 : éviter ces plans.
 - Le quota hebdomadaire du fondateur est limité : livrer chaque vidéo en une fois, et grouper les retours.
+- **7 novembre** : compte GitHub du fondateur **suspendu** (envoi impossible). Sauvegarde de la mémoire et des outils sur une page claude.ai privée « PitUp mémoire projet ». Défilement du site : utiliser `tools/make_pans.py` (défilement fluide, sans saccade). Plan L9 (abribus) : un homme qui fume, **à exclure**.
