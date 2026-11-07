@@ -215,5 +215,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - couper l'appel en deux phrases calmes séparées par une pause d'environ 0,5 s : « Télécharge l'appli PitUp. » (style C + « débit lent ») et « Ou commande sur pé… i… tiret… té… u… pé… point com. » (style S + « débit lent », avec des points de suspension entre les lettres) ;
   - garder **la prise la plus lente** qui est propre (`audio/v9/e0_1`, `e1_0`), et non la plus courte ;
   - prévoir environ 6,5 s pour l'appel final. Durées des vidéos motion : V4 23,6 s, V5 21,8 s, V6 24,4 s (la dernière image de la carte de fin est tenue plus longtemps).
+- **Intonation forcée sur « PitUp » en fin de phrase (7 novembre)** : « Télécharge l'appli PitUp. » sonnait aigu et forcé (voix à 247 Hz au lieu d'environ 195, et +2 demi-tons sur PitUp). Règles :
+  - **ne pas finir une phrase courte sur « PitUp »** : mettre le mot au milieu (« Télécharge l'appli PitUp dès aujourd'hui. », prise `audio/v9/f1_1`) ;
+  - ne pas ajouter « débit lent » au style C ;
+  - **mesurer la courbe de la voix** (librosa.pyin) : la fin doit descendre (demi-tons négatifs) et la hauteur moyenne doit rester proche de celle des autres phrases.
+  - Durées actuelles : V4 24,2 s, V5 22,4 s, V6 25 s.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
