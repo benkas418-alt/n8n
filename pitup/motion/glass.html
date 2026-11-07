@@ -30,8 +30,8 @@
 #now{position:absolute;left:0;right:0;top:1150px;text-align:center;font-weight:600;font-size:52px;color:#3b4652;z-index:9;opacity:0}
 #st{position:absolute;left:0;right:0;top:1270px;z-index:9;opacity:0}
 </style></head><body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="18.0" data-width="1080" data-height="1920">
-<audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="18.0" data-track-index="11"></audio>
+<div id="root" data-composition-id="main" data-start="0" data-duration="22.0" data-width="1080" data-height="1920">
+<audio id="bgm" src="assets/bgm.wav" data-start="0" data-duration="22.0" data-track-index="11"></audio>
 <div id="cam">
 <div class="aura" id="a1" style="left:-200px;top:200px;width:900px;height:900px;background:#9fd3f5"></div>
 <div class="aura" id="a2" style="left:400px;top:1000px;width:900px;height:900px;background:#ffe3a3"></div>
@@ -52,10 +52,10 @@
             </div></div>
 </div></div>
 <script>
-const tl=gsap.timeline({paused:true}); const D=18.0, E=0.2239;
+const tl=gsap.timeline({paused:true}); const D=22.0, E=0.2239;
 const type=(id,txt,at,dur)=>{const o={n:0};tl.fromTo(o,{n:0},{n:txt.length,duration:dur,ease:"none",onUpdate:()=>{document.getElementById(id).textContent=txt.slice(0,Math.round(o.n))}},at);};
 // camera keeps drifting 1.0 -> 1.04 per scene, never snapping back
-[[0,3.2],[3.2,6],[6,10],[10,12.5],[12.5,14.5],[14.5,18]].forEach(([a,b],k)=>tl.fromTo("#cam",{scale:1+0.0},{scale:1.04,duration:b-a,ease:"none",immediateRender:false},a));
+[[0,3.2],[3.2,6],[6,10],[10,12.5],[12.5,14.5],[14.5,D]].forEach(([a,b],k)=>tl.fromTo("#cam",{scale:1+0.0},{scale:1.04,duration:b-a,ease:"none",immediateRender:false},a));
 tl.to("#a1",{x:180,y:120,duration:D,ease:"sine.inOut"},0); tl.to("#a2",{x:-200,y:-160,duration:D,ease:"sine.inOut"},0); tl.to("#a3",{x:-120,y:200,duration:D,ease:"sine.inOut"},0);
 // 1 collage drifts out while the name types
 for(let k=0;k<12;k++){tl.fromTo("#cl"+k,{opacity:0,scale:.7},{opacity:1,scale:1,duration:.5,ease:"power2.out"},0.05*k);tl.to("#cl"+k,{x:(k%2?1:-1)*120,y:(k%3-1)*90,opacity:0,duration:3.0,ease:"power1.in"},Math.max(0.4,0.05*k+0.55));}

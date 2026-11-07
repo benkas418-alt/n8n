@@ -201,5 +201,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Story v6 (7 novembre)** :
   - Vendre : **les titres sont en blanc uni**, sans mot en dégradé ni effet verre (le fondateur préfère le blanc).
   - Lushi : sur « Bienvenue sur PitUp », **ne pas montrer le drapeau** (il ne servait de référence à rien). On montre **la vraie carte de la RDC** (frontières Natural Earth 50 m, `real/drc/drc.json`), remplie aux couleurs de PitUp : bleu de la marque, motif de logos PitUp, grand logo au centre et point « Lubumbashi » au sud-est. Type de plan `drc` dans `build_story.py`.
+- **Motion v5 et Lushi v7 (7 novembre)** :
+  - Lushi : **garder le plan aérien de l'hôtel Pullman Karavia** (L14). La carte de la RDC remplace seulement le drapeau, au moment où la voix dit « Bienvenue sur PitUp » (1,54 s dans vc_2, donc à 23,2 s).
+  - **Toujours un vrai message.** Les vidéos motion étaient belles mais ne disaient rien. Désormais, la voix guide le spectateur à chaque étape (chercher, choisir, ajouter au panier, se faire livrer, payer à la livraison) et finit par un appel à l'action : « Télécharge l'appli PitUp, ou commande sur pé, i, tiret, té, u, pé, point com ». En marketing, on oriente le regard, l'oreille et le geste du client.
+  - Durées : V4 21,5 s, V5 19,5 s, V6 22 s. Une vidéo peut dépasser 20 s quand elle porte un vrai message.
+  - Voix dans `audio/v9`. Pièges de VoxCPM : il dit « Téléchargez » ou « On télécharge » au lieu de « Télécharge », et « Je te commande » au lieu de « Tu commandes ». Toujours vérifier chaque prise avec whisper.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.

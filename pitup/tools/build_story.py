@@ -119,11 +119,13 @@ for i, sc in enumerate(C["scenes"]):
                               f'<circle class="dring" cx="{lx:.0f}" cy="{ly:.0f}" r="18" fill="none" stroke="#fff" stroke-width="5"/><circle class="dpin" cx="{lx:.0f}" cy="{ly:.0f}" r="15" fill="#fff"/></svg>'
                               f'<div class="dlogo" style="position:absolute;left:0;right:0;top:{870 - 40:.0f}px;display:flex;align-items:center;justify-content:center;gap:22px;color:#fff;font-weight:800;font-size:112px;letter-spacing:-4px"><img src="assets/icon_white.png" style="width:120px" alt="">PitUp</div>'
                               f'<div class="dlab" style="position:absolute;right:{1080 - lx + 30:.0f}px;top:{ly - 26:.0f}px;color:#fff;font-weight:700;font-size:36px;text-shadow:0 2px 12px rgba(0,0,0,.4)">Lubumbashi</div></div>')
-            js.append(f'show("#b{j}", {ba}, {bb}, 0.3); tl.fromTo("#b{j} .dline", {{ strokeDashoffset: 6000 }}, {{ strokeDashoffset: 0, duration: 1.0, ease: "power2.inOut" }}, {ba + 0.1});'
-                      f'tl.fromTo("#b{j} .dfill", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, {ba + 0.6}); tl.fromTo("#b{j} .dpat", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.8 }}, {ba + 0.8});'
-                      f'tl.fromTo("#b{j} .dlogo", {{ opacity: 0, scale: 0.7 }}, {{ opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }}, {ba + 1.0});'
-                      f'tl.fromTo("#b{j} .dpin", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.3 }}, {ba + 1.3}); tl.fromTo("#b{j} .dlab", {{ opacity: 0, x: 20 }}, {{ opacity: 1, x: 0, duration: 0.4 }}, {ba + 1.4});'
-                      f'tl.fromTo("#b{j} .dring", {{ attr: {{ r: 18 }}, opacity: 1 }}, {{ attr: {{ r: 70 }}, opacity: 0, duration: 1.0, repeat: 2, ease: "power2.out" }}, {ba + 1.4});')
+            fq = min(1.0, (bb - ba) / 1.9)   # compress the reveal so it fits the beat
+            T = lambda x: f"{ba + x * fq:.2f}"
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.2); tl.fromTo("#b{j} .dline", {{ strokeDashoffset: 6000 }}, {{ strokeDashoffset: 0, duration: {0.9 * fq:.2f}, ease: "power2.inOut" }}, {T(0.05)});'
+                      f'tl.fromTo("#b{j} .dfill", {{ opacity: 0 }}, {{ opacity: 1, duration: {0.5 * fq:.2f} }}, {T(0.45)}); tl.fromTo("#b{j} .dpat", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: {0.6 * fq:.2f} }}, {T(0.6)});'
+                      f'tl.fromTo("#b{j} .dlogo", {{ opacity: 0, scale: 0.7 }}, {{ opacity: 1, scale: 1, duration: {0.5 * fq:.2f}, ease: "back.out(1.7)" }}, {T(0.7)});'
+                      f'tl.fromTo("#b{j} .dpin", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.25 }}, {T(0.95)}); tl.fromTo("#b{j} .dlab", {{ opacity: 0, x: 20 }}, {{ opacity: 1, x: 0, duration: 0.3 }}, {T(1.05)});'
+                      f'tl.fromTo("#b{j} .dring", {{ attr: {{ r: 18 }}, opacity: 1 }}, {{ attr: {{ r: 70 }}, opacity: 0, duration: 0.8, repeat: 2, ease: "power2.out" }}, {T(1.05)});')
         elif kind == "flag":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/aerial.jpg" alt=""><div style="position:absolute;inset:0;background:rgba(0,0,0,.25)"></div>'
                               f'<div class="flag"><svg viewBox="0 0 800 600" width="700" height="525"><rect width="800" height="600" fill="#007FFF"/><polygon points="0,510 680,0 800,0 800,90 120,600 0,600" fill="#F7D618"/><polygon points="0,555 740,0 800,0 800,45 60,600 0,600" fill="#CE1021"/><polygon points="150,40 172,108 244,108 186,150 208,218 150,176 92,218 114,150 56,108 128,108" fill="#F7D618"/></svg></div><div class="credit" style="opacity:1">Imagerie © Esri, Maxar</div></div>')
