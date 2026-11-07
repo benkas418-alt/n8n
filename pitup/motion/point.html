@@ -39,9 +39,9 @@
 <div class="big abs" id="t0" style="top:300px;font-size:84px">Commander,<br><span style="color:#1f88c9">simplement.</span></div>
 <div id="mapv" class="abs" style="inset:0;overflow:hidden;opacity:0;z-index:4"><div id="mapc" style="position:absolute;left:0;top:0;width:1300px;height:2300px;transform-origin:0 0">
 <img src="assets/map.jpg" style="position:absolute;left:0;top:0;width:1300px;height:2300px">
-<svg width="1300" height="2300" style="position:absolute;left:0;top:0"><path id="mp" d="M240,2050 L330,1820 L470,1640 L520,1420 L700,1300 L760,1080 L640,900 L700,700 L900,560 L980,380" fill="none" stroke="#1f88c9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4000" stroke-dashoffset="4000"/></svg>
-<svg class="pin" viewBox="0 0 24 24" style="position:absolute;left:190px;top:1955px;width:100px;height:100px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#101418"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
-<svg class="pin" viewBox="0 0 24 24" style="position:absolute;left:930px;top:285px;width:100px;height:100px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#1f88c9"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+<svg width="1300" height="2300" style="position:absolute;left:0;top:0"><path id="mp" d="M110,1745 L110,1725 L116,1719 L116,1691 L159,1652 L270,1602 L293,1601 L305,1590 L370,1570 L406,1533 L424,1507 L507,1425 L670,1335 L738,1302 L753,1290 L762,1289 L841,1247 L864,1231 L902,1216 L962,1181 L1015,1156 L1051,1122 L1053,1020 L1045,967 L1032,796 L1022,733 L1019,668 L1001,521 L962,125 L1000,125 L1011,140 L1053,136 L1057,142 L1060,167 L1071,177 L1107,176 L1114,200" fill="none" stroke="#1f88c9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4000" stroke-dashoffset="4000"/></svg>
+<svg class="pin" viewBox="0 0 24 24" style="position:absolute;left:60px;top:1653px;width:100px;height:100px"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#101418"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>
+<div id="homering" style="position:absolute;left:1044px;top:130px;width:140px;height:140px;border-radius:50%;border:6px solid #1f88c9;opacity:0"></div><svg id="home" viewBox="0 0 24 24" style="position:absolute;left:1044px;top:72px;width:140px;height:140px;transform-origin:50% 92%;opacity:0;filter:drop-shadow(0 10px 14px rgba(16,20,24,.3))"><path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" fill="#1f88c9"/><g transform="translate(7.3,5.2) scale(0.39)" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></g></svg>
 </div><div style="position:absolute;right:24px;bottom:20px;font-size:20px;color:#5b6b78">Carte © OpenStreetMap</div></div>
 <div id="fill" class="abs"></div>
 <div id="pay" class="abs"><span><i>Et tu paies</i></span><span><i>à la</i></span><span><i>livraison.</i></span></div>
@@ -50,7 +50,7 @@
               <div class="bdg"><svg viewBox="0 0 24 24"><path fill="#00d7fe" d="M3.6 1.8 13.6 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1z"/><path fill="#00f076" d="M3.6 1.8 16.9 9.4 13.6 12z"/><path fill="#f8384b" d="M3.6 22.2 13.6 12l3.3 2.6z"/><path fill="#fdbd00" d="M16.9 9.4 21 11.7c.5.3.5.9 0 1.2l-4.1 1.7-3.3-2.6z"/></svg><span><small>Disponible sur</small><b>Google Play</b></span></div>
             </div></div>
 <svg id="cursor" class="abs" viewBox="0 0 24 24" style="z-index:25"><path d="M4 2l16 9-7 2-3 7z" fill="#101418" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
-<div id="dot" class="abs"></div>
+<div id="dot" class="abs"><svg id="mag" viewBox="0 0 24 24" style="position:absolute;left:16px;top:16px;width:40px;height:40px;opacity:0" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg></div>
 </div>
 <script>
 const tl=gsap.timeline({paused:true}); const D=18.5;
@@ -75,6 +75,11 @@ const word="sneakers"; tl.set("#search .ph",{opacity:0},2.7);
 for(let i=1;i<=word.length;i++) tl.call(()=>{},null,0); 
 const q={n:0}; tl.to(q,{n:word.length,duration:.9,ease:"none",onUpdate:()=>{document.getElementById("q").textContent=word.slice(0,Math.round(q.n))}},2.75);
 tl.to("#dot",{scale:1.35,duration:.12,yoyo:true,repeat:1},3.7);
+// the dot is the search button: magnifier inside, the cursor comes back and clicks it
+tl.fromTo("#mag",{opacity:0,scale:.5},{opacity:1,scale:1,duration:.3,ease:"back.out(2)"},2.65); tl.to("#mag",{opacity:0,duration:.2},4.5);
+tl.set("#cursor",{x:1010,y:900,scale:1},3.05); tl.to("#cursor",{opacity:1,duration:.25},3.05);
+tl.to("#cursor",{x:903,y:594,duration:.5,ease:"power2.inOut"},3.1);
+tl.to("#cursor",{scale:.85,duration:.08,yoyo:true,repeat:1},3.64); tl.to("#cursor",{opacity:0,duration:.3},4.0);
 // results spring in, dot picks a product, drops it in the cart
 for(let k=0;k<6;k++) tl.fromTo("#p"+k,{opacity:0,scale:.6,y:80},{opacity:1,scale:1,y:0,duration:.5,ease:"back.out(1.7)"},3.9+k*.08);
 tl.fromTo("#t1",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},4.3);
@@ -90,6 +95,8 @@ const mp=document.getElementById("mp"), ML=mp.getTotalLength(), mo={t:0};
 const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v)); const cam=(t)=>{const p=mp.getPointAtLength(t*ML), s=1.0+0.6*Math.min(1,t*3); const tx=cl(540-p.x*s,1080-1300*s,0), ty=cl(1000-p.y*s,1920-2300*s,0); gsap.set("#mapc",{x:tx,y:ty,scale:s}); gsap.set("#dot",{x:p.x*s+tx,y:p.y*s+ty}); mp.style.strokeDashoffset=4000-t*ML;};
 tl.to("#dot",{x:240,y:1650,duration:.4,ease:"power2.inOut"},6.9); tl.call(()=>cam(0),null,7.0);
 tl.fromTo(mo,{t:0},{t:1,duration:5.0,ease:"power1.inOut",onUpdate:()=>cam(mo.t)},7.4);
+tl.fromTo("#home",{opacity:0,scale:0,y:-30},{opacity:1,scale:1,y:0,duration:.55,ease:"back.out(2.2)"},12.05);
+tl.fromTo("#homering",{opacity:.9,scale:.4},{opacity:0,scale:1.6,duration:.7,ease:"power2.out",immediateRender:false},12.3);
 tl.fromTo("#t2",{opacity:0,y:40},{opacity:1,y:0,duration:.5,ease:"power3.out"},8.2);
 tl.to(["#mapv","#t2"],{opacity:0,duration:.3},12.6);
 // dot lands, grows past every corner
