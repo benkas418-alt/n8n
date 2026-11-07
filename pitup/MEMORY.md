@@ -180,3 +180,5 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - V5 « Survol 3D » de `/marketplace` (prompt 4, Hallelujah, coup fort à 9,97 s) ;
   - V6 « Lancement verre dépoli » (prompt 3, Tiakola « Mode de vie », coup fort à 6 s).
   Pour le survol 3D : mettre la rotation sur un conteneur parent et faire glisser la page dans ce conteneur (sinon la page sort du cadre).
+- Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
+- **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
