@@ -1,0 +1,13 @@
+SOURCES DES PHOTOS DE T-SHIRTS — ÉTAT AU 2026-11-10
+
+Aucune photo téléchargée.
+Raison : la politique réseau de l'environnement cloud bloque images.pexels.com,
+www.pexels.com, unsplash.com et images.unsplash.com (refus 403 du proxy).
+L'ajout de ces domaines a été proposé puis refusé.
+
+Candidates repérées (licence Pexels : usage commercial gratuit, attribution non obligatoire).
+Elles n'ont pas pu être téléchargées ni vérifiées visuellement :
+- https://www.pexels.com/photo/a-blank-white-shirt-12025472/            Mr. Mockup, 7600x5066, à plat (face)
+- https://www.pexels.com/photo/white-t-shirt-on-white-surface-12039633/ mockupbee, 3000x2000, à plat
+- https://www.pexels.com/photo/white-t-shirt-hanging-on-a-rack-11671964/ Marina Podrez, 5472x3648, sur cintre
+Aucune paire face + dos du même t-shirt n'a été trouvée pour l'instant sur Pexels.
