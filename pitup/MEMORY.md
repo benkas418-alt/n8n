@@ -220,5 +220,14 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - ne pas ajouter « débit lent » au style C ;
   - **mesurer la courbe de la voix** (librosa.pyin) : la fin doit descendre (demi-tons négatifs) et la hauteur moyenne doit rester proche de celle des autres phrases.
   - Durées actuelles : V4 24,2 s, V5 22,4 s, V6 25 s.
+- **Compétence « pitup-content-engine » (10 novembre)**, fournie par le fondateur : elle est installée dans `~/.claude/skills/pitup-content-engine`, avec une copie dans `pitup/skills/`. **La relire avant chaque nouveau script.** Points clés :
+  - commencer par une situation humaine que tout le monde reconnaît, **pas par « vendeurs » ou « acheteurs »** ;
+  - au moins 5 hooks (visuel + verbal + texte écran), notés avant le choix ;
+  - une seule idée par vidéo ;
+  - des scènes réelles et faciles à tourner plutôt qu'un rendu de pub IA ;
+  - aucun chiffre, délai ou fonctionnalité inventé ;
+  - un appel à l'action adapté à l'objectif (pas toujours « télécharge l'appli ») ;
+  - chaque vidéo associée à une hypothèse et à un indicateur.
+  En cas de nouvelle session, réinstaller la compétence depuis `pitup/skills/`.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
