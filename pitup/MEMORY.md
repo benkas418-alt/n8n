@@ -325,3 +325,12 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Badges TikTok** : `tools/crop_clean.py` en zoom automatique (argument 0) : le badge sort entièrement du cadre, **aucune zone reconstruite** (le fondateur voit le flou des zones refaites).
 - **Musique** : plus présente sous la voix (≈ −13 dB) et qui **monte nettement** quand la voix s'arrête (`mix_duck.py` : LO 0.10, HI 0.72). Rythmée (R&B, rap) et jamais déjà utilisée : Raindance (Lubumbashi), Kairo Keyz « float 2.0 » (Samedi).
 - **Budget** : le fondateur a consommé beaucoup de sa limite hebdomadaire. Avancer vidéo par vidéo, valider par un court extrait avant tout rendu complet.
+
+### Motion design : leçons du 11 novembre (soir)
+- **Rejeté** (« bas de gamme, IA ») : la vidéo md1. Elle avait une chemise peu flatteuse, des bruitages « pop » de dessin animé, une carte colorée et trop d'illustration.
+- **Bonne direction** : la typographie pure, comme la référence « marq ».
+  - Un mot par temps de la musique, en coupe sèche, avec des fonds crème et marine en alternance et un seul accent or.
+  - Les coupes accélèrent. Le dernier mot s'écrit lettre par lettre pendant le break, et le logo arrive sur le drop.
+- **Sons** : jamais de pop. Chaque coupe a un son grave et sourd (« thock », vers 80 Hz), avec une montée de bruit avant le drop et un impact grave sur le logo.
+- **Produits** : n'en montrer un que s'il est vraiment beau. Sinon, rien que des mots.
+- Projet : `scratchpad/hf/videos/pitup-md2`, généré par `scratchpad/motion/md2/build.py`. Musique : JBEE « 4AM » à partir de 14 s (drop à 27,55 s). Police : Outfit. Mixage final à −14 LUFS.
