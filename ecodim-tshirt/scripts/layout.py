@@ -2,7 +2,7 @@
 Usage: python layout.py <dir> [L_cm=50] [dpi=150]"""
 import sys, os, json, numpy as np
 from PIL import Image
-D = sys.argv[1]; L_CM = float(sys.argv[2]) if len(sys.argv) > 2 else 50; DPI = int(sys.argv[3]) if len(sys.argv) > 3 else 150
+D = sys.argv[1]
 EL = os.path.join(D, 'out', 'elements')
 el = {k[:-4]: Image.open(os.path.join(EL, k)) for k in os.listdir(EL)}
 W = lambda k: el[k].width; H = lambda k: el[k].height
@@ -43,12 +43,16 @@ def render(boxes, Lpx, height_L):
     for k, (x, y, w, h) in boxes.items():
         im = el[k].resize((max(1, round(w * Lpx)), max(1, round(h * Lpx))), Image.LANCZOS)
         m = np.asarray(im, np.float32) / 255
+        f = w * Lpx / el[k].width  # enlargement factor
+        if f > 1.5:  # re-sharpen the anti-aliased edge to about 1.5 output px
+            m = np.clip((m - 0.5) * min(f / 1.5, 4) + 0.5, 0, 1)
         x0, y0 = round(x * Lpx), round(y * Lpx)
         sub = a[y0:y0 + m.shape[0], x0:x0 + m.shape[1]]
         np.maximum(sub, m[:sub.shape[0], :sub.shape[1]], out=sub)
     return a
 
 if __name__ == '__main__':
+    L_CM = float(sys.argv[2]) if len(sys.argv) > 2 else 50; DPI = int(sys.argv[3]) if len(sys.argv) > 3 else 150
     lay = layout()
     json.dump(lay, open(os.path.join(D, 'out', 'layout.json'), 'w'), indent=1)
     Lpx = round(L_CM / 2.54 * DPI)

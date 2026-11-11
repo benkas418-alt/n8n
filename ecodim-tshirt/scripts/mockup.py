@@ -8,7 +8,7 @@ from layout import render
 
 D = sys.argv[1]; OUT = os.path.join(D, 'out'); os.makedirs(OUT, exist_ok=True)
 LAY = json.load(open(os.path.join(OUT, 'layout.json')))
-UP = 2            # work at 2x the photo size so the small logo text stays legible
+UP = 4            # working scale vs the supplied photo (x4 ESRGAN photos when present)
 TOP_OFFSET = 0.27 # print area starts 0.27 L under the top of the collar (clears the neckline)
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 FONT_R = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
@@ -41,28 +41,32 @@ def recolour(rgb, m, target):
 
 def print_ink(fab, shade, m, alpha, ink, dark_ink, displace=True):
     # displacement map from the fabric luminance: the print follows the folds
-    lb = cv2.GaussianBlur(shade.astype(np.float32), (0, 0), 4)
+    lb = cv2.GaussianBlur(shade.astype(np.float32), (0, 0), 3 * UP)  # folds only, not the knit texture
     gy, gx = np.gradient(lb)
     h, w = alpha.shape
     X, Y = np.meshgrid(np.arange(w, dtype=np.float32), np.arange(h, dtype=np.float32))
-    k = 2.5 * UP / max(1e-6, np.percentile(np.abs(np.r_[gx[m], gy[m]]), 99)) if displace else 0.0
+    k = 1.2 * UP / max(1e-6, np.percentile(np.abs(np.r_[gx[m], gy[m]]), 99)) if displace else 0.0
     a = cv2.remap(alpha, X + gx * k, Y + gy * k, cv2.INTER_LINEAR)
-    a = cv2.GaussianBlur(a, (0, 0), 0.5) * m * 0.95
+    a = cv2.GaussianBlur(a, (0, 0), 0.3 * UP) * m * 0.95
     p = 1.0 if dark_ink else 0.45  # multiply for dark ink, partial shading for light ink
     sh = np.clip(shade, 0.3, 1.6) ** p
-    grain = 1 + rng.normal(0, 0.035, a.shape).astype(np.float32)
+    grain = 1 + cv2.GaussianBlur(rng.normal(0, 0.05, a.shape).astype(np.float32), (0, 0), UP / 4)
     printed = np.clip(ink * (sh * grain)[..., None], 0, 255)
     return fab * (1 - a[..., None]) + printed * a[..., None]
 
 def make(v):
     fn, fname, fhex, iname, ihex, labels = v
-    im = Image.open(os.path.join(D, 'photos', fn)).convert('RGB')
-    rgb = np.asarray(im).copy()
-    if labels:  # remove neck labels (brand/size): excluded from the fabric
-        lm = np.zeros(rgb.shape[:2], np.uint8)
-        for x0, y0, x1, y1 in labels: lm[y0:y1, x0:x1] = 1
-        rgb = cv2.inpaint(rgb, lm, 5, cv2.INPAINT_TELEA)
-    rgb = np.asarray(Image.fromarray(rgb).resize((im.width * UP, im.height * UP), Image.LANCZOS)).astype(np.float32)
+    sr = os.path.join(D, 'photos_x4', fn[:-4] + '.png')
+    if os.path.exists(sr):  # labels already removed, x4 ESRGAN (scripts/sr_photos.py)
+        rgb = np.asarray(Image.open(sr).convert('RGB')).astype(np.float32)
+    else:
+        im = Image.open(os.path.join(D, 'photos', fn)).convert('RGB')
+        rgb = np.asarray(im).copy()
+        if labels:  # remove neck labels (brand/size): excluded from the fabric
+            lm = np.zeros(rgb.shape[:2], np.uint8)
+            for x0, y0, x1, y1 in labels: lm[y0:y1, x0:x1] = 1
+            rgb = cv2.inpaint(rgb, lm, 5, cv2.INPAINT_TELEA)
+        rgb = np.asarray(Image.fromarray(rgb).resize((im.width * UP, im.height * UP), Image.LANCZOS)).astype(np.float32)
     m, _ = shirt_mask(rgb.astype(np.uint8)); g = geometry(m)
     fab, shade = recolour(rgb, m, hexrgb(fhex))
     L = g['L']; x0 = int(round(g['cx'] - L / 2)); y0 = int(round(g['top'] + TOP_OFFSET * L))
@@ -142,13 +146,14 @@ if __name__ == '__main__':
         board(i, r).save(os.path.join(OUT, f'planche_variante_0{i}_{slug}.png'))
         g = r['g']; print(i, slug, 'L=%.0f' % r['L'], 'top=%d' % g['top'])
     # overview of the 6 variants
-    tw = 640; ft = ImageFont.truetype(FONT, 24); fr = ImageFont.truetype(FONT_R, 20)
-    ov = Image.new('RGB', (3 * tw + 4 * 30, 2 * 990 + 120), (244, 242, 238)); d = ImageDraw.Draw(ov)
-    d.text((30, 30), 'ECODIM — T-SHIRTS DE NOËL : LES 6 VARIANTES (DEVANT + DOS À PLAT)', font=ImageFont.truetype(FONT, 34), fill=(25, 25, 25))
+    tw = 1240; ft = ImageFont.truetype(FONT, 44); fr = ImageFont.truetype(FONT_R, 36)
+    ov = Image.new('RGB', (3 * tw + 4 * 50, 2 * 1880 + 200), (244, 242, 238)); d = ImageDraw.Draw(ov)
+    d.text((50, 50), 'ECODIM — T-SHIRTS DE NOËL : LES 6 VARIANTES (DEVANT + DOS À PLAT)', font=ImageFont.truetype(FONT, 64), fill=(25, 25, 25))
     for i, r in enumerate(res):
-        x = 30 + (i % 3) * (tw + 30); y = 100 + (i // 3) * 990
+        x = 50 + (i % 3) * (tw + 50); y = 180 + (i // 3) * 1880
         d.text((x, y), f'0{i+1} — {r["title"]}', font=ft, fill=(25, 25, 25))
-        f = fit(r['final'], tw, tw); ov.paste(f, (x, y + 40))
-        bk = fit(r['back'], tw, 300); ov.paste(bk, (x, y + 50 + f.height))
-        d.text((x, y + 55 + f.height + bk.height), 'dos (à plat)', font=fr, fill=(110, 110, 110))
-    ov.save(os.path.join(OUT, 'apercu_6_variantes.png'))
+        f = fit(r['final'], tw, tw); ov.paste(f, (x, y + 70))
+        bk = fit(r['back'], tw, 520); ov.paste(bk, (x, y + 90 + f.height))
+        d.text((x, y + 100 + f.height + bk.height), 'dos (à plat)', font=fr, fill=(110, 110, 110))
+    ov.save(os.path.join(OUT, 'apercu_6_variantes_HD.png'))
+    small = ov.copy(); small.thumbnail((2000, 2000), Image.LANCZOS); small.save(os.path.join(OUT, 'apercu_6_variantes.png'))
