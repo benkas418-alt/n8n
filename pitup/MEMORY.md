@@ -229,5 +229,12 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - un appel à l'action adapté à l'objectif (pas toujours « télécharge l'appli ») ;
   - chaque vidéo associée à une hypothèse et à un indicateur.
   En cas de nouvelle session, réinstaller la compétence depuis `pitup/skills/`.
+- **Trois compétences du fondateur (11 novembre)**, installées dans `~/.claude/skills/`, avec une copie dans `pitup/skills/` à réinstaller à chaque nouvelle session :
+  - `pitup-content-engine` : **quoi filmer** (TikTok/Reels, histoires du quotidien, storyboard, publication).
+  - `viral-psychology-strategist` : **pourquoi ça marche** (attention, rétention, partage, confiance). Sert aussi au diagnostic d'une vidéo publiée et à l'adaptation TikTok, Facebook, Instagram et LinkedIn.
+  - `conversion-copywriting-engine` : **les mots qui font agir** (légendes, publicités, appels à l'action, fiches produits, WhatsApp, pages). Une seule conversion par texte, adaptée au niveau de maturité du public : froid, tiède ou chaud.
+  Méthode commune : 5 hooks différents notés, une idée par contenu, une hypothèse et un indicateur, aucun fait inventé.
+  **À faire confirmer par le fondateur avant de les écrire :** « une alternative peut être proposée si un produit n'est pas disponible » et « la création de boutique est actuellement libre » (ces deux faits apparaissent dans la compétence copywriting).
+  **Tutoiement ou vouvoiement :** les exemples du copywriting vouvoient, alors que les vidéos tutoient. Garder « tu » dans les voix TikTok/Reels ; le vouvoiement reste possible pour Facebook, LinkedIn, WhatsApp et les publicités, si le fondateur le valide.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.

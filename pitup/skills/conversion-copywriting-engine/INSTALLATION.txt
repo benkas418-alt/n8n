@@ -1,0 +1,25 @@
+INSTALLATION — CONVERSION COPYWRITING ENGINE
+
+CONTENU
+- SKILL.md : instructions principales du Skill.
+- references/ : bibliothèques de hooks, frameworks, adaptation par canal, mesure, exemples PitUp et sources.
+
+CLAUDE (interface web ou application)
+1. Ouvrir les paramètres de Claude.
+2. Aller dans Customize / Personnaliser, puis Skills.
+3. Choisir l'option d'ajout/import d'un Skill.
+4. Importer le fichier ZIP sans le décompresser au préalable.
+5. Vérifier que « Conversion Copywriting Engine » apparaît et que le Skill est activé.
+
+CLAUDE CODE (Windows)
+1. Décompresser le ZIP.
+2. Copier le dossier conversion-copywriting-engine dans :
+   %USERPROFILE%\.claude\skills\
+3. Vérifier ce chemin :
+   %USERPROFILE%\.claude\skills\conversion-copywriting-engine\SKILL.md
+4. Relancer Claude Code si le Skill n'apparaît pas, puis vérifier la liste des Skills disponibles.
+
+TEST CONSEILLÉ
+« Utilise Conversion Copywriting Engine. Prépare 5 hooks différents pour une vidéo PitUp dont l'objectif prioritaire est le téléchargement de l'application, puis rédige la meilleure description avec une proposition de valeur claire, une réassurance factuelle et un CTA précis. Donne aussi une variante orientée commande et indique les indicateurs à mesurer. »
+
+Le Skill ne remplace pas la vérification des prix, stocks, conditions commerciales, délais, liens ou fonctionnalités avant publication.

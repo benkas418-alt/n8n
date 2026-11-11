@@ -1,0 +1,30 @@
+VIRAL PSYCHOLOGY STRATEGIST — INSTALLATION
+
+Contenu du package
+- SKILL.md : instructions principales du Skill.
+- references/psychology-engine.md : mécanismes psychologiques et applications.
+- references/platform-playbook.md : adaptation à TikTok, Facebook, Instagram et LinkedIn.
+- references/research-sources.md : sources scientifiques et annonces officielles.
+- references/diagnostic-and-testing.md : analyse, mesure et expérimentation.
+
+INSTALLATION DANS CLAUDE (application)
+1. Ouvre Claude.
+2. Va dans Settings / Paramètres, puis Customize / Personnaliser, puis Skills.
+3. Choisis l'option d'importation d'un Skill et sélectionne le fichier ZIP.
+4. Active le Skill après l'importation.
+5. Vérifie que le dossier du Skill contient bien SKILL.md et le dossier references.
+
+INSTALLATION DANS CLAUDE CODE (Windows)
+1. Décompresse le ZIP.
+2. Copie le dossier viral-psychology-strategist dans :
+   %USERPROFILE%\.claude\skills\
+3. Vérifie ce chemin :
+   %USERPROFILE%\.claude\skills\viral-psychology-strategist\SKILL.md
+4. Relance ou redémarre ta session Claude Code si le Skill n'apparaît pas.
+
+TEST DE FONCTIONNEMENT
+Demande à Claude :
+« Utilise Viral Psychology Strategist. Explique pourquoi une vidéo peut être très regardée mais peu partagée, puis propose trois concepts distincts pour un même sujet : un basé sur l'identification, un sur la curiosité et un sur l'utilité pratique. Adapte chaque concept à TikTok, Facebook, Instagram et LinkedIn. Pour chaque plateforme, donne le hook, la structure, le motif de partage, le CTA et l'indicateur à mesurer. Distingue les faits documentés des hypothèses à tester. »
+
+IMPORTANT
+Le Skill est une méthode de travail. Il ne garantit pas la viralité. Les règles des plateformes et les fonctionnalités peuvent évoluer ; pour toute recommandation actuelle, demande à Claude de vérifier les sources officielles et de dater ses conclusions.
