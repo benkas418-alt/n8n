@@ -1,0 +1,77 @@
+{
+ "project": "pitup-devine",
+ "style": "base",
+ "song": "EllaMai_BoodUp.m4a",
+ "song_off": 169,
+ "scenes": [
+  {
+   "vo": "n4d0",
+   "head": [
+    "Devine",
+    "ce que c'est."
+   ],
+   "beats": [
+    {
+     "k": "cut",
+     "src": "col_q.png",
+     "word": "DEVINE",
+     "bg": "#1f88c9",
+     "tone": "#2a95d8"
+    }
+   ]
+  },
+  {
+   "vo": "n4d1",
+   "beats": [
+    {
+     "k": "zoom",
+     "src": "samba.png",
+     "word": "SAMBA",
+     "bg": "#EDE7DE",
+     "fx": 0.32,
+     "fy": 0.5
+    }
+   ]
+  },
+  {
+   "vo": "n4d2",
+   "beats": [
+    {
+     "k": "zoom",
+     "src": "rayban.png",
+     "word": "LUNETTES",
+     "bg": "#DCEBF5",
+     "fx": 0.22,
+     "fy": 0.5
+    }
+   ]
+  },
+  {
+   "vo": "n4d3",
+   "beats": [
+    {
+     "k": "zoom",
+     "src": "campus.png",
+     "word": "CAMPUS",
+     "bg": "#E8EFEA",
+     "fx": 0.62,
+     "fy": 0.42
+    }
+   ]
+  },
+  {
+   "vo": "n4d4",
+   "end_at": 0.42,
+   "head": [
+    "Combien tu en",
+    "as trouvé ?"
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_samba"
+    }
+   ]
+  }
+ ]
+}

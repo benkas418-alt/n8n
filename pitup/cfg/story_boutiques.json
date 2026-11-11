@@ -1,0 +1,89 @@
+{
+ "project": "pitup-boutiques",
+ "style": "base",
+ "song": "SamRecks_BackPack.m4a",
+ "song_off": 122,
+ "scenes": [
+  {
+   "vo": "n3b0",
+   "head": [
+    "3 boutiques",
+    "à suivre."
+   ],
+   "beats": [
+    {
+     "k": "cut",
+     "src": "col_shops.png",
+     "word": "À SUIVRE",
+     "bg": "#0d1520",
+     "tone": "#13202e"
+    }
+   ]
+  },
+  {
+   "vo": "n3b1",
+   "beats": [
+    {
+     "k": "shop",
+     "name": "MB Ephphatha",
+     "sub": "Chaussures",
+     "logo": "shop_mb_logo.jpg",
+     "banner": "shop_mb_banner.jpg",
+     "p": [
+      "shop_mb_0.jpg",
+      "shop_mb_1.jpg",
+      "shop_mb_2.jpg"
+     ]
+    }
+   ]
+  },
+  {
+   "vo": "n3b2",
+   "beats": [
+    {
+     "k": "shop",
+     "name": "Vb business",
+     "sub": "Vêtements homme",
+     "logo": "shop_vb_logo.jpg",
+     "banner": "shop_vb_banner.jpg",
+     "p": [
+      "shop_vb_0.jpg",
+      "shop_vb_1.jpg",
+      "shop_vb_2.jpg"
+     ]
+    }
+   ]
+  },
+  {
+   "vo": "n3b3",
+   "beats": [
+    {
+     "k": "shop",
+     "name": "Tout est grâce",
+     "sub": "Vêtements et chaussures",
+     "logo": "shop_teg_logo.jpg",
+     "banner": "shop_teg_banner.jpg",
+     "p": [
+      "shop_teg_0.jpg",
+      "shop_teg_1.jpg",
+      "shop_teg_2.jpg"
+     ]
+    }
+   ]
+  },
+  {
+   "vo": "n3b4",
+   "end_at": 0.42,
+   "head": [
+    "Et toi,",
+    "tu connais laquelle ?"
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_teg"
+    }
+   ]
+  }
+ ]
+}

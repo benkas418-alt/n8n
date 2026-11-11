@@ -1,0 +1,94 @@
+{
+ "project": "pitup-duels",
+ "style": "base",
+ "song": "CentralCee_Obsessed.m4a",
+ "song_off": 30,
+ "scenes": [
+  {
+   "vo": "n1c0",
+   "head": [
+    "Tu ne peux en",
+    "garder qu'un."
+   ],
+   "beats": [
+    {
+     "k": "cut",
+     "src": "col_duel.png",
+     "word": "1 OU 2 ?",
+     "bg": "#1f88c9",
+     "tone": "#2a95d8"
+    }
+   ]
+  },
+  {
+   "vo": "n1c1",
+   "beats": [
+    {
+     "k": "vs",
+     "a": "tech.png",
+     "b": "adidas.png",
+     "la": "Nike Tech",
+     "lb": "Survêt adidas",
+     "bga": "#E9EEF3",
+     "bgb": "#F3ECE4"
+    }
+   ]
+  },
+  {
+   "vo": "n1c2",
+   "beats": [
+    {
+     "k": "vs",
+     "a": "sneak.png",
+     "b": "loafers.png",
+     "la": "Timberland",
+     "lb": "Mocassins",
+     "bga": "#F1EDE6",
+     "bgb": "#E6EBF2"
+    }
+   ]
+  },
+  {
+   "vo": "n1c3",
+   "beats": [
+    {
+     "k": "vs",
+     "a": "sherpa.png",
+     "b": "jacket.png",
+     "la": "Sherpa",
+     "lb": "Cuir",
+     "bga": "#EEF1EC",
+     "bgb": "#ECE8E4"
+    }
+   ]
+  },
+  {
+   "vo": "n1c4",
+   "beats": [
+    {
+     "k": "vs",
+     "a": "tn.png",
+     "b": "shox.png",
+     "la": "TN",
+     "lb": "Shox",
+     "bga": "#E8EDF4",
+     "bgb": "#F4ECEA"
+    }
+   ]
+  },
+  {
+   "vo": "n1c5",
+   "end_at": 0.9,
+   "head": [
+    "Dis-moi",
+    "tes choix."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_shox"
+    }
+   ]
+  }
+ ]
+}

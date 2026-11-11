@@ -86,6 +86,25 @@ for i, sc in enumerate(C["scenes"]):
         elif kind == "img":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/{bt["src"]}" alt=""></div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.2); tl.fromTo("#b{j} img", {{ scale: 1.12 }}, {{ scale: 1.0, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+        elif kind == "vs":    # duel: two products side by side, "OU" badge, made to get a choice in the comments
+            scene_html.append(f'<div class="full" id="b{j}"><div class="vsl" style="background:{bt.get("bga", "#E9EEF3")}"><img src="assets/img/{bt["a"]}" alt=""><b>{bt["la"]}</b></div>'
+                              f'<div class="vsr" style="background:{bt.get("bgb", "#F3ECE4")}"><img src="assets/img/{bt["b"]}" alt=""><b>{bt["lb"]}</b></div><div class="vsou">OU</div></div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.1); tl.fromTo("#b{j} .vsl", {{ xPercent: -100 }}, {{ xPercent: 0, duration: 0.45, ease: "power3.out" }}, {ba}); tl.fromTo("#b{j} .vsr", {{ xPercent: 100 }}, {{ xPercent: 0, duration: 0.45, ease: "power3.out" }}, {ba + 0.1:.3f});'
+                      f'tl.fromTo("#b{j} .vsou", {{ scale: 0, rotation: -25 }}, {{ scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2.2)" }}, {ba + 0.35:.3f}); tl.fromTo("#b{j} img", {{ scale: 1 }}, {{ scale: 1.06, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+        elif kind == "shop":  # shop spotlight: blurred banner, round logo, name, three real products
+            ph = "".join(f'<img class="sp sp{k}" src="assets/img/{q}" alt="">' for k, q in enumerate(bt["p"]))
+            scene_html.append(f'<div class="full" id="b{j}" style="background:#0d1520"><img class="bg shopbg" src="assets/img/{bt["banner"]}" alt=""><div class="shopdim"></div>'
+                              f'<img class="slogo" src="assets/img/{bt["logo"]}" alt=""><div class="sname">{bt["name"]}</div><div class="ssub">{bt.get("sub", "")}</div>{ph}</div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.15); tl.fromTo("#b{j} .slogo", {{ scale: 0.4, opacity: 0 }}, {{ scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }}, {ba});'
+                      f'tl.fromTo("#b{j} .sname, #b{j} .ssub", {{ y: 40, opacity: 0 }}, {{ y: 0, opacity: 1, duration: 0.45, stagger: 0.1, ease: "power3.out" }}, {ba + 0.2:.3f});'
+                      f'tl.fromTo("#b{j} .sp", {{ y: 120, opacity: 0 }}, {{ y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: "power3.out" }}, {ba + 0.45:.3f}); tl.fromTo("#b{j} .shopbg", {{ scale: 1.15 }}, {{ scale: 1.25, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+        elif kind == "zoom":  # guessing game: extreme close-up that slowly backs off, then the reveal
+            rv = ba + bt.get("rev", 0.68) * (bb - ba)
+            scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#EDE7DE")}"><img class="zimg" src="assets/img/{bt["src"]}" alt="" style="transform-origin:{bt.get("fx", 0.5) * 100:.0f}% {bt.get("fy", 0.5) * 100:.0f}%">'
+                              f'<div class="zq">?</div><div class="giant zw" style="color:{bt.get("tone", "#1f88c9")}">{bt.get("word", "")}</div></div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.1); tl.fromTo("#b{j} .zimg", {{ scale: 5.5 }}, {{ scale: 3.2, duration: {rv - ba:.3f}, ease: "none" }}, {ba}); tl.to("#b{j} .zimg", {{ scale: 1, duration: 0.5, ease: "power3.inOut" }}, {rv:.3f});'
+                      f'tl.fromTo("#b{j} .zq", {{ scale: 0.6, opacity: 0 }}, {{ scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }}, {ba + 0.2:.3f}); tl.to("#b{j} .zq", {{ opacity: 0, scale: 1.4, duration: 0.25 }}, {rv:.3f});'
+                      f'tl.fromTo("#b{j} .zw", {{ opacity: 0, y: 60 }}, {{ opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }}, {rv + 0.3:.3f});')
         elif kind == "cut":
             scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#EFE6D8")}"><div class="giant" style="color:{bt.get("tone", "#E3D6C2")}">{bt.get("word", "")}</div><img class="cut" src="assets/img/{bt["src"]}" alt=""></div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.15); tl.fromTo("#b{j} .cut", {{ scale: 0.86, y: 60 }}, {{ scale: 1, y: 0, duration: 0.5, ease: "back.out(1.6)" }}, {ba}); tl.fromTo("#b{j} .giant", {{ x: 50 }}, {{ x: -50, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
@@ -148,6 +167,18 @@ html = f'''<!doctype html>
 .full {{ position: absolute; inset: 0; opacity: 0; overflow: hidden; }}
 .full img.bg {{ position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }}
 .full .cut {{ position: absolute; left: 140px; right: 140px; top: 640px; width: 800px; height: 860px; object-fit: contain; filter: drop-shadow(0 40px 34px rgba(0,0,0,.3)); }}
+ .vsl, .vsr {{ position: absolute; top: 0; bottom: 0; width: 540px; overflow: hidden; }} .vsl {{ left: 0; }} .vsr {{ right: 0; }}
+.vsl img, .vsr img {{ position: absolute; left: 35px; top: 600px; width: 470px; height: 700px; object-fit: contain; filter: drop-shadow(0 30px 26px rgba(0,0,0,.28)); }}
+.vsl b, .vsr b {{ position: absolute; left: 20px; right: 20px; top: 1350px; text-align: center; font-weight: 800; font-size: 56px; letter-spacing: -1.5px; color: #111214; line-height: 1.05; }}
+.vsou {{ position: absolute; left: 430px; top: 830px; width: 220px; height: 220px; border-radius: 50%; background: #1f88c9; color: #fff; font-weight: 800; font-size: 86px; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(31,136,201,.45); border: 8px solid #fff; }}
+.shopbg {{ filter: blur(26px) brightness(.5) saturate(1.2); }} .shopdim {{ position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,14,22,.25), rgba(8,14,22,.75)); }}
+.slogo {{ position: absolute; left: 400px; top: 430px; width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 8px solid #fff; box-shadow: 0 30px 60px rgba(0,0,0,.4); }}
+.sname {{ position: absolute; left: 40px; right: 40px; top: 760px; text-align: center; color: #fff; font-weight: 800; font-size: 96px; letter-spacing: -3px; line-height: 1; }}
+.ssub {{ position: absolute; left: 40px; right: 40px; top: 880px; text-align: center; color: #cfe9fb; font-weight: 600; font-size: 46px; }}
+.sp {{ position: absolute; top: 1040px; width: 300px; height: 380px; object-fit: cover; border-radius: 28px; border: 6px solid #fff; box-shadow: 0 24px 50px rgba(0,0,0,.4); }}
+.sp0 {{ left: 60px; transform: rotate(-4deg); }} .sp1 {{ left: 390px; top: 1010px; }} .sp2 {{ left: 720px; transform: rotate(4deg); }}
+.zimg {{ position: absolute; left: 90px; top: 460px; width: 900px; height: 1000px; object-fit: contain; }}
+.zq {{ position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-weight: 800; font-size: 360px; color: #fff; text-shadow: 0 10px 60px rgba(0,0,0,.35); }}
 .full .giant {{ position: absolute; left: 0; right: 0; top: 1520px; text-align: center; font-weight: 800; font-size: 230px; letter-spacing: -8px; white-space: nowrap; }}
 .shade {{ position: absolute; left: 0; right: 0; top: 0; height: 640px; background: linear-gradient(180deg, rgba(0,0,0,.72) 30%, rgba(0,0,0,0)); z-index: 8; }}
 .hd {{ position: absolute; left: 76px; right: 76px; top: 250px; font-weight: 800; font-size: 92px; letter-spacing: -3px; line-height: 1.02; color: #fff; opacity: 0; z-index: 9; text-shadow: 0 6px 30px rgba(0,0,0,.35); }}

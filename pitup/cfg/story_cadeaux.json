@@ -1,0 +1,98 @@
+{
+ "project": "pitup-cadeaux",
+ "style": "base",
+ "song": "Tems_MeU.m4a",
+ "song_off": 83,
+ "scenes": [
+  {
+   "vo": "n2g0",
+   "head": [
+    "5 idées cadeaux",
+    "pour ton gars."
+   ],
+   "beats": [
+    {
+     "k": "cut",
+     "src": "col_gift.png",
+     "word": "CADEAUX",
+     "bg": "#14324d",
+     "tone": "#1b3f60"
+    }
+   ]
+  },
+  {
+   "vo": "n2g1",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "watch.png",
+     "word": "MONTRE",
+     "bg": "#E9EEF3",
+     "tone": "#DCE3EA"
+    }
+   ]
+  },
+  {
+   "vo": "n2g2",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "pullrl.png",
+     "word": "PULL",
+     "bg": "#F3ECE4",
+     "tone": "#E9DED2"
+    }
+   ]
+  },
+  {
+   "vo": "n2g3",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "tomford.png",
+     "word": "LUNETTES",
+     "bg": "#EFEBD8",
+     "tone": "#E4DEC2"
+    }
+   ]
+  },
+  {
+   "vo": "n2g4",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "asics.png",
+     "word": "BASKETS",
+     "bg": "#E4E8EC",
+     "tone": "#D5DBE1"
+    }
+   ]
+  },
+  {
+   "vo": "n2g5",
+   "beats": [
+    {
+     "k": "cut",
+     "src": "jogging.png",
+     "word": "JOGGING",
+     "bg": "#E8EFEA",
+     "tone": "#D9E4DC"
+    }
+   ]
+  },
+  {
+   "vo": "n2g6",
+   "end_at": 0.42,
+   "head": [
+    "Envoie-la",
+    "à quelqu'un."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_montre"
+    }
+   ]
+  }
+ ]
+}
