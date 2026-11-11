@@ -1,0 +1,110 @@
+{
+ "project": "pitup-v13-ciel",
+ "style": "city",
+ "song": "Odeal_-_Blame_U.mp3",
+ "song_off": 15.0,
+ "vo_full": "v13_ciel",
+ "scenes": [
+  {
+   "head": [
+    "Lubumbashi"
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "sun_hook"
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "v",
+     "src": "sun_boulevard"
+    }
+   ]
+  },
+  {
+   "head": [
+    "La bonne pièce ?",
+    "Ça prend du temps."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "sun_street"
+    }
+   ]
+  },
+  {
+   "head": [
+    "Toutes les boutiques,",
+    "une seule appli."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_market2"
+    },
+    {
+     "k": "phone",
+     "src": "ph_vb"
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "cards",
+     "items": [
+      {
+       "src": "c_708_2.jpg",
+       "label": "Veste de cérémonie"
+      },
+      {
+       "src": "c_452_0.jpg",
+       "label": "Sac du soir"
+      },
+      {
+       "src": "c_555_0.jpg",
+       "label": "Blazer moutarde"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "v",
+     "src": "box",
+     "cap": "Payé à la livraison."
+    }
+   ]
+  },
+  {
+   "head": [
+    "Disponible",
+    "dès maintenant."
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "sun_silhouette"
+    }
+   ]
+  }
+ ],
+ "starts": [
+  -0.06,
+  2.192,
+  4.426,
+  7.093,
+  9.736,
+  12.641,
+  14.714
+ ],
+ "end_card_at": 17.02,
+ "vo_end": 19.668,
+ "end_word": "passe"
+}

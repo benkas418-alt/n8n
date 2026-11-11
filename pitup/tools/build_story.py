@@ -20,12 +20,15 @@ def span(f):
     z = st[-1] if st and st[-1] > d - 1.5 and (not en or st[-1] > en[-1]) else d
     return a, z
 vo, S, t = [], [], 0.3
-for sc in C["scenes"]:
+for sc in ([] if C.get("vo_full") else C["scenes"]):
     a, z = span(f"{V}/{sc['vo']}.wav"); vo.append((sc["vo"], t + 0.15, a)); S.append(round(t, 3)); t += 0.15 + (z - a) + 0.45
-S[0] = 0.0
-last = C["scenes"][-1]; a, z = span(f"{V}/{last['vo']}.wav")
-END = round(S[-1] + 0.15 + (z - a) * last.get("end_at", 0.45), 3)
-DUR = round(S[-1] + 0.15 + (z - a) + 3.6, 3)
+if S: S[0] = 0.0
+last = C["scenes"][-1]; a, z = span(f"{V}/{last['vo']}.wav") if not C.get("vo_full") else (0, 0)
+END = round(S[-1] + 0.15 + (z - a) * last.get("end_at", 0.45), 3) if S else 0
+DUR = round(S[-1] + 0.15 + (z - a) + 3.6, 3) if S else 0
+if C.get("vo_full"):   # whole script spoken in one take: keep its natural rhythm, scenes follow the sentence starts
+    lead = 0.3; st = C["starts"]; S = [0.0] + [round(lead + t, 3) for t in st[1:]]
+    vo = [(C["vo_full"], lead, 0.0)]; END = round(lead + C["end_card_at"], 3); DUR = round(lead + C["vo_end"] + 3.0, 3)
 S.append(END)
 json.dump({"vo": vo, "dur": DUR}, open(f"{P}/timing.json", "w"), indent=1)
 
@@ -41,7 +44,7 @@ NOPLATE = "" if C.get("plate", True) else ("#root .gl { background: none !import
   " #root .gl .em { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; } #root .gcap span { background: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 1px 4px rgba(0,0,0,.4) !important; font-size: 56px !important; }")
 root_html = []
 
-LAPPH = {}
+LAPPH = {}; LIGHT = []   # light-background beats: no dark shade or vignette, dark top tag
 def nid(): n[0] += 1; return n[0]
 for i, sc in enumerate(C["scenes"]):
     a, b = S[i], S[i + 1]; beats = sc["beats"]; w = (b - a) / len(beats)
@@ -57,7 +60,9 @@ for i, sc in enumerate(C["scenes"]):
             root_html.append(f'<div class="kin" id="h{i}"><div>{h[0]}</div><div>{h[1] if len(h) > 1 else ""}</div></div>')
             js.append(f'tl.set("#h{i}", {{ opacity: 1 }}, {a}); tl.set("#h{i}", {{ opacity: 0 }}, {b}); tl.fromTo("#h{i} div", {{ yPercent: 110 }}, {{ yPercent: 0, duration: 0.55, stagger: 0.12, ease: "expo.out" }}, {a}); tl.fromTo("#h{i}", {{ scale: 1.0 }}, {{ scale: 1.05, duration: {b - a:.3f}, ease: "none" }}, {a});')
         elif STYLE == "city":  # small editorial caption, bottom-left, blue rule
-            scene_html.append(f'<div class="ed" id="h{i}"><i></i><span>{h[0]}</span><b>{h[1] if len(h) > 1 else ""}</b></div>')
+            # over the 3D phone or laptop the caption moves above the device, never across the screen
+            edpos = ' style="top:300px;bottom:auto"' if any(b_["k"] in ("phone", "lap") for b_ in beats) else ""
+            scene_html.append(f'<div class="ed" id="h{i}"{edpos}><i></i><span>{h[0]}</span><b>{h[1] if len(h) > 1 else ""}</b></div>')
             js.append(f'tl.fromTo("#h{i}", {{ opacity: 0, x: -40 }}, {{ opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }}, {a + 0.05}); tl.set("#h{i}", {{ opacity: 0 }}, {b}); tl.fromTo("#h{i} i", {{ scaleX: 0 }}, {{ scaleX: 1, duration: 0.5, ease: "power3.out", transformOrigin: "0 50%" }}, {a});')
         else:
             scene_html.append(f'<div class="hd" id="h{i}"><span>{h[0]}</span><b>{h[1] if len(h) > 1 else ""}</b></div>')
@@ -66,9 +71,13 @@ for i, sc in enumerate(C["scenes"]):
         scene_html.append(f'<div class="tag" id="t{i}">{sc["tag"]}</div>'); js.append(f'show("#t{i}", {a}, {b});')
     for k, bt in enumerate(beats):
         ba, bb = round(a + k * w, 3), round(a + (k + 1) * w, 3); kind = bt["k"]; j = nid()
+        bgc = bt.get("bg", "#ffffff" if kind == "kt" else "#f4f5f7")
+        if kind in ("kt", "cards") and int(bgc[1:3], 16) + int(bgc[3:5], 16) + int(bgc[5:7], 16) > 450: LIGHT.append((ba, bb))
         if kind == "v":
             vids.append(f'<video id="v{j}" class="clip vid" src="assets/v/{bt["src"]}.mp4" muted playsinline data-start="{ba}" data-duration="{bb - ba:.3f}" data-track-index="{2 + j % 2}"></video>')
             js.append(f'tl.fromTo("#v{j}", {{ scale: 1.0 }}, {{ scale: 1.05, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+            if bt.get("credit"):   # source credit shown over the shot (map or imagery licences)
+                scene_html.append(f'<div class="credit" id="cr{j}" style="opacity:0;z-index:9;color:rgba(40,40,40,.8)">{bt["credit"]}</div>'); js.append(f'tl.set("#cr{j}", {{ opacity: 1 }}, {ba}); tl.set("#cr{j}", {{ opacity: 0 }}, {bb});')
         elif kind == "rapid":   # quick cuts on the music grid
             # each shot plays once: stretch the cut length (whole beats) rather than loop the list
             nn_ = len(bt["srcs"]); g = bt.get("step", 0.46); step = g * max(1, -(-(bb - ba) // (nn_ * g))); m, t0 = 0, ba
@@ -86,6 +95,21 @@ for i, sc in enumerate(C["scenes"]):
         elif kind == "img":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/{bt["src"]}" alt=""></div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.2); tl.fromTo("#b{j} img", {{ scale: 1.12 }}, {{ scale: 1.0, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+        elif kind == "kt":    # kinetic typography on a clean background, words land one by one, accent words in brand blue
+            ws = bt["words"]; acc = set(bt.get("accent", []))
+            spans_ = "".join(f'<span class="ktw{" kta" if k in acc else ""}" id="b{j}k{k}">{w}</span> ' for k, w in enumerate(ws))
+            scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#ffffff")};z-index:9"><div class="kt" style="font-size:{bt.get("size", 120)}px;color:{bt.get("ink", "#111214")}">{spans_}</div>{f'<div class="ktsub">{bt["sub"]}</div>' if bt.get("sub") else ""}</div>')
+            gap = min(0.32, max(0.12, (bb - ba) * 0.6 / max(1, len(ws))))
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}k{k}", {{ opacity: 0, y: 50, scale: 0.92 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "back.out(1.7)" }}, {ba + 0.05 + k * gap:.3f});' for k in range(1 if ba < 0.01 else 0, len(ws)))
+                      + (f'tl.fromTo("#b{j} .ktsub", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.4 }}, {ba + 0.1 + len(ws) * gap:.3f});' if bt.get("sub") else "")
+                      + f'tl.fromTo("#b{j} .kt", {{ scale: 1 }}, {{ scale: 1.04, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
+        elif kind == "cards":  # lookbook: real product photos as rounded cards with their name
+            its = bt["items"]; n_ = len(its)
+            geo = {1: [(190, 520, 700, 880)], 2: [(70, 600, 455, 600), (555, 600, 455, 600)], 3: [(50, 300, 470, 560), (560, 300, 470, 560), (305, 1020, 470, 470)]}[n_]
+            html_ = "".join(f'<div class="pcard" id="b{j}c{k}" style="left:{x}px;top:{y}px;width:{w}px"><img src="assets/img/{it["src"]}" alt="" style="height:{h}px"><b>{it["label"]}</b></div>' for k, (it, (x, y, w, h)) in enumerate(zip(its, geo)))
+            scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#f4f5f7")};z-index:9">{html_}</div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}c{k}", {{ opacity: 0, y: 80, rotation: {(-3, 3, 0)[k % 3]} }}, {{ opacity: 1, y: 0, rotation: 0, duration: 0.55, ease: "power3.out" }}, {ba + 0.08 + k * min(0.45, (bb - ba) / (n_ + 1)):.3f});' for k in range(n_))
+                      + f'tl.fromTo("#b{j} .pcard img", {{ scale: 1.0 }}, {{ scale: 1.06, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
         elif kind == "vs":    # duel: two products side by side, "OU" badge, made to get a choice in the comments
             scene_html.append(f'<div class="full" id="b{j}"><div class="vsl" style="background:{bt.get("bga", "#E9EEF3")}"><img src="assets/img/{bt["a"]}" alt=""><b>{bt["la"]}</b></div>'
                               f'<div class="vsr" style="background:{bt.get("bgb", "#F3ECE4")}"><img src="assets/img/{bt["b"]}" alt=""><b>{bt["lb"]}</b></div><div class="vsou">OU</div></div>')
@@ -145,6 +169,46 @@ for i, sc in enumerate(C["scenes"]):
                       f'tl.fromTo("#b{j} .dlogo", {{ opacity: 0, scale: 0.7 }}, {{ opacity: 1, scale: 1, duration: {0.5 * fq:.2f}, ease: "back.out(1.7)" }}, {T(0.7)});'
                       f'tl.fromTo("#b{j} .dpin", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.25 }}, {T(0.95)}); tl.fromTo("#b{j} .dlab", {{ opacity: 0, x: 20 }}, {{ opacity: 1, x: 0, duration: 0.3 }}, {T(1.05)});'
                       f'tl.fromTo("#b{j} .dring", {{ attr: {{ r: 18 }}, opacity: 1 }}, {{ attr: {{ r: 70 }}, opacity: 0, duration: 0.8, repeat: 2, ease: "power2.out" }}, {T(1.05)});')
+        elif kind == "africa":  # hook: Africa on the cover frame, DRC in brand blue, the camera falls onto Lubumbashi, then satellite
+            polys = json.load(open(f"{SP}/real/drc/africa.json")); sc = 13.2; lon0, lat0 = 17.0, 1.5
+            prj = lambda lon, lat: (540 + (lon - lon0) * sc, 930 - (lat - lat0) * sc)
+            paths = []
+            for pg in polys:
+                xs_ = [x for x, y in pg["ring"]]; ys_ = [y for x, y in pg["ring"]]
+                if max(xs_) < -30 or min(xs_) > 70 or max(ys_) < -45 or min(ys_) > 45: continue
+                d_ = "M" + " L".join(f"{prj(x, y)[0]:.1f},{prj(x, y)[1]:.1f}" for x, y in pg["ring"]) + "Z"
+                drc_ = pg["name"].startswith("Dem. Rep. Congo")
+                paths.append(f'<path d="{d_}" fill="{"url(#afg%d)" % j if drc_ else "#1a3550"}" stroke="{"#ffffff" if drc_ else "#0b1724"}" stroke-width="{1.6 if drc_ else 1.1}" stroke-linejoin="round"/>')
+            lx, ly = prj(27.4793, -11.6647); mid = ba + (bb - ba) * bt.get("swap", 0.62); z0 = ba + bt.get("hold", 0.55)
+            scene_html.append(f'<div class="full" id="b{j}" style="background:radial-gradient(90% 60% at 50% 45%,#10283f 0%,#06111b 100%);overflow:hidden">'
+                              f'<div class="afm" style="position:absolute;inset:0;transform-origin:{lx:.1f}px {ly:.1f}px">'
+                              f'<svg viewBox="0 0 1080 1920" width="1080" height="1920" style="position:absolute;left:0;top:0"><defs><linearGradient id="afg{j}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3aa3e3"/><stop offset="1" stop-color="#1668a8"/></linearGradient></defs>'
+                              + "".join(paths) + f'<circle class="afr" cx="{lx:.1f}" cy="{ly:.1f}" r="10" fill="none" stroke="#fff" stroke-width="3"/><circle class="afp" cx="{lx:.1f}" cy="{ly:.1f}" r="6" fill="#fff"/></svg>'
+                              f'<div class="afl" style="position:absolute;left:{lx + 18:.0f}px;top:{ly - 18:.0f}px;color:#fff;font-weight:700;font-size:26px;text-shadow:0 2px 10px rgba(0,0,0,.5)">Lubumbashi</div></div>'
+                              f'<img class="afs bg" src="assets/img/aerial.jpg" alt="" style="opacity:0"><div class="credit" style="opacity:1">Imagerie © Esri, Maxar</div></div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.05); tl.fromTo("#b{j} .afm", {{ scale: 1.0 }}, {{ scale: 1.08, duration: {z0 - ba:.3f}, ease: "none" }}, {ba});'
+                      f'tl.fromTo("#b{j} .afr", {{ attr: {{ r: 10 }}, opacity: 1 }}, {{ attr: {{ r: 46 }}, opacity: 0, duration: 0.7, repeat: 1, ease: "power2.out" }}, {ba});'
+                      f'tl.to("#b{j} .afm", {{ scale: 70, duration: {mid - z0 + 0.35:.3f}, ease: "power3.in" }}, {z0:.3f}); tl.to("#b{j} .afl", {{ opacity: 0, duration: 0.15 }}, {z0 + 0.1:.3f});'
+                      f'tl.to("#b{j} .afp, #b{j} .afr", {{ opacity: 0, duration: 0.12 }}, {z0 + 0.25:.3f}); tl.to("#b{j} .afm", {{ opacity: 0, duration: 0.3 }}, {mid - 0.3:.3f});'
+                      f'tl.fromTo("#b{j} .afs", {{ opacity: 0, scale: 2.4, filter: "blur(10px)" }}, {{ opacity: 1, scale: 1.25, filter: "blur(0px)", duration: {bb - mid + 0.35:.3f}, ease: "power2.out" }}, {mid - 0.35:.3f});')
+        elif kind == "dive":  # hook: camera already moving, falls from the DRC map onto Lubumbashi, then into satellite imagery
+            import math
+            ring = json.load(open(f"{SP}/real/drc/drc.json"))[0]; k0 = math.cos(math.radians(4))
+            xs = [x * k0 for x, y in ring]; ys = [-y for x, y in ring]; sc = 880 / (max(xs) - min(xs))
+            ox, oy = 540 - (max(xs) + min(xs)) / 2 * sc, 930 - (max(ys) + min(ys)) / 2 * sc
+            prj = lambda lon, lat: (lon * k0 * sc + ox, -lat * sc + oy)
+            dd = "M" + " L".join(f"{prj(x, y)[0]:.1f},{prj(x, y)[1]:.1f}" for x, y in ring) + "Z"
+            lx, ly = prj(27.4793, -11.6647); mid = ba + (bb - ba) * bt.get("swap", 0.5)
+            scene_html.append(f'<div class="full" id="b{j}" style="background:#06111b;overflow:hidden">'
+                              f'<div class="dvm" style="position:absolute;inset:0;transform-origin:{lx:.0f}px {ly:.0f}px">'
+                              f'<svg viewBox="0 0 1080 1920" width="1080" height="1920" style="position:absolute;left:0;top:0"><defs><linearGradient id="dvg{j}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3aa3e3"/><stop offset="1" stop-color="#1668a8"/></linearGradient></defs>'
+                              f'<path d="{dd}" fill="url(#dvg{j})"/><circle class="dvl" cx="{lx:.0f}" cy="{ly:.0f}" r="9" fill="#fff"/></svg>'
+                              f'<div class="dvl" style="position:absolute;right:{1080 - lx + 22:.0f}px;top:{ly - 20:.0f}px;color:#fff;font-weight:700;font-size:28px">Lubumbashi</div></div>'
+                              f'<img class="dvs bg" src="assets/img/aerial.jpg" alt="" style="opacity:0"><div class="credit" style="opacity:1">Imagerie © Esri, Maxar</div></div>')
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.05); tl.fromTo("#b{j} .dvm", {{ scale: 1.25 }}, {{ scale: 14, duration: {mid - ba + 0.25:.3f}, ease: "power3.in" }}, {ba});'
+                      f'tl.to("#b{j} .dvl", {{ opacity: 0, duration: 0.2 }}, {ba + 0.25:.3f}); tl.to("#b{j} .dvm", {{ opacity: 0, duration: 0.3 }}, {mid - 0.1:.3f});'
+                      f'tl.fromTo("#b{j} .dvs", {{ opacity: 0, scale: 2.4 }}, {{ opacity: 1, scale: 1.25, duration: {bb - mid:.3f}, ease: "power2.out" }}, {mid - 0.12:.3f});'
+                      f'tl.fromTo("#b{j} .dvs", {{ filter: "blur(10px)" }}, {{ filter: "blur(0px)", duration: 0.45 }}, {mid - 0.12:.3f});')
         elif kind == "flag":
             scene_html.append(f'<div class="full" id="b{j}"><img class="bg" src="assets/img/aerial.jpg" alt=""><div style="position:absolute;inset:0;background:rgba(0,0,0,.25)"></div>'
                               f'<div class="flag"><svg viewBox="0 0 800 600" width="700" height="525"><rect width="800" height="600" fill="#007FFF"/><polygon points="0,510 680,0 800,0 800,90 120,600 0,600" fill="#F7D618"/><polygon points="0,555 740,0 800,0 800,45 60,600 0,600" fill="#CE1021"/><polygon points="150,40 172,108 244,108 186,150 208,218 150,176 92,218 114,150 56,108 128,108" fill="#F7D618"/></svg></div><div class="credit" style="opacity:1">Imagerie © Esri, Maxar</div></div>')
@@ -153,7 +217,10 @@ for i, sc in enumerate(C["scenes"]):
             cls = {"glass": "cap gcap", "city": "cap ccap", "kin": "cap kcap"}.get(STYLE, "cap")
             scene_html.append(f'<div class="{cls}" id="c{j}" style="top:{bt.get("cap_top", 1560)}px"><span>{bt["cap"]}</span></div>'); js.append(f'cap("#c{j}", {ba}, {bb});')
         if bt.get("big"):
-            scene_html.append(f'<div class="bigtxt" id="g{j}">{bt["big"]}</div>'); js.append(f'tl.fromTo("#g{j}", {{ opacity: 0, scale: 0.8 }}, {{ opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }}, {ba + 0.05}); tl.set("#g{j}", {{ opacity: 0 }}, {bb});')
+            if ba < 0.01:   # opening beat: the word is on the cover frame already
+                scene_html.append(f'<div class="bigtxt" id="g{j}" style="opacity:1">{bt["big"]}</div>'); js.append(f'tl.set("#g{j}", {{ opacity: 0 }}, {bb});')
+            else:
+                scene_html.append(f'<div class="bigtxt" id="g{j}">{bt["big"]}</div>'); js.append(f'tl.fromTo("#g{j}", {{ opacity: 0, scale: 0.8 }}, {{ opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }}, {ba + 0.05}); tl.set("#g{j}", {{ opacity: 0 }}, {bb});')
 
 SW, SH = 520, 1126
 slabs = "".join(f'<div class="slab{" back" if k == 20 else ""}" style="transform:translateZ(-{k}px)">' + ("" if k in (1, 20) else '<i class="btn" style="left:-5px;top:280px;height:64px"></i><i class="btn" style="left:-5px;top:370px;height:110px"></i><i class="btn" style="right:-5px;top:400px;height:160px"></i>') + '</div>' for k in range(20, 0, -1))
@@ -179,6 +246,12 @@ html = f'''<!doctype html>
 .sp0 {{ left: 60px; transform: rotate(-4deg); }} .sp1 {{ left: 390px; top: 1010px; }} .sp2 {{ left: 720px; transform: rotate(4deg); }}
 .zimg {{ position: absolute; left: 90px; top: 460px; width: 900px; height: 1000px; object-fit: contain; }}
 .zq {{ position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-weight: 800; font-size: 360px; color: #fff; text-shadow: 0 10px 60px rgba(0,0,0,.35); }}
+ .kt {{ position: absolute; left: 80px; right: 80px; top: 50%; transform: translateY(-50%); text-align: center; font-weight: 800; letter-spacing: -4px; line-height: 1.05; }}
+.ktw {{ display: inline-block; }} .kta {{ color: #1f88c9; }}
+.ktsub {{ position: absolute; left: 80px; right: 80px; top: 62%; text-align: center; font-weight: 600; font-size: 46px; color: #5b6570; }}
+.pcard {{ position: absolute; background: #fff; border-radius: 40px; padding: 18px 18px 26px; box-shadow: 0 30px 60px rgba(17,18,20,.14); overflow: hidden; }}
+.pcard img {{ display: block; width: 100%; object-fit: cover; border-radius: 26px; }}
+.pcard b {{ display: block; margin-top: 18px; text-align: center; font-weight: 700; font-size: 40px; color: #111214; letter-spacing: -1px; }}
 .full .giant {{ position: absolute; left: 0; right: 0; top: 1520px; text-align: center; font-weight: 800; font-size: 230px; letter-spacing: -8px; white-space: nowrap; }}
 .shade {{ position: absolute; left: 0; right: 0; top: 0; height: 640px; background: linear-gradient(180deg, rgba(0,0,0,.72) 30%, rgba(0,0,0,0)); z-index: 8; }}
 .hd {{ position: absolute; left: 76px; right: 76px; top: 250px; font-weight: 800; font-size: 92px; letter-spacing: -3px; line-height: 1.02; color: #fff; opacity: 0; z-index: 9; text-shadow: 0 6px 30px rgba(0,0,0,.35); }}
@@ -242,15 +315,16 @@ html = f'''<!doctype html>
 {end_html}
 </div>
 <div id="anchor"><img id="anchorIcon" src="assets/icon_white.png" alt="" /><span id="anchorTxt" style="color:#fff">PitUp · Lubumbashi</span></div>
-<div id="flash"></div><div id="vignette"></div><div id="grain"></div></div>
+<div id="flash"></div><div id="vignette" style="opacity:1"></div><div id="grain"></div></div>
 </div>
 <script>
 const END = {END}, DUR = {DUR};
 const tl = gsap.timeline({{ paused: true }});
-const show = (sel, a, b, fade = 0.25) => {{ tl.fromTo(sel, {{ opacity: 0 }}, {{ opacity: 1, duration: fade, ease: "power1.out" }}, a); tl.set(sel, {{ opacity: 0 }}, b); }};
+const show = (sel, a, b, fade = 0.25) => {{ if (a < 0.01) gsap.set(sel, {{ opacity: 1 }}); else tl.fromTo(sel, {{ opacity: 0 }}, {{ opacity: 1, duration: fade, ease: "power1.out" }}, a); tl.set(sel, {{ opacity: 0 }}, b); }};
 const hd = (sel, a, b) => {{ tl.fromTo(sel, {{ opacity: 0, yPercent: 25 }}, {{ opacity: 1, yPercent: 0, duration: 0.45, ease: "power3.out" }}, a + 0.05); tl.set(sel, {{ opacity: 0 }}, b); }};
 const cap = (sel, a, b) => {{ tl.fromTo(sel, {{ opacity: 0, scale: 0.85 }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }}, a + 0.05); tl.set(sel, {{ opacity: 0 }}, b); }};
 tl.set("#shade", {{ opacity: {0 if STYLE in ("kin", "city") else 1} }}, 0); tl.set("#shade", {{ opacity: 0 }}, END);
+{"".join(f'tl.set("#shade, #vignette", {{ opacity: 0 }}, {la}); tl.set("#shade", {{ opacity: {0 if STYLE in ("kin", "city") else 1} }}, {lb}); tl.set("#vignette", {{ opacity: 1 }}, {lb}); tl.set("#anchor", {{ filter: "invert(1)" }}, {la}); tl.set("#anchor", {{ filter: "none" }}, {lb});' for la, lb in LIGHT)}
 {chr(10).join(js)}
 const PW = {json.dumps([(a, b, s7) for a, b, _, s7 in PW])};
 PW.forEach(([a, b, s7], k) => {{

@@ -24,6 +24,8 @@ merged = []
 for s, e in sorted(spans):
     if merged and s - merged[-1][1] < MIN_GAP: merged[-1][1] = max(merged[-1][1], e)
     else: merged.append([s, e])
+# a voice that starts in the first second: the music opens already low, never a loud burst before the first word
+if merged and merged[0][0] < 1.0: merged[0][0] = -1.0
 t = np.arange(n) / SR; g = np.full(n, HI, np.float32)
 for s, e in merged:
     down = np.clip((t - (s - RAMP_DOWN)) / RAMP_DOWN, 0, 1); up = np.clip(((e + RAMP_UP) - t) / RAMP_UP, 0, 1)

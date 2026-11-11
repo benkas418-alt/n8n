@@ -1,0 +1,45 @@
+{
+ "ciel": {
+  "ref": "audio/jumelle/ref.wav",
+  "reftxt": "audio/jumelle/ref.txt",
+  "scenes": [
+   "Ah, Lubumbashi.",
+   "Notre ville bouge, et ses boutiques aussi.",
+   "Seulement, trouver la bonne pièce prend souvent du temps.",
+   "Alors, on a réuni les boutiques de la ville dans une seule appli.",
+   "Tu choisis ton article, la boutique confirme, et on te le livre.",
+   "Et tu ne paies qu'à la livraison.",
+   "L'appli PitUp est disponible dès maintenant. Passe ta première commande, et laisse la ville venir à toi."
+  ]
+ },
+ "jourj": {
+  "ref": "audio/soeur/ref_cont.wav",
+  "reftxt": "audio/soeur/ref_cont.txt",
+  "scenes": [
+   "Samedi, tu es invité à un mariage.",
+   "Mais ta tenue n'est pas encore prête.",
+   "Il te manque la chemise, les chaussures, et en fait presque tout.",
+   "Et faire le tour de la ville dans les embouteillages, franchement, tu n'as pas le temps.",
+   "Si seulement toutes les boutiques étaient au même endroit.",
+   "Eh bien, elles le sont.",
+   "Sur PitUp, les boutiques de Lubumbashi tiennent dans une seule appli.",
+   "Le costume, la chemise et les chaussures, tu trouves tout au même endroit.",
+   "Tu choisis, la boutique confirme, on te livre, et tu paies seulement à la livraison.",
+   "Ta tenue de samedi t'attend déjà sur PitUp. Commande-la aujourd'hui, et sois prêt sans stress."
+  ]
+ },
+ "lundi": {
+  "ref": "audio/jumelle/mix_cont.wav",
+  "reftxt": "audio/jumelle/mix_cont.txt",
+  "scenes": [
+   "Lundi, tu as une réunion importante.",
+   "Samedi, tu es invité à une soirée chic.",
+   "Ce sont deux occasions, et il te faut deux styles différents.",
+   "Pour lundi, tu choisis un costume bien coupé, une chemise claire et des chaussures qui brillent.",
+   "Pour samedi, tu oses une veste de couleur, des mocassins de soirée et un parfum qui reste.",
+   "Tu trouves tout ça dans les boutiques de Lubumbashi, et elles sont toutes sur PitUp.",
+   "Tu choisis, on te livre, et tu paies à la livraison.",
+   "Ta prochaine tenue est déjà sur PitUp. Passe ta première commande cette semaine, et sois prêt pour chaque occasion."
+  ]
+ }
+}

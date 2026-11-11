@@ -1,0 +1,201 @@
+{
+ "project": "pitup-v13-jourj",
+ "style": "glass",
+ "plate": false,
+ "song": "Ravyn_Lenae_-_Love_Me_Not.mp3",
+ "song_off": 12.0,
+ "vo_full": "v13_jourj",
+ "scenes": [
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Samedi,",
+      "mariage."
+     ],
+     "accent": [
+      1
+     ],
+     "size": 150,
+     "sub": "Tu es invité."
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Ta",
+      "tenue",
+      "?"
+     ],
+     "accent": [
+      1
+     ],
+     "size": 160,
+     "sub": "Pas encore prête."
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "La",
+      "chemise,",
+      "les",
+      "chaussures,",
+      "presque",
+      "tout."
+     ],
+     "accent": [
+      5
+     ],
+     "size": 112
+    }
+   ]
+  },
+  {
+   "head": [
+    "Le tour de la ville ?",
+    "Pas le temps."
+   ],
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "jd_drive4",
+      "jd_walk",
+      "jd_racks2"
+     ]
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Si",
+      "seulement",
+      "toutes",
+      "les",
+      "boutiques",
+      "étaient",
+      "au",
+      "même",
+      "endroit…"
+     ],
+     "accent": [
+      4
+     ],
+     "size": 96,
+     "bg": "#f4f5f7"
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Eh",
+      "bien,",
+      "elles",
+      "le",
+      "sont."
+     ],
+     "accent": [],
+     "size": 150,
+     "bg": "#1f88c9",
+     "ink": "#ffffff"
+    }
+   ]
+  },
+  {
+   "head": [
+    "Les boutiques de Lubumbashi,",
+    "une seule appli."
+   ],
+   "beats": [
+    {
+     "k": "lap",
+     "phone": "ph_buy"
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "cards",
+     "items": [
+      {
+       "src": "c_737_3.jpg",
+       "label": "Costume"
+      },
+      {
+       "src": "c_735_0.jpg",
+       "label": "Chemise"
+      },
+      {
+       "src": "c_648_1.jpg",
+       "label": "Chaussures"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "head": [
+    "Tu choisis,",
+    "on te livre."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_fernando",
+     "cap": "Payé à la livraison.",
+     "cap_top": 1765
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Ta",
+      "tenue",
+      "de",
+      "samedi",
+      "t'attend."
+     ],
+     "accent": [
+      4
+     ],
+     "size": 130,
+     "bg": "#0b1724",
+     "ink": "#ffffff"
+    }
+   ]
+  }
+ ],
+ "starts": [
+  0.206,
+  2.509,
+  4.651,
+  7.938,
+  11.41,
+  14.488,
+  15.934,
+  19.251,
+  22.884,
+  27.057
+ ],
+ "end_card_at": 29.619,
+ "vo_end": 31.812,
+ "end_word": "commande"
+}

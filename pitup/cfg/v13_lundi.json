@@ -1,0 +1,166 @@
+{
+ "project": "pitup-v13-lundi",
+ "style": "glass",
+ "plate": false,
+ "song": "GRAHAM_-_Cheap_Cologne_Official_Lyric_VideoM4A_128K.m4a",
+ "song_off": 19.0,
+ "vo_full": "v13_lundi",
+ "scenes": [
+  {
+   "beats": [
+    {
+     "k": "v",
+     "src": "suit",
+     "big": "LUNDI.",
+     "cap": "Réunion importante."
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "SAMEDI."
+     ],
+     "accent": [],
+     "size": 190,
+     "bg": "#f3ece4",
+     "ink": "#2a211b",
+     "sub": "Soirée chic."
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Deux",
+      "occasions,",
+      "deux",
+      "styles."
+     ],
+     "accent": [
+      3
+     ],
+     "size": 130
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "cards",
+     "items": [
+      {
+       "src": "c_709_0.jpg",
+       "label": "Costume bien coupé"
+      },
+      {
+       "src": "c_679_0.jpg",
+       "label": "Chemise claire"
+      },
+      {
+       "src": "c_783_3.jpg",
+       "label": "Chaussures cirées"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "cards",
+     "items": [
+      {
+       "src": "c_737_1.jpg",
+       "label": "Veste qui ose"
+      },
+      {
+       "src": "c_681_1.jpg",
+       "label": "Mocassins de soirée"
+      },
+      {
+       "src": "c_235_0.jpg",
+       "label": "Un parfum qui reste"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "ae_tower",
+      "jd_mall"
+     ]
+    },
+    {
+     "k": "shop",
+     "name": "MB Ephphatha",
+     "sub": "Chaussures",
+     "logo": "shop_mb_logo.jpg",
+     "banner": "shop_mb_banner.jpg",
+     "p": [
+      "shop_mb_0.jpg",
+      "shop_mb_1.jpg",
+      "shop_mb_2.jpg"
+     ]
+    }
+   ]
+  },
+  {
+   "head": [
+    "Tu choisis,",
+    "on te livre."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_montre",
+     "cap": "Payé à la livraison.",
+     "cap_top": 1765
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "kt",
+     "words": [
+      "Ta",
+      "prochaine",
+      "tenue",
+      "est",
+      "déjà",
+      "sur",
+      "PitUp."
+     ],
+     "accent": [
+      6
+     ],
+     "size": 120,
+     "bg": "#0b1724",
+     "ink": "#ffffff"
+    }
+   ]
+  }
+ ],
+ "starts": [
+  -0.137,
+  2.739,
+  5.242,
+  8.285,
+  12.77,
+  17.692,
+  21.934,
+  24.932
+ ],
+ "end_card_at": 26.968,
+ "vo_end": 30.171,
+ "end_word": "passe"
+}

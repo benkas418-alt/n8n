@@ -297,3 +297,16 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - ne pas montrer l'écran d'accueil de l'appli : il affiche la publication d'une autre personne avec un tarif.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
+
+## Série « classe » (11 novembre, soir) : leçons du fondateur
+
+- **Vidéo « Ah, Lubumbashi » (v4 validée en attente d'avis)** : ouverture = **vue d'en haut de Lubumbashi au coucher de soleil** (pas de carte, ni RDC, ni Afrique, ni plan OSM). Le fondateur aime l'ambiance coucher de soleil (783bff05, 2bd06155) : la garder. On ne fait pas une présentation de la ville : 3 ou 4 plans courts, nets, puis l'appli.
+- **Badges TikTok** : la reconstruction (LaMa, ou pixels des images voisines via `tools/tiktok_fill.py`) laisse du flou ou des fantômes sur les voitures. Méthode retenue : `tools/crop_clean.py` = léger zoom (×1,2–1,25) ancré à l'opposé du badge, seule une fine bande au bord est comblée. Plans propres aussi dans le film Haut-Katanga (6629895a) en bandes 1080×640 (`crop=777:460:8:58`), vérifiées image par image.
+- **Plans L0–L39 (vidéo DJEUDY)** : contiennent des **petits cercles résiduels** de l'ancien filigrane (L24, L14, L8…). Ne plus les utiliser.
+- **Netteté** : mesurer chaque plan (variance du laplacien). `tools/sharp_trim.py` garde la partie nette (enlève les fondus) ; `tools/fit_clips.py` ralentit un plan trop court (répétition d'images, jamais de fondu d'images, qui floute).
+- **Ne jamais réutiliser un plan d'une vidéo à l'autre dans une même série.**
+- **Voix de la jumelle** : timbre fidèle seulement avec ses **vrais enregistrements récents** (Biladi, voix isolée avec Demucs) : `audio/jumelle/ref_b.wav` + `ref_b.txt` (amorce de continuation) et `ref_mid.wav` (22 s, timbre), via `tools/vox_cont2.py`, 20 étapes. Similarité 0,93, hauteur 227 Hz comme elle. Une référence de 55 s est trop lourde pour le processeur. Le mode « clone + consigne de style » descend parfois à 190 Hz (« voix grave »).
+- **Voix de la sœur (Samedi)** : le fondateur préfère la **méthode de la première version** (continuation sur `ref_cont.wav`, `motion/vox13b.py`). Écarter les prises qui tombent vers 100 Hz (2 sur 5) et vérifier l'accroche mot à mot.
+- **Rythme** : `tools/rhythm.py` (plan par phrase : débit cible, pause après) ; ne coupe que dans une vraie pause (≥ 50 ms), sinon garde les phrases liées ; ralentissement limité à ×0,84–0,86 pour ne pas abîmer le timbre. « Ah » de l'accroche : l'allonger et ajouter un souffle avant « Lubumbashi ».
+- **Textes** : phrases complètes avec verbes. **Fin d'appel à l'action** : pas toujours « Télécharge l'appli » ; annoncer la disponibilité et inviter à **passer sa première commande**. Ne jamais commencer une phrase par « PitUp ».
+- **Descriptions** : à fournir avec chaque vidéo, prêtes à copier, **sans répéter l'accroche** (`livrables/descriptions-a-copier.md`).
