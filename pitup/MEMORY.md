@@ -334,3 +334,13 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Sons** : jamais de pop. Chaque coupe a un son grave et sourd (« thock », vers 80 Hz), avec une montée de bruit avant le drop et un impact grave sur le logo.
 - **Produits** : n'en montrer un que s'il est vraiment beau. Sinon, rien que des mots.
 - Projet : `scratchpad/hf/videos/pitup-md2`, généré par `scratchpad/motion/md2/build.py`. Musique : JBEE « 4AM » à partir de 14 s (drop à 27,55 s). Police : Outfit. Mixage final à −14 LUFS.
+- **Retours sur la v2 (soir du 11 novembre)** :
+  - pas de musique avec paroles : prendre l'instrumental d'une référence. Pour cela, séparer la voix avec demucs (`htdemucs --two-stems=vocals`, voix à −60 dB et moins).
+  - de vrais bruits de clavier pour le texte tapé (Mixkit 1387, un clavier mécanique au son chaud).
+  - respecter la DA PitUp : bleu #1f88c9, fond clair, Poppins, texte marine #0d1b2a et mot d'accent en bleu.
+- **v3** (`scratchpad/motion/md2/build3.py`, `hf/videos/pitup-md3`) :
+  - musique de la référence n° 3 (cf82, 107,7 BPM, temps de 0,5585 s), montée [7,26 ; 14,06] + [17,95 ; fin] ;
+  - « simplement. » tapé pendant le silence, puis le logo sur l'impact (29,45 s).
+- **Logo signature** : la flèche (la forme vide du P) monte du bas le long de sa tige, entre dans le P, dépasse un peu, puis se cale avec un léger rebond. Le mot « PitUp », le slogan et pi-tup.com arrivent ensuite.
+  - Le découpage se fait avec `motion/md2/logo_split.py` : un P plein, la flèche, et des masques « dedans » et « dehors » sur un canevas de 1500 × 1900.
+  - Le fondateur va envoyer la documentation sur les 4 déclinaisons du logo.
