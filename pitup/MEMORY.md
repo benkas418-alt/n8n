@@ -250,5 +250,12 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   4. Format série utile : « Le site que tu vas mettre en favoris, partie 1 » + appel à enregistrer la vidéo.
   5. Tuto express : annoncer la valeur, montrer les étapes en 20 s, puis demander de s'abonner.
   6. Vlog POV humoristique en anglais (camion, colis) : hook visuel absurde, puis le produit.
+- **Voix de la jumelle (11 novembre)** : c'est la voix de la vidéo Biladi Jewellery. Elle appartient à la jumelle du fondateur, **qui a donné son accord**. Comme celle de la sœur, cette voix est privée : ne jamais la mettre dans le dépôt.
+  - Préparation de la référence : demucs (`htdemucs`, mode 2 pistes) pour retirer la musique, puis les 12,3 premières secondes. Fichier : `scratchpad/audio/jumelle/ref.wav`.
+  - Clonage : VoxCPM2. Ressemblance mesurée avec resemblyzer : 0,81 à 0,89. Pour comparaison, la sœur et la jumelle ont 0,70 de ressemblance entre elles.
+  - Voix « mixte » :
+    - ce qui marche : une référence qui enchaîne les deux voix (`mixref.wav` = 10 s + 10 s, `mixref_c.wav` = 13 s de la sœur + 6,5 s de la jumelle). Le résultat varie d'une prise à l'autre, il faut donc trier chaque prise avec resemblyzer et whisper ;
+    - ce qui ne marche pas : déplacer la hauteur et le timbre de la voix actuelle (parselmouth « Change gender »). La voix ne bouge presque pas. De plus, la jumelle paraît plus sombre qu'en réalité à cause de la séparation de la musique : ne pas se fier à sa mesure de timbre.
+  - Écoute comparée envoyée : `livrables/voix/`. **En attente du choix du fondateur.**
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
