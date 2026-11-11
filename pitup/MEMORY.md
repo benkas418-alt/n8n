@@ -344,3 +344,8 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Logo signature** : la flèche (la forme vide du P) monte du bas le long de sa tige, entre dans le P, dépasse un peu, puis se cale avec un léger rebond. Le mot « PitUp », le slogan et pi-tup.com arrivent ensuite.
   - Le découpage se fait avec `motion/md2/logo_split.py` : un P plein, la flèche, et des masques « dedans » et « dehors » sur un canevas de 1500 × 1900.
   - Le fondateur va envoyer la documentation sur les 4 déclinaisons du logo.
+- **Logo signature, version affinée** (12 novembre) :
+  - La flèche creuse un vrai trou transparent dans le P : le P porte un masque CSS (`-webkit-mask-composite: xor`) qui se déplace avec la flèche blanche.
+  - Ne jamais faire une copie bleue de la flèche. Sur un fond en dégradé, cette copie laisse des traces visibles.
+  - La queue de la flèche est prolongée dans la tige, à l'intérieur du P seulement, pour que le rebond (`back.out(1.35)`, 0,85 s) ne laisse aucun liseré.
+  - Badges officiels sous pi-tup.com : App Store (SVG de Wikimedia, en anglais) et Google Play (PNG officiel, en anglais), 100 px de haut. tools.applemarketingtools.com n'est pas joignable depuis la session.
