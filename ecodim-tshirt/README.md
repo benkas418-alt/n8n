@@ -6,6 +6,7 @@ Run from this folder:
 python3 -I scripts/extract.py .            # design elements -> out/elements/, out/planche_controle_decoupes.png
 python3 -I scripts/layout.py . 50 150      # out/layout.json + print files (L = 50 cm, 150 dpi)
 python3 -I scripts/sr_photos.py . <sr.js>   # optional: remove neck labels + x4 ESRGAN -> photos_x4/
+python3 -I scripts/vectorize.py . 500      # SVG print files in out/svg/ (needs potrace; L = 500 mm)
 python3 -I scripts/mockup.py .             # 6 photo mockups (4000 px), 6 boards, overview (+ _HD 3920 px)
 ```
 
@@ -21,3 +22,10 @@ python3 -I scripts/mockup.py .             # 6 photo mockups (4000 px), 6 boards
 TensorFlow.js (wasm backend) through a small node script `sr.js` (tiles of 128 px). Setup:
 `npm install --legacy-peer-deps @upscalerjs/esrgan-medium@1.0.0 @tensorflow/tfjs@4.22.0 @tensorflow/tfjs-backend-wasm@4.22.0`.
 The model removes JPEG artefacts and sharpens edges. It does not add real fabric detail.
+
+## SVG
+
+`out/svg/impression_devant_noir.svg` and `impression_dos_noir.svg` are the print files: one black ink,
+real size (width L = 50 cm), one group per element. `variante_XX_*_{devant,dos}.svg` show each variant
+(ink colour on a fabric-colour background). The curves are an automatic trace (potrace) of small sources:
+contours are slightly irregular at large size, and the thinnest lines of the round symbol are broken.
