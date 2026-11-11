@@ -310,3 +310,18 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Rythme** : `tools/rhythm.py` (plan par phrase : débit cible, pause après) ; ne coupe que dans une vraie pause (≥ 50 ms), sinon garde les phrases liées ; ralentissement limité à ×0,84–0,86 pour ne pas abîmer le timbre. « Ah » de l'accroche : l'allonger et ajouter un souffle avant « Lubumbashi ».
 - **Textes** : phrases complètes avec verbes. **Fin d'appel à l'action** : pas toujours « Télécharge l'appli » ; annoncer la disponibilité et inviter à **passer sa première commande**. Ne jamais commencer une phrase par « PitUp ».
 - **Descriptions** : à fournir avec chaque vidéo, prêtes à copier, **sans répéter l'accroche** (`livrables/descriptions-a-copier.md`).
+
+## Corrections du 11 novembre (soir) — à appliquer partout
+
+- **Voix** : jamais d'étirement temporel (Rubber Band) : le fondateur l'entend comme un **grésillement**. Rythme = pauses seulement (`tools/rhythm.py` avec KMIN 1.0). Filtre doux validé (« version C ») : `highpass=f=80,lowpass=f=8500,afftdn=nr=10:nf=-45,equalizer=f=3500:t=q:w=1.5:g=-2`.
+- **Débit** : pour ralentir sans artefact, amorcer la continuation avec le passage le plus posé de la personne (`audio/jumelle/ref_calm.wav` + `ref_calm.txt`, passage « certificat ») ; ~6,8 syl/s au lieu de 8,5.
+- **Deux voix seulement** : la jumelle et la sœur. **Jamais de voix mixée.** Samedi = sœur (méthode continuation de la 1re version) ; Lubumbashi = jumelle.
+- **« Ah » d'accroche** = soupir de fatigue (pas une préposition) : un seul « Aaah » descendant (235 → 180 Hz), allongé par PSOLA (Praat overlap-add), puis un souffle avant « Lubumbashi ».
+- **Mots** : ne pas écrire « disponible dès maintenant » (l'appli existe depuis longtemps). Préférer « ta prochaine pièce t'attend déjà sur l'appli PitUp ».
+- **Accroches** : introduire naturellement (« Et si… ») ; la phrase d'accroche entière doit être visible sur la **première image** (couverture TikTok).
+- **Tenues cohérentes** : couleurs qui vont ensemble (costume vert + chemise blanche + mocassins noir/vert + montre). Pas de bleu avec des chaussures vertes. Produits de jeunes : tendance européenne/américaine, couleurs sobres (uni, bicolore). Crocs oui ; pas de babouches ; sweat déjà trop vu. Pas de copies de marques de luxe (Rolex, Van Cleef, motif LV). Pas de fumeur (photo Y-3 écartée).
+- **Détourage** : `rembg` (modèle isnet-general-use) + ne garder que l'objet principal ; fond `#F1EFEC` avec ombre douce.
+- **Téléphone 3D** : swipe de pages produit tendance (`story/v/ph_trend.mp4` : maillot Congo, Jordan 4, Samba, Shox) ; effacer la ligne « 0.0 (0 avis) • 0 vendus ».
+- **Badges TikTok** : `tools/crop_clean.py` en zoom automatique (argument 0) : le badge sort entièrement du cadre, **aucune zone reconstruite** (le fondateur voit le flou des zones refaites).
+- **Musique** : plus présente sous la voix (≈ −13 dB) et qui **monte nettement** quand la voix s'arrête (`mix_duck.py` : LO 0.10, HI 0.72). Rythmée (R&B, rap) et jamais déjà utilisée : Raindance (Lubumbashi), Kairo Keyz « float 2.0 » (Samedi).
+- **Budget** : le fondateur a consommé beaucoup de sa limite hebdomadaire. Avancer vidéo par vidéo, valider par un court extrait avant tout rendu complet.

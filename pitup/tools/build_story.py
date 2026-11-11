@@ -99,13 +99,14 @@ for i, sc in enumerate(C["scenes"]):
             ws = bt["words"]; acc = set(bt.get("accent", []))
             spans_ = "".join(f'<span class="ktw{" kta" if k in acc else ""}" id="b{j}k{k}">{w}</span> ' for k, w in enumerate(ws))
             scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#ffffff")};z-index:9"><div class="kt" style="font-size:{bt.get("size", 120)}px;color:{bt.get("ink", "#111214")}">{spans_}</div>{f'<div class="ktsub">{bt["sub"]}</div>' if bt.get("sub") else ""}</div>')
-            gap = min(0.32, max(0.12, (bb - ba) * 0.6 / max(1, len(ws))))
-            js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}k{k}", {{ opacity: 0, y: 50, scale: 0.92 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "back.out(1.7)" }}, {ba + 0.05 + k * gap:.3f});' for k in range(1 if ba < 0.01 else 0, len(ws)))
+            gap = bt.get("gap") or min(0.32, max(0.12, (bb - ba) * 0.6 / max(1, len(ws))))
+            js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}k{k}", {{ opacity: 0, y: 50, scale: 0.92 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "back.out(1.7)" }}, {ba + 0.05 + k * gap:.3f});' for k in range(len(ws) if ba < 0.01 else 0, len(ws)))   # opening screen: the whole line is the cover frame
                       + (f'tl.fromTo("#b{j} .ktsub", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.4 }}, {ba + 0.1 + len(ws) * gap:.3f});' if bt.get("sub") else "")
                       + f'tl.fromTo("#b{j} .kt", {{ scale: 1 }}, {{ scale: 1.04, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
         elif kind == "cards":  # lookbook: real product photos as rounded cards with their name
             its = bt["items"]; n_ = len(its)
-            geo = {1: [(190, 520, 700, 880)], 2: [(70, 600, 455, 600), (555, 600, 455, 600)], 3: [(50, 300, 470, 560), (560, 300, 470, 560), (305, 1020, 470, 470)]}[n_]
+            geo = {1: [(190, 520, 700, 880)], 2: [(70, 600, 455, 600), (555, 600, 455, 600)], 3: [(50, 300, 470, 560), (560, 300, 470, 560), (305, 1020, 470, 470)],
+                   4: [(50, 400, 470, 470), (560, 400, 470, 470), (50, 1030, 470, 470), (560, 1030, 470, 470)]}[n_]
             html_ = "".join(f'<div class="pcard" id="b{j}c{k}" style="left:{x}px;top:{y}px;width:{w}px"><img src="assets/img/{it["src"]}" alt="" style="height:{h}px"><b>{it["label"]}</b></div>' for k, (it, (x, y, w, h)) in enumerate(zip(its, geo)))
             scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#f4f5f7")};z-index:9">{html_}</div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}c{k}", {{ opacity: 0, y: 80, rotation: {(-3, 3, 0)[k % 3]} }}, {{ opacity: 1, y: 0, rotation: 0, duration: 0.55, ease: "power3.out" }}, {ba + 0.08 + k * min(0.45, (bb - ba) / (n_ + 1)):.3f});' for k in range(n_))

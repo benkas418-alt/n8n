@@ -5,8 +5,7 @@ import sys, json, subprocess, numpy as np, onnxruntime as ort, cv2
 src, dst, ss, du, zoom, anchor = sys.argv[1], sys.argv[2], float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), sys.argv[6]
 W, H = [int(v) for v in subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height", "-of", "csv=p=0", src], capture_output=True, text=True).stdout.strip().split(",")]
 BW, BH = int(W * 0.27), int(H * 0.108)
-cw, ch = int(round(W / zoom)), int(round(H / zoom))
-cx0 = 0 if anchor[1] == "L" else W - cw; cy0 = 0 if anchor[0] == "T" else H - ch
+
 sess = ort.InferenceSession("/root/.cache/lama/lama.onnx", providers=["CPUExecutionProvider"])
 def find_icon(a):
     r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
@@ -18,6 +17,26 @@ def find_icon(a):
             nc, nd = c[y:y + 40].sum(), d[y:y + 40].sum()
             if nc >= 25 and nd >= 25 and (best is None or nc + nd > best[0]): best = (nc + nd, side, y)
     return best
+def _positions():
+    d = subprocess.Popen(["ffmpeg", "-v", "error", "-ss", str(ss), "-t", str(du), "-i", src, "-f", "rawvideo", "-pix_fmt", "rgb24", "-r", "30", "-"], stdout=subprocess.PIPE)
+    out, last = [], None
+    while True:
+        b = d.stdout.read(W * H * 3)
+        if len(b) < W * H * 3: break
+        h = find_icon(np.frombuffer(b, np.uint8).reshape(H, W, 3)); last = h or last; out.append(last)
+    return out
+if zoom <= 0:   # 0 = automatic: the badge must be entirely outside the frame, so nothing is ever rebuilt
+    need = 1.0
+    for p_ in _positions():
+        if not p_: continue
+        _, side, y = p_; top = max(0, y - 14); bot = min(H, top + BH + 10)
+        if anchor[1] == ("L" if side == "R" else "R"): zx = W / (W - BW - 8)          # badge on the far side: narrow the width
+        else: zx = 99
+        zy = H / (top - 4) if anchor[0] == "T" else H / (H - bot - 4)                  # or cut above / below it
+        need = max(need, min(zx, zy))
+    zoom = round(need + 0.01, 3); print("auto zoom", zoom)
+cw, ch = int(round(W / zoom)), int(round(H / zoom))
+cx0 = 0 if anchor[1] == "L" else W - cw; cy0 = 0 if anchor[0] == "T" else H - ch
 def lama(img, m):
     ys, xs = np.nonzero(m); cy, cx = int(ys.mean()), int(xs.mean())
     wx = min(max(0, cx - 256), W - 512); wy = min(max(0, cy - 256), H - 512)

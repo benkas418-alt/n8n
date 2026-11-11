@@ -2,8 +2,8 @@
  "project": "pitup-v13-jourj",
  "style": "glass",
  "plate": false,
- "song": "Ravyn_Lenae_-_Love_Me_Not.mp3",
- "song_off": 12.0,
+ "song": "Kairo_Keyz__Thiago_Sub_-_float_2_0M4A_128K.m4a",
+ "song_off": 3.0,
  "vo_full": "v13_jourj",
  "scenes": [
   {
@@ -11,14 +11,17 @@
     {
      "k": "kt",
      "words": [
-      "Samedi,",
-      "mariage."
+      "Et",
+      "si,",
+      "samedi,",
+      "mariage ?"
      ],
      "accent": [
-      1
+      3
      ],
-     "size": 150,
-     "sub": "Tu es invité."
+     "size": 140,
+     "sub": "Tu es invité.",
+     "gap": 0.1
     }
    ]
   },
@@ -27,14 +30,15 @@
     {
      "k": "kt",
      "words": [
-      "Ta",
+      "Et",
+      "ta",
       "tenue",
       "?"
      ],
      "accent": [
-      1
+      2
      ],
-     "size": 160,
+     "size": 150,
      "sub": "Pas encore prête."
     }
    ]
@@ -133,16 +137,20 @@
      "k": "cards",
      "items": [
       {
-       "src": "c_737_3.jpg",
+       "src": "c_s_costume.jpg",
        "label": "Costume"
       },
       {
-       "src": "c_735_0.jpg",
-       "label": "Chemise"
+       "src": "c_s_chemise.jpg",
+       "label": "Chemise blanche"
       },
       {
-       "src": "c_648_1.jpg",
-       "label": "Chaussures"
+       "src": "c_s_mocassins.jpg",
+       "label": "Mocassins"
+      },
+      {
+       "src": "c_s_montre.jpg",
+       "label": "Montre"
       }
      ]
     }
@@ -184,18 +192,18 @@
   }
  ],
  "starts": [
-  0.206,
-  2.509,
-  4.651,
-  7.938,
-  11.41,
-  14.488,
-  15.934,
-  19.251,
-  22.884,
-  27.057
+  0.04,
+  2.3,
+  4.1,
+  7.31,
+  10.98,
+  13.76,
+  15.08,
+  18.36,
+  22.63,
+  26.88
  ],
- "end_card_at": 29.619,
- "vo_end": 31.812,
- "end_word": "commande"
+ "end_card_at": 28.92,
+ "vo_end": 31.1,
+ "end_word": "passe"
 }

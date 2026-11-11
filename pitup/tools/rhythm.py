@@ -43,10 +43,13 @@ for gi, (ga, gb) in enumerate(groups):
     for at, gap in sorted(ins, reverse=True):
         c = int((at - ca) * sr); seg = np.concatenate([seg[:c], np.zeros(int(gap * sr), np.float32), seg[c:]])
     k = max(KMIN, min(1.08, min(plan[j][0] / rows[j]["rate"] for j in range(ga, gb + 1))))
-    sf.write("/tmp/rh_in.wav", seg, sr)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", "/tmp/rh_in.wav", "-af", f"rubberband=tempo={k:.4f}:pitch=1:transients=smooth:formant=preserved:pitchq=quality",
-                    "/tmp/rh_out.wav"], check=True)
-    s_, _ = sf.read("/tmp/rh_out.wav", dtype="float32"); s_ = s_ if s_.ndim == 1 else s_.mean(1)
+    if KMIN >= 1.0: k = 1.0   # pauses only: the founder hears time-stretching as a crackle, so the voice is never stretched
+    if abs(k - 1.0) < 1e-3: s_ = seg.astype(np.float32)
+    else:
+        sf.write("/tmp/rh_in.wav", seg, sr)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", "/tmp/rh_in.wav", "-af", f"rubberband=tempo={k:.4f}:pitch=1:transients=smooth:formant=preserved:pitchq=quality",
+                        "/tmp/rh_out.wav"], check=True)
+        s_, _ = sf.read("/tmp/rh_out.wav", dtype="float32"); s_ = s_ if s_.ndim == 1 else s_.mean(1)
     shift = lambda x: sum(g for at, g in ins if at <= x)
     for j in range(ga, gb + 1): starts[j] = round(t + (st[j] - ca + shift(st[j])) / k, 3)
     for w, si, wa, wb in sc["wt"]:

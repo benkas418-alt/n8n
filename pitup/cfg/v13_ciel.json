@@ -1,8 +1,8 @@
 {
  "project": "pitup-v13-ciel",
  "style": "city",
- "song": "Odeal_-_Blame_U.mp3",
- "song_off": 15.0,
+ "song": "Michael_Olise_-_Raindance_Dave_Tems.mp3",
+ "song_off": 52.0,
  "vo_full": "v13_ciel",
  "scenes": [
   {
@@ -58,16 +58,20 @@
      "k": "cards",
      "items": [
       {
-       "src": "c_708_2.jpg",
-       "label": "Veste de cérémonie"
+       "src": "c_t_crocs.jpg",
+       "label": "Crocs"
       },
       {
-       "src": "c_452_0.jpg",
-       "label": "Sac du soir"
+       "src": "c_t_parfum.jpg",
+       "label": "Parfum"
       },
       {
-       "src": "c_555_0.jpg",
-       "label": "Blazer moutarde"
+       "src": "c_t_538.jpg",
+       "label": "Bracelet"
+      },
+      {
+       "src": "c_t_481.jpg",
+       "label": "Veste en cuir"
       }
      ]
     }
@@ -84,27 +88,27 @@
   },
   {
    "head": [
-    "Disponible",
-    "dès maintenant."
+    "Ta prochaine pièce",
+    "t'attend déjà."
    ],
    "beats": [
     {
-     "k": "v",
-     "src": "sun_silhouette"
+     "k": "phone",
+     "src": "ph_trend"
     }
    ]
   }
  ],
  "starts": [
-  -0.06,
-  2.192,
-  4.426,
-  7.093,
-  9.736,
-  12.641,
-  14.714
+  0.03,
+  2.34,
+  5.095,
+  7.455,
+  10.815,
+  14.155,
+  16.355
  ],
- "end_card_at": 17.02,
- "vo_end": 19.668,
- "end_word": "passe"
+ "end_card_at": 20.475,
+ "vo_end": 21.195,
+ "end_word": "venir"
 }

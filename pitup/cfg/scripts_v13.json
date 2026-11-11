@@ -4,28 +4,28 @@
   "reftxt": "audio/jumelle/ref.txt",
   "scenes": [
    "Ah, Lubumbashi.",
-   "Notre ville bouge, et ses boutiques aussi.",
-   "Seulement, trouver la bonne pièce prend souvent du temps.",
-   "Alors, on a réuni les boutiques de la ville dans une seule appli.",
-   "Tu choisis ton article, la boutique confirme, et on te le livre.",
+   "Notre ville bouge. Et ses boutiques aussi.",
+   "Seulement, trouver la bonne pièce, ça prend souvent du temps.",
+   "Alors, on a réuni les boutiques de la ville, dans une seule appli.",
+   "Tu choisis ton article. La boutique confirme, et on te le livre.",
    "Et tu ne paies qu'à la livraison.",
-   "L'appli PitUp est disponible dès maintenant. Passe ta première commande, et laisse la ville venir à toi."
+   "Sur l'appli PitUp, ta prochaine pièce t'attend déjà. Passe ta première commande, et laisse la ville venir à toi."
   ]
  },
  "jourj": {
   "ref": "audio/soeur/ref_cont.wav",
   "reftxt": "audio/soeur/ref_cont.txt",
   "scenes": [
-   "Samedi, tu es invité à un mariage.",
-   "Mais ta tenue n'est pas encore prête.",
-   "Il te manque la chemise, les chaussures, et en fait presque tout.",
-   "Et faire le tour de la ville dans les embouteillages, franchement, tu n'as pas le temps.",
+   "Et si, samedi, tu étais invité à un mariage ?",
+   "Et que ta tenue n'était pas encore prête ?",
+   "Il te manquerait la chemise, les chaussures, et en fait presque tout.",
+   "Faire le tour de la ville dans les embouteillages ? Franchement, tu n'aurais pas le temps.",
    "Si seulement toutes les boutiques étaient au même endroit.",
    "Eh bien, elles le sont.",
    "Sur PitUp, les boutiques de Lubumbashi tiennent dans une seule appli.",
-   "Le costume, la chemise et les chaussures, tu trouves tout au même endroit.",
+   "Le costume, la chemise blanche, les chaussures et la montre, tu trouves tout au même endroit.",
    "Tu choisis, la boutique confirme, on te livre, et tu paies seulement à la livraison.",
-   "Ta tenue de samedi t'attend déjà sur PitUp. Commande-la aujourd'hui, et sois prêt sans stress."
+   "Ta tenue de samedi t'attend déjà sur PitUp. Passe ta commande aujourd'hui, et sois prêt sans stress."
   ]
  },
  "lundi": {
@@ -40,6 +40,18 @@
    "Tu trouves tout ça dans les boutiques de Lubumbashi, et elles sont toutes sur PitUp.",
    "Tu choisis, on te livre, et tu paies à la livraison.",
    "Ta prochaine tenue est déjà sur PitUp. Passe ta première commande cette semaine, et sois prêt pour chaque occasion."
+  ]
+ },
+ "bodyc": {
+  "ref": "audio/jumelle/ref.wav",
+  "reftxt": "audio/jumelle/ref.txt",
+  "scenes": [
+   "Notre ville bouge. Et ses boutiques aussi.",
+   "Seulement, trouver la bonne pièce, ça prend souvent du temps.",
+   "Alors, on a réuni les boutiques de la ville, dans une seule appli.",
+   "Tu choisis ton article. La boutique confirme, et on te le livre.",
+   "Et tu ne paies qu'à la livraison.",
+   "Sur l'appli PitUp, ta prochaine pièce t'attend déjà. Passe ta première commande, et laisse la ville venir à toi."
   ]
  }
 }
