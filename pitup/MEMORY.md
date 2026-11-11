@@ -277,5 +277,23 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Carrousel 4:5 (11 novembre)**, fait à la demande du fondateur, dans le style de la référence fibetech mais dans la DA PitUp (bleu #1f88c9, Poppins, fond clair, illustrations plates maison) : couverture + 6 slides, au vouvoiement. Fichiers : `pitup/carousel/index.html`, rendu avec `shot.js` (Playwright, 1080 × 1350).
 - **Disque plein (11 novembre)** : le quota d'espace de la session était atteint, ce qui faisait planter Chromium (« Target crashed »). Il faut supprimer `/root/.cache/hyperframes/history`, `/tmp/hyperframes-extract-cache-0`, les fichiers MASTER et les anciennes versions. Vérifier `df -h /` avant chaque gros rendu.
 - **Piège** : `pkill -f "<texte>"` tue aussi la commande shell qui contient ce texte. Viser le processus avec un motif plus précis.
+- **Fluidité des voix (11 novembre)**. Le fondateur trouve les voix lentes, chuchotées et peu naturelles. Causes trouvées :
+  1. le style « voix douce et posée » demandait littéralement une voix lente et feutrée ;
+  2. l'enregistrement de référence de la sœur est lui-même lent et posé (son texte dit « quand tu ralentis et que tu poses ta voix ») ;
+  3. chaque phrase était générée séparément, donc l'intonation repartait de zéro à chaque phrase.
+  **Nouvelle méthode** (`tools/vox_cont.py`) :
+  - mode « continuation » de VoxCPM2 : `prompt_wav_path` + `prompt_text` (transcription exacte de la référence, `audio/*/ref.txt`, ou `ref_cont.wav` coupé en fin de phrase pour la sœur) ;
+  - **tout le script d'un seul souffle**, 20 étapes au lieu de 10 ;
+  - **aucune consigne de style**, car dans ce mode elle est lue à voix haute ;
+  - pas de points de suspension, des virgules à la place.
+  Résultat : débit de 6,6 à 7,5 syllabes par seconde au lieu de 5,3 (français naturel), sur un texte qui dure 12 s au lieu de 16 s. Piège : certaines prises basculent vers une voix grave d'environ 100 Hz ; il faut les écarter en mesurant la hauteur.
+  Test d'écoute envoyé : `livrables/voix-test/` (1 = ancienne méthode, 2 = jumelle, 3 = voix actuelle). **En attente de l'avis du fondateur.**
+  Pour aller plus loin : un nouvel enregistrement de 1 à 2 minutes, lu avec énergie (style créatrice TikTok), au calme, pour chaque voix.
+- **Catalogue (11 novembre)** : 632 produits, avec le catalogue complet dans `prod/api_products_live.json`. Ne plus réutiliser les 16 mêmes détourages. Articles tendance pour les jeunes, encore jamais montrés : maillots (Congo, PSG, Barça), Jordan 4 et 11, Air Force (Kobe, Foamposite), New Balance, crocs, pantalon baggy, casquettes Ralph Lauren et Lacoste, parfum Asad, The North Face.
+- **Carrousel v2 (11 novembre)** :
+  - vrais écrans de l'appli dans des téléphones (marketplace, boutique, Jordan 4, maillot Congo) et vraie carte OSM avec le trajet ;
+  - **pas de compteur de slides**, car les réseaux en affichent déjà un ;
+  - rendu en 2160 × 2700 (double résolution) ;
+  - ne pas montrer l'écran d'accueil de l'appli : il affiche la publication d'une autre personne avec un tarif.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
