@@ -263,5 +263,19 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Clonage : VoxCPM2, style « voix masculine posée et chaleureuse, avec le sourire ». Ressemblance de 0,88 à 0,95 (ses deux messages entre eux : 0,79).
   - Piège : il dit parfois « téléchange » au lieu de « télécharge » ; toujours vérifier avec whisper.
   - Voix privée : ne jamais la mettre dans le dépôt. **Identité et accord de la personne à confirmer avant toute publication.**
+- **Voix validées (11 novembre)** : le fondateur valide **les 4 voix produites** : mixte centrée, mixte proche de la voix actuelle (n° 4), mixte proche de la jumelle, et jumelle. La voix actuelle (la sœur) reste disponible. Les faire tourner d'une vidéo à l'autre.
+- **Série de 4 vidéos « visibilité » (11 novembre)**, objectif likes, partages et commentaires, car les commandes commencent à arriver :
+  - **Duels** « Tu ne peux en garder qu'un » : voix de la jumelle, musique Central Cee à partir de 30 s.
+  - **Devine ce que c'est** (zoom extrême puis révélation) : voix actuelle, musique Ella Mai à partir de 169 s.
+  - **5 idées cadeaux pour ton gars** : voix mixte centrée, musique Tems à partir de 83 s.
+  - **3 boutiques à suivre** (MB Ephphatha, Vb business, Tout est grâce) : voix n° 4, musique SamRecks à partir de 122 s.
+  - Nouveaux types de plans dans `build_story.py` : `vs`, `shop`, `zoom`.
+  - Captures téléphone neuves : `tools/make_pp2.py` repère et efface le prix bleu automatiquement, même quand il est à moitié caché.
+  - Choix des prises : `tools/pick_takes.py`. **Le lancer avec `python -I`**, sinon `tools/av.py` masque la bibliothèque `av` de whisper.
+  - Kit de publication : `pitup/kit-publication-4-videos.md`. Livrables : `livrables/PitUp-{duels,devine,cadeaux,boutiques}-v1.mp4`.
+  - Ne pas montrer de copies de marques de luxe (une montre type Rolex a été écartée au profit d'une Casio).
+- **Carrousel 4:5 (11 novembre)**, fait à la demande du fondateur, dans le style de la référence fibetech mais dans la DA PitUp (bleu #1f88c9, Poppins, fond clair, illustrations plates maison) : couverture + 6 slides, au vouvoiement. Fichiers : `pitup/carousel/index.html`, rendu avec `shot.js` (Playwright, 1080 × 1350).
+- **Disque plein (11 novembre)** : le quota d'espace de la session était atteint, ce qui faisait planter Chromium (« Target crashed »). Il faut supprimer `/root/.cache/hyperframes/history`, `/tmp/hyperframes-extract-cache-0`, les fichiers MASTER et les anciennes versions. Vérifier `df -h /` avant chaque gros rendu.
+- **Piège** : `pkill -f "<texte>"` tue aussi la commande shell qui contient ce texte. Viser le processus avec un motif plus précis.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
