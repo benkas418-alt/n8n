@@ -236,5 +236,19 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   Méthode commune : 5 hooks différents notés, une idée par contenu, une hypothèse et un indicateur, aucun fait inventé.
   **À faire confirmer par le fondateur avant de les écrire :** « une alternative peut être proposée si un produit n'est pas disponible » et « la création de boutique est actuellement libre » (ces deux faits apparaissent dans la compétence copywriting).
   **Tutoiement ou vouvoiement :** les exemples du copywriting vouvoient, alors que les vidéos tutoient. Garder « tu » dans les voix TikTok/Reels ; le vouvoiement reste possible pour Facebook, LinkedIn, WhatsApp et les publicités, si le fondateur le valide.
+- **Compétences ajoutées le 11 novembre**, dans `~/.claude/skills/`, à réinstaller depuis GitHub à chaque nouvelle session :
+  - coreyhaines31/marketingskills : 53 compétences (social, ad-creative, copywriting, marketing-psychology, offers, referrals, aso, influencer-marketing, video…). Les anciennes versions courtes d'ad-creative, copywriting et marketing-psychology ont été remplacées.
+  - ScrapeCreators/social-media-research-skills : 13 compétences (trend-discovery, outlier-post-finder, comment-mining…). **Elles exigent une clé API ScrapeCreators, payante.**
+  - Compétences seules : bryllim/fun-sfx (71 bruitages libres), m4nueldeleon/shorts-virales-ia (en espagnol, du rush brut au short), UgurInanc12/stable-audio-3-prompt-writing.
+  - iart-ai : `motion-skills` n'est qu'un index. Packs installés : tiktok, ecommerce, ad, explainer, map-animation et kinetic-typography (16 compétences). `launch-video` existait déjà et n'a pas été remplacée.
+  - davidpc007/openclaw-marketing-skills **n'est pas installé** : c'est une copie plus ancienne de coreyhaines.
+- **Nouvelles musiques (11 novembre)**, dans les uploads de la session et non dans le dépôt : Odeal « Blame U », H.E.R. « Damage », Ella Mai « Boo'd Up », Tems « Me & U », Central Cee « Obsessed With You », « LINKEDIN », Jorja Smith « The One » et « Blue Lights », SamRecks « BACK PACK » et « visa ».
+- **Leçons des 6 vidéos de référence (11 novembre)** :
+  1. 5 hooks qui marchent dans tous les domaines : « Vous faites encore ça ? », « Faut que je vous raconte un truc », « Regardez la différence », « L'erreur que tout le monde fait », « En 30 secondes je vous montre comment ».
+  2. Remplacer « nous » par « vous » : parler du résultat du client ; l'expérience de la marque sert de preuve, pas de titre.
+  3. Biladi Jewellery (Lubumbashi), **le modèle idéal pour PitUp** : une vraie cliente, un détail concret (le nom gravé), un geste chaleureux (petite bague offerte + carte de fidélité), et une fin en question (« Et toi, à qui tu l'offrirais ? »).
+  4. Format série utile : « Le site que tu vas mettre en favoris, partie 1 » + appel à enregistrer la vidéo.
+  5. Tuto express : annoncer la valeur, montrer les étapes en 20 s, puis demander de s'abonner.
+  6. Vlog POV humoristique en anglais (camion, colis) : hook visuel absurde, puis le produit.
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
