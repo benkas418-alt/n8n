@@ -257,5 +257,11 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
     - ce qui marche : une référence qui enchaîne les deux voix (`mixref.wav` = 10 s + 10 s, `mixref_c.wav` = 13 s de la sœur + 6,5 s de la jumelle). Le résultat varie d'une prise à l'autre, il faut donc trier chaque prise avec resemblyzer et whisper ;
     - ce qui ne marche pas : déplacer la hauteur et le timbre de la voix actuelle (parselmouth « Change gender »). La voix ne bouge presque pas. De plus, la jumelle paraît plus sombre qu'en réalité à cause de la séparation de la musique : ne pas se fier à sa mesure de timbre.
   - Écoute comparée envoyée : `livrables/voix/`. **En attente du choix du fondateur.**
+- **Choix du fondateur (11 novembre) : voix n° 4**, le mélange proche de la voix actuelle. Référence : `scratchpad/audio/jumelle/mixref_c.wav` (13 s de la sœur + 6,5 s de la jumelle), style S. Garder les prises qui mesurent environ 0,80 de ressemblance avec la voix actuelle et 0,69 avec la jumelle (resemblyzer), et dont le texte est bien compris par whisper.
+- **Voix masculine (11 novembre)** : deux messages WhatsApp du 27 septembre où un homme lit un script PitUp au vouvoiement (« Vous êtes à Lubumbashi et vous cherchez un produit… »). Hauteur médiane d'environ 100 Hz.
+  - Préparation de la référence : demucs, puis 0,6 à 13,6 s du message WA0031, avec un léger débruitage. Fichier : `scratchpad/audio/wa/ref.wav`.
+  - Clonage : VoxCPM2, style « voix masculine posée et chaleureuse, avec le sourire ». Ressemblance de 0,88 à 0,95 (ses deux messages entre eux : 0,79).
+  - Piège : il dit parfois « téléchange » au lieu de « télécharge » ; toujours vérifier avec whisper.
+  - Voix privée : ne jamais la mettre dans le dépôt. **Identité et accord de la personne à confirmer avant toute publication.**
 - Voix des vidéos de motion design : `tools/motion_mix.py` place les phrases à des instants fixes, avec la musique à 20 % sous la voix. Les phrases sont mo_0 à mo_3 et moc_0/moc_2 (moc_1 est rejetée : on entend « Bah on est sur PitUp »). Les fichiers finaux sont `livrables/PitUp-Motion-*-voix.mp4`.
 - **Piège** : ne jamais mettre en attente avec `pgrep -f "hyperframes ... render"` quand la ligne de commande d'une autre file contient la même chaîne (blocage). Enchaîner les rendus dans un seul script.
