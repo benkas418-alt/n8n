@@ -349,3 +349,9 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Ne jamais faire une copie bleue de la flèche. Sur un fond en dégradé, cette copie laisse des traces visibles.
   - La queue de la flèche est prolongée dans la tige, à l'intérieur du P seulement, pour que le rebond (`back.out(1.35)`, 0,85 s) ne laisse aucun liseré.
   - Badges officiels sous pi-tup.com : App Store (SVG de Wikimedia, en anglais) et Google Play (PNG officiel, en anglais), 100 px de haut. tools.applemarketingtools.com n'est pas joignable depuis la session.
+- **Attention aux fins de vidéos téléchargées** : une vidéo téléchargée depuis TikTok ou Instagram se termine par le jingle et l'animation du logo de la plateforme. La référence n° 3 (cf82) a le jingle Instagram à partir de 26,7 s (silence, puis « boum » à 29,45 s). Ne jamais utiliser cette partie. Toujours regarder les dernières secondes d'une référence avant d'en prendre la musique.
+- **v4** (`motion/md2/build4.py`, `hf/videos/pitup-md4`, 15 s) :
+  - musique réelle seulement, de 7,26 s à 22,4 s ;
+  - « simplement. » est tapé pendant le vrai break (16,40–17,95 s), sous « le commerce, » en bleu ;
+  - le logo arrive sur le retour du beat (18,0 s) ;
+  - « fièrement / congolais. » : le fondateur veut cette fierté congolaise dans la vidéo.
