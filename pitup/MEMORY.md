@@ -453,3 +453,14 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - l'hôtel en plein écran, puis [stade | ville vue du ciel | monument] ;
   - [cathédrale | gare | centre commercial] puis [taxi | Vodacom | train] ;
   - [boutique de vêtements ×2 | supermarché] puis [supermarché ×3].
+- **Règles du 12 novembre (après v16)** :
+  - **Un plan ne sert qu'une fois** dans une vidéo. Pas deux plans de la même gare.
+  - **Étalonnage uniforme** (dépôts fournis par le fondateur : color-grade-ai, VideoColorMatch, agentic-color-grader, huemancer). Méthode `tools/grade.py` :
+    1. Mesurer chaque plan sur 8 images.
+    2. Corriger la balance des blancs « shades of gray » p = 6 à 70 %, les niveaux (percentiles 1,5 % et 99,2 %) et le gamma, pour une médiane de 0,45.
+    3. Appliquer une même signature à tous : courbe en S douce, saturation ×1,10, chaleur légère (R ×1,025, B ×0,965).
+    4. Une LUT 33³ par plan, appliquée avec ffmpeg `lut3d`, sans scintillement.
+  - **Cohérence texte–image (copywriting)** : ce qu'on montre doit illustrer ce que la voix dit. « Trouver la bonne pièce » = vêtements en boutique, jamais un supermarché ni de la nourriture.
+- **Lubumbashi v17** (`livrables/PitUp-Ah-Lubumbashi-v17.mp4`) :
+  - la gare n'apparaît qu'une fois ; le 2e plan de gare est remplacé par la tour de verre bleue et l'immeuble à piscine (Haut-Katanga, 87,45–89,45 s) ;
+  - « bonne pièce » = séquence boutique de vêtements (142,0–151,75 s, ralentie ×1,13), coupée en 3 bandes simultanées.
