@@ -368,6 +368,6 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - un swipe horizontal (`power4.inOut`, 0,5 s) avec un souffle à chaque changement, et le curseur qui clignote après chaque mot ;
   - le point bleu arrive seulement à la fin, après « Mbote » ;
   - la musique commence à 7,99 s pour laisser 4,3 s à l'ouverture.
-- **Police de la marque : Lexend.** Le logo « PitUp » et le slogan sont en Lexend (comparaison faite le 12 novembre : forme du « t », du « P » et du « U »). Les textes des vidéos utilisent Lexend (police variable 300–700, `assets/fonts/lexend.woff2`), et non plus Poppins.
+- **Police de la marque : Lexend.** Le logo « PitUp » et le slogan sont en Lexend (comparaison faite le 12 novembre : forme du « t », du « P » et du « U »). Les textes des vidéos utilisent Lexend (police variable 300–700, `assets/fonts/lexend.woff2`), et non plus Poppins. Les petits textes des coins et les sous-titres aussi : **pas de police mono** (le fondateur la trouve « robotique »).
 - **Ouverture des salutations, version validée** (`build7.py`, `hf/videos/pitup-md7`) : un swipe **vertical** (`power4.inOut`, 0,55 s), dans l'ordre Mbote (lingala), Jambo (swahili), puis Bonjour (français), suivi du point bleu.
 - **Son du swipe** : le souffle synthétique est refusé. On utilise le son grave et sourd des coupes, à l'arrivée de chaque mot.
