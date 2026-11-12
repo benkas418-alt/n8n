@@ -2,6 +2,7 @@
 Coordinates: the 6x enlargement of the logo crop (0, 20, 165, 186) -> 990 x 996 units.
 Usage: python symbol.py <dir>"""
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.boundsPen import BoundsPen
@@ -41,16 +42,31 @@ BOOK = [
     'M200 682 C282 690 360 700 420 712 C452 690 484 676 532 678 C584 690 624 730 656 774',  # bottom edge
 ]
 
+import numpy as _np
+def _affine(src, dst):
+    """Similarity fit (uniform scale, rotation, shift): keeps the reference proportions."""
+    a = _np.array(src, float); b = _np.array(dst, float)
+    ma, mb = a.mean(0), b.mean(0); a0, b0 = a - ma, b - mb
+    za = a0[:, 0] + 1j * a0[:, 1]; zb = b0[:, 0] + 1j * b0[:, 1]
+    k = (_np.conj(za) @ zb) / (_np.conj(za) @ za)          # complex scale * rotation
+    t = (mb[0] + 1j * mb[1]) - k * (ma[0] + 1j * ma[1])
+    return f'matrix({k.real:.5f} {k.imag:.5f} {-k.imag:.5f} {k.real:.5f} {t.real:.2f} {t.imag:.2f})'
+# reference points: neon logo (1536 x 1024) -> round logo (990 x 996)
+DOVE_TF = _affine([(357, 30), (1004, 22), (1061, 320), (690, 500)], [(262, 206), (606, 198), (638, 378), (482, 488)])
+BOOK_TF = _affine([(996, 408), (1356, 404), (231, 800), (1104, 996)], [(604, 440), (800, 460), (200, 682), (656, 774)])
+
 def body(ink, mid='k'):
     """Mask + disc. The symbol fills the box (55, 60, 880, 880) of the 990 x 996 space."""
-    lines = ''.join(f'<path d="{d}"/>' for d in DOVE + BOOK)
+    import logo_shapes as LS
+    shapes = (f'<path transform="{DOVE_TF}" d="{LS.paths(LS.DOVE)}"/>'
+              f'<path transform="{BOOK_TF}" d="{LS.paths(LS.BOOK)}"/>')
     txt = (text_path('ECODIM', 'OpenSans-Bold.ttf', 190, 458, 487, 42)
            + text_path('LA PAROLE', 'OpenSans-Semibold.ttf', 190, 682, 582, 66)
            + text_path('ÉTERNELLE', 'OpenSans-Semibold.ttf', 190, 680, 665, 66))
     return (f'<defs><mask id="{mid}" maskUnits="userSpaceOnUse" x="0" y="0" width="990" height="996">'
             f'<rect width="990" height="996" fill="#fff"/>'
             f'<circle cx="{CX}" cy="{CY}" r="{RING_R}" fill="none" stroke="#000" stroke-width="{RING_W}"/>'
-            f'<g fill="none" stroke="#000" stroke-width="{LINE}" stroke-linecap="round" stroke-linejoin="round">{lines}</g>'
+            f'<g fill="#000">{shapes}</g>'
             f'<g fill="#000">{txt}</g></mask></defs>'
             f'<circle cx="{CX}" cy="{CY}" r="{R}" fill="{ink}" mask="url(#{mid})"/>')
 
