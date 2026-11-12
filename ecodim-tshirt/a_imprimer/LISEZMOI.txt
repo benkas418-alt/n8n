@@ -1,0 +1,8 @@
+ECODIM — T-SHIRT DE NOËL — FICHIERS À IMPRIMER
+
+FICHE_IMPRESSION_mesures.png  Taille et position de chaque élément, en cm.
+LOGO_rond_ECODIM_noir.png     Le logo rond redessiné, en grand.
+01_vert ... 06_gris/          Un dossier par couleur de t-shirt :
+   *_DEVANT_*.png             impression du devant (fond transparent, 50 cm de large, 300 dpi)
+   *_DOS_*.png                impression du dos (APOCALYPSE 3:20)
+   *_APERCU.png               aperçu sur photo + gros plans

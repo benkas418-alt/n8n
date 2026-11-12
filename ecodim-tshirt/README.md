@@ -29,3 +29,10 @@ The model removes JPEG artefacts and sharpens edges. It does not add real fabric
 real size (width L = 50 cm), one group per element. `variante_XX_*_{devant,dos}.svg` show each variant
 (ink colour on a fabric-colour background). The curves are an automatic trace (potrace) of small sources:
 contours are slightly irregular at large size, and the thinnest lines of the round symbol are broken.
+
+## Print folder (current)
+
+`python3 -I scripts/symbole_logo.py .` redraws the round symbol (circles, dove, book, text in Open Sans)
+and sets the three logo lines in Open Sans Condensed Bold. Then run `vectorize.py`, `mockup.py` and
+`imprimer.py`: `a_imprimer/` holds the print PNGs per colour, a measurements sheet and the logo alone.
+SVG rendering uses Chromium (`scripts/render_svg.js`) because the symbol uses an SVG mask.

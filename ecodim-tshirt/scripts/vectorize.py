@@ -1,6 +1,7 @@
 """Trace each design element with potrace and build the print files as SVG (units: mm).
 Usage: python vectorize.py <dir> [L_mm=500]"""
 import sys, os, re, json, subprocess, tempfile, numpy as np, cv2
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image
 D = sys.argv[1]; LMM = float(sys.argv[2]) if len(sys.argv) > 2 else 500
 EL = os.path.join(D, 'out', 'elements'); OUT = os.path.join(D, 'out', 'svg'); os.makedirs(OUT, exist_ok=True)
@@ -28,6 +29,12 @@ TR = {k[:-4]: trace(k[:-4]) for k in sorted(os.listdir(EL))}
 def group(boxes, color):
     out = []
     for k, (x, y, w, h) in boxes.items():
+        if k == 'symbole':  # hand-redrawn vector symbol (scripts/symbol.py)
+            import symbole_logo as SY
+            out.append('  <g id="symbole">' + SY.nested(color, x * LMM, y * LMM, w * LMM) + '</g>'); continue
+        if k in ('ecodim', 'ce', 'extension'):  # logo text set in a real font (scripts/symbole_logo.py)
+            import symbole_logo as SY
+            out.append(f'  <g id="{k}">' + SY.text_nested(k, color, x * LMM, y * LMM, w * LMM, D) + '</g>'); continue
         t = TR[k]; s = w * LMM / t['w']
         out.append(f'  <g id="{k}" transform="translate({x*LMM:.3f} {y*LMM:.3f}) scale({s:.6f})">'
                    f'<g transform="{t["transform"]}"><path fill="{color}" fill-rule="evenodd" d="{t["d"]}"/></g></g>')
