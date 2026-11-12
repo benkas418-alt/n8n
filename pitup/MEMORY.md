@@ -440,3 +440,8 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
     - 9,83–10,30 s et 22,70–23,23 s : affiches avec des visages, peut-être politiques ;
     - 17,87–18,16 s : moto au milieu de l'avenue.
   - **Détourage de chaussures sombres sur fond sombre** : utiliser le modèle rembg `birefnet-general-lite` (bien meilleur qu'isnet), puis reboucher les trous fermés (remplissage depuis le bord). Le fondateur avait jugé le détourage isnet des Air Max 95 « très mal fait ».
+- **Reproche du fondateur (12 novembre)** : je reprenais toujours les mêmes plans (film de DJEUDY, déjà vu dans les vidéos publiées, dont celle à 10 000 vues), au lieu d'exploiter toute la bibliothèque. **Règle** : avant de monter, inventorier toutes les vidéos fournies et choisir des plans neufs. Les vidéos 1049431f et b7f9ecd7 sont aussi de DJEUDY.
+- **Film « Haut-Katanga » (6629895a, 1024 × 576, 184 s)** : une mine de plans neufs, à recadrer en 9:16 au centre (les badges TikTok restent hors cadre).
+  - Coupes : stade vu du ciel 0–3,03 s ; cathédrale vue du ciel 27,87–32,13 ; monument 32,13–35,43 ; ville vue du ciel 39,43–42,07 ; avenue vue du ciel 42,07–44,10 ; taxi jaune 52,90–55,10 ; gare 81–83,6 (reflet orange au début) ; train 83,6–86 ; centre commercial vu du ciel 119,27–122,6 ; rue Vodacom 138,1–142,07 ; boutique de vêtements 143,2–151,8 ; supermarché 168,7–176,8.
+  - Les plans en voiture (104–119 s) montrent le tableau de bord.
+- Lubumbashi v15 : ouverture hôtel (DJEUDY) puis stade, puis ville vue du ciel ; « bouge » = cathédrale, taxi, gare, centre commercial, Vodacom ; « bonne pièce » = boutique de vêtements et supermarché. Outil `tools/seq_clip2.py` (plusieurs sources, recadrage 9:16).
