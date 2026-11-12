@@ -415,3 +415,9 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Une coupe n'est gardée que si whisper, réécoutant 1,3 s de chaque côté, entend le bon dernier mot à gauche et le bon premier mot à droite.
   - Les cas douteux sont vérifiés avec une fenêtre de 2 s, puis forcés (5e valeur). Attention : `initial_prompt` fausse la réécoute.
   - Coupes validées pour `v13_cielP2.wav` : 2,15 / 3,92 / 5,13 / 5,60 / 6,39 / 7,46 / 7,72 / 9,35 / 10,36 / 12,04 / 13,06 / 13,97 / 15,91 / 17,33 / 18,79 / 19,88.
+- **Lubumbashi v11 livrée** (`livrables/PitUp-Ah-Lubumbashi-v11.mp4`, 31 s ; `cfg/v14_ciel.json`, projet `hf/videos/pitup-v14-ciel`) :
+  - Netteté : agrandissement IA **local et gratuit** avec Real-ESRGAN general-x4v3 (ONNX, `/root/.cache/esrgan/g4.onnx`, téléchargé de HF `Heliosoph/realesrgan-onnx`). Script `tools/esrgan_clip.py` : réduire en 540 × 960, agrandir ×4, puis repasser en 1080 × 1920. Compter environ 4 s par image sur ce processeur. Higgsfield n'a que 1,5 crédit (forfait gratuit), donc pas d'agrandissement payant possible.
+  - Plans : couchers de soleil agrandis (accroche et « Notre ville bouge »), puis un montage de jour net tiré du film de DJEUDY (`story/v/day_lushi.mp4` : vue d'en haut à 21,2 s, passage piéton à 22,73 s, marcheurs à 24,47 s). Le panneau politique « Un peuple, un destin » (vers 1 s) est écarté.
+  - Starts des scènes : on prend le premier mot de chaque phrase, décalé par la table des pauses, moins 0,12 s.
+  - Carte de fin : « +100 boutiques locales à Lubumbashi ».
+- **Disque** : la session plafonne vers 39 Go utilisés. Avant un rendu, garder au moins 2 Go libres. On peut supprimer les séparations demucs, les images intermédiaires et les copies `assets/v` des anciens projets.
