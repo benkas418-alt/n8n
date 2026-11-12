@@ -492,3 +492,5 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 6. Ne livrer qu'après 4 et 5 ; rapporter les chiffres, et dire clairement ce qui n'a pas pu être vérifié.
 Leçon Lubumbashi : « Notre ville bouge » = `v i l ə b` (villeu), « de la ville dans » = `v iː n` (pas de l) : défauts des prises sources, invisibles pour whisper.
 - RÈGLE : ne JAMAIS modifier ce que le fondateur a validé (plans, ordre, animations) quand il demande une autre correction. Un défaut repéré hors de la demande → le SIGNALER, ne pas le corriger seul. Les plans de supermarché restent exclus.
+- Voix v26 : `tools/level_words.py` (remonte seulement les mots > 4 dB sous la médiane, max +6 dB) avant `punct_pause3.py` ; couper au DÉBUT du creux de silence (sinon le fondu d'entrée écrase la consonne suivante, ex. le « t » de « trouver ») ; fondu de sortie ≥ 50 ms, fin de prise tronquée → décroissance exponentielle 120 ms. QA : `voice_qa.sh` inclut le niveau par mot (3b) et 2 mots de contexte pour les phonèmes.
+- Version légère : CRF 19 (≈ 74 Mo pour 31 s, SSIM médian 0,967). À 7 Mb/s les vues aériennes perdent trop (SSIM 0,86).
