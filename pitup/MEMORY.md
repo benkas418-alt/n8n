@@ -491,3 +491,4 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 5. Mix final : `earshot critique` sans --fast → 0 critique / 0 majeur. Images : extraire et regarder les frames clés.
 6. Ne livrer qu'après 4 et 5 ; rapporter les chiffres, et dire clairement ce qui n'a pas pu être vérifié.
 Leçon Lubumbashi : « Notre ville bouge » = `v i l ə b` (villeu), « de la ville dans » = `v iː n` (pas de l) : défauts des prises sources, invisibles pour whisper.
+- RÈGLE : ne JAMAIS modifier ce que le fondateur a validé (plans, ordre, animations) quand il demande une autre correction. Un défaut repéré hors de la demande → le SIGNALER, ne pas le corriger seul. Les plans de supermarché restent exclus.
