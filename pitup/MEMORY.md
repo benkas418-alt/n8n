@@ -384,3 +384,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - le bouton « + » qui devient « Commander », un tap, puis « Commande envoyée ✓ » ;
   - la checklist de suivi, puis « Livrée. Payée à la livraison. » ;
   - le logo signature.
+- **Motion design n° 4 « Identité »** (`motion/md2/build9.py`, `hf/videos/pitup-md9`, 14,6 s), style de la référence Moverunion (e352) : une coupe par temps (136 BPM, 0,441 s). Musique = l'instrumental de la référence, phrase de 12 temps jouée deux fois, avec son silence et son coup final sur le logo (pas de jingle). 19 plans :
+  - construction du logo, déclinaisons en carrés, affiches « COMMERCE & LIVRAISON » et « LE COMMERCE, SIMPLEMENT. », tampons « PitUp » ;
+  - carton en 3D CSS avec scotch « PitUp », sac blanc et tote marine, drapeau, panneau, profil PitUp dans un téléphone ;
+  - grands mots « Livré. », « Local. », « Fiable. » ;
+  - 3 plans de vraie rue de Lubumbashi (`real/lushi_clean.mp4`) avec le logo blanc ;
+  - puis le logo signature.
+  - Ne pas inventer de chiffre (« 24/7 » a été retiré du profil).
