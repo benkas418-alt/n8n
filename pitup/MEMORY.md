@@ -375,3 +375,12 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Chiffre clé** : écrire « +100 boutiques **locales** » (ou « plus de 100 boutiques locales »), jamais « +100 boutiques » seul.
 - Salutations Mbote / Jambo / Bonjour : **ne pas écrire le nom de la langue** en dessous.
 - Vidéo finale : `livrables/PitUp-Motion-Mbote-final-v2.mp4`.
+- **Musiques sans paroles** : les instrumentaux des références sont épuisés (cf82 et 9db8 sont déjà utilisés ; marq et e352 font moins de 10 s ; DataSave n'a que la voix ; Kreatively a une musique faible avec la fin Instagram). Les chansons du fondateur n'ont aucun passage instrumental de plus de 6 s (vérifié avec demucs). Source retenue : Mixkit, gratuit et sans paroles (`assets.mixkit.co/music/<id>/<id>.mp3`). « Sweet September » (282, R&B, 152 BPM, drop à 12,655 s) est utilisé pour le n° 3. Candidats suivants : « Torey » (304), « Find Me Outside » (258), « Complicated » (281), « RnB » (224).
+- **Motion design n° 3 « Commande »** (`motion/md2/build8.py`, `hf/videos/pitup-md8`, 22,6 s), style Kreatively :
+  - la question lumineuse « Tu cherches encore une boutique sérieuse ? » ;
+  - une barre de recherche en verre, tapée puis effacée ;
+  - « Plus besoin de chercher. » ;
+  - des cartes en éventail sous « +100 boutiques locales. » ;
+  - le bouton « + » qui devient « Commander », un tap, puis « Commande envoyée ✓ » ;
+  - la checklist de suivi, puis « Livrée. Payée à la livraison. » ;
+  - le logo signature.
