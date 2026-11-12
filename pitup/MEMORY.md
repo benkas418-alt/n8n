@@ -398,3 +398,11 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - La DA comporte donc aussi du **noir et du bleu**.
   - Le mot-symbole s'écrit **« Pitup »** (u minuscule) sur ces visuels, alors que `logo_word_white.png` montre « PitUp ». **À faire confirmer.**
 - **Identité v2** : le tote réel est utilisé en deux cadrages verticaux, le sac entier et un gros plan sur le P. La photo est posée sur un dégradé sombre, avec des fondus de 220 px. Les supports qu'on possède en vrai valent mieux que les objets dessinés en CSS.
+- **Identité, option A** (choix du fondateur, 12 novembre ; `livrables/PitUp-Motion-Identite-A.mp4`, 9,5 s). On reprend les images de la référence Moverunion (e352), en 34 plans de 5 images à 30 i/s.
+  - Chaîne de traitement :
+    1. `motion/md2/mov_clean.py` efface la surcouche Instagram et le pseudo « @OBRAZUR / Solomun • Can't Stop » (LaMa, zone fixe x 492–680, y 292–445 en 720 × 1280), puis passe le rouge (teinte < 14 ou > 168, saturation > 140, luminosité > 90) en bleu PitUp.
+    2. `mov_marks.py` + `mov_apply.py` repèrent leur logo par corrélation de gabarit, sur un masque blanc, noir ou bleu. Ils effacent **tout le rectangle** (marge 10 px, ou 24 px pour les logos noirs et bleus), puis posent l'icône PitUp dans la même couleur. Ils effacent aussi les petits textes « moverunion ».
+    3. `mov_fix.py` refait l'avatar en rond bleu uni et passe en bleu la peinture rouge sombre.
+  - Plans remplacés : le camion et le drapeau par la rue de Lubumbashi (sans moto), la sangle par le vrai tote, les tampons et les déclinaisons recréés en CSS.
+  - Textes réécrits en surcouche HTML : « pitup » vertical, « COMMERCE & LIVRAISON », le profil, « Livré. ».
+  - Composition : `build10.py`. La musique de la référence est **Solomun « Can't Stop »** (info du filigrane).
