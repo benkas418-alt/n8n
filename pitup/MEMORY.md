@@ -428,3 +428,15 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Lubumbashi v13** (`livrables/PitUp-Ah-Lubumbashi-v13.mp4`) : les cartes montrent Crocs, Parfum (Yara), Nike Air Max 95 et Montre (Rolex Day-Date cadran bleu glacier). Ces deux nouvelles photos ont été fournies et choisies par le fondateur, qui lève ici la règle « pas de Rolex ». Le texte dit seulement « Montre », sans nom de marque.
   - **Détourage d'un objet tenu en main** : rembg échoue, car la main est prise avec l'objet ou l'objet est rogné. On passe à un **masque géométrique** mesuré sur la photo : cercle du boîtier, trapèzes pour le bracelet avec fondu aux bouts, rectangle pour la couronne.
   - Ombres de sol des chaussures : seuil alpha 235, puis on coupe à la main la traînée d'ombre.
+- **Lubumbashi v14** (`livrables/PitUp-Ah-Lubumbashi-v14.mp4`) : **plus aucun coucher de soleil** (flous même agrandis) et **plus de rond-point** (déjà trop vu).
+  - Séquences de jour tirées du film de DJEUDY, agrandies par Real-ESRGAN, construites avec `tools/seq_clip.py` (segments avec ralenti) :
+    - `open_hotel` : l'hôtel Pullman et le lac (10,34–10,80 s), la ville vue d'en haut (21,20–22,20 s), le boulevard vitré (25,30–25,70 s) ;
+    - `city_bouge` : agent, taxis, marcheurs, ouvriers, rue commerçante « DIGITAL », minibus ;
+    - `city_piece` : jeune femme, deux hommes près d'un camion, hommes sur un camion, arrêt de bus.
+  - Plans à écarter dans ce film :
+    - 6,10–6,67 s : tache ronde de l'ancien filigrane ;
+    - 13,90–14,97 s : tricycles à moteur ;
+    - 18,17–18,57 s : motos ;
+    - 9,83–10,30 s et 22,70–23,23 s : affiches avec des visages, peut-être politiques ;
+    - 17,87–18,16 s : moto au milieu de l'avenue.
+  - **Détourage de chaussures sombres sur fond sombre** : utiliser le modèle rembg `birefnet-general-lite` (bien meilleur qu'isnet), puis reboucher les trous fermés (remplissage depuis le bord). Le fondateur avait jugé le détourage isnet des Air Max 95 « très mal fait ».
