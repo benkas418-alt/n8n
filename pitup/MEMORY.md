@@ -480,3 +480,14 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - Avant chaque livraison : earshot (`/home/user/leonxlnx/earshot/.venv/bin/python -m earshot critique <mp4>`, puis describe/match sur les passages suspects) + whisper mot par mot (score < 0.6 = mot mal articulé). Viser true peak <= -1 dBTP sur la voix : un collage avec gain doit passer par un limiteur (« Seulement » écrêté en v23).
 - Jamais de pause sans ponctuation (« la ville | dans » donnait « villeu »). Couper le souffle de génération avant le 1er mot d'une prise VoxCPM.
 - Fin de vidéo : musique tenue jusqu'au logo (HI=1.5 FADE=0.4 dans mix_bed), pas de long fondu.
+
+## MÉCANIQUE DE TRAVAIL (obligatoire avant chaque livraison)
+1. Lire la demande → lister les compétences/outils utiles (bibliothèque de skills : earshot, real-sound, hyperframes-audio, media-use, caption-animation, conversion-copywriting-engine, pitup-content-engine…) et les charger avant d'agir.
+2. Écrire la liste de ce qu'il faut vérifier pour CETTE demande, avec un critère mesurable par point.
+3. Produire plusieurs candidats quand c'est une génération (voix : 6 prises), les noter tous avec les mêmes critères, garder le meilleur.
+4. Voix : `tools/voice_qa.sh voice.wav "ville:v i l b|..."` doit sortir zéro FAIL :
+   saturation (0 échantillon écrêté), coupes brutales (aucune chute > 30 dB en 10 ms), silence numérique, mots < 0.6 de confiance,
+   phonèmes IPA des mots surveillés (`tools/phones.py`, wav2vec2 espeak) — whisper corrige en silence, les phonèmes non.
+5. Mix final : `earshot critique` sans --fast → 0 critique / 0 majeur. Images : extraire et regarder les frames clés.
+6. Ne livrer qu'après 4 et 5 ; rapporter les chiffres, et dire clairement ce qui n'a pas pu être vérifié.
+Leçon Lubumbashi : « Notre ville bouge » = `v i l ə b` (villeu), « de la ville dans » = `v iː n` (pas de l) : défauts des prises sources, invisibles pour whisper.
