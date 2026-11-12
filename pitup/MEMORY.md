@@ -363,3 +363,8 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Motion design n° 2 « Bonjour. »** (12 novembre, `motion/md2/build5.py`, `hf/videos/pitup-md5`, 18,5 s) :
   - inspiré de la référence « Luca Radez » (9db8) ; musique = son instrumental, de 10,12 s à la fin naturelle (28,6 s), le logo sur le coup à 25,48 s. Le jingle de plateforme à 30,5 s est exclu.
   - 4 scènes numérotées en police mono (IBM Plex Mono) : « Bonjour. » sur marine avec des lignes de construction ; « On est / PitUp. » tapé, avec le point bleu qui saute et « LE COMMERCE, SIMPLEMENT. » ; sur bleu, « Acheter à Lushi, devient un jeu d'enfant. » avec des icônes qui changent ; une roue « Tu trouves ● Sneakers… +100 boutiques. » qui avance d'un cran par temps ; puis le logo signature et les badges.
+- **« Bonjour. » v2** (`motion/md2/build6.py`, `hf/videos/pitup-md6`, 20,6 s) :
+  - l'ouverture est un carrousel de salutations : « Bonjour » (français), « Jambo » (swahili), « Mbote » (lingala), avec la langue en petit, en police mono ;
+  - un swipe horizontal (`power4.inOut`, 0,5 s) avec un souffle à chaque changement, et le curseur qui clignote après chaque mot ;
+  - le point bleu arrive seulement à la fin, après « Mbote » ;
+  - la musique commence à 7,99 s pour laisser 4,3 s à l'ouverture.
