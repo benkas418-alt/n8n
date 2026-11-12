@@ -471,3 +471,9 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - **Plans** : la cathédrale n'apparaît plus qu'une fois. La ville vue du ciel avec le lac (42,15 s) remplace le doublon. Les embouteillages sont illustrés en 2 bandes : l'avenue encombrée vue du ciel (44,15 s) et la ville avec le terril (92 s).
   - **Cartes produits** : chaque carte porte la pastille de catégorie de l'appli (« Vêtements & mode », ou « Beauté » pour le parfum) et l'étiquette « Tendance » (`chip` et `tag` dans `build_story`).
   - **Téléphone** : pas d'enregistrement qui glisse. On affiche des pages produits **fixes**, qui s'enchaînent par coupes nettes (`story/v/ph_static.mp4`).
+
+## Voix off : pauses sans coupe audible (v21 Lubumbashi)
+- Ne jamais remplir une pause avec un souffle synthétique ni laisser un silence numérique : le fond change et l'oreille entend la coupe.
+- Outil `tools/punct_pause3.py` : fondu cos long vers le silence à chaque coupe vérifiée, puis UN fond de pièce constant (bruit rose -60 dBFS) sous toute la voix.
+- Éviter l'accumulation de « et » : un seul « et », le reste lié par des virgules. « et on » se prononce d'un souffle : régénérer la phrase plutôt que couper.
+- Textes à l'écran : « Paiement à la livraison. » (pas « Payé »).
