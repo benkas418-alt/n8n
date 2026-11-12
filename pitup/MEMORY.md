@@ -406,3 +406,7 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Plans remplacés : le camion et le drapeau par la rue de Lubumbashi (sans moto), la sangle par le vrai tote, les tampons et les déclinaisons recréés en CSS.
   - Textes réécrits en surcouche HTML : « pitup » vertical, « COMMERCE & LIVRAISON », le profil, « Livré. ».
   - Composition : `build10.py`. La musique de la référence est **Solomun « Can't Stop »** (info du filigrane).
+- **Lubumbashi v11, retours du 12 novembre** :
+  - **Voix trop rapide, pauses non respectées** : après un point, la voix ne s'arrêtait que 0,14 à 0,18 s. `tools/punct_pause.py` insère du silence (jamais d'étirement) au point le plus silencieux entre deux mots. Cibles : environ 0,75 s après un point et 0,38 s après une virgule. Quand whisper place mal les mots, on peut forcer l'instant de coupe. Résultat `audio/v8/v13_cielP.wav` (21,2 s devenues 27,8 s), et la table de décalage est dans `.map.json`.
+  - **Musique imperceptible** : `tools/mix_bed.py` place la musique environ 9 dB sous la voix (contre environ 24 dB avant). Sous la voix, il creuse seulement sa bande 300 Hz–3 kHz, puis la musique remonte en entier à la fin. Mixage final à −14 LUFS.
+  - **Plans flous** : les couchers de soleil sont des téléchargements TikTok en 576 px. Il faut des sources nettes : les fichiers d'origine, ou un agrandissement par IA (payant, accord requis).
