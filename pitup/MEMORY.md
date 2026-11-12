@@ -477,3 +477,6 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - Outil `tools/punct_pause3.py` : fondu cos long vers le silence à chaque coupe vérifiée, puis UN fond de pièce constant (bruit rose -60 dBFS) sous toute la voix.
 - Éviter l'accumulation de « et » : un seul « et », le reste lié par des virgules. « et on » se prononce d'un souffle : régénérer la phrase plutôt que couper.
 - Textes à l'écran : « Paiement à la livraison. » (pas « Payé »).
+- Avant chaque livraison : earshot (`/home/user/leonxlnx/earshot/.venv/bin/python -m earshot critique <mp4>`, puis describe/match sur les passages suspects) + whisper mot par mot (score < 0.6 = mot mal articulé). Viser true peak <= -1 dBTP sur la voix : un collage avec gain doit passer par un limiteur (« Seulement » écrêté en v23).
+- Jamais de pause sans ponctuation (« la ville | dans » donnait « villeu »). Couper le souffle de génération avant le 1er mot d'une prise VoxCPM.
+- Fin de vidéo : musique tenue jusqu'au logo (HI=1.5 FADE=0.4 dans mix_bed), pas de long fondu.
