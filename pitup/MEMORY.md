@@ -464,3 +464,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Lubumbashi v17** (`livrables/PitUp-Ah-Lubumbashi-v17.mp4`) :
   - la gare n'apparaît qu'une fois ; le 2e plan de gare est remplacé par la tour de verre bleue et l'immeuble à piscine (Haut-Katanga, 87,45–89,45 s) ;
   - « bonne pièce » = séquence boutique de vêtements (142,0–151,75 s, ralentie ×1,13), coupée en 3 bandes simultanées.
+- **Lubumbashi v18** (`livrables/PitUp-Ah-Lubumbashi-v18.mp4`) :
+  - **Nouvelle phrase** : « Seulement, entre les embouteillages et les allers-retours, trouver la bonne pièce prend souvent du temps. » Le contexte local est réel, chacun s'y reconnaît. Seule cette phrase a été régénérée (jumelle, `vox_cont2`, ref_calm + ref_mid ; la prise n° 2 est à 229 Hz, contre 224 Hz pour l'ancienne phrase). Elle a été filtrée (filtre C), mise au même volume et insérée dans `v13_ciel.wav`, ce qui donne `audio/v8/v14_ciel.wav`, puis `v14_cielP.wav` avec les pauses.
+  - **Pauses sans coupure brutale** (« calages ») : `punct_pause2.py` fait un fondu de sortie de 45 ms et un fondu d'entrée de 30 ms (en cosinus), et remplit la pause avec le **bruit de fond** de la prise, jamais un silence numérique.
+  - **Mixage** : la voix est 11 dB au-dessus de la musique (`mix_bed.py`, 8e argument), pour mieux comprendre le début.
+  - **Plans** : la cathédrale n'apparaît plus qu'une fois. La ville vue du ciel avec le lac (42,15 s) remplace le doublon. Les embouteillages sont illustrés en 2 bandes : l'avenue encombrée vue du ciel (44,15 s) et la ville avec le terril (92 s).
+  - **Cartes produits** : chaque carte porte la pastille de catégorie de l'appli (« Vêtements & mode », ou « Beauté » pour le parfum) et l'étiquette « Tendance » (`chip` et `tag` dans `build_story`).
+  - **Téléphone** : pas d'enregistrement qui glisse. On affiche des pages produits **fixes**, qui s'enchaînent par coupes nettes (`story/v/ph_static.mp4`).
