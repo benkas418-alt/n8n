@@ -445,3 +445,11 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Coupes : stade vu du ciel 0–3,03 s ; cathédrale vue du ciel 27,87–32,13 ; monument 32,13–35,43 ; ville vue du ciel 39,43–42,07 ; avenue vue du ciel 42,07–44,10 ; taxi jaune 52,90–55,10 ; gare 81–83,6 (reflet orange au début) ; train 83,6–86 ; centre commercial vu du ciel 119,27–122,6 ; rue Vodacom 138,1–142,07 ; boutique de vêtements 143,2–151,8 ; supermarché 168,7–176,8.
   - Les plans en voiture (104–119 s) montrent le tableau de bord.
 - Lubumbashi v15 : ouverture hôtel (DJEUDY) puis stade, puis ville vue du ciel ; « bouge » = cathédrale, taxi, gare, centre commercial, Vodacom ; « bonne pièce » = boutique de vêtements et supermarché. Outil `tools/seq_clip2.py` (plusieurs sources, recadrage 9:16).
+- **Agrandissement IA refusé** (12 novembre) : Real-ESRGAN lisse tout. Sur un recadrage vertical de 324 px agrandi plus de 3 fois, le fondateur a vu des plans flous, « les choses ne sont plus visibles ».
+  - **Règle** : pas d'agrandissement IA. Les plans en paysage restent en paysage, presque à leur taille d'origine, empilés par 3 dans l'écran vertical (bandes de 1080 × 640, beat `split`).
+  - Film Haut-Katanga : recadrage `crop=777:460:120:62`, qui évite les deux filigranes (« TikTok @adishiyetu » en haut à gauche puis en bas à droite, « Jeremiebe.rdc » en haut à droite), puis lanczos et `unsharp=5:5:0.35`.
+- `build_story.py` accepte maintenant un poids `w` par beat, pour qu'un beat dure plus longtemps que ses voisins.
+- **Lubumbashi v16** (`livrables/PitUp-Ah-Lubumbashi-v16.mp4`) :
+  - l'hôtel en plein écran, puis [stade | ville vue du ciel | monument] ;
+  - [cathédrale | gare | centre commercial] puis [taxi | Vodacom | train] ;
+  - [boutique de vêtements ×2 | supermarché] puis [supermarché ×3].
