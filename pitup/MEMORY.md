@@ -355,3 +355,8 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - « simplement. » est tapé pendant le vrai break (16,40–17,95 s), sous « le commerce, » en bleu ;
   - le logo arrive sur le retour du beat (18,0 s) ;
   - « fièrement / congolais. » : le fondateur veut cette fierté congolaise dans la vidéo.
+- **Texte tapé au clavier** (12 novembre) :
+  - Écrire « Le commerce » avec une majuscule et sans virgule, avec « simplement. » en dessous.
+  - Le texte tapé est un seul écran. Chaque lettre garde sa place finale, apparaît à sa frappe (0,11 s, légère montée et léger zoom), et le curseur suit la dernière lettre.
+  - Ne plus enchaîner un écran par lettre : cela saute à l'œil.
+  - Une phrase longue passe sur deux lignes (`|` dans le texte) au lieu de rétrécir la police.
