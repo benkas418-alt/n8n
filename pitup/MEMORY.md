@@ -410,3 +410,8 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - **Voix trop rapide, pauses non respectées** : après un point, la voix ne s'arrêtait que 0,14 à 0,18 s. `tools/punct_pause.py` insère du silence (jamais d'étirement) au point le plus silencieux entre deux mots. Cibles : environ 0,75 s après un point et 0,38 s après une virgule. Quand whisper place mal les mots, on peut forcer l'instant de coupe. Résultat `audio/v8/v13_cielP.wav` (21,2 s devenues 27,8 s), et la table de décalage est dans `.map.json`.
   - **Musique imperceptible** : `tools/mix_bed.py` place la musique environ 9 dB sous la voix (contre environ 24 dB avant). Sous la voix, il creuse seulement sa bande 300 Hz–3 kHz, puis la musique remonte en entier à la fin. Mixage final à −14 LUFS.
   - **Plans flous** : les couchers de soleil sont des téléchargements TikTok en 576 px. Il faut des sources nettes : les fichiers d'origine, ou un agrandissement par IA (payant, accord requis).
+- **Pauses de ponctuation, méthode corrigée** (le fondateur a entendu des silences au milieu de mots) : `tools/punct_pause2.py` (lancer avec `/home/user/fw/bin/python`).
+  - Les candidats sont les creux d'énergie à moins de 0,32 s de la frontière donnée par whisper.
+  - Une coupe n'est gardée que si whisper, réécoutant 1,3 s de chaque côté, entend le bon dernier mot à gauche et le bon premier mot à droite.
+  - Les cas douteux sont vérifiés avec une fenêtre de 2 s, puis forcés (5e valeur). Attention : `initial_prompt` fausse la réécoute.
+  - Coupes validées pour `v13_cielP2.wav` : 2,15 / 3,92 / 5,13 / 5,60 / 6,39 / 7,46 / 7,72 / 9,35 / 10,36 / 12,04 / 13,06 / 13,97 / 15,91 / 17,33 / 18,79 / 19,88.
