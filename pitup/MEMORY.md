@@ -372,3 +372,6 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
 - **Ouverture des salutations, version validée** (`build7.py`, `hf/videos/pitup-md7`) : un swipe **vertical** (`power4.inOut`, 0,55 s), dans l'ordre Mbote (lingala), Jambo (swahili), puis Bonjour (français), suivi du point bleu.
 - **Son du swipe** : le souffle synthétique est refusé. On utilise le son grave et sourd des coupes, à l'arrivée de chaque mot.
 - **Registre de la marque** : écrire « Nous sommes PitUp », jamais « On est PitUp ». Quand la marque parle d'elle-même, elle dit « nous ». La vidéo « Mbote » finale est `livrables/PitUp-Motion-Mbote-final.mp4`.
+- **Chiffre clé** : écrire « +100 boutiques **locales** » (ou « plus de 100 boutiques locales »), jamais « +100 boutiques » seul.
+- Salutations Mbote / Jambo / Bonjour : **ne pas écrire le nom de la langue** en dessous.
+- Vidéo finale : `livrables/PitUp-Motion-Mbote-final-v2.mp4`.
