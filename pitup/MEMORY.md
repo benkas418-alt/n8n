@@ -391,3 +391,10 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - 3 plans de vraie rue de Lubumbashi (`real/lushi_clean.mp4`) avec le logo blanc ;
   - puis le logo signature.
   - Ne pas inventer de chiffre (« 24/7 » a été retiré du profil).
+- **Vrais visuels de marque fournis par le fondateur** (12 novembre, dans les uploads de la session) :
+  - une photo de profil : rond blanc, P bleu, « Pitup » bleu dessous ;
+  - un mockup de tote bag noir avec le grand P bleu et le lockup « Pitup » ;
+  - une icône d'app : carré arrondi noir, P bleu, « Pitup » blanc en Poppins Bold.
+  - La DA comporte donc aussi du **noir et du bleu**.
+  - Le mot-symbole s'écrit **« Pitup »** (u minuscule) sur ces visuels, alors que `logo_word_white.png` montre « PitUp ». **À faire confirmer.**
+- **Identité v2** : le tote réel est utilisé en deux cadrages verticaux, le sac entier et un gros plan sur le P. La photo est posée sur un dégradé sombre, avec des fondus de 220 px. Les supports qu'on possède en vrai valent mieux que les objets dessinés en CSS.
