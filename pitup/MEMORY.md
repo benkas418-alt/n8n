@@ -421,3 +421,7 @@ Le fondateur a choisi les idées 1, 3, 4 et 7 comme vidéos à produire.
   - Starts des scènes : on prend le premier mot de chaque phrase, décalé par la table des pauses, moins 0,12 s.
   - Carte de fin : « +100 boutiques locales à Lubumbashi ».
 - **Disque** : la session plafonne vers 39 Go utilisés. Avant un rendu, garder au moins 2 Go libres. On peut supprimer les séparations demucs, les images intermédiaires et les copies `assets/v` des anciens projets.
+- **Lubumbashi v12** (`livrables/PitUp-Ah-Lubumbashi-v12.mp4`) :
+  - **Premier plan** : vue aérienne de jour (`story/v/air_lushi.mp4`) tirée du film de DJEUDY : le rond-point (0,02–0,78 s), le lac et les bâtiments (10,34–10,80 s), l'avenue vue d'en haut (17,88–18,16 s). Ralenti ×2 par interpolation (`minterpolate mci`), puis Real-ESRGAN. Éviter 0,8–1,5 s (boulevard avec panneau politique).
+  - **Articles des cartes** : toujours **détourés**, seuls, sur fond `#F1EFEC` avec ombre douce (`story/img/c_d_*.jpg`) : Crocs camo, parfum Yara (Lattafa), Adidas Campus vertes, montre au cadran blanc. La veste en cuir et la main au bracelet sont retirées (le fondateur les jugeait peu lisibles).
+  - rembg : la commande en ligne est cassée, il faut passer par l'API Python système (`from rembg import remove, new_session`).
