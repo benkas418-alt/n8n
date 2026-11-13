@@ -5,9 +5,10 @@ name: 'football-intel: daily cycle and site export'
 # the dashboard answers, through football-intel export-supabase.
 # Scheduled runs start only from the default branch.
 
+# D79: started each day at 05:23 Lubumbashi (03:23 UTC) by a pg_cron job in Supabase
+# (ops.dispatch_daily_cycle), which calls workflow_dispatch with a fine-grained token kept in
+# Supabase Vault. GitHub stopped every scheduled run of this repository on 2026-11-07.
 on:
-  schedule:
-    - cron: '23 3 * * *' # 05:23 in Lubumbashi
   workflow_dispatch:
     inputs:
       weekly:
@@ -29,7 +30,7 @@ jobs:
     timeout-minutes: 340
     permissions:
       contents: read
-      actions: write # read the state backup of an earlier run; keep this workflow enabled
+      actions: write # read the state backup of an earlier run
       models: read # D78: lecture du jour with GitHub Models (free, rate-limited)
     services:
       postgres:
@@ -206,12 +207,3 @@ jobs:
       - name: Report failed predictions
         if: steps.predict.outputs.failed == 'true'
         run: exit 1
-
-      # GitHub disables a scheduled workflow after 60 days without repository activity.
-      # Enabling it again from each run keeps the daily schedule alive.
-      - name: Keep the schedule enabled
-        if: always() && github.event_name == 'schedule'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/util-football-intel-daily.yml/enable"
