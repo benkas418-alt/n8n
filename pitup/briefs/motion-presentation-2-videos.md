@@ -67,3 +67,22 @@ Format 1080 × 1920, 20 à 25 s. Un téléphone de face (règle `app_clear` : é
 2. Les métiers à citer : la liste ci-dessus vient de ses affiches. En ajouter d'autres ?
 3. L'adresse du site : ses affiches écrivent à la fois « pi-tup.com » et « pit-up.com ». La mémoire retient **pi-tup.com**.
 4. Voix off (voix de la sœur) ou musique seule.
+
+---
+
+# Tâche liée : carrousel « changement digital en RDC » avec des personnes
+
+Le fondateur veut des **photos de personnes** (banques d'images libres de droits) dans le carrousel livré le 13 novembre (`pitup/carousel-rdc/`).
+
+- Source choisie par le fondateur : **Pexels** (licence gratuite, usage commercial, sans mention obligatoire). Il faut une **clé API Pexels gratuite** (pexels.com/api). Le 13 novembre, le formulaire sécurisé n'a pas abouti : la redemander avec l'outil `request_credential` (hôte `api.pexels.com`), ou demander au fondateur de l'ajouter dans les réglages de l'environnement. Pexels lit la clé dans l'en-tête `Authorization`, sans préfixe : vérifier qu'une clé au format « Bearer » fonctionne, sinon passer par les réglages.
+- Unsplash et Pexels refusent les téléchargements sans clé, et Openverse ne donne que des résultats hors sujet.
+- Une photo par page, de personnes noires africaines, lumineuses, à détourer ou en plein cadre :
+  1. couverture : jeune femme souriante avec un téléphone (comme l'affiche « Prépare-toi à un changement digital ») ;
+  2. vendeuse devant son stock à la maison, ou dans une petite boutique ;
+  3. personne qui reçoit un colis à sa porte ;
+  4. créatif au travail (ordinateur, appareil photo) ;
+  5. mosaïque : photographe, graphiste, vidéaste, maquilleuse, coiffeuse (une photo par tuile) ;
+  6. pro qui regarde son téléphone ;
+  7. client qui discute sur son téléphone ;
+  8. groupe ou duo souriant.
+- Garder les textes, l'ordre et les écrans recréés du carrousel actuel (déjà conformes aux règles). Noter la page Pexels de chaque photo dans `pitup/carousel-rdc/credits.md`.
