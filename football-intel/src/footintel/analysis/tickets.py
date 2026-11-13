@@ -29,7 +29,10 @@ JOURNAL = Path(__file__).resolve().parents[3] / "reference" / "betpawa_prices.cs
 # Lubumbashi time (UTC+2): a match belongs to the owner's local day.
 LOCAL_OFFSET = timedelta(hours=2)
 MIN_ODDS = 10.0
-SIZES = (("A", "Restreint", 5, 5), ("B", "Large", 6, 9), ("C", "Très large", 12, 15))
+# (tag, name, fewest legs, most legs, lowest total odds). D80: each leg loses betPawa's margin,
+# so a short ticket keeps more of the stake on average than a long one, even with the Win Bonus.
+SIZES = (("A", "Restreint", 5, 5, MIN_ODDS), ("B", "Large", 6, 9, MIN_ODDS), ("C", "Très large", 12, 15, MIN_ODDS),
+         ("D", "Court", 2, 3, 2.5))
 # Same list as MY_TEAMS in static/app.js (the owner's followed teams).
 FOLLOWED = {"ENG-PL": "*", "GER-BL": "*", "ITA-SA": {"Lazio", "Inter", "Milan", "Como", "Bologna"},
             "ESP-LL": {"Barcelona", "Ath Madrid", "Real Madrid", "Villarreal", "Betis"}, "FRA-L1": {"Paris SG"}}
@@ -176,15 +179,16 @@ def evaluate(legs: list[dict]) -> tuple[float, float, float]:
     return prob * (1 + (odds - 1) * (1 + bonus)) - 1, prob, odds
 
 
-def best_ticket(pool: list[dict], n_min: int, n_max: int, beam: int = 200) -> dict | None:
+def best_ticket(pool: list[dict], n_min: int, n_max: int, beam: int = 200,
+                min_odds: float = MIN_ODDS) -> dict | None:
     """Beam search over one selection per match: the most likely combo with total odds of
-    MIN_ODDS or more, no market family repeated more than about a third of the legs, and
+    `min_odds` or more, no market family repeated more than about a third of the legs, and
     an expected value above -6 % (else the best expected value found)."""
     legs = [x for x in pool if x["ev"] > -0.05 and 1.2 <= x["price"] <= 4.0 and x["prob"] >= 0.3]
     best = fallback = None
     states: list[list[dict]] = [[]]
     for n in range(1, n_max + 1):
-        pace = math.log(MIN_ODDS) * n / n_min
+        pace = math.log(min_odds) * n / n_min
         cand = []
         for st in states:
             used = {x["match_id"] for x in st}
@@ -194,7 +198,7 @@ def best_ticket(pool: list[dict], n_min: int, n_max: int, beam: int = 200) -> di
                     continue
                 ns = st + [x]
                 ev, prob, odds = evaluate(ns)
-                # Most likely first, but a combo behind the pace towards MIN_ODDS is penalised.
+                # Most likely first, but a combo behind the pace towards min_odds is penalised.
                 cand.append((math.log(prob) - 6 * max(0.0, pace - math.log(odds)) + 0.5 * ev, ns))
         cand.sort(key=lambda c: -c[0])
         seen: set = set()
@@ -209,7 +213,7 @@ def best_ticket(pool: list[dict], n_min: int, n_max: int, beam: int = 200) -> di
         if n >= n_min:
             for st in states:
                 ev, prob, odds = evaluate(st)
-                if odds < MIN_ODDS:
+                if odds < min_odds:
                     continue
                 if ev > -0.06 and (best is None or prob > best[1]):
                     best = (ev, prob, odds, st)
@@ -253,8 +257,8 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
         pool_mine = [x for x in pool_all if x["followed"]]
         n_mine = len({x["match_id"] for x in pool_mine})
         tickets, missing = [], []
-        for tag, name, lo, hi in SIZES:
-            t = best_ticket(pool_mine, lo, hi) if n_mine >= lo else None
+        for tag, name, lo, hi, min_odds in SIZES:
+            t = best_ticket(pool_mine, lo, hi, min_odds=min_odds) if n_mine >= lo else None
             if t:
                 tickets.append({"tag": tag, "name": name, "size": [lo, hi]} | t)
             else:
