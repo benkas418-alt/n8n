@@ -30,6 +30,7 @@ jobs:
     permissions:
       contents: read
       actions: write # read the state backup of an earlier run; keep this workflow enabled
+      models: read # D78: lecture du jour with GitHub Models (free, rate-limited)
     services:
       postgres:
         image: postgres:16
@@ -148,10 +149,12 @@ jobs:
 
       - name: Predictions
         id: predict
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # D78: GitHub Models when ANTHROPIC_API_KEY is not set
         run: |
           footintel run morning | tee morning.json
           footintel archive-tickets || echo "::warning::archive-tickets failed"  # D76: before Save state
-          footintel write-lectures || echo "::warning::write-lectures failed"  # D77: skipped without the key
+          footintel write-lectures || echo "::warning::write-lectures failed"  # D77/D78
           if grep -q '"predict": "failed' morning.json; then
             echo "::error::No prediction was computed (see the predict step above)"
             echo "failed=true" >> "$GITHUB_OUTPUT"

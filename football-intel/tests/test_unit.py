@@ -1127,3 +1127,31 @@ def test_lecture_keeps_checked_texts_and_rejects_invented_figures(tmp_path):
     assert [g["competition"] for g in r["groups"]] == ["Premier League"]
     assert analysts.latest(tmp_path, __import__("datetime").date(2026, 11, 6))["groups"][0]["text"].startswith("Arsenal")
     assert analysts.check("Bayern gagne 3-1", '{"x": "63 %"}') == ["1", "3"]
+
+
+def test_lecture_github_models_falls_back_to_the_next_model(tmp_path):
+    import json
+
+    import httpx
+
+    from footintel.agents import analysts
+
+    seen = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        seen.append(body["model"])
+        assert request.headers["Authorization"] == "Bearer tok" and body["messages"][0]["role"] == "system"
+        if body["model"] == "a/withdrawn":
+            return httpx.Response(404, json={"error": "unknown model"})
+        return httpx.Response(200, json={"choices": [{"finish_reason": "stop",
+                                                      "message": {"content": "Arsenal à 85 %."}}]})
+
+    gm = analysts.GitHubModels("tok", models=("a/withdrawn", "b/ok"),
+                               http=httpx.Client(transport=httpx.MockTransport(handler)))
+    day = {"date": "2026-11-14", "matches": [
+        {"match": "Arsenal – Hull", "competition": "ENG-PL", "followed": True, "kickoff_utc": None,
+         "alternatives": [{"label": "1UP Arsenal", "prob": 0.85, "fair": 1.18}], "scenarios": []}]}
+    r = analysts.write(day, tmp_path, client=gm)
+    assert seen == ["a/withdrawn", "b/ok"] and r["model"] == "b/ok"
+    assert r["groups"] == [{"competition": "Premier League", "text": "Arsenal à 85 %."}]
