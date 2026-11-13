@@ -1155,3 +1155,27 @@ def test_lecture_github_models_falls_back_to_the_next_model(tmp_path):
     r = analysts.write(day, tmp_path, client=gm)
     assert seen == ["a/withdrawn", "b/ok"] and r["model"] == "b/ok"
     assert r["groups"] == [{"competition": "Premier League", "text": "Arsenal à 85 %."}]
+
+
+def test_archive_keeps_days_without_a_run_and_prefers_the_same_day_version(tmp_path):
+    import json
+    from datetime import date
+
+    from footintel.analysis.bilan import ARCHIVE, archive
+
+    def payload(tag):
+        return {"days": [{"date": "2026-11-07", "tickets": [{"tag": f"{tag}7"}]},
+                         {"date": "2026-11-08", "tickets": [{"tag": f"{tag}8"}]}]}
+
+    assert archive(tmp_path, payload("a"), date(2026, 11, 7)) == 2  # the 8th too: no run may come
+    data = json.loads((tmp_path / ARCHIVE).read_text())
+    assert data["2026-11-08"] == {"tickets": [{"tag": "a8"}], "from": "2026-11-07"}
+    assert archive(tmp_path, payload("b"), date(2026, 11, 7)) == 0  # first version of the day wins
+    # The run of the 8th replaces the version made the day before, then stays.
+    assert archive(tmp_path, {"days": [{"date": "2026-11-08", "tickets": [{"tag": "c8"}]}]}, date(2026, 11, 8)) == 1
+    assert archive(tmp_path, {"days": [{"date": "2026-11-08", "tickets": [{"tag": "d8"}]}]}, date(2026, 11, 8)) == 0
+    data = json.loads((tmp_path / ARCHIVE).read_text())
+    assert data["2026-11-07"]["tickets"] == [{"tag": "a7"}] and data["2026-11-08"]["tickets"] == [{"tag": "c8"}]
+    # An archive written before this change has no "from": it counts as made on the day.
+    (tmp_path / ARCHIVE).write_text(json.dumps({"2026-11-09": {"tickets": [{"tag": "old"}]}}))
+    assert archive(tmp_path, {"days": [{"date": "2026-11-09", "tickets": [{"tag": "new"}]}]}, date(2026, 11, 9)) == 0
