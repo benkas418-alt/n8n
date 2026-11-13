@@ -98,13 +98,58 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
 .bd svg{width:46px;height:46px;fill:#fff}
 .bd small{display:block;font-size:20px;font-weight:500;opacity:.85}.bd b{display:block;font-size:34px;font-weight:600;line-height:1.05}
 #s7 .logo{position:absolute;right:80px;bottom:110px;width:120px}
+
+/* --- v2: photos --- */
+.ph{background-size:cover;background-position:center}
+#s0 .hero{position:absolute;right:0;bottom:0;width:600px;height:760px;background:url(ph/7802856.jpg) center 20%/cover;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 22%);mask-image:linear-gradient(180deg,transparent 0,#000 22%)}
+#s0 h1{top:300px}
+#s0 .sub{top:780px;right:auto;width:440px;font-size:36px}
+#s0 .swipe{left:80px;right:auto}
+#s1 h2{top:170px;font-size:76px}
+#s1 .photo{position:absolute;left:80px;right:80px;top:440px;height:330px;border-radius:32px;background:url(ph/7191992.jpg) center 30%/cover}
+#s1 .cards{top:800px;gap:16px}
+#s1 .card{padding:16px 26px;gap:24px;border-radius:24px}
+#s1 .card .ic{flex:0 0 76px;height:76px;border-radius:20px}
+#s1 .card .ic svg{width:44px;height:44px}
+#s1 .card b{font-size:34px}#s1 .card span{font-size:25px}
+#s1 .foot{bottom:70px;font-size:36px}
+.badge{position:absolute;border-radius:50%;border:10px solid #fff;box-shadow:0 24px 50px rgba(13,90,143,.3);background-size:cover;background-position:center}
+#s2 .badge{left:520px;top:1040px;width:250px;height:250px;background-image:url(ph/6868266.jpg);background-position:center 25%}
+#s5 .badge{left:470px;top:1040px;width:230px;height:230px;background-image:url(ph/6457542.jpg);background-position:center 30%}
+#s6 .badge{left:470px;top:1040px;width:230px;height:230px;background-image:url(ph/5332457.jpg);background-position:center 25%}
+#s3{background:#0d5a8f}
+#s3 .full{position:absolute;inset:0;background:url(ph/3769021.jpg) 60% center/cover}
+#s3 .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,90,143,.15) 0%,rgba(13,90,143,.55) 45%,rgba(13,90,143,.97) 72%)}
+#s3 h2{top:780px;font-size:100px}
+#s3 .sub{top:1110px}
+#s3 .tag,#s3 .num{z-index:2}
+.tr{padding:0 0 22px;overflow:hidden;height:300px}
+.tr .pic{height:168px;background-size:cover;background-position:center 30%;margin-bottom:16px}
+.tr b,.tr span{padding:0 26px}.tr b{font-size:36px}.tr span{display:block;font-size:24px}
+.tr.more{padding:28px}.tr.more b,.tr.more span{padding:0}
+#s7 .faces{position:absolute;left:80px;top:150px;display:flex}
+#s7 .faces i{width:112px;height:112px;border-radius:50%;border:6px solid #1f88c9;margin-right:-22px;background-size:cover;background-position:center 25%}
+#s7 h2{top:320px}
+#s7 .sub{top:800px}
+#s7 .url{top:960px}
+
+#s0 .hero{width:540px;height:800px}
+#s0 .hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#1f88c9 0%,rgba(31,136,201,0) 22%)}
+#s0 .sub{width:400px;font-size:33px;top:760px}
+#s1 .photo{top:410px;height:290px}
+#s1 .cards{top:722px}
+#s1 .foot{bottom:56px}
+#s2 .badge{left:650px;top:1070px;width:230px;height:230px}
+#s4 h2{top:160px}
+#s4 .grid{top:290px}
+.tr{height:316px}.tr .pic{height:150px}
 </style></head><body>
 
 <!-- 0 cover -->
 <section class="s dark" id="s0">
   <div class="ring"></div><div class="ring2"></div>
   <div class="tag"><img src="icon_white.png" alt="">PitUp · RDC</div>
-  <svg class="arrow" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 82 L82 18"/><path d="M38 18 H82 V62"/></svg>
+  <div class="hero"></div><svg class="arrow" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 82 L82 18"/><path d="M38 18 H82 V62"/></svg>
   <h1>Prépare-toi à un changement digital en RDC.</h1>
   <p class="sub">Vendre, proposer ton service ou trouver un pro : tout passe par une seule appli.</p>
   <div class="swipe">Glisse<i></i></div>
@@ -114,7 +159,7 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
 <section class="s" id="s1">
   <div class="tag"><img src="icon.png" alt="">PitUp</div><div class="num">2/8</div>
   <h2>Pas besoin d'une grande boutique <span class="bl">pour vendre.</span></h2>
-  <div class="cards">
+  <div class="photo"></div><div class="cards">
     <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-5h4v5"/></svg></div><div><b>Une boutique en ville</b><span>Avec une adresse et une enseigne.</span></div></div>
     <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><rect x="9" y="13" width="6" height="7"/></svg></div><div><b>Un stock à la maison</b><span>Tu vends depuis chez toi.</span></div></div>
     <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg></div><div><b>Une boutique perso</b><span>Tu vends déjà sur WhatsApp ou les réseaux.</span></div></div>
@@ -132,12 +177,12 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
     <div class="st"><em>3</em><p>Nous livrons<small>À l'adresse du client.</small></p></div>
     <div class="st"><em>4</em><p>Paiement à la livraison<small>Le client paie à la réception.</small></p></div>
   </div>
-  <div class="phone"><img src="scr/store.png" alt=""></div>
+  <div class="phone"><img src="scr/store.png" alt=""></div><div class="badge"></div>
 </section>
 
 <!-- 3 services intro -->
 <section class="s dark" id="s3">
-  <div class="ring"></div>
+  <div class="full"></div><div class="shade"></div>
   <div class="tag"><img src="icon_white.png" alt="">Prestataires</div><div class="num">4/8</div>
   <h2>Et si ton talent, c'est un service ?</h2>
   <p class="sub">Les freelances et prestataires ont aussi leur place. Montre ton travail, trouve des clients.</p>
@@ -148,11 +193,11 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
   <div class="tag"><img src="icon.png" alt="">Prestataires</div><div class="num">5/8</div>
   <h2>Quel est <span class="bl">ton métier ?</span></h2>
   <div class="grid">
-    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><circle cx="11" cy="11" r="2"/></svg></div><b>Graphiste</b><span>Logos, affiches, flyers, visuels réseaux.</span></div>
-    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/></svg></div><b>Photographe</b><span>Événements, portraits, photos produits.</span></div>
-    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg></div><b>Vidéaste</b><span>Mariages, clips, vidéos pour les marques.</span></div>
-    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 6h-4z"/><rect x="8" y="9" width="8" height="12" rx="2"/></svg></div><b>Maquilleuse</b><span>Mariages, shootings, soirées.</span></div>
-    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5L20 19"/><path d="M8.5 15.5L20 5"/></svg></div><b>Coiffeuse</b><span>Tresses, coupes, coiffures d'événement.</span></div>
+    <div class="tr"><div class="pic" style="background-image:url(ph/5254659.jpg)"></div><b>Graphiste</b><span>Logos, affiches, flyers, visuels réseaux.</span></div>
+    <div class="tr"><div class="pic" style="background-image:url(ph/12446331.jpg);background-position:center 12%"></div><b>Photographe</b><span>Événements, portraits, photos produits.</span></div>
+    <div class="tr"><div class="pic" style="background-image:url(ph/8995315.jpg)"></div><b>Vidéaste</b><span>Mariages, clips, vidéos pour les marques.</span></div>
+    <div class="tr"><div class="pic" style="background-image:url(ph/6954163.jpg)"></div><b>Maquilleuse</b><span>Mariages, shootings, soirées.</span></div>
+    <div class="tr"><div class="pic" style="background-image:url(ph/15576672.jpg);background-position:center 0%"></div><b>Coiffeuse</b><span>Tresses, coupes, coiffures d'événement.</span></div>
     <div class="tr more"><b>Un autre métier ?</b><span>Si tu proposes un service, tu peux le présenter aussi.</span></div>
   </div>
 </section>
@@ -173,6 +218,7 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
     <div class="cand"><div class="who"><div class="av" style="background:linear-gradient(135deg,#ffd2a8,#e9894a)"></div><div><b>Patrick K.</b><div class="meta">Lubumbashi</div></div></div><span class="pill">3 ans d'expérience</span><div class="btns"><i class="ok">Accepter</i><i class="no">Refuser</i></div></div>
     <div class="cand"><div class="who"><div class="av" style="background:linear-gradient(135deg,#c9b8f5,#7a5bd6)"></div><div><b>Esther N.</b><div class="meta">Kinshasa</div></div></div><span class="pill">Portfolio disponible</span><div class="btns"><i class="ct">Voir le profil</i></div></div>
   </div></div>
+<div class="badge"></div>
 </section>
 
 <!-- 6 clients: find a pro -->
@@ -193,11 +239,13 @@ h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
     <div class="bub me">Parfait, merci !</div>
     <div class="input">Écris un message…</div>
   </div></div>
+<div class="badge"></div>
 </section>
 
 <!-- 7 CTA -->
 <section class="s dark" id="s7">
   <div class="tag"><img src="icon_white.png" alt="">PitUp · RDC</div><div class="num">8/8</div>
+  <div class="faces"><i style="background-image:url(ph/12446331.jpg)"></i><i style="background-image:url(ph/6868266.jpg)"></i><i style="background-image:url(ph/6954163.jpg)"></i><i style="background-image:url(ph/8995315.jpg)"></i><i style="background-image:url(ph/7191992.jpg)"></i></div>
   <h2>Vendeurs, prestataires, clients : une seule appli.</h2>
   <p class="sub">+100 boutiques locales sont déjà sur l'appli. À toi de rejoindre le mouvement.</p>
   <div class="url">pi-tup.com</div>

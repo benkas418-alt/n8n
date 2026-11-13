@@ -70,21 +70,7 @@ Format 1080 × 1920, 20 à 25 s. Un téléphone de face (règle `app_clear` : é
 
 ---
 
-# Tâche liée : carrousel « changement digital en RDC » avec des personnes
+# Tâche liée : carrousel « changement digital en RDC » avec des personnes — FAITE (13 novembre)
 
-Le fondateur veut des **photos de personnes** (banques d'images libres de droits) dans le carrousel livré le 13 novembre (`pitup/carousel-rdc/`).
-
-- Source choisie par le fondateur : **Pexels** (licence gratuite, usage commercial, sans mention obligatoire). Il faut une **clé API Pexels gratuite** (pexels.com/api). Le 13 novembre, le formulaire sécurisé n'a pas abouti : la redemander avec l'outil `request_credential` (hôte `api.pexels.com`), ou demander au fondateur de l'ajouter dans les réglages de l'environnement. Pexels lit la clé dans l'en-tête `Authorization`, sans préfixe : vérifier qu'une clé au format « Bearer » fonctionne, sinon passer par les réglages.
-- Unsplash et Pexels refusent les téléchargements sans clé, et Openverse ne donne que des résultats hors sujet.
-- Une photo par page, de personnes noires africaines, lumineuses, à détourer ou en plein cadre :
-  1. couverture : jeune femme souriante avec un téléphone (comme l'affiche « Prépare-toi à un changement digital ») ;
-  2. vendeuse devant son stock à la maison, ou dans une petite boutique ;
-  3. personne qui reçoit un colis à sa porte ;
-  4. créatif au travail (ordinateur, appareil photo) ;
-  5. mosaïque : photographe, graphiste, vidéaste, maquilleuse, coiffeuse (une photo par tuile) ;
-  6. pro qui regarde son téléphone ;
-  7. client qui discute sur son téléphone ;
-  8. groupe ou duo souriant.
-- Garder les textes, l'ordre et les écrans recréés du carrousel actuel (déjà conformes aux règles). Noter la page Pexels de chaque photo dans `pitup/carousel-rdc/credits.md`.
-- Vérifié le 13 novembre (bibliothèque `ngandu-dev/pexels`) : Pexels lit la clé **brute** dans l'en-tête `Authorization`, sans « Bearer ». Le formulaire `request_credential` ajoute « Bearer » par défaut : préférer l'ajout de la clé par le fondateur dans les réglages de l'environnement (secret réseau pour `api.pexels.com`, sans préfixe). Appel : `GET https://api.pexels.com/v1/search?query=...&orientation=portrait&per_page=15`.
-- Règles Pexels : créditer quand c'est possible (« Photos : Pexels » dans la description suffit pour un carrousel).
+Version avec photos livrée : 11 photos Pexels (téléchargées directement depuis images.pexels.com, sans clé API), liste et liens dans `pitup/carousel-rdc/credits.md`. Les photos ne sont pas dans le dépôt : les retélécharger avec `curl "https://images.pexels.com/photos/<ID>/pexels-photo-<ID>.jpeg?auto=compress&cs=tinysrgb&w=1600" -o ph/<ID>.jpg`.
+Méthode qui marche sans clé : recherche web `site:pexels.com <sujet>` → l'ID est à la fin de l'adresse de la page → serveur d'images. Unsplash et Pexels bloquent les navigateurs automatiques et l'API demande une clé (suspendue chez Pexels).

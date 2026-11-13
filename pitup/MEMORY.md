@@ -57,7 +57,7 @@ Lien en bio 📲
 Le dépôt est public : on n'y met ni voix, ni musique, ni vidéos de tiers. Pour reprendre « Ah, Lubumbashi » ou refaire une voix, demander au fondateur le **kit média** (archive qu'il a reçue le 13 novembre) : plans vidéo (`story/v`), prise de la sœur (`audio/v32/soeur_6.wav`) et sa référence (`audio/soeur/`), chanson Tems. Outils à réinstaller si besoin : `hyperframes@0.8.181` (npx), faster-whisper medium, VoxCPM2, earshot (`leonxlnx/earshot`).
 
 ### 0.8 Prochaine tâche demandée (13 novembre)
-Produire les **2 motion designs de présentation** : tout est prêt dans `pitup/briefs/motion-presentation-2-videos.md` (scripts, style, règles, questions à poser au fondateur). Le carrousel « changement digital en RDC » est livré, mais le fondateur veut y ajouter des **photos de personnes** (Pexels, clé API gratuite à obtenir : voir la fin du brief) ; source : `pitup/carousel-rdc/` (rendu : `node shot.js $PWD/index.html $PWD/out`, polices Poppins dans `pitup/carousel/fonts` si présentes, sinon Google Fonts).
+Produire les **2 motion designs de présentation** : tout est prêt dans `pitup/briefs/motion-presentation-2-videos.md` (scripts, style, règles, questions à poser au fondateur). Le carrousel « changement digital en RDC » est livré, avec des **photos de personnes** Pexels (crédits : `pitup/carousel-rdc/credits.md`) ; source : `pitup/carousel-rdc/` (rendu : `node shot.js $PWD/index.html $PWD/out`, polices Poppins dans `pitup/carousel/fonts` si présentes, sinon Google Fonts).
 
 ### 0.9 Tâches en attente (ne pas lancer sans demande)
 Vidéo « Lundi » ; question d'orthographe « Pitup » / « PitUp » ; retrait éventuel de 47 anciennes images (photos de profil) du dépôt ; plans de boutiques montrant des personnes.

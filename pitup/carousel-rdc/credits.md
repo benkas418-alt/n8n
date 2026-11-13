@@ -1,0 +1,12 @@
+# Crédits photos (Pexels, licence gratuite, usage commercial autorisé)
+- 7802856 https://www.pexels.com/photo/a-woman-in-orange-blazer-holding-a-smartphone-7802856/ (Turner El Manuel)
+- 7191992 https://www.pexels.com/photo/pleasant-black-freelancer-talking-on-smartphone-at-table-with-computer-7191992/
+- 6868266 https://www.pexels.com/photo/a-woman-making-a-delivery-6868266/ (Kindel Media)
+- 3769021 https://www.pexels.com/photo/happy-ethnic-woman-sitting-at-table-with-laptop-3769021/
+- 12446331 https://www.pexels.com/photo/a-woman-holding-a-camera-12446331/
+- 5254659 https://www.pexels.com/photo/studio-shot-of-a-woman-with-afro-hairstyle-holding-a-phone-and-laptop-5254659/ (Antonius Ferret)
+- 8995315 https://www.pexels.com/photo/man-in-black-shirt-holding-a-camera-8995315/
+- 6954163 https://www.pexels.com/photo/black-beauty-blogger-applying-makeup-on-model-during-live-broadcast-6954163/ (George Milton)
+- 15576672 https://www.pexels.com/photo/a-young-woman-having-her-hair-braided-15576672/ (Vurzie Kim)
+- 6457542 https://www.pexels.com/photo/cheerful-black-woman-with-laptop-talking-on-smartphone-and-smiling-6457542/
+- 5332457 https://www.pexels.com/photo/woman-in-black-blazer-smiling-while-talking-on-phone-5332457/ (Viktoria Slowikowska)
