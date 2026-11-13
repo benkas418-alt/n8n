@@ -169,7 +169,8 @@ def cmd_report(args, settings, engine):
 
         rep = weekly_report(engine, settings)
         if args.email:
-            print("e-mail sent" if _email_weekly(settings, rep.paths) else "e-mail not sent (SMTP not configured)")
+            sent = _email_weekly(engine, settings, rep.paths, retrained=False)
+            print("e-mail sent" if sent else "e-mail not sent (SMTP not configured)")
     elif args.kind == "prematch":
         rep = prematch_report(engine, settings, args.horizon)
     else:

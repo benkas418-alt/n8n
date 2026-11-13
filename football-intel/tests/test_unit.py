@@ -1023,12 +1023,13 @@ def test_tickets_reach_ten_with_one_selection_per_match(tmp_path):
                 "p2": 0.27, "p_over": 0.55} for i in range(16)]
     days = day_tickets(matches, prices, date(2026, 10, 31))
     tickets = {t["tag"]: t for t in days[0]["tickets"]}
-    assert set(tickets) == {"A", "B", "C"}
+    assert set(tickets) == {"A", "B", "C", "D"}
     for t in tickets.values():
-        assert t["odds"] >= 10
+        assert t["odds"] >= (2.5 if t["tag"] == "D" else 10)
         ids = [x["match_id"] for x in t["legs"]]
         assert len(ids) == len(set(ids))
     assert len(tickets["A"]["legs"]) == 5 and 12 <= len(tickets["C"]["legs"]) <= 15
+    assert 2 <= len(tickets["D"]["legs"]) <= 3 and tickets["D"]["prob"] > tickets["A"]["prob"]
     chelsea_like = next(x for x in days[0]["matches"] if x["match_id"] == 0)["alternatives"]
     assert any(x["key"] == "DC1UP_1X" and x["known"] and x["price"] == 1.22 for x in chelsea_like)
     assert best_ticket([], 5, 5) is None
@@ -1078,7 +1079,7 @@ def test_tickets_use_the_owner_teams_in_every_competition_only():
     others = [{"id": i, "kickoff_date": date(2026, 11, 4), "kickoff_utc": None, "competition": "ESP-CDR",
                "home": f"H{i}", "away": f"A{i}", "p1": 0.45, "p2": 0.3, "p_over": 0.5} for i in range(8)]
     day = day_tickets(others, {}, date(2026, 11, 4))[0]
-    assert day["tickets"] == [] and day["n_followed"] == 0 and len(day["missing"]) == 3
+    assert day["tickets"] == [] and day["n_followed"] == 0 and len(day["missing"]) == 4
 
 
 def test_scenario_weights_switch_off_a_league_that_failed_its_check():
@@ -1179,3 +1180,28 @@ def test_archive_keeps_days_without_a_run_and_prefers_the_same_day_version(tmp_p
     # An archive written before this change has no "from": it counts as made on the day.
     (tmp_path / ARCHIVE).write_text(json.dumps({"2026-11-09": {"tickets": [{"tag": "old"}]}}))
     assert archive(tmp_path, {"days": [{"date": "2026-11-09", "tickets": [{"tag": "new"}]}]}, date(2026, 11, 9)) == 0
+
+
+def test_plain_week_says_what_happened_in_plain_words():
+    from datetime import date
+
+    from footintel.reports.plain_week import plain_week
+
+    tickets = [{"date": "2026-11-07", "tickets": [
+        {"tag": "B", "name": "Large", "odds": 10.08, "state": "perdu", "right": 5, "legs": [
+            {"match": "Leeds – Tottenham", "label": "DC 1UP Leeds ou nul", "price": 1.4, "score": "1-0", "won": 1},
+            {"match": "Nott'm Forest – Man City", "label": "Moins de 3,5 buts", "price": 1.51, "score": "3-1",
+             "won": 0}]},
+        {"tag": "D", "name": "Court", "odds": 2.6, "state": "gagné", "right": 2, "legs": []}]}]
+    matches = [{"competition": "ENG-PL", "home": "Leeds", "away": "Tottenham", "date": "2026-11-07", "score": "1-0",
+                "model": [0.48, 0.27, 0.25], "model_right": True, "market_right": True},
+               {"competition": "ITA-SA", "home": "Parma", "away": "Genoa", "date": "2026-11-08", "score": "0-0",
+                "model": [0.4, 0.3, 0.3], "model_right": False, "market_right": False}]
+    subject, body = plain_week(tickets, matches, date(2026, 11, 13), retrained=True)
+    assert subject == "Ta semaine — 1 ticket(s) gagné(s) sur 2"
+    assert "1 gagné(s), 1 perdu(s), 0 pas encore réglé(s)." in body
+    assert "Raté : Nott'm Forest – Man City 3-1, « Moins de 3,5 buts »." in body
+    assert "Le site a vu juste 1 fois sur 1" in body and "Les ratés" not in body
+    assert "Parma" not in body.split("3. LE SITE")[0]  # not one of the owner's Serie A teams
+    assert "Sur 2 matchs de tes championnats, le site a trouvé le bon résultat 1 fois, les bookmakers 1 fois." in body
+    assert "remis à jour" in body and "PSI" not in body and "log loss" not in body

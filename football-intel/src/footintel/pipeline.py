@@ -41,12 +41,16 @@ def _notify(settings: Settings, title: str, report_paths) -> None:
     send(settings, f"{title}\n\n{summary_from_markdown(md)}")
 
 
-def _email_weekly(settings: Settings, report_paths) -> bool:
+def _email_weekly(engine: Engine, settings: Settings, report_paths, retrained: bool) -> bool:
+    """D80: the e-mail body is the week in plain words; the technical report is attached."""
+    from footintel.analysis.bilan import forecast_results, ticket_results
     from footintel.notify.email import email_weekly
-    from footintel.notify.telegram import summary_from_markdown
+    from footintel.notify.tickets import local_today
+    from footintel.reports.plain_week import plain_week
 
-    md = report_paths["md"].read_text(encoding="utf-8")
-    return email_weekly(settings, report_paths, summary_from_markdown(md))
+    subject, body = plain_week(ticket_results(engine, settings.artifacts_dir), forecast_results(engine),
+                               local_today(), retrained)
+    return email_weekly(settings, report_paths, body, subject)
 
 
 def morning(engine: Engine, settings: Settings) -> dict:
@@ -164,7 +168,8 @@ def weekly(engine: Engine, settings: Settings, model_name: str = DEFAULT_DEPLOY_
         weekly = weekly_report(engine, settings)
         results["weekly_report"] = str(weekly.paths["md"])
         _notify(settings, "Football Intel — rapport hebdomadaire", weekly.paths)
-        _step("email", lambda: _email_weekly(settings, weekly.paths), results)
+        retrained = bool((results.get("retrain") or {}).get("promoted"))
+        _step("email", lambda: _email_weekly(engine, settings, weekly.paths, retrained), results)
     except Exception:
         status = "failed"
         raise
