@@ -8,7 +8,7 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
 - The owner writes in French; answer in French. Preferences: direct, verified results,
   honest limits, no automatic agreement.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D78), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D79), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
@@ -81,6 +81,14 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
   one again unless asked. Lecture du jour (D77) runs on GitHub Models for free (D78); an Anthropic key, if added later, takes over. The owner has no card for paid APIs: prefer free, keyless sources; a free football odds API blocked his key (2026-11-12).
 - Always give the fair odds (1/p) and say that a bet has value only above them; the model has no
   proven edge over the market, BTTS is its weakest market, 1UP/FG assume goals in random order.
+
+## Daily cycle trigger (D79)
+
+GitHub stopped all scheduled runs of this repository on 2026-11-07. The daily cycle now starts
+from Supabase: pg_cron job `football-intel-daily` (03:23 UTC) → `ops.dispatch_daily_cycle()` →
+GitHub workflow_dispatch, with the Vault secret `github_dispatch_token` (fine-grained PAT, only
+benkas418-alt/n8n, Actions read/write). **It expires 2027-02-11**: remind the owner in January.
+Check failures in `net._http_response`. The n8n workflows are disabled; do not re-enable them.
 
 ## Tools outside the repository
 
