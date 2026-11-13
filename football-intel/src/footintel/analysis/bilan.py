@@ -17,18 +17,28 @@ KEEP_DAYS = 60
 
 
 def archive(artifacts_dir, payload: dict, today: date) -> int:
-    """Keep the tickets of `today` (first version of the day wins). Returns tickets kept."""
+    """Keep the tickets of each day shown, so a day without a run still has the tickets the site
+    showed for it. The first version made on the day itself wins; a version made earlier (`from`
+    before the day) is kept only until then. Returns the tickets written."""
     path = Path(artifacts_dir) / ARCHIVE
     data = json.loads(path.read_text()) if path.exists() else {}
-    day = next((d for d in payload.get("days", []) if d["date"] == today.isoformat()), None)
-    if day is None or today.isoformat() in data:
+    written = 0
+    for day in payload.get("days", []):
+        key = day["date"]
+        if key < today.isoformat():
+            continue
+        old = data.get(key)
+        # Archives written before D79 have no "from": they were made on the day itself.
+        if old is None or (key == today.isoformat() and old.get("from", key) < key):
+            data[key] = {"tickets": day["tickets"], "from": today.isoformat()}
+            written += len(day["tickets"])
+    if not written:
         return 0
-    data[today.isoformat()] = {"tickets": day["tickets"]}
     cutoff = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data = {k: v for k, v in data.items() if k >= cutoff}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, default=str))
-    return len(day["tickets"])
+    return written
 
 
 def settle(key: str, hg: int, ag: int, goals: list[str] | None) -> int | None:
@@ -101,7 +111,9 @@ def ticket_results(engine: Engine, artifacts_dir, days: int = 7, today: date | N
         return []
     today = today or datetime.now(UTC).date()
     data = json.loads(path.read_text())
-    keep = sorted((k for k in data if k >= (today - timedelta(days=days)).isoformat()), reverse=True)
+    # Days still to come are archived too (see `archive`), but are not part of a bilan yet.
+    keep = sorted((k for k in data if (today - timedelta(days=days)).isoformat() <= k <= today.isoformat()),
+                  reverse=True)
     ids = sorted({leg["match_id"] for k in keep for t in data[k]["tickets"] for leg in t["legs"]})
     with engine.connect() as conn:
         res = _results(conn, ids)
