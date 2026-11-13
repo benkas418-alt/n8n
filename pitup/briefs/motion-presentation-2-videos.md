@@ -86,3 +86,5 @@ Le fondateur veut des **photos de personnes** (banques d'images libres de droits
   7. client qui discute sur son téléphone ;
   8. groupe ou duo souriant.
 - Garder les textes, l'ordre et les écrans recréés du carrousel actuel (déjà conformes aux règles). Noter la page Pexels de chaque photo dans `pitup/carousel-rdc/credits.md`.
+- Vérifié le 13 novembre (bibliothèque `ngandu-dev/pexels`) : Pexels lit la clé **brute** dans l'en-tête `Authorization`, sans « Bearer ». Le formulaire `request_credential` ajoute « Bearer » par défaut : préférer l'ajout de la clé par le fondateur dans les réglages de l'environnement (secret réseau pour `api.pexels.com`, sans préfixe). Appel : `GET https://api.pexels.com/v1/search?query=...&orientation=portrait&per_page=15`.
+- Règles Pexels : créditer quand c'est possible (« Photos : Pexels » dans la description suffit pour un carrousel).
