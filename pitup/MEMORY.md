@@ -70,6 +70,9 @@ Produire les **2 motion designs de présentation** : tout est prêt dans `pitup/
 ### 0.8 bis Motion carrousel v2
 Le fondateur a refusé la v1 (trop explicative). Concept proposé : `pitup/briefs/motion-carrousel-v2-concept.md`, PRODUIT le 13 novembre (`tools/build_mc2.py`, sans voix off, mot « Coupure. »). Mix : musique qui coupe net à l’interrupteur, revient étouffée (filtre 900 Hz) puis s’ouvre quand la ville s’allume ; bruitages réels earshot fit/* + notify/m1, m2. Photo salon : Pexels 20853654.
 
+### 0.8 ter Motion « Lushi, ça bouge » v3 (13 novembre)
+Le fondateur a aimé l'idée de la v2 mais jugé les visuels trop pauvres (dessins CSS). v3 = `tools/build_mc3.py` : photos réelles (ampoule Pexels 132340, visage éclairé par le téléphone 8036649, salon 20853654), phrase-pont « Ton téléphone, lui, reste allumé. », produits réels qui se réveillent, viseur photo, recherche tapée, 3 bandes de vrais plans de Lubumbashi (vidéo TikTok @djeudy_243 fournie par le fondateur : Alilac 0-2,2 s, circulation 24,5 s, centre 18,8 s ; recadrés pour ôter le logo, `grade.py`, ralentis par minterpolate) qui passent de la nuit au jour. Palette : bleu nuit #050a14/#12304c + bleu marque, mots-clés en #4fb0ec. Piège GSAP : avec `immediateRender:false`, donner l'état initial en CSS (sinon le texte est visible avant son entrée). Leçon : préférer des images réelles animées aux illustrations dessinées en CSS.
+
 ### 0.9 Tâches en attente (ne pas lancer sans demande)
 Vidéo « Lundi » ; question d'orthographe « Pitup » / « PitUp » ; retrait éventuel de 47 anciennes images (photos de profil) du dépôt ; plans de boutiques montrant des personnes.
 
