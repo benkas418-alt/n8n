@@ -461,7 +461,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("scenario-weights", help="learn the scenario weights that adjust the market (D72)").set_defaults(
         fn=cmd_scenario_weights)
 
-    sub.add_parser("write-lectures", help="lecture du jour per competition, by Claude Haiku (D77)").set_defaults(
+    sub.add_parser("write-lectures", help="lecture du jour per competition, by Claude Haiku or GitHub Models (D77, D78)").set_defaults(
         fn=cmd_write_lectures)
 
     sub.add_parser("archive-tickets", help="keep today's tickets for the Bilan (D76)").set_defaults(

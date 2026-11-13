@@ -1,5 +1,40 @@
 # Résultats du backtest réel
 
+## Rotation des titulaires contre le marché (2026-11-13, D78)
+
+Données : compositions Transfermarkt (jeu de données CC0 `dcaribou/transfermarkt-datasets`,
+arrêté au 6 juillet 2026). 25 241 matchs des 5 grands championnats reliés à notre base,
+même score dans 99,99 % des cas. Rotation calculée sur tous les matchs de l'équipe
+(championnat, coupes, Europe). Script : `scripts/rotation_experiment.py`.
+
+Deux variables par équipe, connues environ une heure avant le match :
+« changements » (titulaires absents du onze du match précédent) et « cadres absents »
+(parmi les 11 joueurs les plus titularisés sur les 10 matchs précédents).
+
+Points au-dessus de ce que prévoit le marché, par match et par équipe :
+
+| Cadres absents | Matchs | Contre les cotes d'avant compositions | Matchs | Contre les cotes de clôture |
+|---|---|---|---|---|
+| 0-1 | 4 633 | +0,044 | 2 373 | +0,031 |
+| 2-3 | 20 817 | 0,000 | 11 288 | −0,005 |
+| 4-5 | 14 896 | −0,005 | 8 256 | −0,003 |
+| 6 ou plus | 3 768 | −0,030 | 2 177 | −0,004 |
+
+Test saison par saison (chaque saison jugée avec les saisons d'avant) :
+
+- Contre les cotes d'avant compositions (22 057 matchs, 2013-2026) : +0,194 millième par
+  match (IC −0,155 ; +0,510), 7 saisons sur 11 meilleures que le marché. Le poids des
+  « cadres absents » a le même signe chaque saison, mais l'apport n'est pas prouvé.
+- Contre les cotes de clôture (12 047 matchs, 2019-2026) : +0,003 millième
+  (IC −0,294 ; +0,289). Le marché intègre déjà les compositions.
+- Le nombre brut de changements n'est pas lié à un écart : avec 6 changements ou plus,
+  l'équipe fait +0,013 point par match par rapport aux cotes d'avant compositions
+  (n = 4 189). Seule l'absence des cadres compte.
+
+Lecture : une équipe qui aligne tous ses cadres fait environ 0,04 point de plus par match
+que prévu par les cotes publiées avant les compositions, soit environ 1,5 point de
+pourcentage de chance de victoire. C'est moins que la marge d'un bookmaker (5 à 8 %).
+
 ## Étape 3 : scénarios combinés (2026-11-04, D74)
 
 91 combinaisons, chacune vue au moins 500 fois : la situation d'une équipe face à celle de l'adversaire,

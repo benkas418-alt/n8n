@@ -1,9 +1,11 @@
-"""Lecture du jour (D77): one short analysis per competition, written by Claude Haiku from the
-day's data only, then checked: a text with a figure that is not in its input is rejected.
+"""Lecture du jour (D77): one short analysis per competition, written by a language model from
+the day's data only, then checked: a text with a figure that is not in its input is rejected.
 
-Runs in the daily cycle after the tickets (`footintel write-lectures`). Off, with one log
-line, when ANTHROPIC_API_KEY is not set or the `anthropic` package is missing. Billed on the
-API key, not on a Claude subscription.
+Runs in the daily cycle after the tickets (`footintel write-lectures`). Writer, in order:
+1. Claude Haiku, when ANTHROPIC_API_KEY is set (billed on that key);
+2. GitHub Models (D78), when GITHUB_TOKEN is set: free and rate-limited, reached in GitHub
+   Actions with the workflow token and the `models: read` permission;
+3. none: skipped with one log line.
 """
 
 import json
@@ -12,10 +14,17 @@ import os
 import re
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
+
+import httpx
 
 log = logging.getLogger(__name__)
 
 MODEL = "claude-haiku-5-5"
+# Small models of the GitHub Models catalog, tried in order. Free use allows 150 requests a
+# day per small model; the lecture needs at most 6.
+GITHUB_MODELS = ("openai/gpt-4.1-mini", "openai/gpt-4o-mini")
+GITHUB_URL = "https://models.github.ai/inference/chat/completions"
 FOLDER = "lectures"
 # Groups follow the owner's leagues; cups are grouped by kind.
 GROUPS = [("Premier League", ("ENG-PL",)), ("Bundesliga", ("GER-BL",)), ("Serie A", ("ITA-SA",)),
@@ -73,23 +82,57 @@ def group_inputs(day: dict) -> list[tuple[str, dict]]:
     return out
 
 
-def write(day: dict, artifacts_dir, client=None) -> dict:
-    """Write and check one text per competition. Returns {"date", "model", "groups": [...]}."""
-    if client is None:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            log.info("ANTHROPIC_API_KEY not set: lecture du jour skipped")
-            return {"date": day.get("date"), "groups": [], "skipped": "no key"}
+class GitHubModels:
+    """GitHub Models behind the small part of the Anthropic client interface that `write` uses.
+    The first model of `models` that the catalog accepts is kept for the following calls."""
+
+    def __init__(self, token: str, models=GITHUB_MODELS, http=None):
+        self.token, self.models, self.http = token, list(models), http or httpx.Client(timeout=60)
+        self.messages = self
+        self.model = self.models[0]
+
+    def create(self, *, max_tokens, system, messages, **_):
+        while True:
+            r = self.http.post(GITHUB_URL, headers={"Authorization": f"Bearer {self.token}"},
+                               json={"model": self.model, "max_tokens": max_tokens,
+                                     "messages": [{"role": "system", "content": system}, *messages]})
+            # An unknown or withdrawn model answers 400/404: try the next one.
+            if r.status_code in (400, 404) and self.model != self.models[-1]:
+                log.warning("GitHub Models: %s refused (%s), trying the next model", self.model, r.status_code)
+                self.model = self.models[self.models.index(self.model) + 1]
+                continue
+            r.raise_for_status()
+            choice = r.json()["choices"][0]
+            stop = "end_turn" if choice.get("finish_reason") == "stop" else choice.get("finish_reason")
+            return SimpleNamespace(stop_reason=stop,
+                                   content=[SimpleNamespace(type="text", text=choice["message"].get("content") or "")])
+
+
+def _client():
+    """(client, model name) of the first writer available, else (None, reason)."""
+    if os.environ.get("ANTHROPIC_API_KEY"):
         try:
             import anthropic
+            return anthropic.Anthropic(), MODEL
         except ImportError:
-            log.warning("anthropic package missing: lecture du jour skipped")
-            return {"date": day.get("date"), "groups": [], "skipped": "no package"}
-        client = anthropic.Anthropic()
+            log.warning("anthropic package missing")
+    if os.environ.get("GITHUB_TOKEN"):
+        return GitHubModels(os.environ["GITHUB_TOKEN"]), None
+    return None, "no key"
+
+
+def write(day: dict, artifacts_dir, client=None, model: str = MODEL) -> dict:
+    """Write and check one text per competition. Returns {"date", "model", "groups": [...]}."""
+    if client is None:
+        client, model = _client()
+        if client is None:
+            log.info("Neither ANTHROPIC_API_KEY nor GITHUB_TOKEN is set: lecture du jour skipped")
+            return {"date": day.get("date"), "groups": [], "skipped": model}
     groups = []
     for name, data in group_inputs(day):
         data_json = json.dumps(data, ensure_ascii=False)
         try:
-            r = client.messages.create(model=MODEL, max_tokens=2000, system=SYSTEM,
+            r = client.messages.create(model=model, max_tokens=2000, system=SYSTEM,
                                        output_config={"effort": "low"},
                                        messages=[{"role": "user", "content": data_json}])
         except Exception as e:  # noqa: BLE001 - one failed group must not stop the others
@@ -104,7 +147,7 @@ def write(day: dict, artifacts_dir, client=None) -> dict:
             log.warning("lecture %s rejected, figures not in the data: %s", name, bad)
             continue
         groups.append({"competition": name, "text": text})
-    result = {"date": day["date"], "model": MODEL, "groups": groups}
+    result = {"date": day["date"], "model": getattr(client, "model", None) or model, "groups": groups}
     folder = Path(artifacts_dir) / FOLDER
     folder.mkdir(parents=True, exist_ok=True)
     (folder / f"{day['date']}.json").write_text(json.dumps(result, ensure_ascii=False))
