@@ -159,5 +159,9 @@ def latest(artifacts_dir, today: date) -> dict | None:
     folder = Path(artifacts_dir) / FOLDER
     if not folder.exists():
         return None
-    files = sorted(p for p in folder.glob("*.json") if p.stem >= today.isoformat())
-    return json.loads(files[0].read_text()) if files else None
+    # An empty file (no match of the owner's teams that day) must not hide a later lecture.
+    for p in sorted(p for p in folder.glob("*.json") if p.stem >= today.isoformat()):
+        data = json.loads(p.read_text())
+        if data.get("groups"):
+            return data
+    return None
