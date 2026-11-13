@@ -67,6 +67,9 @@ Le dépôt est public : on n'y met ni voix, ni musique, ni vidéos de tiers. Pou
 ### 0.8 Prochaine tâche demandée (13 novembre)
 Produire les **2 motion designs de présentation** : tout est prêt dans `pitup/briefs/motion-presentation-2-videos.md` (scripts, style, règles, questions à poser au fondateur). Le carrousel « changement digital en RDC » est livré, avec des **photos de personnes** Pexels (crédits : `pitup/carousel-rdc/credits.md`) ; source : `pitup/carousel-rdc/` (rendu : `node shot.js $PWD/index.html $PWD/out`, polices Poppins dans `pitup/carousel/fonts` si présentes, sinon Google Fonts).
 
+### 0.8 bis Motion carrousel v2
+Le fondateur a refusé la v1 (trop explicative). Concept proposé : `pitup/briefs/motion-carrousel-v2-concept.md`, en attente de son « go » et de sa réponse sur le mot « délestage ».
+
 ### 0.9 Tâches en attente (ne pas lancer sans demande)
 Vidéo « Lundi » ; question d'orthographe « Pitup » / « PitUp » ; retrait éventuel de 47 anciennes images (photos de profil) du dépôt ; plans de boutiques montrant des personnes.
 
