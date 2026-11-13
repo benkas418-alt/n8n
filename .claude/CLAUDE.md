@@ -8,7 +8,7 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
 - The owner writes in French; answer in French. Preferences: direct, verified results,
   honest limits, no automatic agreement.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D77), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D78), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
@@ -63,6 +63,8 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | designmodo/Flat-UI, nexu-io/open-design, hendurhance/ui-ux (2026-11-04) | Not used. Flat-UI: 2013-2018 Bootstrap 3 kit. open-design: a 363 MB design-agent app with telemetry on by default and a paid cloud. ui-ux: a reading list whose book mirrors come from shadow libraries (Anna's Archive, LibGen): never copy those files |
 | santmun/crear-agente (2026-11-04) | Not vendored: Spanish beginner course (LATAM tone, OpenAI) that would talk to the owner in Spanish. Its Cloudflare Workers cron-agent pattern is distilled into ai-agent-engineering (useful for PitUp automations) |
 | Graphify-Labs/graphify (2026-11-06) | Installed: skill `/graphify` in .claude/skills/graphify; CLI `graphifyy` 0.9.103 via the setup script. Its Read/Grep hooks and root CLAUDE.md block were removed (hooks fail when the CLI is missing). Use on football-intel/, not on all of n8n. `graphify update <dir>` = local AST, no API cost |
+| kalil0321/reverse-api-engineer (2026-11-12) | Not used for football: the missing data (betPawa, OneFootball history API, Understat, ESPN) is behind terms that forbid collection, and the tool's own rules say to respect them. MIT; fine for sites we own or have permission for (PitUp) |
+| dcaribou/transfermarkt-datasets (2026-11-13) | Used once (CC0, frozen at 2026-07-06): line-ups for the rotation test D78. Download: `curl -LO https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/transfermarkt-datasets.duckdb` |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
@@ -76,7 +78,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 - Liga: Barcelona, Real Madrid, Betis, Atletico Madrid, Villarreal.
 - Ligue 1: only PSG. UEFA cups: to discuss later.
 - Maintenance (2026-11-04): the owner declined a scheduled Claude Code guard task; do not create
-  one again unless asked. Lecture du jour (D77) runs on an Anthropic API key once he adds it.
+  one again unless asked. Lecture du jour (D77) runs on GitHub Models for free (D78); an Anthropic key, if added later, takes over. The owner has no card for paid APIs: prefer free, keyless sources; a free football odds API blocked his key (2026-11-12).
 - Always give the fair odds (1/p) and say that a bet has value only above them; the model has no
   proven edge over the market, BTTS is its weakest market, 1UP/FG assume goals in random order.
 
