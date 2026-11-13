@@ -11,7 +11,9 @@ from footintel.config import PromotionCriteria
 from footintel.connectors.base import MatchRecord, OddsRecord, OutcomeRecord
 from footintel.db.models import (
     CollectionRun,
+    DataSource,
     Match,
+    MatchExternalRef,
     MatchOutcome,
     ModelVersion,
     OddsSnapshot,
@@ -672,6 +674,12 @@ def test_onefootball_attaches_lineups_without_creating_teams(db, settings, monke
              MatchCard("m2", kickoff, "Nobody", "Synth One", True),
              MatchCard("m3", kickoff + timedelta(days=7), "Synth Two", "Synth One", False)]
     fake = FakeOneFootball(cards, {"m1": onefootball_match_page()})
+    # The calendar (D62) stores a reference for the fixture before it is played: the page must
+    # still be read once the match is finished.
+    with session_scope(db) as s:
+        match_id = s.scalar(select(Match.id))
+        source = s.scalar(select(DataSource.id).where(DataSource.code == "onefootball"))
+        s.add(MatchExternalRef(match_id=match_id, source_id=source, external_id="m1"))
     st = tasks.sync_onefootball(db, settings, connector=fake)
     assert st.inserted == 1 and fake.calls == ["m1"]  # unfinished and unmapped: no page read
     assert "unmapped_team" in [i[1] for i in st.issues]
