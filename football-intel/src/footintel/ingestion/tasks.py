@@ -413,9 +413,14 @@ def sync_onefootball(engine: Engine, settings: Settings, competitions: list[str]
                      params={"competitions": competitions}) as stats:
         connector = connector or OneFootball(settings)
         aliases = {a: t for (src, a), t in teams_mod.load_manual_aliases().items() if src == ONEFOOTBALL}
+        # A match counts as read when its line-up is stored. The calendar (D62) also stores a
+        # reference for each fixture of this source, before the match is played: a reference
+        # alone does not mean that the page was read.
         with session_scope(engine) as s:
             done = set(s.scalars(select(MatchExternalRef.external_id).where(
-                MatchExternalRef.source_id == source_id)).all())
+                MatchExternalRef.source_id == source_id,
+                select(Lineup.id).where(Lineup.match_id == MatchExternalRef.match_id,
+                                        Lineup.source_id == source_id).exists())).all())
         budget, reported = max_matches, set()
         for comp in competitions:
             try:
@@ -429,7 +434,8 @@ def sync_onefootball(engine: Engine, settings: Settings, competitions: list[str]
                 with session_scope(engine) as s:
                     competition = s.scalar(select(Competition).where(Competition.code == comp))
                     cache: dict = {}
-                    ids = [_aliased_team(s, n, aliases, cache) for n in (card.home_team, card.away_team)]
+                    ids = [_aliased_team(s, n, aliases, cache, competition.id)
+                           for n in (card.home_team, card.away_team)]
                     for n, team_id in zip((card.home_team, card.away_team), ids):
                         if team_id is None and n not in reported:
                             reported.add(n)
@@ -471,8 +477,11 @@ def sync_onefootball(engine: Engine, settings: Settings, competitions: list[str]
                 with session_scope(engine) as s:
                     match = s.get(Match, match_id)
                     _store_onefootball_page(s, match, source_id, page, (ids[0], ids[1]))
-                    s.add(MatchExternalRef(match_id=match_id, source_id=source_id,
-                                           external_id=card.external_id))
+                    if s.scalar(select(MatchExternalRef.id).where(
+                            MatchExternalRef.source_id == source_id,
+                            MatchExternalRef.external_id == card.external_id)) is None:
+                        s.add(MatchExternalRef(match_id=match_id, source_id=source_id,
+                                               external_id=card.external_id))
                 done.add(card.external_id)
                 stats.inserted += 1
             log.info("onefootball %s: %d cards", comp, len(cards))
