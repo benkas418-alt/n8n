@@ -25,7 +25,8 @@ t_besoin = at("publie", t_cherch); t_comp = at("compare", t_cherch); t_disc = at
 t_cent = at("plus", t_disc + 0.3) - 0.12
 t_vend = at("vendeur", t_cent) - 0.15
 t_appli = at("appli", t_vend)
-S = [t_prep, t_tuas, t_pub, t_talent, t_graph, t_cherch, t_cent, t_vend, DUR]
+LOGO = at("appli", t_vend, end=True) + 0.45
+S = [t_prep, t_tuas, t_pub, t_talent, t_graph, t_cherch, t_cent, t_vend, LOGO]
 print(json.dumps({"scenes": [round(x, 2) for x in S], "jobs": [round(j, 2) for j in jobs]}))
 
 ICON = {
@@ -78,6 +79,15 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#fff}}
 .big{{position:absolute;left:0;right:0;text-align:center;font-weight:800;color:#fff}}
 .faces{{position:absolute;left:80px;display:flex}} .faces i{{width:120px;height:120px;border-radius:50%;border:6px solid #1f88c9;margin-right:-24px;background-size:cover;background-position:center 25%}}
 .stores{{position:absolute;left:80px;display:flex;gap:26px;align-items:center}} .stores img{{height:112px}}
+#E{{position:absolute;inset:0;opacity:0;background:radial-gradient(110% 75% at 85% 0%,#3aa2df 0%,#1f88c9 45%,#1672ab 100%)}}
+#cv{{position:absolute;left:124px;top:640px;width:1500px;height:1900px;transform-origin:0 0;transform:scale(0.4)}}
+#cv img,#cv .m{{position:absolute;left:0;top:0;width:1500px;height:1900px}}
+#mo{{-webkit-mask-image:url(assets/mask_out.png);mask-image:url(assets/mask_out.png);-webkit-mask-size:100% 100%;mask-size:100% 100%}}
+#ps{{-webkit-mask-image:url(assets/arrow_white.png),linear-gradient(#000,#000);-webkit-mask-size:1500px 1900px,100% 100%;-webkit-mask-repeat:no-repeat;-webkit-mask-position:0px 0px,0 0;-webkit-mask-composite:xor;mask-composite:exclude}}
+#word{{position:absolute;left:50%;top:1010px;width:470px;margin-left:-235px;opacity:0}}
+#tag2{{position:absolute;left:50%;top:1210px;width:520px;margin-left:-260px;opacity:0}}
+#url{{position:absolute;left:0;right:0;top:1330px;text-align:center;color:#fff;font-weight:600;font-size:40px;letter-spacing:.02em;opacity:0}}
+#stores{{position:absolute;left:0;right:0;top:1440px;display:flex;gap:28px;justify-content:center;opacity:0}} #stores img{{height:100px}}
 #flash{{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}}
 </style></head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="{DUR:.3f}" data-width="1080" data-height="1920">
@@ -140,9 +150,12 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#fff}}
  <div class="tag"><img src="assets/icon_white.png" alt="">PitUp · RDC</div>
  <div class="faces" id="faces" style="top:420px">{''.join(f'<i style="background-image:url(assets/ph/{x}.jpg)"></i>' for x in ["12446331", "6868266", "6954163", "8995315", "7191992"])}</div>
  <h2 class="h" id="c7h" style="top:620px;font-size:104px;color:#fff"><span class="ln"><span>Vendeurs,</span></span><span class="ln"><span>prestataires,</span></span><span class="ln"><span>clients :</span></span><span class="ln"><span>une seule appli.</span></span></h2>
- <div class="sub" id="url" style="top:1210px;font-weight:700;font-size:60px">pi-tup.com</div>
- <div class="stores" id="stores" style="top:1340px"><img src="assets/Google_Play_Store_badge_EN.svg" alt=""><img src="assets/appstore.svg" alt=""></div>
-</section>
+ </section>
+<div id="E">
+ <div id="cv"><img id="ps" src="assets/p_solid.png" alt=""><div class="m" id="mo"><img id="aw" src="assets/arrow_white.png" alt=""></div></div>
+ <img id="word" src="assets/logo_word_white.png" alt=""><img id="tag2" src="assets/logo_tag_white.png" alt="">
+ <div id="url">pi-tup.com</div><div id="stores"><img src="assets/appstore.svg" alt=""><img src="assets/Google_Play_Store_badge_EN.svg" alt=""></div>
+</div>
 <div id="flash"></div>
 </div>
 <script>
@@ -155,7 +168,7 @@ const OUT = 0.28, IN = 0.35;                      // exits ~20 % shorter than en
 for (let i = 0; i < 8; i++) {{
   const id = "#c" + i, a = S[i], b = S[i + 1];
   if (i === 0) tl.set(id, {{ opacity: 1 }}, 0); else tl.fromTo(id, {{ opacity: 0, y: 40 }}, {{ opacity: 1, y: 0, duration: IN, ease: "power3.out" }}, a);
-  if (i < 7) tl.to(id, {{ opacity: 0, y: -30, duration: OUT, ease: "power2.in" }}, b - OUT * 0.5);
+  tl.to(id, {{ opacity: 0, y: -30, duration: OUT, ease: "power2.in" }}, b - OUT * 0.5);
 }}
 // headline lines: ease-out rise, 30 ms stagger per line
 function lines(sel, t) {{ tl.fromTo(sel + " .ln > span", {{ yPercent: 110 }}, {{ yPercent: 0, duration: 0.55, ease: "power3.out", stagger: 0.03 }}, t); }}
@@ -203,8 +216,19 @@ tl.to(cnt, {{ v: 100, duration: 0.9, ease: "power2.out", onUpdate: () => {{ docu
 tl.fromTo("#n100t, #n100s", {{ opacity: 0, y: 30 }}, {{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: 0.03 }}, S[6] + 0.45);
 // end card
 tl.fromTo("#faces i", {{ opacity: 0, scale: 0.95, filter: "blur(6px)" }}, {{ opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.35, ease: "power3.out", stagger: 0.05 }}, S[7] + 0.1);
-tl.fromTo("#url", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }}, {t_appli:.3f} + 0.3);
-tl.fromTo("#stores img", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.4, ease: "power3.out", stagger: 0.06 }}, {t_appli:.3f} + 0.45);
+// logo sign-off (same build as the Mbote film): P shape, arrow cut slides in, word, tagline, url, stores
+const E = (o) => Object.assign({{ immediateRender: false }}, o);
+const HIT = {LOGO:.3f}; tl.set("#E", {{ opacity: 1 }}, HIT);
+const ARR0 = HIT + 0.45, dx = -0.496 * 1150, dy = 0.868 * 1150, ps = document.getElementById("ps"), aw = document.getElementById("aw"), o = {{ x: dx, y: dy }};
+const put = () => {{ aw.style.transform = "translate(" + o.x + "px," + o.y + "px)"; ps.style.webkitMaskPosition = o.x + "px " + o.y + "px, 0px 0px"; }};
+tl.fromTo("#ps", {{ scale: .8, opacity: 0, transformOrigin: "1040px 450px" }}, E({{ scale: 1, opacity: 1, duration: .5, ease: "expo.out" }}), HIT);
+tl.set(o, {{ x: dx, y: dy, onUpdate: put }}, HIT); tl.set("#aw", {{ opacity: 0 }}, HIT); tl.set("#aw", {{ opacity: 1 }}, ARR0);
+tl.fromTo(o, {{ x: dx, y: dy }}, E({{ x: 0, y: 0, duration: .85, ease: "back.out(1.35)", onUpdate: put }}), ARR0);
+tl.to("#cv", {{ y: -90, duration: .6, ease: "power3.inOut" }}, ARR0 + .75);
+tl.fromTo("#word", {{ opacity: 0, y: 40 }}, E({{ opacity: 1, y: 0, duration: .55, ease: "expo.out" }}), ARR0 + .9);
+tl.fromTo("#tag2", {{ opacity: 0, y: 30 }}, E({{ opacity: 1, y: 0, duration: .5, ease: "expo.out" }}), ARR0 + 1.1);
+tl.fromTo("#url", {{ opacity: 0 }}, E({{ opacity: .9, duration: .5 }}), ARR0 + 1.3);
+tl.fromTo("#stores", {{ opacity: 0, y: 30 }}, E({{ opacity: 1, y: 0, duration: .5, ease: "expo.out" }}), ARR0 + 1.45);
 tl.set({{}}, {{}}, {DUR:.3f});
 window.__timelines["main"] = tl; tl.seek(0);
 </script></body></html>"""
@@ -214,4 +238,4 @@ body = _re.sub(r" ([?!:])(?=[^<]*<)", lambda m: "\u00a0" + m.group(1), body)
 html = head + "<body>" + body
 open(OUT, "w").write(html)
 json.dump({"scenes": S, "jobs": jobs, "cards": [t_bout, t_stock, t_whats], "steps": [S[2] + 0.35, t_cmd, t_livr, t_paie],
-           "client": [t_besoin, t_comp, t_disc], "profil": t_profil, "appli": t_appli}, open(OUT + ".cues.json", "w"))
+           "client": [t_besoin, t_comp, t_disc], "profil": t_profil, "appli": t_appli, "logo": LOGO}, open(OUT + ".cues.json", "w"))
