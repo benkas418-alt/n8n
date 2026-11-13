@@ -314,13 +314,16 @@ def cmd_scenario_weights(args, settings, engine):
 
 
 def cmd_write_lectures(args, settings, engine):
-    from footintel.agents.analysts import write
+    from footintel.agents.analysts import group_inputs, write
     from footintel.api.dashboard import tickets
     from footintel.notify.tickets import local_today
 
-    days = [d for d in tickets().get("days", []) if d["date"] >= local_today().isoformat()]
+    # The first day with a match of the owner's teams: an international break must not
+    # leave the page empty until the leagues start again.
+    days = [d for d in tickets().get("days", [])
+            if d["date"] >= local_today().isoformat() and group_inputs(d)]
     if not days:
-        print("no match day: nothing to write")
+        print("no match of the owner's teams: nothing to write")
         return
     r = write(days[0], settings.artifacts_dir)
     print(f"{len(r['groups'])} lecture(s) for {r['date']}" + (f" ({r['skipped']})" if r.get("skipped") else ""))
