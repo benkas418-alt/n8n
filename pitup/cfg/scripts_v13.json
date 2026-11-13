@@ -53,5 +53,25 @@
    "Et tu ne paies qu'à la livraison.",
    "Sur l'appli PitUp, ta prochaine pièce t'attend déjà. Passe ta première commande, et laisse la ville venir à toi."
   ]
+ },
+ "lundi2": {
+  "ref": "audio/jumelle/ref_mid.wav",
+  "reftxt": "audio/jumelle/ref_calm.txt",
+  "scenes": [
+   "Et si, lundi, tu avais une réunion importante ?",
+   "Et samedi, une soirée chic ?",
+   "Deux occasions, deux styles différents.",
+   "Pour lundi, un costume bien coupé, une chemise claire et des chaussures qui brillent.",
+   "Pour samedi, une veste de couleur, des mocassins de soirée et un parfum qui reste.",
+   "Tout ça, tu le trouves dans les boutiques locales de Lubumbashi, réunies sur l'appli PitUp.",
+   "Tu choisis, on te livre, et tu paies à la livraison.",
+   "Ta prochaine tenue t'attend déjà. Passe ta première commande cette semaine, et sois prêt pour chaque occasion."
+  ]
+ },
+ "embout": {
+  "ref": "audio/jumelle/ref_mid.wav",
+  "scenes": [
+   "Seulement, entre les embouteillages et les allers-retours, trouver la bonne pièce prend souvent du temps."
+  ]
  }
 }

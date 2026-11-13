@@ -55,17 +55,17 @@
    "beats": [
     {
      "k": "phone",
-     "src": "phs_b",
+     "src": "phs_c",
      "cap": "Tu commandes."
     },
     {
      "k": "v",
-     "src": "L10",
+     "src": "handoff",
      "cap": "Le livreur arrive."
     },
     {
      "k": "v",
-     "src": "handoff",
+     "src": "handoffB",
      "cap": "Tu reçois ton article."
     }
    ]

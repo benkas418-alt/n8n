@@ -70,7 +70,8 @@ for i, sc in enumerate(C["scenes"]):
     if sc.get("tag"):
         scene_html.append(f'<div class="tag" id="t{i}">{sc["tag"]}</div>'); js.append(f'show("#t{i}", {a}, {b});')
     for k, bt in enumerate(beats):
-        ba, bb = round(a + k * w, 3), round(a + (k + 1) * w, 3); kind = bt["k"]; j = nid()
+        ws_ = [x.get("w", 1) for x in beats]; tot_ = sum(ws_)   # optional weight: a beat can be longer than its neighbours
+        ba, bb = round(a + (b - a) * sum(ws_[:k]) / tot_, 3), round(a + (b - a) * sum(ws_[:k + 1]) / tot_, 3); kind = bt["k"]; j = nid()
         bgc = bt.get("bg", "#ffffff" if kind == "kt" else "#f4f5f7")
         if kind in ("kt", "cards") and int(bgc[1:3], 16) + int(bgc[3:5], 16) + int(bgc[5:7], 16) > 450: LIGHT.append((ba, bb))
         if kind == "v":
@@ -107,7 +108,7 @@ for i, sc in enumerate(C["scenes"]):
             its = bt["items"]; n_ = len(its)
             geo = {1: [(190, 520, 700, 880)], 2: [(70, 600, 455, 600), (555, 600, 455, 600)], 3: [(50, 300, 470, 560), (560, 300, 470, 560), (305, 1020, 470, 470)],
                    4: [(50, 400, 470, 470), (560, 400, 470, 470), (50, 1030, 470, 470), (560, 1030, 470, 470)]}[n_]
-            html_ = "".join(f'<div class="pcard" id="b{j}c{k}" style="left:{x}px;top:{y}px;width:{w}px"><img src="assets/img/{it["src"]}" alt="" style="height:{h}px"><b>{it["label"]}</b></div>' for k, (it, (x, y, w, h)) in enumerate(zip(its, geo)))
+            html_ = "".join(f'<div class="pcard" id="b{j}c{k}" style="left:{x}px;top:{y}px;width:{w}px"><img src="assets/img/{it["src"]}" alt="" style="height:{h - (46 if it.get("chip") else 0)}px"><b>{it["label"]}</b>{f'<i class="pchip">{it["chip"]}</i>' if it.get("chip") else ""}{f'<em class="ptag">{it["tag"]}</em>' if it.get("tag") else ""}</div>' for k, (it, (x, y, w, h)) in enumerate(zip(its, geo)))
             scene_html.append(f'<div class="full" id="b{j}" style="background:{bt.get("bg", "#f4f5f7")};z-index:9">{html_}</div>')
             js.append(f'show("#b{j}", {ba}, {bb}, 0.12);' + "".join(f'tl.fromTo("#b{j}c{k}", {{ opacity: 0, y: 80, rotation: {(-3, 3, 0)[k % 3]} }}, {{ opacity: 1, y: 0, rotation: 0, duration: 0.55, ease: "power3.out" }}, {ba + 0.08 + k * min(0.45, (bb - ba) / (n_ + 1)):.3f});' for k in range(n_))
                       + f'tl.fromTo("#b{j} .pcard img", {{ scale: 1.0 }}, {{ scale: 1.06, duration: {bb - ba:.3f}, ease: "none" }}, {ba});')
@@ -224,6 +225,8 @@ for i, sc in enumerate(C["scenes"]):
                 scene_html.append(f'<div class="bigtxt" id="g{j}">{bt["big"]}</div>'); js.append(f'tl.fromTo("#g{j}", {{ opacity: 0, scale: 0.8 }}, {{ opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }}, {ba + 0.05}); tl.set("#g{j}", {{ opacity: 0 }}, {bb});')
 
 SW, SH = 520, 1126
+# app section: bright brand blue, light behind the phone, no dark navy edges when app_clear is on
+PBG = ("linear-gradient(180deg, #1f88c9 0%, rgba(31,136,201,0) 34%), radial-gradient(110% 60% at 50% 60%, #8fd3fa 0%, #4fb0ec 45%, #2a96da 100%)" if C.get("app_clear") else "radial-gradient(120% 70% at 50% 40%, #39a4e6 0%, #1f88c9 45%, #0f5f93 100%)")
 slabs = "".join(f'<div class="slab{" back" if k == 20 else ""}" style="transform:translateZ(-{k}px)">' + ("" if k in (1, 20) else '<i class="btn" style="left:-5px;top:280px;height:64px"></i><i class="btn" style="left:-5px;top:370px;height:110px"></i><i class="btn" style="right:-5px;top:400px;height:160px"></i>') + '</div>' for k in range(20, 0, -1))
 lv = "".join(f'<video id="lv{k}" class="clip lv" src="assets/v/{c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{min(5.0, b - a):.3f}" data-track-index="{8 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW) if s7)
 pv = "".join(f'<video id="pv{k}" class="clip pv" src="assets/v/{LAPPH.get(a, "ph_swipe") if s7 else c}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + k % 2}"></video>' for k, (a, b, c, s7) in enumerate(PW))
@@ -252,6 +255,8 @@ html = f'''<!doctype html>
 .ktsub {{ position: absolute; left: 80px; right: 80px; top: 62%; text-align: center; font-weight: 600; font-size: 46px; color: #5b6570; }}
 .pcard {{ position: absolute; background: #fff; border-radius: 40px; padding: 18px 18px 26px; box-shadow: 0 30px 60px rgba(17,18,20,.14); overflow: hidden; }}
 .pcard img {{ display: block; width: 100%; object-fit: cover; border-radius: 26px; }}
+.pcard .pchip {{ display: block; width: fit-content; margin: 10px auto 0; padding: 6px 18px; border-radius: 999px; background: #e3f0fa; color: #1f88c9; font-style: normal; font-weight: 600; font-size: 24px; }}
+.pcard .ptag {{ position: absolute; left: 30px; top: 30px; padding: 6px 16px; border-radius: 999px; background: #1f88c9; color: #fff; font-style: normal; font-weight: 700; font-size: 24px; }}
 .pcard b {{ display: block; margin-top: 18px; text-align: center; font-weight: 700; font-size: 40px; color: #111214; letter-spacing: -1px; }}
 .full .giant {{ position: absolute; left: 0; right: 0; top: 1520px; text-align: center; font-weight: 800; font-size: 230px; letter-spacing: -8px; white-space: nowrap; }}
 .shade {{ position: absolute; left: 0; right: 0; top: 0; height: 640px; background: linear-gradient(180deg, rgba(0,0,0,.72) 30%, rgba(0,0,0,0)); z-index: 8; }}
@@ -278,7 +283,8 @@ html = f'''<!doctype html>
 .ed i {{ display: block; width: 120px; height: 10px; background: #1f88c9; margin-bottom: 26px; }}
 .ed span {{ display: block; font-weight: 800; font-size: 70px; letter-spacing: -2px; line-height: 1.02; }} .ed b {{ display: block; font-weight: 600; font-size: 54px; color: #cfe9fb; }}
 .ccap span {{ background: transparent !important; box-shadow: none !important; color: #fff !important; font-size: 52px !important; text-shadow: 0 4px 24px rgba(0,0,0,.7); border-bottom: 6px solid #1f88c9; border-radius: 0 !important; padding: 6px 4px !important; }}
-#pbg {{ position: absolute; inset: 0; z-index: 3; opacity: 0; background: radial-gradient(120% 70% at 50% 40%, #39a4e6 0%, #1f88c9 45%, #0f5f93 100%); }}
+{".vid {{ filter: grayscale(1) contrast(1.1) brightness(1.03); }}" if C.get("footage_bw") else ""}
+#pbg {{ position: absolute; inset: 0; z-index: 3; opacity: 0; background: {PBG}; }}
 #stage {{ position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 55%; z-index: 6; pointer-events: none; }}
 #phone {{ position: absolute; left: {(1080 - SW - 32) / 2}px; top: 560px; width: {SW + 32}px; height: {SH + 32}px; transform-style: preserve-3d; opacity: 0; }}
 .slab {{ position: absolute; inset: 0; border-radius: 80px; background: linear-gradient(90deg, #5d6167, #c9cdd2 18%, #8b9096 50%, #d7dade 82%, #5a5e63); }}
@@ -325,17 +331,25 @@ const show = (sel, a, b, fade = 0.25) => {{ if (a < 0.01) gsap.set(sel, {{ opaci
 const hd = (sel, a, b) => {{ tl.fromTo(sel, {{ opacity: 0, yPercent: 25 }}, {{ opacity: 1, yPercent: 0, duration: 0.45, ease: "power3.out" }}, a + 0.05); tl.set(sel, {{ opacity: 0 }}, b); }};
 const cap = (sel, a, b) => {{ tl.fromTo(sel, {{ opacity: 0, scale: 0.85 }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }}, a + 0.05); tl.set(sel, {{ opacity: 0 }}, b); }};
 tl.set("#shade", {{ opacity: {0 if STYLE in ("kin", "city") else 1} }}, 0); tl.set("#shade", {{ opacity: 0 }}, END);
-{"".join(f'tl.set("#shade, #vignette", {{ opacity: 0 }}, {la}); tl.set("#shade", {{ opacity: {0 if STYLE in ("kin", "city") else 1} }}, {lb}); tl.set("#vignette", {{ opacity: 1 }}, {lb}); tl.set("#anchor", {{ filter: "invert(1)" }}, {la}); tl.set("#anchor", {{ filter: "none" }}, {lb});' for la, lb in LIGHT)}
+{"".join(f'tl.set("#shade, #vignette", {{ opacity: 0 }}, {la}); tl.set("#shade", {{ opacity: {0 if STYLE in ("kin", "city") else 1} }}, {lb}); tl.set("#vignette", {{ opacity: 1 }}, {lb}); tl.set("#anchor", {{ filter: "invert(1)" }}, {la}); tl.set("#anchor", {{ filter: "none" }}, {lb});' + (f'tl.set("#grain", {{ visibility: "hidden" }}, {la}); tl.set("#grain", {{ visibility: "visible" }}, {lb});' if C.get("app_clear") else "") for la, lb in LIGHT)}
 {chr(10).join(js)}
+const APPCLEAR = {"true" if C.get("app_clear") else "false"};
 const PW = {json.dumps([(a, b, s7) for a, b, _, s7 in PW])};
 PW.forEach(([a, b, s7], k) => {{
   const side = k % 2 ? -1 : 1;
   tl.set("#pbg", {{ opacity: 1 }}, a); tl.set("#pbg", {{ opacity: 0 }}, b);
   tl.set("#phone", {{ opacity: 1, x: s7 ? 250 : 0, y: s7 ? 330 : 0, scale: s7 ? 0.62 : 1 }}, a); tl.set("#phone", {{ opacity: 0 }}, b);
   tl.set("#pshadow", {{ opacity: s7 ? 0 : 1 }}, a); tl.set("#pshadow", {{ opacity: 0 }}, b);
+  if (APPCLEAR) {{   // app screens shown as clean as possible: no grade overlays on top, the phone settles face-on and a bit larger
+    tl.set("#vignette, #grain, #glare", {{ visibility: "hidden" }}, a); tl.set("#vignette, #grain, #glare", {{ visibility: "visible" }}, b);
+    if (!s7) tl.set("#phone", {{ scale: 1.08 }}, a);
+    tl.fromTo("#phone", {{ rotationY: -60 * side, rotationX: 10 }}, {{ rotationY: -5 * side, rotationX: 2, duration: 0.7, ease: "power3.out" }}, a);
+    tl.to("#phone", {{ rotationY: 0, rotationX: 0, duration: 0.5, ease: "power2.out" }}, a + 0.7);
+  }} else {{
   tl.fromTo("#phone", {{ rotationY: -60 * side, rotationX: 10 }}, {{ rotationY: -14 * side, rotationX: 6, duration: 0.7, ease: "power3.out" }}, a);
   tl.to("#phone", {{ rotationY: 12 * side, duration: Math.max(0.3, b - a - 0.7), ease: "sine.inOut" }}, a + 0.7);
   tl.fromTo("#glare", {{ backgroundPositionX: "100%" }}, {{ backgroundPositionX: "0%", duration: b - a, ease: "sine.inOut" }}, a);
+  }}
 }});
 tl.set("#flash", {{ opacity: 1 }}, END); tl.set("#flash", {{ opacity: 0 }}, END + 1 / 30);
 tl.set("#end", {{ opacity: 1, zIndex: 43 }}, END); tl.set("#anchor", {{ opacity: 0 }}, END);

@@ -1,0 +1,159 @@
+{
+ "project": "pitup-v14-ciel",
+ "style": "city",
+ "song": "Tems_-_Me_U (instrumental demucs)",
+ "song_off": 40.18,
+ "vo_full": "v36_cielP",
+ "scenes": [
+  {
+   "head": [
+    "Lubumbashi"
+   ],
+   "beats": [
+    {
+     "k": "v",
+     "src": "hotel_v_nb",
+     "w": 1
+    },
+    {
+     "k": "split",
+     "srcs": [
+      "s_stade_nb",
+      "s_mall_nb",
+      "s_monu_nb"
+     ],
+     "w": 2
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "s_cath_nb",
+      "s_gare_nb",
+      "s_centre_nb"
+     ]
+    },
+    {
+     "k": "split",
+     "srcs": [
+      "s_taxi_nb",
+      "s_tour_nb",
+      "s_palm_nb"
+     ]
+    }
+   ]
+  },
+  {
+   "head": [
+    "La bonne pièce ?",
+    "Ça prend du temps."
+   ],
+   "beats": [
+    {
+     "k": "split",
+     "srcs": [
+      "s_jam_nb",
+      "s_av2_nb",
+      "s_road_nb"
+     ],
+     "w": 0.584
+    },
+    {
+     "k": "split",
+     "srcs": [
+      "s_mode1_wipe",
+      "s_mode2_wipe",
+      "s_mode3_wipe"
+     ],
+     "w": 1.416
+    }
+   ]
+  },
+  {
+   "head": [
+    "Toutes les boutiques,",
+    "une seule appli."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_market2"
+    },
+    {
+     "k": "phone",
+     "src": "ph_vb"
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "cards",
+     "items": [
+      {
+       "src": "c_d_crocs.jpg",
+       "label": "Crocs",
+       "chip": "Vêtements & mode",
+       "tag": "Tendance"
+      },
+      {
+       "src": "c_d_yara.jpg",
+       "label": "Parfum",
+       "chip": "Beauté",
+       "tag": "Tendance"
+      },
+      {
+       "src": "c_d_am95.jpg",
+       "label": "Nike Air Max 95",
+       "chip": "Vêtements & mode",
+       "tag": "Tendance"
+      },
+      {
+       "src": "c_d_rolex.jpg",
+       "label": "Montre",
+       "chip": "Vêtements & mode",
+       "tag": "Tendance"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beats": [
+    {
+     "k": "v",
+     "src": "box",
+     "cap": "Paiement à la livraison."
+    }
+   ]
+  },
+  {
+   "head": [
+    "Ta prochaine pièce",
+    "t'attend déjà."
+   ],
+   "beats": [
+    {
+     "k": "phone",
+     "src": "ph_static"
+    }
+   ]
+  }
+ ],
+ "starts": [
+  0.03,
+  2.61,
+  5.89,
+  11.06,
+  14.99,
+  18.61,
+  21.25
+ ],
+ "end_card_at": 26.71,
+ "vo_end": 27.53,
+ "end_word": "venir",
+ "app_clear": true
+}

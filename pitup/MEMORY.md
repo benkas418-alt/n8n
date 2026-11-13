@@ -1,7 +1,63 @@
 # PitUp — mémoire de projet (vidéos et campagnes)
 
 > À lire en premier dans toute nouvelle session : « Lis `pitup/MEMORY.md` et reprends le travail PitUp ».
-> Dernière mise à jour : 4 novembre 2026.
+> Dernière mise à jour : 13 novembre 2026.
+
+## 0. DÉMARRAGE D'UNE NOUVELLE SESSION (à lire en entier, puis appliquer)
+
+Cette section résume l'état actuel. **En cas de contradiction avec une section plus bas (archives), cette section l'emporte.**
+
+### 0.1 Rôle attendu
+Directeur artistique, monteur vidéo, ingénieur du son et stratège marketing de PitUp, en même temps. Répondre en **français**. Produire des résultats vérifiés, pas des conseils. Avant chaque tâche : lister les skills utiles et les **charger** (Skill tool), puis appliquer la mécanique de travail (§ « MÉCANIQUE DE TRAVAIL », plus bas).
+
+Skills à mobiliser selon la tâche :
+- Marketing et texte : `pitup/skills/pitup-content-engine`, `pitup/skills/conversion-copywriting-engine`, `pitup/skills/viral-psychology-strategist` (dans ce dépôt, à lire avec Read si la session ne les liste pas), plus `copywriting`, `social`, `short-form-video`, `ad-creative`, `marketing-psychology`.
+- Vidéo : `hyperframes`, `hyperframes-cli`, `hyperframes-audio`, `motion-design`, `kinetic-typography`, `caption-animation`, `short-form-video`, `media-use`.
+- Son : `earshot` (écoute obligatoire avant toute livraison), `real-sound`.
+- TikTok : dépôt `sergebulaev/tiktok-skills` (skill `tt-caption-writer` : 3 à 5 hashtags, première ligne visible porteuse, question précise en fin si l'objectif est le commentaire, réglage « Contenu commercial → Ta marque »).
+
+### 0.2 Règles du fondateur (toutes actives)
+- **Contenu** : ne jamais inventer de chiffre ni de fonctionnalité. Seul chiffre : « **+100 boutiques locales** ». Pas de prix. **Paiement à la livraison** (à l'écran : « Paiement à la livraison. »). Ne pas écrire « disponible dès maintenant ».
+- **Voix de marque** : la marque parle en « **nous** ». **Aucune phrase ne commence par « PitUp »**. Écrire « PitUp » (P et U majuscules).
+- **Interdits à l'image** : moto, fumeur, supermarché (exception validée : façade de l'Alilac Center), personnes filmées sans accord évident, **réutilisation d'un même plan dans une vidéo**, logos TikTok ou filigranes (recadrer ou retoucher).
+- **Musique** : jamais d'amapiano. Chanson actuelle validée : Tems « Me & U » (fichier fourni par le fondateur, hors dépôt).
+- **Voix** : jamais ElevenLabs. Deux voix seulement, jamais mélangées : **la sœur** (choix actuel) et « jumelle ». Jamais d'étirement temporel de la voix. Jamais de collage de prises : une seule prise complète.
+- **Méthode** : ne jamais modifier ce qui est validé quand le fondateur demande une autre correction. Signaler un défaut hors demande, ne pas le corriger seul. Demander avant toute dépense. Ne jamais envoyer un fichier non vérifié.
+- **Livraison** : chaque vidéo est livrée avec une **description prête à copier**.
+
+### 0.3 Direction artistique actuelle (validée, v44 « Ah, Lubumbashi »)
+- Couleur de marque **#1f88c9**. Police **Lexend**. Format 1080 × 1920, 30 i/s.
+- **Plans de la ville** : en couleur, étalonnage commun (`tools/grade.py`). Le noir et blanc a été testé puis **abandonné** par le fondateur.
+- **Partie appli** (`"app_clear": true` dans la config) : écrans et cartes produits **sans grain, vignettage ni reflet**. Téléphone qui se stabilise **de face**, 8 % plus grand. Fond **bleu ciel lumineux** (dégradé `#8fd3fa → #2a96da`), avec le bleu de marque derrière les titres (contraste ≥ 3:1).
+- Ordre des scènes, textes et animations : voir `pitup/cfg/v14_ciel.json` (le dernier plan ajouté est `s_alilac`, tiré d'un TikTok de @djeudy_243 et recadré : créditer ou demander l'accord).
+
+### 0.4 Son « studio » (validé le 13 novembre)
+Chaîne complète (scripts dans `pitup/tools/`) :
+1. `wiener_denoise.py soeur_6.wav dn.wav 26 2.0` : retire le souffle **aussi sous la voix**.
+2. `SRC=dn.wav rebuild_voice_studio.sh out.wav "highpass=f=80,afftdn=nr=14:nf=-60:tn=1,equalizer=f=250:t=q:w=1.0:g=-3,equalizer=f=3200:t=q:w=1.2:g=1.5,highshelf=f=9000:g=-2,deesser=i=0.5" -24` (pauses du plan validé, respiration après « Ah », queue de pièce).
+3. `pause_dip.py` à **8 dB** (pas plus : effet de pompage).
+4. Retouches validées : « v » de « venir » repris de la voix non débruitée ; fin de « bouge » prolongée (décroissance de 40 ms).
+5. Mix : `ORIG_ALL=1 CARVE_DB=4 HIGH_DB=6 mix_duck_end.py … 10`, puis `loudnorm=I=-14:TP=-2:LRA=11`, puis `alimiter=limit=0.56:level=0` sur-échantillonné, AAC `twoloop` 192k.
+Jamais d'`aexciter` ni de remontée des aigus : ce réglage créait le grésillement.
+
+### 0.5 Contrôles obligatoires avant chaque envoi
+`voice_qa.sh` (0 FAIL réel), transcription whisper (2 erreurs = niveau de référence, dues à « PitUp »), `earshot critique` (0 critique, 0 majeur), true peak du fichier livré ≤ −1 dBTP, planche des images clés. Rapporter les chiffres et dire ce qui n'a pas été vérifié.
+
+### 0.6 Textes et descriptions
+Style voulu : **simple, clair, sans cliché ni jeu de mots**. Le fondateur a refusé « en couleur » et les questions artificielles. La promesse doit tenir dans la première ligne visible sur TikTok. Description validée pour « Ah, Lubumbashi » :
+```
++100 boutiques locales de Lubumbashi dans une seule appli. Tu commandes depuis chez toi, on te livre, et tu paies à la réception.
+
+Lien en bio 📲
+
+#Lubumbashi #Lushi #RDC #pourtoi #fyp
+```
+
+### 0.7 Ce qui n'est PAS dans le dépôt (à redemander au fondateur)
+Le dépôt est public : on n'y met ni voix, ni musique, ni vidéos de tiers. Pour reprendre « Ah, Lubumbashi » ou refaire une voix, demander au fondateur le **kit média** (archive qu'il a reçue le 13 novembre) : plans vidéo (`story/v`), prise de la sœur (`audio/v32/soeur_6.wav`) et sa référence (`audio/soeur/`), chanson Tems. Outils à réinstaller si besoin : `hyperframes@0.8.181` (npx), faster-whisper medium, VoxCPM2, earshot (`leonxlnx/earshot`).
+
+### 0.8 Tâches en attente (ne pas lancer sans demande)
+Vidéo « Lundi » ; question d'orthographe « Pitup » / « PitUp » ; retrait éventuel de 47 anciennes images (photos de profil) du dépôt ; plans de boutiques montrant des personnes.
 
 ## 1. Contexte
 
