@@ -70,8 +70,7 @@ def send_report(settings: Settings, subject: str, body: str, attachments: list[P
     return True
 
 
-def email_weekly(settings: Settings, paths: dict, summary: str) -> bool:
+def email_weekly(settings: Settings, paths: dict, body: str, subject: str = "Football Intel — rapport hebdomadaire") -> bool:
+    """`body`: the week in plain words (reports/plain_week.py); the technical report is attached."""
     pdf = html_to_pdf(paths["html"], paths["html"].with_suffix(".pdf"))
-    return send_report(settings, "Football Intel — rapport hebdomadaire",
-                       summary + "\n\nLe rapport complet est en pièce jointe (PDF).",
-                       [pdf] if pdf else [paths["html"]])
+    return send_report(settings, subject, body, [pdf] if pdf else [paths["html"]])

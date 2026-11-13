@@ -7,8 +7,11 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
 
 - The owner writes in French; answer in French. Preferences: direct, verified results,
   honest limits, no automatic agreement.
+- **Reports to the owner (2026-11-13: "Tes rapports, je ne les comprends pas")**: plain words,
+  short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
+  Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D79), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D80), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
