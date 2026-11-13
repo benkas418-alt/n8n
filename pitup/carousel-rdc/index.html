@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:P;src:url(fonts/poppins-500.woff2);font-weight:500}
+@font-face{font-family:P;src:url(fonts/poppins-600.woff2);font-weight:600}
+@font-face{font-family:P;src:url(fonts/poppins-700.woff2);font-weight:700}
+@font-face{font-family:P;src:url(fonts/poppins-800.woff2);font-weight:800}
+:root{--blue:#1f88c9;--deep:#0d5a8f;--sky:#e4f1fa;--ink:#101418;--mute:#5b6570;--line:#e3e8ee}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#ccc;font-family:P,sans-serif;color:var(--ink)}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;margin:0 0 20px;background:#fff}
+.tag{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:14px;font-weight:600;font-size:30px;letter-spacing:.5px}
+.tag img{width:44px}
+.num{position:absolute;right:80px;top:78px;font-weight:600;font-size:26px;color:var(--mute)}
+.dark .num,.dark .tag{color:#fff}
+.dark{background:radial-gradient(120% 90% at 20% 15%,#2a9be0 0%,#1f88c9 40%,#0d5a8f 100%);color:#fff}
+.blob{position:absolute;border-radius:50%;background:var(--blue)}
+h1{font-weight:800;letter-spacing:-3px;line-height:1.02}
+h2{font-weight:800;font-size:92px;letter-spacing:-3px;line-height:1.04}
+.sub{font-weight:500;font-size:40px;line-height:1.35;color:var(--mute)}
+.dark .sub{color:#d9eefb}
+.bl{color:var(--blue)}
+.swipe{position:absolute;right:80px;bottom:80px;font-weight:600;font-size:30px;display:flex;align-items:center;gap:14px}
+.swipe i{display:block;width:70px;height:4px;background:currentColor;position:relative}
+.swipe i:after{content:"";position:absolute;right:-2px;top:-9px;width:18px;height:18px;border-right:4px solid currentColor;border-top:4px solid currentColor;transform:rotate(45deg)}
+/* cover */
+#s0 h1{position:absolute;left:80px;right:80px;top:340px;font-size:112px}
+#s0 .sub{position:absolute;left:80px;right:180px;top:880px}
+#s0 .ring{position:absolute;right:-180px;top:-160px;width:620px;height:620px;border-radius:50%;border:2px solid rgba(255,255,255,.25)}
+#s0 .ring2{position:absolute;right:-60px;top:-40px;width:380px;height:380px;border-radius:50%;border:2px solid rgba(255,255,255,.18)}
+#s0 .arrow{position:absolute;right:110px;top:150px;width:150px;height:150px}
+/* sellers */
+#s1 h2{position:absolute;left:80px;right:80px;top:200px}
+#s1 .cards{position:absolute;left:80px;right:80px;top:540px;display:flex;flex-direction:column;gap:24px}
+.card{display:flex;align-items:center;gap:32px;padding:26px 36px;border-radius:32px;background:#f4f7fa;border:2px solid var(--line)}
+.card .ic{flex:0 0 112px;height:112px;border-radius:28px;background:var(--sky);display:flex;align-items:center;justify-content:center}
+.card .ic svg{width:64px;height:64px;stroke:var(--blue);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.card b{display:block;font-weight:700;font-size:42px;letter-spacing:-.5px}
+.card span{font-weight:500;font-size:30px;color:var(--mute)}
+#s1 .foot{position:absolute;left:80px;right:80px;bottom:100px;font-weight:700;font-size:40px;line-height:1.3}
+/* how to sell */
+.phone{position:absolute;border-radius:62px;background:#0b0c0f;padding:14px;box-shadow:0 40px 80px rgba(13,90,143,.28)}
+.phone img,.phone .ui{display:block;width:100%;height:100%;border-radius:50px;object-fit:cover;object-position:top;background:#fff}
+#s2 h2{position:absolute;left:80px;top:190px;width:520px;font-size:84px}
+#s2 .phone{right:70px;top:250px;width:400px;height:860px}
+.steps{position:absolute;left:80px;width:520px;display:flex;flex-direction:column;gap:34px}
+.st{display:flex;gap:26px;align-items:flex-start}
+.st em{flex:0 0 74px;height:74px;border-radius:50%;background:var(--blue);color:#fff;font-style:normal;font-weight:700;font-size:36px;display:flex;align-items:center;justify-content:center}
+.st p{font-weight:600;font-size:38px;line-height:1.25;padding-top:10px}
+.st p small{display:block;font-weight:500;font-size:28px;color:var(--mute);margin-top:4px}
+#s2 .steps{top:520px}
+/* services intro */
+#s3 h2{position:absolute;left:80px;right:80px;top:380px;font-size:112px}
+#s3 .sub{position:absolute;left:80px;right:120px;top:840px}
+#s3 .ring{position:absolute;left:-200px;bottom:-260px;width:700px;height:700px;border-radius:50%;border:2px solid rgba(255,255,255,.22)}
+/* trades grid */
+#s4 h2{position:absolute;left:80px;right:80px;top:170px;font-size:76px}
+#s4 .grid{position:absolute;left:80px;right:80px;top:330px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.tr{padding:28px 30px;border-radius:30px;background:#f4f7fa;border:2px solid var(--line);height:296px}
+.tr .ic{width:84px;height:84px;border-radius:22px;background:var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.tr .ic svg{width:48px;height:48px;stroke:#fff;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.tr b{display:block;font-weight:700;font-size:40px;letter-spacing:-.5px}
+.tr span{font-weight:500;font-size:27px;color:var(--mute);line-height:1.3}
+.tr.more{background:var(--blue);border-color:var(--blue);color:#fff;display:flex;flex-direction:column;justify-content:center}
+.tr.more span{color:#d9eefb}
+/* pros */
+#s5 h2,#s6 h2{position:absolute;left:80px;right:80px;top:190px;font-size:84px}
+#s5 .steps,#s6 .steps{top:480px;width:540px}
+#s5 .phone,#s6 .phone{right:60px;top:430px;width:380px;height:820px}
+.ui{font-family:P,sans-serif;position:relative;overflow:hidden}
+.ui .top{background:var(--blue);color:#fff;padding:62px 28px 22px;font-weight:700;font-size:26px}
+.ui .top small{display:block;font-weight:500;font-size:17px;opacity:.85}
+.ui .tabs{display:flex;gap:18px;padding:0 28px 14px;background:var(--blue);color:#cfe7f7;font-size:16px;font-weight:600}
+.ui .tabs i{font-style:normal}.ui .tabs i:first-child{color:#fff;border-bottom:3px solid #fff;padding-bottom:6px}
+.cand{margin:18px 18px 0;padding:18px;border:1.5px solid var(--line);border-radius:20px;background:#fff}
+.cand .who{display:flex;gap:14px;align-items:center}
+.cand .av{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#9fd1f0,#1f88c9);flex:0 0 58px}
+.cand b{font-size:20px;display:block}
+.cand .meta{font-size:15px;color:var(--mute)}
+.cand .pill{display:inline-block;margin-top:8px;padding:4px 12px;border-radius:999px;background:var(--sky);color:var(--blue);font-size:14px;font-weight:600}
+.cand .btns{display:flex;gap:10px;margin-top:14px}
+.cand .btns i{flex:1;text-align:center;font-style:normal;font-weight:600;font-size:16px;padding:10px 0;border-radius:12px}
+.ok{background:#e3f6ea;color:#1f9d55}.no{background:#fde8e8;color:#d64545}.ct{background:var(--sky);color:var(--blue)}
+/* chat */
+.chat .top{display:flex;align-items:center;gap:14px}
+.chat .top .av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffd2a8,#e9894a)}
+.bub{max-width:76%;margin:14px 18px 0;padding:14px 18px;border-radius:20px;font-size:18px;line-height:1.35}
+.me{margin-left:auto;background:var(--blue);color:#fff;border-bottom-right-radius:6px}
+.him{background:#f1f4f7;border-bottom-left-radius:6px}
+.day{text-align:center;color:var(--mute);font-size:14px;margin-top:18px}
+.input{position:absolute;left:18px;right:18px;bottom:26px;border:1.5px solid var(--line);border-radius:999px;padding:14px 20px;color:#9aa4ae;font-size:17px}
+/* cta */
+#s7 h2{position:absolute;left:80px;right:80px;top:250px;font-size:104px}
+#s7 .sub{position:absolute;left:80px;right:120px;top:740px;color:#fff;font-weight:600}
+#s7 .url{position:absolute;left:80px;top:930px;font-weight:700;font-size:54px;letter-spacing:-.5px}
+#s7 .badges{position:absolute;left:80px;bottom:110px;display:flex;gap:24px}
+.bd{display:flex;align-items:center;gap:16px;background:#0b0c0f;color:#fff;border-radius:20px;padding:18px 30px 18px 24px;border:2px solid rgba(255,255,255,.35)}
+.bd svg{width:46px;height:46px;fill:#fff}
+.bd small{display:block;font-size:20px;font-weight:500;opacity:.85}.bd b{display:block;font-size:34px;font-weight:600;line-height:1.05}
+#s7 .logo{position:absolute;right:80px;bottom:110px;width:120px}
+</style></head><body>
+
+<!-- 0 cover -->
+<section class="s dark" id="s0">
+  <div class="ring"></div><div class="ring2"></div>
+  <div class="tag"><img src="icon_white.png" alt="">PitUp · RDC</div>
+  <svg class="arrow" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 82 L82 18"/><path d="M38 18 H82 V62"/></svg>
+  <h1>Prépare-toi à un changement digital en RDC.</h1>
+  <p class="sub">Vendre, proposer ton service ou trouver un pro : tout passe par une seule appli.</p>
+  <div class="swipe">Glisse<i></i></div>
+</section>
+
+<!-- 1 sellers: no shop needed -->
+<section class="s" id="s1">
+  <div class="tag"><img src="icon.png" alt="">PitUp</div><div class="num">2/8</div>
+  <h2>Pas besoin d'une grande boutique <span class="bl">pour vendre.</span></h2>
+  <div class="cards">
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-5h4v5"/></svg></div><div><b>Une boutique en ville</b><span>Avec une adresse et une enseigne.</span></div></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><rect x="9" y="13" width="6" height="7"/></svg></div><div><b>Un stock à la maison</b><span>Tu vends depuis chez toi.</span></div></div>
+    <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg></div><div><b>Une boutique perso</b><span>Tu vends déjà sur WhatsApp ou les réseaux.</span></div></div>
+  </div>
+  <p class="foot">Tant que tu as quelque chose à vendre, <span class="bl">tu as ta place sur l'appli.</span></p>
+</section>
+
+<!-- 2 how selling works -->
+<section class="s" id="s2">
+  <div class="tag"><img src="icon.png" alt="">Vendeurs</div><div class="num">3/8</div>
+  <h2>Tu vends, <span class="bl">nous livrons.</span></h2>
+  <div class="steps">
+    <div class="st"><em>1</em><p>Publie tes articles<small>Photos, description, catégorie.</small></p></div>
+    <div class="st"><em>2</em><p>Le client commande<small>Tu confirmes la disponibilité.</small></p></div>
+    <div class="st"><em>3</em><p>Nous livrons<small>À l'adresse du client.</small></p></div>
+    <div class="st"><em>4</em><p>Paiement à la livraison<small>Le client paie à la réception.</small></p></div>
+  </div>
+  <div class="phone"><img src="scr/store.png" alt=""></div>
+</section>
+
+<!-- 3 services intro -->
+<section class="s dark" id="s3">
+  <div class="ring"></div>
+  <div class="tag"><img src="icon_white.png" alt="">Prestataires</div><div class="num">4/8</div>
+  <h2>Et si ton talent, c'est un service ?</h2>
+  <p class="sub">Les freelances et prestataires ont aussi leur place. Montre ton travail, trouve des clients.</p>
+</section>
+
+<!-- 4 trades -->
+<section class="s" id="s4">
+  <div class="tag"><img src="icon.png" alt="">Prestataires</div><div class="num">5/8</div>
+  <h2>Quel est <span class="bl">ton métier ?</span></h2>
+  <div class="grid">
+    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><circle cx="11" cy="11" r="2"/></svg></div><b>Graphiste</b><span>Logos, affiches, flyers, visuels réseaux.</span></div>
+    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/></svg></div><b>Photographe</b><span>Événements, portraits, photos produits.</span></div>
+    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg></div><b>Vidéaste</b><span>Mariages, clips, vidéos pour les marques.</span></div>
+    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 6h-4z"/><rect x="8" y="9" width="8" height="12" rx="2"/></svg></div><b>Maquilleuse</b><span>Mariages, shootings, soirées.</span></div>
+    <div class="tr"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5L20 19"/><path d="M8.5 15.5L20 5"/></svg></div><b>Coiffeuse</b><span>Tresses, coupes, coiffures d'événement.</span></div>
+    <div class="tr more"><b>Un autre métier ?</b><span>Si tu proposes un service, tu peux le présenter aussi.</span></div>
+  </div>
+</section>
+
+<!-- 5 pros: how it works -->
+<section class="s" id="s5">
+  <div class="tag"><img src="icon.png" alt="">Prestataires</div><div class="num">6/8</div>
+  <h2>Pour les pros, <span class="bl">c'est simple.</span></h2>
+  <div class="steps">
+    <div class="st"><em>1</em><p>Crée ton profil<small>Ton métier, ta ville, ton expérience.</small></p></div>
+    <div class="st"><em>2</em><p>Postule aux demandes<small>Des clients publient leurs besoins.</small></p></div>
+    <div class="st"><em>3</em><p>Échange et lance la mission<small>Tout se passe dans l'appli.</small></p></div>
+  </div>
+  <div class="phone"><div class="ui">
+    <div class="top">Candidatures<small>Photographes</small></div>
+    <div class="tabs"><i>Toutes</i><i>En attente</i><i>Acceptées</i></div>
+    <div class="cand"><div class="who"><div class="av"></div><div><b>Grâce M.</b><div class="meta">Lubumbashi</div></div></div><span class="pill">5 ans d'expérience</span><div class="btns"><i class="ok">Accepter</i><i class="no">Refuser</i></div></div>
+    <div class="cand"><div class="who"><div class="av" style="background:linear-gradient(135deg,#ffd2a8,#e9894a)"></div><div><b>Patrick K.</b><div class="meta">Lubumbashi</div></div></div><span class="pill">3 ans d'expérience</span><div class="btns"><i class="ok">Accepter</i><i class="no">Refuser</i></div></div>
+    <div class="cand"><div class="who"><div class="av" style="background:linear-gradient(135deg,#c9b8f5,#7a5bd6)"></div><div><b>Esther N.</b><div class="meta">Kinshasa</div></div></div><span class="pill">Portfolio disponible</span><div class="btns"><i class="ct">Voir le profil</i></div></div>
+  </div></div>
+</section>
+
+<!-- 6 clients: find a pro -->
+<section class="s" id="s6">
+  <div class="tag"><img src="icon.png" alt="">Clients</div><div class="num">7/8</div>
+  <h2>Tu cherches <span class="bl">un pro ?</span></h2>
+  <div class="steps">
+    <div class="st"><em>1</em><p>Publie ton besoin<small>Un shooting, une affiche, un maquillage…</small></p></div>
+    <div class="st"><em>2</em><p>Reçois des candidatures<small>Compare les profils.</small></p></div>
+    <div class="st"><em>3</em><p>Choisis et discute<small>Directement dans l'appli.</small></p></div>
+  </div>
+  <div class="phone"><div class="ui chat">
+    <div class="top"><div class="av"></div><div>Patrick K.<small>Photographe</small></div></div>
+    <div class="day">Aujourd'hui</div>
+    <div class="bub me">Bonjour, je cherche un photographe pour un mariage samedi.</div>
+    <div class="bub him">Bonjour ! Oui, je suis disponible samedi.</div>
+    <div class="bub him">Je vous envoie quelques photos de mes derniers mariages.</div>
+    <div class="bub me">Parfait, merci !</div>
+    <div class="input">Écris un message…</div>
+  </div></div>
+</section>
+
+<!-- 7 CTA -->
+<section class="s dark" id="s7">
+  <div class="tag"><img src="icon_white.png" alt="">PitUp · RDC</div><div class="num">8/8</div>
+  <h2>Vendeurs, prestataires, clients : une seule appli.</h2>
+  <p class="sub">+100 boutiques locales sont déjà sur l'appli. À toi de rejoindre le mouvement.</p>
+  <div class="url">pi-tup.com</div>
+  <div class="badges">
+    <div class="bd"><svg viewBox="0 0 24 24"><path d="M4 2.5l10.6 9.5L4 21.5c-.4-.2-.6-.6-.6-1.1V3.6c0-.5.2-.9.6-1.1zm11.5 10.3l2.8 2.5-11.7 6.6 8.9-9.1zm0-1.6L6.6 2.1l11.7 6.6-2.8 2.5zm3.9 2.7l-2.6-2.4 2.6-2.3 2.7 1.5c.8.5.8 1.3 0 1.7l-2.7 1.5z"/></svg><div><small>Disponible sur</small><b>Google Play</b></div></div>
+    <div class="bd"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.4-1-2.4-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg><div><small>Télécharger dans</small><b>l'App Store</b></div></div>
+  </div>
+</section>
+</body></html>
