@@ -30,6 +30,7 @@ Skills à mobiliser selon la tâche :
 - **Plans de la ville** : en couleur, étalonnage commun (`tools/grade.py`). Le noir et blanc a été testé puis **abandonné** par le fondateur.
 - **Partie appli** (`"app_clear": true` dans la config) : écrans et cartes produits **sans grain, vignettage ni reflet**. Téléphone qui se stabilise **de face**, 8 % plus grand. Fond **bleu ciel lumineux** (dégradé `#8fd3fa → #2a96da`), avec le bleu de marque derrière les titres (contraste ≥ 3:1).
 - **Visuels de l'appli = vrai téléphone en 3D** (perspective, épaisseur, reflet, ombre), jamais un écran plat. Modèle CSS : classe `.phone` de `pitup/carousel-rdc/index.html`. Utiliser de **vraies captures** de l'appli ; écrans recréés seulement en attendant les vraies (le fondateur doit fournir celles des services : candidatures, discussion).
+- **Carrousels : format 3:4 (1080 × 1440)**, rendus en très haute définition (`DSF=4 node shot4.js …` → 4320 × 5760 PNG). Profils sans photo dans les écrans recréés : **initiales dans un cercle de couleur** (style WhatsApp/Telegram).
 - **Aucun compteur de pages** (« 2/8 ») sur les carrousels : les plateformes l'affichent déjà.
 - Ordre des scènes, textes et animations : voir `pitup/cfg/v14_ciel.json` (le dernier plan ajouté est `s_alilac`, tiré d'un TikTok de @djeudy_243 et recadré : créditer ou demander l'accord).
 
