@@ -16,7 +16,7 @@ SHOTS = [("cityA", 0, 1.75, "", 0), ("cityB", 1.75, 3.4, "", 0), ("cityC", 3.4, 
          ("graph", 19.1, 20.8, "Graphiste", 19.6), ("photo", 20.8, 21.7, "Photographe", 20.85),
          ("makeup", 21.7, 22.6, "Maquilleuse", 21.77), ("couture", 22.6, 23.3, "Couturier", 22.63),
          ("p_vend", 29.4, 30.5, "Vendeurs.", 29.46), ("p_prest", 30.5, 31.5, "Prestataires.", 30.54), ("p_ach", 31.5, PRIDE0, "Acheteurs.", 31.54),
-         ("pride", PRIDE0, LOGO, "", 0)]
+         ("pride", PRIDE0, 34.33, "", 0), ("flagc", 34.33, LOGO, "", 0)]
 STACKS = [("w0", [("Vendre.", 6.70), ("Créer.", 7.20), ("Se débrouiller.", 7.80)], 6.6, 8.75)]
 # app scenes: (id, start, end, label, [(screen file, from time)], [(phrase with [key words], time)])
 APPS = [("A", 15.6, 19.1, "VENDEURS", [("phapp.mp4", 15.6), ("ph_vb.mp4", 17.35)], [("Publie|[tes articles.]", 15.66), ("Les clients|[viennent à toi.]", 17.44)]),
