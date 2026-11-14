@@ -21,7 +21,7 @@ STACKS = [("w0", [("Vendre.", 6.70), ("Créer.", 7.20), ("Se débrouiller.", 7.8
 # app scenes: (id, start, end, label, [(screen file, from time)], [(phrase with [key words], time)])
 APPS = [("A", 15.6, 19.1, "VENDEURS", [("phapp.mp4", 15.6), ("ph_vb.mp4", 17.35)], [("Publie|[tes articles.]", 15.66), ("Les clients|[viennent à toi.]", 17.44)]),
         ("B", 23.3, 26.4, "PRESTATAIRES", [("works.png", 23.3), ("offers.png", 24.4)], [("Montre|[tes travaux.]", 23.35), ("Postule|[aux offres.]", 24.43)]),
-        ("C", 26.4, 29.4, "ACHETEURS", [("phs_full.mp4", 26.4)], [("Ceux qui|cherchent|[te trouvent.]", 27.0)])]
+        ("C", 26.4, 29.4, "ACHETEURS", [("phs_full.mp4", 26.4), ("ph_congo.mp4", 27.8)], [("Ceux qui|cherchent|[te trouvent.]", 27.0)])]
 JOIN = 32.30
 PX, PY, PW, PH = 299, 770, 482, 1040   # phone frame
 
