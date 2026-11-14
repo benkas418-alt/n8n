@@ -9,8 +9,9 @@ import json, sys
 OUT = sys.argv[1]
 PRIDE0, LOGO = 33.25, 36.9; END = LOGO + 4.8
 # opening: two triptychs of Lubumbashi (strips keep the 576p source near its native size)
-STRIPS = [("st0", 0, 2.5, 0), ("st1", 0, 2.5, 1), ("st2", 0, 2.5, 2), ("st3", 2.5, 5.0, 0), ("st4", 2.5, 5.0, 1), ("st5", 2.5, 5.0, 2)]
-SHOTS = [("market", 5.0, 6.95, "", 0), ("stall", 6.95, 8.75, "", 0),
+STRIPS = []   # (file, start, end, row): horizontal strips, kept for landscape sources; unused since v9
+# opening hook asked by the founder: ONE wide, slightly aerial shot of Lubumbashi, then a detail shot (street)
+SHOTS = [("cityA", 0, 2.6, "", 0), ("cityB", 2.6, 5.0, "", 0), ("market", 5.0, 6.95, "", 0), ("stall", 6.95, 8.75, "", 0),
          ("phone", 8.75, 11.7, "Tout passe|par le téléphone.", 9.29),
          ("home", 11.7, 13.6, "À la maison ?", 12.3), ("stock", 13.6, 14.5, "Un petit stock ?", 13.66),
          ("shop", 14.5, 15.6, "Une grande|boutique ?", 14.56),
