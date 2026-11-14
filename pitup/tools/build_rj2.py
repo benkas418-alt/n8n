@@ -9,9 +9,12 @@ import json, sys
 OUT = sys.argv[1]
 PRIDE0, LOGO = 33.25, 36.9; END = LOGO + 4.8
 # opening: two triptychs of Lubumbashi (strips keep the 576p source near its native size)
-STRIPS = []   # (file, start, end, row): horizontal strips, kept for landscape sources; unused since v9
-# opening hook asked by the founder: ONE wide, slightly aerial shot of Lubumbashi, then a detail shot (street)
-SHOTS = [("cityA", 0, 2.6, "", 0), ("cityB", 2.6, 5.0, "", 0), ("market", 5.0, 6.95, "", 0), ("stall", 6.95, 8.75, "", 0),
+# opening in cinema format: the founder's landscape video of Lubumbashi (576p) stays sharp at full width.
+# One wide daytime shot (Alilac Center), then two details (yellow minibus, glass building); the dark bars open at 5 s.
+STRIPS = [("cityA", 0, 2.4, 656), ("cityB", 2.4, 3.7, 656), ("cityC", 3.7, 5.0, 656)]   # (file, start, end, top px)
+FULL = __import__("os").environ.get("FULL") == "1"   # FULL=1: same three shots cropped to full screen (softer: 576p source enlarged 3.3x)
+if FULL: STRIPS = []
+SHOTS = ([("fullA", 0, 2.4, "", 0), ("fullB", 2.4, 3.7, "", 0), ("fullC", 3.7, 5.0, "", 0)] if FULL else []) + [("market", 5.0, 6.95, "", 0), ("stall", 6.95, 8.75, "", 0),
          ("phone", 8.75, 11.7, "Tout passe|par le téléphone.", 9.29),
          ("home", 11.7, 13.6, "À la maison ?", 12.3), ("stock", 13.6, 14.5, "Un petit stock ?", 13.66),
          ("shop", 14.5, 15.6, "Une grande|boutique ?", 14.56),
@@ -36,7 +39,7 @@ def phrase(txt):
     return out
 
 vids = "".join(f'<video id="v{k}" class="clip full" src="assets/v/{n}.mp4" muted playsinline data-start="{a:.2f}" data-duration="{b - a:.2f}" data-track-index="{2 + k % 2}"></video>' for k, (n, a, b, c, ct) in enumerate(SHOTS))
-vids += "".join(f'<video id="s{k}" class="clip strip" src="assets/v/{n}.mp4" muted playsinline data-start="{a:.2f}" data-duration="{b - a:.2f}" data-track-index="{20 + k % 3 + 3 * (k // 3)}" style="top:{r * 643}px"></video>' for k, (n, a, b, r) in enumerate(STRIPS))
+vids += "".join(f'<video id="s{k}" class="clip strip" src="assets/v/{n}.mp4" muted playsinline data-start="{a:.2f}" data-duration="{b - a:.2f}" data-track-index="{20 + k % 2}" style="top:{r}px;height:608px"></video>' for k, (n, a, b, r) in enumerate(STRIPS))
 caps = "".join(f'<div class="cap" id="t{k}"><i></i>' + "".join(f'<span class="ln"><span>{l}</span></span>' for l in c.split("|")) + '</div>' for k, (n, a, b, c, ct) in enumerate(SHOTS) if c)
 stacks = "".join(f'<div class="stack" id="{sid}">' + "".join(f'<span class="ln"><span>{t}</span></span>' for t, _ in L) + '</div>' for sid, L, a, b in STACKS)
 apps = ""; scr = ""; ti = 6
@@ -63,6 +66,7 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#000}}
 #root{{position:relative;width:100%;height:100%;overflow:hidden;font-family:P,sans-serif;color:#fff;background:#06101c}}
 .full{{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover}}
 .strip{{position:absolute;left:0;width:1080px;height:634px;object-fit:cover}}
+.bar{{position:absolute;left:0;width:1080px;height:656px;background:#06101c;z-index:2}}
 #scrim{{position:absolute;left:0;right:0;bottom:0;height:1000px;background:linear-gradient(180deg,rgba(4,14,28,0),rgba(4,14,28,.82));z-index:2;opacity:0}}
 .cap,.stack{{position:absolute;left:80px;right:80px;bottom:330px;z-index:3;font-weight:800;font-size:108px;letter-spacing:-4px;line-height:1.05;opacity:0}}
 .cap i{{display:block;width:110px;height:12px;border-radius:6px;background:#1f88c9;margin-bottom:26px;transform-origin:0 50%}}
@@ -99,6 +103,7 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#000}}
 <div id="root" data-composition-id="main" data-start="0" data-duration="{END:.2f}" data-width="1080" data-height="1920">
 <audio id="bgm" src="assets/mix.wav" data-start="0" data-duration="{END:.2f}" data-track-index="11"></audio>
 {vids}{scr}
+{"" if FULL else '<div class="bar" id="barT" style="top:0"></div><div class="bar" id="barB" style="top:1264px"></div>'}
 <div id="scrim"></div>
 {caps}{stacks}<div id="join">Rejoignez-nous.</div>
 <div id="pt"><span class="ln"><span>Fièrement</span></span><span class="ln"><span>congolaise.</span></span></div>
@@ -127,7 +132,8 @@ SH.forEach(([a, b, cap, ct], k) => {{
   tl.set(id, {{ opacity: 0 }}, b);
 }});
 const SP = {json.dumps([[a, b] for n, a, b, r in STRIPS])};
-SP.forEach(([a, b], k) => tl.fromTo("#s" + k, {{ scale: 1.0 }}, E({{ scale: 1.05, duration: b - a, ease: "none" }}), a));
+SP.forEach(([a, b], k) => tl.fromTo("#s" + k, {{ scale: 1.0 }}, E({{ scale: 1.06, duration: b - a, ease: "none" }}), a));
+if (document.getElementById("barT")) {{ tl.to("#barT", {{ y: -660, duration: 0.45, ease: "power3.inOut" }}, 4.98); tl.to("#barB", {{ y: 660, duration: 0.45, ease: "power3.inOut" }}, 4.98); }}
 const ST = {json.dumps([[sid, [t for _, t in L], a, b] for sid, L, a, b in STACKS])};
 ST.forEach(([sid, ts, a, b]) => {{
   tl.set("#scrim", {{ opacity: 1 }}, a); tl.set("#scrim", {{ opacity: 0 }}, b);
