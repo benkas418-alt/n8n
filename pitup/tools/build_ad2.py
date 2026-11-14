@@ -4,15 +4,14 @@
 import json, sys
 C = json.load(open(sys.argv[1])); OUT = sys.argv[2]
 LOGO = C["parti"] - 0.15; END = LOGO + 4.9
-FOOT = [("market", C["q1"], C["ouvre"] - 0.1, "Des articles|à vendre ?"), ("sew", C["q2"], C["talent"] - 0.1, "Un métier ?"),
-        ("braid", C["talent"] - 0.1, C["cree1"] - 0.1, "Un talent ?"), ("phone", C["q3"], C["cherches2"] - 0.1, "Tu cherches|un article, un pro ?"),
-        ("deliv", C["paies"] - 0.2, C["faut"] - 0.15, "Tu paies|à la livraison.")]
+FOOT = [("market", C["q1"], C["ouvre"] - 0.1, "Des articles|à vendre ?"), ("sew", C["q2"], C["talent"] - 0.1, "Un métier,|un talent ?"),   # one caption over two short shots
+        ("braid", C["talent"] - 0.1, C["cree1"] - 0.1, ""), ("phone", C["q3"], C["cherches2"] - 0.1, "Tu cherches|un article, un pro ?")]
 APPS = [("S", C["ouvre"] - 0.1, C["q2"], "VENDEURS", ["store_hd.png"], None,
          [("Ouvre ta boutique", C["ouvre"]), ("Publie tes photos", C["publie"]), ("Nous livrons tes clients", C["livrons"])]),
         ("P", C["cree1"] - 0.1, C["q3"], "PRESTATAIRES", ["real_feed.png", "real_beauty.png"], C["montre"],
          [("Crée ton profil", C["cree1"]), ("Montre ton travail", C["montre"]), ("Les clients te contactent", C["contactent"])]),
-        ("K", C["cherches2"] - 0.1, C["paies"] - 0.2, "CLIENTS", ["market2.png", "jordan.png"], C["choisis"],
-         [("Cherche", C["cherches2"]), ("Choisis", C["choisis"]), ("Commande", C["commandes"])])]
+        ("K", C["cherches2"] - 0.1, C["faut"] - 0.15, "CLIENTS", ["market2.png", "jordan.png"], C["choisis"],
+         [("Cherche", C["cherches2"]), ("Choisis", C["choisis"]), ("Commande", C["commandes"]), ("Paie à la livraison", C["paies"])])]
 HERO = C["faut"] - 0.15
 vids = "".join(f'<video id="c{k}" class="clip strip" src="assets/v/{c}.mp4" muted playsinline data-start="0" data-duration="{C["q1"]:.2f}" data-track-index="{2 + k}" style="top:{k * 640}px"></video>' for k, c in enumerate(["c_alilac", "c_traffic_s", "c_park"]))
 vids += "".join(f'<video id="v{k}" class="clip full" src="assets/v/{n}.mp4" muted playsinline data-start="{a:.2f}" data-duration="{b - a:.2f}" data-track-index="{5 + k % 2}"></video>' for k, (n, a, b, _) in enumerate(FOOT))
@@ -21,7 +20,7 @@ apps = ""
 for key, a, b, label, scr, swap, steps in APPS:
     imgs = "".join(f'<img id="{key}i{k}" src="assets/scr/{s}" alt="" style="opacity:{1 if k == 0 else 0}">' for k, s in enumerate(scr))
     chips = "".join(f'<div class="chip" id="{key}s{k}"><em>{k + 1}</em><span>{t}</span></div>' for k, (t, _) in enumerate(steps))
-    apps += f'<section class="app" id="{key}"><div class="lbl">{label}</div><div class="chips">{chips}</div><div class="stage"><div class="phone" id="{key}p"><i class="isl"></i><div class="scr">{imgs}</div></div></div></section>'
+    apps += f'<section class="app{" four" if len(steps) > 3 else ""}" id="{key}"><div class="lbl">{label}</div><div class="chips">{chips}</div><div class="stage"><div class="phone" id="{key}p"><i class="isl"></i><div class="scr">{imgs}</div></div></div></section>'
 html = f"""<!doctype html>
 <html lang="fr"><head><meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" /><script src="assets/gsap.min.js"></script>
 <style>
@@ -46,6 +45,7 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#000}}
 .chips{{position:absolute;left:80px;top:290px;right:80px;display:flex;flex-direction:column;gap:22px}}
 .chip{{display:flex;align-items:center;gap:24px;width:fit-content;padding:16px 36px 16px 16px;border-radius:60px;background:#fff;color:#0d2a40;font-weight:700;font-size:46px;letter-spacing:-1px;box-shadow:0 18px 40px rgba(4,30,60,.3);opacity:0}}
 .chip em{{flex:0 0 72px;height:72px;border-radius:50%;background:#1f88c9;color:#fff;font-style:normal;font-size:36px;display:flex;align-items:center;justify-content:center}}
+.four .chips{{gap:16px}} .four .chip{{font-size:40px;padding:10px 30px 10px 10px}} .four .chip em{{flex-basis:60px;height:60px;font-size:30px}}
 .stage{{position:absolute;inset:0;perspective:2200px}}
 .phone{{position:absolute;left:299px;top:730px;width:482px;height:1040px;border-radius:74px;padding:15px;
  background:linear-gradient(145deg,#4b4f57 0%,#16171b 18%,#0b0c0f 55%,#2a2c32 100%);
@@ -87,17 +87,18 @@ html,body{{width:1080px;height:1920px;overflow:hidden;background:#000}}
 <script>
 window.__timelines = window.__timelines || {{}};
 const tl = gsap.timeline({{ paused: true }}); const E = (o) => Object.assign({{ immediateRender: false }}, o);
-const FOOT = {json.dumps([[a, b] for n, a, b, t in FOOT])};
+const FOOT = {json.dumps([[a, b, (FOOT[k + 1][2] if k + 1 < len(FOOT) and not FOOT[k + 1][3] else b), bool(t)] for k, (n, a, b, t) in enumerate(FOOT)])};
 const APPS = {json.dumps([[k, a, b, sw, [t for _, t in st]] for k, a, b, lb, sc, sw, st in APPS])};
 tl.fromTo("#city .ln span", {{ y: "115%" }}, E({{ y: "0%", duration: 0.6, ease: "power3.out", stagger: 0.08 }}), 0.3);
 tl.set("#city, #cdim", {{ opacity: 0 }}, {C["q1"]:.3f});
-FOOT.forEach(([a, b], k) => {{
+FOOT.forEach(([a, b, ce, cap], k) => {{
   tl.set("#scrim", {{ opacity: 1 }}, a); tl.set("#scrim", {{ opacity: 0 }}, b);
   tl.fromTo("#v" + k, {{ scale: 1 }}, E({{ scale: 1.06, duration: b - a, ease: "none" }}), a);
+  if (!cap) return;
   tl.set("#t" + k, {{ opacity: 1 }}, a);
   tl.fromTo("#t" + k + " i", {{ scaleX: 0 }}, E({{ scaleX: 1, duration: 0.4, ease: "power3.out" }}), a + 0.1);
   tl.fromTo("#t" + k + " .ln span", {{ y: "115%" }}, E({{ y: "0%", duration: 0.5, ease: "power3.out", stagger: 0.1 }}), a + 0.15);
-  tl.set("#t" + k, {{ opacity: 0 }}, b);
+  tl.set("#t" + k, {{ opacity: 0 }}, ce);
 }});
 APPS.forEach(([key, a, b, sw, steps]) => {{
   tl.set("#" + key, {{ opacity: 1 }}, a); tl.set("#" + key, {{ opacity: 0 }}, b);
