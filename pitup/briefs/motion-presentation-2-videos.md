@@ -59,7 +59,7 @@ Format 1080 × 1920, 20 à 25 s. Un téléphone de face (règle `app_clear` : é
 - Couleur #1f88c9, police Lexend (vidéos) ; le carrousel du 13 novembre utilise Poppins comme les affiches du fondateur.
 - Interfaces : recréer des écrans propres (voir `pitup/carousel-rdc/index.html`, classes `.ui`, `.cand`, `.bub`). Ne pas reprendre les captures des affiches : elles contiennent un prix (150 $) et des fautes (« Disigner », « dispibles »).
 - Musique : jamais d'amapiano, demander au fondateur s'il veut une voix off ou seulement de la musique.
-- Contrôles avant envoi : section 0.5 de `MEMORY.md` (images clés, earshot, true peak).
+- Contrôles avant envoi : `pitup/memoire/3-atelier/outils.md`, section « Contrôles avant chaque livraison » (images clés, earshot, true peak).
 
 ## Points à confirmer avec le fondateur avant de produire
 

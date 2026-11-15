@@ -1,0 +1,58 @@
+# Règles non négociables
+
+Chaque règle vient d'une demande ou d'un refus du fondateur. La date est celle de la décision.
+Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la nouvelle date.
+
+## Conduite
+
+- Répondre en **français**, aller droit au but, livrer un résultat vérifié.
+- **Ne jamais modifier ce qui est validé** quand il demande une autre correction. Un défaut vu en dehors de la demande se signale, il ne se corrige pas seul.
+- **Ne jamais livrer un fichier non vérifié.** Dire ce qui a été contrôlé et ce qui ne l'a pas été.
+- Demander avant toute dépense ou publication.
+- Ne jamais inventer un chiffre, une fonctionnalité ou une source.
+- Chaque vidéo est livrée avec sa **description prête à copier**.
+- Images livrées en JPEG, une par une (un zip de 44 Mo ne se télécharge pas sur son téléphone).
+
+## Marque et texte
+
+- Écrire « **PitUp** ». Aucune phrase ne commence par « PitUp ». La marque dit « nous ».
+- Seul chiffre autorisé : « **+100 boutiques locales** ». Aucun prix. « Paiement à la livraison ».
+- Ne pas écrire « disponible dès maintenant ».
+- Site : **pi-tup.com**. Applis sur App Store et Google Play ; badges officiels vectoriels seulement.
+- Descriptions : simples, sans cliché, sans jeu de mots, sans question artificielle.
+
+## Image
+
+- **Netteté d'abord** (14 nov.) : quand il dit « clair », il veut dire **net**. Un plan flou est refusé, même s'il est le seul à montrer Lubumbashi.
+- **Pas de plan déjà publié** (14 nov.) : il reconnaît les plans « vus et revus ». Aucun plan réutilisé dans une même vidéo.
+- **Ne jamais faire passer une autre ville pour Lubumbashi** (14 nov.) : bâtiments, taxis, plaques le trahissent. L'identité culturelle passe par ces détails.
+- **Continuité de lumière** (14 nov.) : si le plan suivant est de jour, l'ouverture est de jour.
+- Interdits : moto, fumeur, supermarché (exception : façade d'Alilac Center), logo de grande marque visible, filigrane TikTok.
+- Personnes non filmées en Afrique : gros plans sans décor reconnaissable seulement.
+- **Vendeurs PitUp** (14 nov.) : boutiques et stocks d'habillement, chaussures, téléphones, électronique. Les étals de vivres ne servent qu'à illustrer la ville ou le commerce en général.
+- Visuels de l'appli : vraies captures ou vrais enregistrements d'écran dans un **téléphone 3D**, de face, sans grain ni vignettage. Varier les écrans.
+- **Pas de liste numérotée** à l'écran (14 nov.) : « ça donne l'effet liste ». Animer les mots.
+- Pas de compteur de pages sur les carrousels. Profils sans photo : initiales dans un cercle de couleur.
+- Couleur de marque **#1f88c9**. Poppins pour pubs et carrousels, Lexend pour les vidéos produits.
+- Aucune image générée par IA qui « rappelle l'IA ».
+
+## Son
+
+- **Jamais ElevenLabs.**
+- Deux voix seulement : la **sœur** (voix actuelle) et la « jumelle ». Jamais mélangées.
+- Recette de voix de référence : voir `2-dossiers/voix-off.md` (recette « Motion point », validée le 14 nov.).
+- Jamais d'étirement temporel de la voix.
+- **Jamais d'amapiano.** Musique actuelle : Tems « Me & U » (fichier du fondateur, hors dépôt).
+
+## Structure d'une pub (14 nov.)
+
+- Accroche : **un plan large un peu aérien, puis un ou deux plans de détail** (« un grand truc, poup, un petit truc »). Cinq secondes sans texte ni voix.
+- Chaque pub fait comprendre **qui** est concerné, **ce que fait** l'appli et **comment**.
+- La fin **invite à rejoindre** la plateforme. Elle n'est pas « commande et paie à la livraison ».
+- Le numérique se suggère, il ne s'annonce pas.
+
+## Dépôt et confidentialité
+
+- Dépôt public : ni voix, ni musique, ni vidéo de tiers, ni capture de vrais utilisateurs.
+- Ne pas mettre son adresse électronique dans une requête vers un service extérieur. Ne jamais lui demander de coller un secret dans la discussion.
+- Pousser seulement sur la branche de la session. Pas de pull request sans demande explicite.
