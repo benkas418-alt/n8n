@@ -32,6 +32,7 @@ Ces fichiers sont à redemander au fondateur (liste dans `3-atelier/outils.md`, 
 ## Index des dossiers
 
 - `2-dossiers/pub-rejoignez-nous.md` : pub de marque « Rejoignez-nous » (novembre 2026), dossier en cours.
+- `2-dossiers/film-lancement.md` : film de lancement d'après la référence « Meet heyclicky » (17 nov.).
 - `2-dossiers/motion-congolais.md` : motion « congolais » (typographie animée calée sur le son).
 - `2-dossiers/voix-off.md` : la voix de la sœur, la recette validée, les pièges.
 - `2-dossiers/images-et-plans.md` : quelles images utiliser, lesquelles sont refusées, sources libres.
