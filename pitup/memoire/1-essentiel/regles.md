@@ -29,7 +29,7 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - **Continuité de lumière** (14 nov.) : si le plan suivant est de jour, l'ouverture est de jour.
 - Interdits : moto, fumeur, supermarché (exception : façade d'Alilac Center), logo de grande marque visible, filigrane TikTok.
 - Personnes non filmées en Afrique : gros plans sans décor reconnaissable seulement.
-- **Vendeurs PitUp** (14 nov.) : boutiques et stocks d'habillement, chaussures, téléphones, électronique. Les étals de vivres ne servent qu'à illustrer la ville ou le commerce en général.
+- **Vendeurs PitUp** (14 nov., corrigé le 17 nov.) : boutiques d'habillement, chaussures, accessoires. **Ne pas parler de vente de téléphones** : il n'y a pas encore vraiment de boutique de téléphones. Les étals de vivres ne servent qu'à illustrer la ville ou le commerce en général.
 - Visuels de l'appli : vraies captures ou vrais enregistrements d'écran dans un **téléphone 3D**, de face, sans grain ni vignettage. Varier les écrans.
 - **Le texte suit le son** (17 nov.) : grosse caisse → le mot tombe d'un coup ; clic de déclencheur photo → la phrase apparaît d'un coup ; clics de clavier → lettre après lettre, une lettre par clic.
 - Fin de vidéo : « **Disponible sur** » au-dessus des badges des stores (17 nov.).
@@ -41,6 +41,10 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - **Motion design = notre DA** (17 nov.) : fonds clairs ou dégradé bleu PitUp, Poppins, #1f88c9. Pas de décor photo ou vidéo en fond (ciel, nuages). Les images ne font qu'illustrer, brièvement.
 - **Une référence est une inspiration** (17 nov.) : en tirer des idées de mouvement, de transition et de rythme ; ne jamais en copier le décor ni l'univers.
 - **Rythme d'un motion** (17 nov.) : 1 à 3 mots à l'écran à la fois ; ils disparaissent et les suivants arrivent aussitôt ; chaque entrée a un mouvement et un son qui lui correspond.
+
+- **Téléphone dans un motion = vrai téléphone 3D réaliste** (17 nov.) : épaisseur, tranche titane, boutons, verre, il tourne en 3D ; l'enregistrement d'écran suit ses mouvements. Modèle : `phone()` dans `pitup/tools/build_launch3.py`.
+- **Logo PitUp en 2D** (17 nov.) : à plat, couleur pleine #1f88c9 ou blanc, sans dégradé ni ombre portée.
+- **Articles détourés** (17 nov.) : produits sans fond, posés sur le fond blanc (ombre douce seulement). Outil : rembg (`isnet-general-use` ou `birefnet-general-lite`, une image par processus, sinon manque de mémoire).
 
 ## Son
 
