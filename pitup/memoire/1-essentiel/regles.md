@@ -43,7 +43,7 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - **Rythme d'un motion** (17 nov.) : 1 à 3 mots à l'écran à la fois ; ils disparaissent et les suivants arrivent aussitôt ; chaque entrée a un mouvement et un son qui lui correspond.
 
 - **Téléphone dans un motion = vrai téléphone 3D réaliste** (17 nov.) : épaisseur, tranche titane, boutons, verre, il tourne en 3D ; l'enregistrement d'écran suit ses mouvements. Modèle : `phone()` dans `pitup/tools/build_launch3.py`.
-- **Logo PitUp en 2D** (17 nov.) : à plat, couleur pleine #1f88c9 ou blanc, sans dégradé ni ombre portée.
+- **Logo PitUp et éléments graphiques en 2D** (17 nov.) : logo, cartes, pastilles à plat, couleur pleine #1f88c9 ou blanc, sans dégradé ni ombre portée. Seuls le téléphone et les produits ont du relief.
 - **Articles détourés** (17 nov.) : produits sans fond, posés sur le fond blanc (ombre douce seulement). Outil : rembg (`isnet-general-use` ou `birefnet-general-lite`, une image par processus, sinon manque de mémoire).
 
 ## Son
@@ -52,6 +52,7 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Deux voix seulement : la **sœur** (voix actuelle) et la « jumelle ». Jamais mélangées.
 - Recette de voix de référence : voir `2-dossiers/voix-off.md` (recette « Motion point », validée le 14 nov.).
 - Jamais d'étirement temporel de la voix.
+- **Musique avec paroles possible** (17 nov.) : basse sous la voix pendant le film (vers −17 dB), elle remonte quand le logo arrive.
 - **Jamais d'amapiano.** Musique actuelle : Tems « Me & U » (fichier du fondateur, hors dépôt).
 
 ## Structure d'une pub (14 nov.)

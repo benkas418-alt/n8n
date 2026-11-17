@@ -67,7 +67,9 @@ for i, (a, h, bg, how, ex) in enumerate(C):
 # ---------------------------------------------------------------- audio
 def load(f):
     return np.frombuffer(subprocess.run(["ffmpeg", "-v", "error", "-i", f, "-ac", "2", "-ar", str(sr), "-f", "f32le", "-"], capture_output=True).stdout, np.float32).reshape(-1, 2)
-mus = load(f"{SP}/audio/la_bed.wav")[:n].copy(); mus = np.pad(mus, ((0, n - len(mus)), (0, 0)))
+import os
+BED = os.environ.get("BED", f"{SP}/audio/la_bed.wav"); FULL = os.environ.get("FULL") == "1"
+mus = load(BED)[:n].copy(); mus = np.pad(mus, ((0, n - len(mus)), (0, 0)))
 vox = np.zeros_like(mus); spans = []
 for f, at in PL:
     v = load(f); e = np.abs(v).max(1); idx = np.where(e > 0.01)[0]; v = v[max(0, idx[0] - 800): idx[-1] + 2400]
@@ -78,7 +80,13 @@ for a, b in spans:   # music dips under the voice (-9 dB), comes back in the gap
     up = np.clip((t - (a - 0.3)) / 0.3, 0, 1); dn = np.clip(((b + 0.5) - t) / 0.5, 0, 1); w = np.maximum(w, np.minimum(up, dn))
 for (a0, b0), (a1, b1) in zip(spans, spans[1:]):
     if a1 - b0 < 1.2: w[int(b0 * sr):int(a1 * sr)] = 1
-mus *= (10 ** (-14 * w / 20))[:, None]
+if FULL:   # the song stays low (lyrics audible in the back) and rises to full on the logo sound
+    # -17 dB under the film; on the logo it jumps to -8 dB (the last line stays clear), then to -2 dB once the voice ends
+    vend = spans[-1][1]; up = np.clip((t - (I + 0.15)) / 0.45, 0, 1); up2 = np.clip((t - (vend + 0.05)) / 0.4, 0, 1)
+    g = -17.0 * (1 - up) + -8.0 * up; g = g * (1 - up2) + -2.0 * up2
+    mus *= (10 ** (g / 20))[:, None]
+else:
+    mus *= (10 ** (-14 * w / 20))[:, None]
 fx = np.zeros(n, np.float32); rng = np.random.default_rng(7)
 def add(at, s, g):
     i = int(at * sr); s = s[: max(0, n - i)]; fx[i:i + len(s)] += g * s
@@ -212,7 +220,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .ring{{position:absolute;left:540px;top:960px;width:0;height:0}} .ring i{{position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;background:#fff;transform:rotate(var(--a)) translateY(-470px)}}
 .fly{{position:absolute;left:540px;top:960px;width:0;height:0}} .fly img{{position:absolute;left:-170px;top:-170px;width:340px;height:340px;object-fit:contain;filter:drop-shadow(0 20px 20px rgba(13,40,70,.16));transform:translate(var(--x),var(--y)) rotate(var(--r))}}
 .orb{{position:absolute;left:540px;top:960px;width:0;height:0}} .orb img{{position:absolute;left:-80px;top:-80px;width:160px;height:160px;border-radius:50%;border:5px solid #fff;box-shadow:0 12px 30px rgba(0,0,0,.25);transform:rotate(var(--a)) translateY(-470px) rotate(calc(-1 * var(--a)))}}
-.gl{{order:2}} .glc{{padding:40px 60px;border-radius:44px;background:linear-gradient(145deg,#3aa2df,#1672ab);color:#fff;text-align:center;box-shadow:0 30px 70px rgba(22,114,171,.35)}} .glc b{{display:block;font-size:72px;letter-spacing:-.03em}} .glc span{{font-weight:600;font-size:48px;opacity:.92}}
+.gl{{order:2}} .glc{{padding:36px 64px;border-radius:28px;background:#1f88c9;color:#fff;text-align:center}} .glc b{{display:block;font-size:72px;letter-spacing:-.03em}} .glc span{{font-weight:600;font-size:48px;opacity:.92}}
 #end{{position:absolute;inset:0;opacity:0}}
 #cv{{position:absolute;left:{540 - 1040 * S_ * 1.6:.1f}px;top:{820 - 450 * S_ * 1.6:.1f}px;width:1500px;height:1900px;transform-origin:0 0;transform:scale({S_ * 1.6})}}
 #cv img,#cv .m{{position:absolute;left:0;top:0;width:1500px;height:1900px}}
