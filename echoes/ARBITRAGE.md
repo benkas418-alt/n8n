@@ -106,3 +106,22 @@ Ne pas lancer l'étape 3 avant que les étapes 1 et 2 aient été jouées par de
 | D3 | Une seule ville pour commencer. |
 | D4 | Ville : **South City** (fictive, celle d'ECHOES), avec ses quatre quartiers. Pas de ville réelle. |
 | D5 | Prochaine construction : le prototype « le monde continue sans moi » (`monde/`). |
+
+## Direction artistique (document reçu le 17 nov. 2026) — recommandation en attente
+
+Le document propose trois niveaux : AAA réaliste, ultra-réaliste, réalisme optimisé.
+
+**Recommandation : réalisme optimisé**, sur Unity URP. C'est la suite logique de D2.
+
+- Ultra-réaliste et AAA réaliste exigent capture faciale, scans de visages et grandes équipes. Ce n'est pas compatible avec Android en même temps.
+- Le budget graphique va aux **visages et aux intérieurs** : c'est là que l'enquête se joue (lecture des émotions, pièces qui racontent leurs occupants). Les rues et la foule restent sobres.
+- Expressions ambiguës : un menteur n'a pas d'animation « mensonge ». Règle reprise telle quelle.
+- URP seul, pas HDRP : le document le dit lui-même, les deux ne cohabitent pas dans un projet.
+
+Trois points du document contredisent des décisions déjà prises :
+1. Il redécrit quatre villes réelles (Lubumbashi, Paris, New York, Honolulu). D3 et D4 disent : une ville, South City, fictive. Les autres villes restent hors périmètre.
+2. Il dit « photoréaliste ». D2 dit « réaliste stylisé ».
+3. Plages : maillots révélateurs et nudité non explicite. À vérifier contre les règles de Google Play et de l'App Store avant de figer quoi que ce soit, car le jeu vise le mobile. Règle ECHOES maintenue : aucune image de corps sans raison d'enquête.
+
+Premier test visuel proposé (avant toute ville) : dans Unity URP, un intérieur (le cabinet), un visage en gros plan
+qui joue nervosité / tristesse / méfiance, éclairage jour puis nuit et pluie. Mesure sur un téléphone Android moyen réel.
