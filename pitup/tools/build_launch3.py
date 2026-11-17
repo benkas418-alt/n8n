@@ -48,7 +48,8 @@ C = [
  (E(wt(5, "depuis")), "depuis ton<br><a>téléphone.</a>", "l", "swap", "phone:phapp"),
  (E(wt(6, "Plus")), "+100", "b", "pop", "big"),
  (E(wt(6, "boutiques")), "boutiques<br>locales", "b", "type", "orbit"),
- (E(wt(6, "et")), "et le paiement", "l", "pop", ""),
+ (E(wt(6, "nous")), "nous ont déjà<br><a>rejoints.</a>", "l", "swap", ""),
+ (E(wt(6, "et")), "Et tu paies", "b", "pop", ""),
  (E(wt(6, "à")), "à la <a>livraison.</a>", "l", "cam", "glass"),
  # no voice here: the music carries the words (kicks), like the "congolais" motion
  *[(c, w_, b_, "pop", "") for c, (w_, b_) in zip(CAT, [("Habillement", "b"), ("Chaussures", "l"), ("Accessoires", "b")])],

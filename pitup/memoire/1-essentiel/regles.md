@@ -18,6 +18,7 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Écrire « **PitUp** ». Aucune phrase ne commence par « PitUp ». La marque dit « nous ».
 - Seul chiffre autorisé : « **+100 boutiques locales** ». Aucun prix. « Paiement à la livraison ».
 - Ne pas écrire « disponible dès maintenant ».
+- **Phrases complètes** (17 nov.) : chaque phrase dite a un sujet et un verbe, une seule idée ; un chiffre se dit avec ce qu'il veut dire (« +100 boutiques locales nous ont déjà rejoints »), jamais seul.
 - Site : **pi-tup.com**. Applis sur App Store et Google Play ; badges officiels vectoriels seulement.
 - Descriptions : simples, sans cliché, sans jeu de mots, sans question artificielle.
 
