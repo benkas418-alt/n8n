@@ -16,6 +16,7 @@ Le journal brut des retours est dans `apprentissages.md`.
 - De **vraies images de vraies personnes**, peu d'effets, rien qui rappelle l'IA.
 - L'**identité de Lubumbashi et du Congo** dans les détails : taxis jaunes, bâtiments, pagne, drapeau. Une image d'ailleurs le gêne tout de suite.
 - Du **renouveau** : il reconnaît un plan déjà publié et le refuse.
+- En motion design : du **rythme** qui garde les yeux sur l'écran (mots courts qui se succèdent, calés sur le son), dans la DA PitUp. Il envoie des références pour l'inspiration et attend des idées neuves, pas une copie (17 nov.).
 - Une accroche visuelle pensée pour retenir le spectateur (grand plan puis détail).
 - Des pubs qui touchent « aux racines de la société » et à ce que le Lushois vit, tout en restant promotionnelles.
 

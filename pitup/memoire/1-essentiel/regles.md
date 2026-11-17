@@ -38,6 +38,10 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Couleur de marque **#1f88c9**. Poppins pour pubs et carrousels, Lexend pour les vidéos produits.
 - Aucune image générée par IA qui « rappelle l'IA ».
 
+- **Motion design = notre DA** (17 nov.) : fonds clairs ou dégradé bleu PitUp, Poppins, #1f88c9. Pas de décor photo ou vidéo en fond (ciel, nuages). Les images ne font qu'illustrer, brièvement.
+- **Une référence est une inspiration** (17 nov.) : en tirer des idées de mouvement, de transition et de rythme ; ne jamais en copier le décor ni l'univers.
+- **Rythme d'un motion** (17 nov.) : 1 à 3 mots à l'écran à la fois ; ils disparaissent et les suivants arrivent aussitôt ; chaque entrée a un mouvement et un son qui lui correspond.
+
 ## Son
 
 - **Jamais ElevenLabs.**

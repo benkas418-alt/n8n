@@ -6,6 +6,8 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-17
 
+- **Références = inspiration, pas copie.** Film de lancement v1 (ciel, nuages, cartes en verre) : « Franchement c'est pas vraiment ça. » « Moi je demande, c'est du motion design… tu n'étais pas obligé de mettre un fond avec les nuages… On a notre DA déjà. » « Je vais t'envoyer des vidéos… comme bases d'inspiration pour que toi, en fonction de ce qu'on a déjà fait, qui a marché… sortir de nouvelles idées qui sortent des sentiers battus. » Retenu : une référence donne des idées de mouvement et de rythme ; le décor, les couleurs et la typo restent ceux de PitUp. Rangé : `regles.md`, `fondateur.md`, `2-dossiers/film-lancement.md`.
+- **Ce qui retient l'œil** (pourquoi le motion « congolais » marche) : « les effets de transition accordés avec le son et ce qui est montré… Un mot qui arrive, tu lis, ou bien deux, trois mots, tu lis, puis ça disparaît, un autre apparaît directement, il y a des mouvements, des animations, et les sons qui correspondent. » Retenu : 1 à 3 mots à l'écran à la fois, enchaînés sans temps mort, chaque entrée a son mouvement et son son. Rangé : `regles.md`.
 - **Texte et son.** Sur le motion « congolais » : « en une fois quand le son est celui d'une caméra qui prend en photo, lettre après lettre quand c'est un bruit de saisie sur clavier, ainsi de suite ». Retenu : la façon dont un texte apparaît suit la nature du son qui l'accompagne. Rangé : `regles.md`, `2-dossiers/motion-congolais.md`.
 - **Fin de vidéo.** Il veut « Disponible sur » au-dessus des badges App Store et Google Play. Rangé : `regles.md`.
 

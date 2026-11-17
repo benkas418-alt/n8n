@@ -39,4 +39,6 @@ téléphone 3D avec l'enregistrement de la recherche + 2 fenêtres produits ; ma
 ## État
 
 - v1 livrée le 17 nov. (`livrables/PitUp-Film-lancement-v1.mp4`, 35,4 s, −14,3 LUFS, crête −1,2 dB). Retour du fondateur attendu.
-- Ensuite : la version de la référence B.
+- **v1 refusée** (17 nov.) : « c'est pas vraiment ça » : fond de nuages hors DA, trop de texte à l'écran, transitions pas calées sur le son. v2 : typographie cinétique dans la DA (comme le motion « congolais »), idées de A (nom tapé, bulle, mot surligné, mots qui changent) en mouvements, pas en décor.
+- **v2 livrée** (17 nov.) : `pitup/tools/build_launch2.py`, projet `hf/videos/pitup-launch2`. 35 morceaux de 1 à 3 mots sur fonds clair / bleu, entrée selon le son (pop = grosse caisse, cam = déclic + flash, type = une touche par lettre, swap = glissé + souffle, mark = surlignage). Illustrations brèves : icône, téléphones avec vrais écrans, photos produits, logos de boutiques en orbite, coche, cercle de points. Sans voix entre 24,8 et 27,1 s : Habillement / Chaussures / Téléphones / Électronique sur les temps. Fin : animation du logo du motion « congolais ». Musique −14 dB sous la voix (à −9 dB, la retranscription entendait mal deux phrases). −14,4 LUFS, crête −1,7 dB.
+- Ensuite : la version de la référence B, dans le même esprit (DA PitUp, idées de mouvement seulement).

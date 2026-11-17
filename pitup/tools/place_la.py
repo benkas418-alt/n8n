@@ -3,7 +3,7 @@
 import json, numpy as np, soundfile as sf
 SP = "/tmp/claude-0/-home-user-n8n/3a1d2361-6d15-5131-aa88-7efcec5ec51a/scratchpad"
 P = json.load(open(f"{SP}/audio/la/pick.json"))
-AT = [0.45, 5.55, 8.55, 10.75, 13.9, 16.8, 21.4, 27.2, 30.6]
+AT = [0.45, 5.55, 8.38, 10.75, 13.9, 16.8, 21.4, 27.2, 30.6]
 places, lines, words = [], [], []
 for i in range(9):
     p = P[str(i)]; a, sr = sf.read(p["file"], dtype="float32"); a = a if a.ndim == 1 else a.mean(1)
