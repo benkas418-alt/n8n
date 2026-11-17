@@ -1,0 +1,898 @@
+<title>Behind the Truth — South City</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : la carte de la ville à gauche, la table de travail à droite ; une colonne sur téléphone.
+   Look unique et sombre, partagé avec le prototype de l'Écho. */
+:root {
+  color-scheme: dark;
+  --night: #15171a; --slab: #1d2024; --slab-2: #262a2f; --rule: #353a41;
+  --chalk: #e6e2d8; --dust: #9a9fa6; --ochre: #c9964a; --ochre-ink: #1a1408;
+  --paper: #ddd6c4; --paper-ink: #24211b; --alert: #d26a5a; --ok: #8db38a;
+  --display: "Newsreader", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--night); color: var(--chalk); font-family: var(--body); font-size: 14.5px; line-height: 1.5; margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--ochre); outline-offset: 2px; }
+.app { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; display: flex; flex-direction: column; gap: 12px; }
+header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.brand { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: .06em; }
+.brand small { font-family: var(--mono); font-size: 11px; color: var(--dust); font-weight: 400; margin-left: 6px; letter-spacing: .04em; }
+.clock { font-family: var(--mono); color: var(--ochre); font-size: 15px; font-variant-numeric: tabular-nums; }
+.money { font-family: var(--mono); font-size: 13px; color: var(--dust); }
+.ctrl { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+.btn { background: var(--slab-2); border: 1px solid var(--rule); padding: 6px 11px; border-radius: 2px; font-size: 13.5px; }
+.btn:hover:not(:disabled) { border-color: var(--dust); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.on, .btn.primary { background: var(--ochre); color: var(--ochre-ink); border-color: var(--ochre); }
+.main { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.mapwrap { background: #101214; border: 1px solid var(--rule); position: relative; }
+#map { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; max-width: 100%; touch-action: manipulation; }
+.maphud { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--rule); font-size: 13px; flex-wrap: wrap; }
+.maphud .muted { font-family: var(--mono); font-size: 12px; }
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel { background: var(--slab); border: 1px solid var(--rule); padding: 12px; min-width: 0; }
+h3 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--dust); margin: 0 0 8px; font-weight: 500; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0 0 6px; }
+p { margin: 0; }
+.muted { color: var(--dust); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.people { display: flex; flex-direction: column; gap: 6px; }
+.person { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--rule); padding-top: 6px; flex-wrap: wrap; }
+.person:first-child { border-top: 0; padding-top: 0; }
+.person .n { font-family: var(--display); font-size: 16px; }
+.person .r { font-size: 12px; color: var(--dust); display: block; }
+.tail { font-family: var(--mono); font-size: 12.5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+.meter { height: 5px; background: var(--slab-2); position: relative; margin-top: 6px; }
+.meter i { position: absolute; inset: 0 auto 0 0; background: var(--ochre); }
+.case { border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 8px; }
+.case:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.case .t { font-family: var(--display); font-size: 17px; }
+.tag { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; border: 1px solid var(--rule); padding: 1px 6px; color: var(--dust); }
+.notebook { background: var(--paper); color: var(--paper-ink); padding: 12px 14px; max-height: 340px; overflow-y: auto; font-family: var(--display); font-size: 15.5px; }
+.notebook .e { border-top: 1px dashed #b9b09b; padding-top: 6px; margin-top: 6px; }
+.notebook .e:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.notebook .m { font-family: var(--mono); font-size: 10.5px; color: #6c6455; text-transform: uppercase; letter-spacing: .04em; }
+.notebook .truth { font-family: var(--mono); font-size: 10.5px; color: #8a3b2e; }
+.msgs { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+.msg { font-size: 13.5px; border-left: 2px solid var(--rule); padding-left: 8px; }
+.msg.new { border-left-color: var(--ochre); }
+.msg .m { font-family: var(--mono); font-size: 11px; color: var(--dust); }
+.author { border-color: #6b4f2a; }
+.author .log { font-family: var(--mono); font-size: 11.5px; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+.modal-back { position: fixed; inset: 0; background: rgba(8, 9, 10, .72); z-index: 40; display: flex; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal { background: var(--slab); border: 1px solid var(--rule); max-width: 560px; width: 100%; max-height: 100%; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.modal .quote { font-family: var(--display); font-size: 18px; line-height: 1.5; }
+.modal .kind { font-family: var(--mono); font-size: 11px; color: var(--dust); }
+.choices { display: flex; flex-direction: column; gap: 6px; }
+.choices button { text-align: left; background: var(--slab-2); border: 1px solid var(--rule); padding: 9px 12px; }
+.choices button:hover:not(:disabled) { border-color: var(--ochre); }
+.choices button:disabled { opacity: .45; cursor: not-allowed; }
+.opts label { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; }
+.opts input { accent-color: var(--ochre); margin-top: 4px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--paper); color: var(--paper-ink); padding: 9px 14px; font-size: 14px; max-width: min(520px, calc(100% - 32px)); z-index: 60; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand">Behind the Truth<small>South City · prototype « le monde continue »</small></div>
+    <div class="clock" id="clock">lun. 1 · 08:00</div>
+    <div class="money" id="money">300 cr.</div>
+    <div class="ctrl" role="group" aria-label="Vitesse du temps">
+      <button class="btn" data-speed="0" title="Pause">❚❚</button>
+      <button class="btn on" data-speed="1" title="Normal">▶</button>
+      <button class="btn" data-speed="4" title="Rapide">▶▶</button>
+      <button class="btn" id="btn-save">Sauvegarder</button>
+      <button class="btn" id="btn-load">Charger</button>
+      <button class="btn" id="btn-author" aria-pressed="false" title="Montre la vérité du monde, pour tester">Vue auteur</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="mapwrap">
+      <canvas id="map" width="900" height="600" aria-label="Carte de South City. Touchez pour marcher, touchez une personne pour la sélectionner."></canvas>
+      <div class="maphud">
+        <span id="here">Le cabinet</span>
+        <span class="muted" id="crowd"></span>
+      </div>
+    </div>
+    <div class="side">
+      <div class="panel" id="p-near"><h3>Autour de vous</h3><div class="people" id="near"></div></div>
+      <div class="panel"><h3>Se déplacer</h3>
+        <p class="muted" style="font-size:13px;margin-bottom:8px">Touchez la carte pour marcher. Le taxi est rapide, mais on ne file personne en taxi.</p>
+        <div class="row"><select class="btn" id="taxi-dest" aria-label="Destination du taxi"></select><button class="btn" id="taxi-go">Taxi (15 cr.)</button><button class="btn" id="vac-go" hidden>Partir en vacances…</button></div>
+      </div>
+      <div class="panel" id="p-tail" hidden><h3>Filature</h3><div id="tail"></div></div>
+      <div class="panel"><h3>Affaires</h3><div id="cases"></div></div>
+      <div class="panel"><h3>Messages</h3><div class="msgs" id="msgs"></div></div>
+      <div class="panel" style="padding:0"><div class="notebook" id="notebook"></div></div>
+      <div class="panel author" id="p-author" hidden>
+        <h3>Vue auteur · vérité objective</h3>
+        <div id="facts" style="font-size:13px;margin-bottom:8px"></div>
+        <h3>Journal du monde</h3>
+        <div class="log" id="wlog"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-back" id="modal" hidden><div class="modal" id="modal-body" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<!-- ======================= DONNÉES DU MONDE (contenu narratif, séparé du moteur) ======================= -->
+<script>
+window.WORLD = {
+  dataVersion: 'southcity-0.1',
+  districts: [
+    { id: 'troisponts', name: 'Trois-Ponts', rect: [0, 0, 250, 600], need: 'Appartenance', fill: '#24221d' },
+    { id: 'bellevue', name: 'Bellevue', rect: [290, 0, 610, 190], need: 'Reconnaissance', fill: '#1f2420' },
+    { id: 'socle', name: 'Le Socle', rect: [290, 190, 610, 210], need: 'Contrôle', fill: '#1e2126' },
+    { id: 'vermeil', name: 'Vermeil', rect: [290, 400, 610, 200], need: 'Liberté', fill: '#261e20' }
+  ],
+  bridges: [120, 300, 480],
+  // Densité de foule (0 à 1) par quartier et par heure : elle protège ou trahit une filature.
+  crowd: {
+    bellevue: () => 0.1,
+    troisponts: h => (h >= 7 && h < 20 ? 0.8 : 0.3),
+    vermeil: h => (h >= 21 || h < 5 ? 0.9 : 0.3),
+    socle: h => (h >= 8 && h < 19 ? 0.85 : 0.05)
+  },
+  places: {
+    cabinet: { name: 'Le cabinet', x: 600, y: 396 },
+    m_marchetti: { name: 'Maison Marchetti', x: 420, y: 80 },
+    m_bensaid: { name: 'Maison Bensaïd', x: 640, y: 60 },
+    m_diallo: { name: 'Maison Diallo', x: 790, y: 110 },
+    etude: { name: 'Étude Marchetti (notaire)', x: 440, y: 270 },
+    socotra: { name: 'Groupe Socotra', x: 720, y: 250 },
+    tribunal: { name: 'Tribunal', x: 840, y: 330 },
+    chu: { name: 'CHU', x: 850, y: 220 },
+    brasserie: { name: 'Brasserie du Socle', x: 560, y: 320 },
+    trefle: { name: 'Le Trèfle (salle de jeu)', x: 470, y: 510 },
+    phare: { name: 'Bar Le Phare', x: 700, y: 520 },
+    hotel: { name: 'Hôtel Lune', x: 830, y: 470 },
+    studio_sami: { name: 'Studio de Sami', x: 360, y: 570 },
+    studio_ben: { name: 'Studio de Ben', x: 380, y: 450 },
+    marche: { name: 'Marché de Trois-Ponts', x: 120, y: 310 },
+    eglise: { name: 'Église de Trois-Ponts', x: 130, y: 130 },
+    m_rose: { name: 'Chez Mama Rose', x: 70, y: 440 },
+    m_leonie: { name: 'Chez Léonie', x: 190, y: 520 },
+    m_bastien: { name: 'Chez Bastien', x: 60, y: 210 },
+    m_ima: { name: 'Chez Ima', x: 200, y: 570 },
+    m_toussaint: { name: 'Chez Toussaint', x: 760, y: 580 }
+  },
+  // Horaires : [heure de début, lieu]. wk = lundi-vendredi, sat, sun. « home » = domicile actuel.
+  npcs: {
+    ben: { name: 'Ben Adjei', short: 'Ben', role: 'votre partenaire', need: 'Appartenir', home: 'studio_ben',
+      schedules: { base: { wk: [[0, 'home'], [8, 'cabinet'], [19, 'phare'], [22, 'home']], sat: [[0, 'home'], [11, 'phare'], [15, 'home']], sun: [[0, 'home']] } } },
+    ima: { name: 'Ima Doucet', short: 'Ima', role: 'stagiaire, 22 ans', need: 'Être vue', home: 'm_ima',
+      schedules: { base: { wk: [[0, 'home'], [8.5, 'cabinet'], [18, 'home']], sat: [[0, 'home'], [9, 'marche'], [12, 'home']], sun: [[0, 'home'], [9, 'eglise'], [12.5, 'home']] } } },
+    odile: { name: 'Odile Marchetti', short: 'Odile', role: 'épouse du notaire, 52 ans', need: 'Contrôler', home: 'm_marchetti',
+      schedules: { base: { wk: [[0, 'home'], [15, 'm_bensaid'], [17, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } } },
+    raphael: { name: 'Raphaël Marchetti', short: 'Raphaël', role: 'notaire, 55 ans', need: 'Être vu', home: 'm_marchetti',
+      schedules: {
+        base: { wk: [[0, 'home'], [8, 'etude'], [12.5, 'brasserie'], [14, 'etude'], [19, 'home']], sat: [[0, 'home'], [15, 'trefle'], [18.5, 'home']], sun: [[0, 'home']] },
+        suspendu: { wk: [[0, 'home'], [10, 'phare'], [13, 'home'], [20, 'trefle'], [23.5, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } },
+      specials: [{ tag: 'jeu', optional: true, dows: [1, 3], blocks: [[19, 23.5, 'trefle']] }] },
+    sami: { name: 'Sami Okafor', short: 'Sami', role: 'recouvreur, 34 ans', need: 'Se libérer', home: 'studio_sami',
+      schedules: { base: { wk: [[0, 'trefle'], [2, 'home'], [12, 'phare'], [19.5, 'trefle']], sat: [[0, 'trefle'], [2, 'home'], [14, 'trefle']], sun: [[0, 'trefle'], [2, 'home'], [18, 'phare']] } } },
+    bastien: { name: 'Bastien Nkulu', short: 'Bastien', role: 'clerc de notaire, 27 ans', need: 'Appartenir', home: 'm_bastien',
+      schedules: {
+        base: { wk: [[0, 'home'], [7.5, 'etude'], [18, 'marche'], [19.5, 'home']], sat: [[0, 'home'], [9, 'marche'], [13, 'home']], sun: [[0, 'home'], [8.5, 'eglise'], [12.5, 'home']] },
+        chomage: { wk: [[0, 'home'], [10, 'marche'], [13, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } } },
+    rose: { name: 'Mama Rose', short: 'Rose', role: 'vendeuse au marché, 60 ans', need: 'Appartenir', home: 'm_rose',
+      schedules: { base: { wk: [[0, 'home'], [6, 'marche'], [18, 'home']], sat: [[0, 'home'], [6, 'marche'], [18, 'home']], sun: [[0, 'home'], [8, 'eglise'], [12.5, 'home']] } } },
+    joel: { name: 'Joël', short: 'Joël', role: 'neveu de Rose, 22 ans', need: 'Être vu', home: 'm_rose',
+      schedules: {
+        base: { wk: [[0, 'home'], [7, 'marche'], [15, 'home'], [17, 'eglise'], [19, 'home']], sat: [[0, 'home'], [7, 'marche'], [15, 'home']], sun: [[0, 'home'], [8.5, 'eglise'], [13, 'home']] },
+        exil: { wk: [[0, 'home'], [13, 'phare'], [23, 'home']], sat: [[0, 'home'], [13, 'phare'], [23, 'home']], sun: [[0, 'home'], [16, 'phare'], [22, 'home']] } } },
+    leonie: { name: 'Léonie Mbuyi', short: 'Léonie', role: 'trésorière de l’église, 41 ans', need: 'Être aimée', home: 'm_leonie',
+      schedules: { base: { wk: [[0, 'home'], [7, 'chu'], [15, 'eglise'], [17.5, 'chu'], [20, 'home']], sat: [[0, 'home'], [10, 'chu'], [16, 'home']], sun: [[0, 'home'], [8, 'eglise'], [13, 'chu'], [17, 'home']] } } },
+    ezechiel: { name: 'Pasteur Ezéchiel', short: 'Ezéchiel', role: 'pasteur, 63 ans', need: 'Contrôler', home: 'eglise',
+      schedules: { base: { wk: [[0, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } } },
+    hugo: { name: 'Hugo Bensaïd', short: 'Hugo', role: 'ingénieur, 39 ans', need: 'Être vu', home: 'm_bensaid',
+      schedules: { base: { wk: [[0, 'home'], [8, 'socotra'], [18, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } },
+      specials: [{ tag: 'dejeuner', dows: [6], blocks: [[12, 15, 'm_diallo']] }] },
+    nadia: { name: 'Nadia Bensaïd', short: 'Nadia', role: 'greffière, 37 ans', need: 'Appartenir', home: 'm_bensaid',
+      schedules: { base: { wk: [[0, 'home'], [8.5, 'tribunal'], [16.5, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } },
+      specials: [{ tag: 'dejeuner', dows: [6], blocks: [[12, 15, 'm_diallo']] }] },
+    aicha: { name: 'Aïcha Diallo', short: 'Aïcha', role: 'traductrice, 38 ans', need: 'Être aimée', home: 'm_diallo',
+      schedules: { base: { wk: [[0, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } } },
+    patrice: { name: 'Patrice Diallo', short: 'Patrice', role: 'cadre chez Socotra, 41 ans', need: 'Contrôler', home: 'm_diallo',
+      schedules: { base: { wk: [[0, 'home'], [8, 'socotra'], [19, 'home']], sat: [[0, 'home']], sun: [[0, 'home']] } } },
+    toussaint: { name: 'Toussaint Kabeya', short: 'Toussaint', role: 'patron du Phare, 50 ans', need: 'Se libérer', home: 'm_toussaint',
+      schedules: { base: { wk: [[0, 'phare'], [3, 'home'], [16, 'phare']], sat: [[0, 'phare'], [3, 'home'], [16, 'phare']], sun: [[0, 'phare'], [3, 'home'], [18, 'phare']] } } }
+  },
+  // Relations de départ : confiance, affection, tension (−100..100) et visibilité.
+  relations: [
+    ['odile', 'raphael', 20, 40, 45, 'publique'], ['raphael', 'odile', 30, 35, 30, 'publique'],
+    ['raphael', 'sami', -20, 0, 60, 'secrète'], ['sami', 'raphael', -10, 0, 40, 'secrète'],
+    ['bastien', 'raphael', 60, 30, 10, 'publique'], ['rose', 'joel', 70, 90, 10, 'publique'],
+    ['ezechiel', 'joel', 30, 20, 25, 'publique'], ['ezechiel', 'leonie', 80, 50, 0, 'publique'],
+    ['hugo', 'patrice', 50, 40, 10, 'publique'], ['nadia', 'aicha', 70, 75, 5, 'publique'], ['aicha', 'nadia', 70, 75, 5, 'publique'],
+    ['odile', 'nadia', 50, 40, 0, 'publique']
+  ],
+  // Vérité objective. Un fait existe à partir du moment où un fil le pose.
+  facts: {
+    F1: 'Raphaël joue au Trèfle le mardi et le jeudi soir, depuis l’été.',
+    F2: 'Raphaël doit de l’argent à Sami Okafor, et la dette grossit.',
+    F3: 'Raphaël a puisé dans le compte séquestre de l’étude pour payer Sami.',
+    F4: 'Raphaël n’a aucune liaison.',
+    F5: 'Léonie a pris la caisse de l’église pour payer l’hôpital de son fils.',
+    F6: 'Joël n’a pas touché à la caisse.',
+    F7: 'Patrice a obtenu le poste que visait Hugo.',
+    F8: 'Sami est venu à l’étude réclamer son argent en plein jour.'
+  },
+  cases: {
+    marchetti: { title: 'Les mardis de Raphaël', client: 'Odile Marchetti', klass: 'principale' },
+    eglise: { title: 'La caisse de l’église', client: 'personne (vous l’avez trouvée)', klass: 'spontanée' }
+  },
+  // Fils narratifs : ils avancent seuls, que le joueur soit là ou non.
+  threads: [
+    { id: 'init', day: 1, hour: 0, effects: [{ fact: 'F1' }, { fact: 'F2' }, { fact: 'F4' }, { fact: 'F5' }, { fact: 'F6' }, { knows: 'sami', f: 'F2' }, { knows: 'leonie', f: 'F5' }, { knows: 'toussaint', f: 'F1' }] },
+    { id: 'promotion', day: 4, hour: 11, effects: [{ fact: 'F7' }, { rel: ['hugo', 'patrice'], d: [-35, -20, 40] }, { log: 'Patrice Diallo obtient le poste de directeur technique. Hugo l’apprend à la machine à café.' }] },
+    { id: 'sami_etude', day: 5, hour: 11, effects: [{ fact: 'F8' }, { knows: 'bastien', f: 'F8' }, { rel: ['raphael', 'sami'], d: [-10, 0, 20] }, { log: 'Sami se présente à l’étude à 11 h et réclame son argent devant le clerc.' }] },
+    { id: 'dejeuner_annule', day: 7, hour: 9, effects: [{ clearSpecial: ['hugo', 'dejeuner'] }, { clearSpecial: ['nadia', 'dejeuner'] }, { rel: ['nadia', 'aicha'], d: [-10, -20, 20] }, { rel: ['aicha', 'nadia'], d: [-15, -15, 25] }, { log: 'Les Bensaïd ne viennent pas au déjeuner du dimanche chez les Diallo. Personne ne téléphone.' }] },
+    { id: 'sequestre', day: 7, hour: 16, cond: [{ notFlag: 'rep_jeu' }], effects: [{ fact: 'F3' }, { log: 'Raphaël fait un virement depuis le compte séquestre de l’étude. 6 000 crédits.' }] },
+    { id: 'sequestre_vu', day: 8, hour: 10, cond: [{ fact: 'F3' }], effects: [{ knows: 'bastien', f: 'F3' }, { log: 'Bastien remarque le virement. Il ne dit rien : l’étude, c’est sa place.' }] },
+    { id: 'confrontation', day: 9, hour: 20, cond: [{ notFlag: 'rep_jeu' }, { notFlag: 'rep_liaison' }], effects: [
+      { home: ['raphael', 'hotel'] }, { rel: ['odile', 'raphael'], d: [-50, -30, 50] }, { flag: 'raphael_parti' },
+      { log: 'Odile attend Raphaël dans l’entrée. Elle croit à une maîtresse. Il ne dément pas. Il dort à l’Hôtel Lune.' },
+      { msg: 'telephone', cond: [{ caseStatus: ['marchetti', 'ouvert'] }], text: 'Odile Marchetti : « Il est parti. Il n’a même pas nié. Je ne sais plus ce que je vous paie à chercher. »' },
+      { msg: 'rumeur', district: 'bellevue', text: 'Gardien de Bellevue : « Le notaire a passé la nuit ailleurs. Madame a laissé la lumière allumée jusqu’à l’aube. »' }] },
+    { id: 'eglise_chasse', day: 11, hour: 18, cond: [{ notFlag: 'eglise_resolu' }], effects: [
+      { home: ['joel', 'studio_sami'] }, { sched: ['joel', 'exil'] }, { rel: ['rose', 'ezechiel'], d: [-40, -20, 40] },
+      { log: 'Le conseil de l’église demande à Joël de ne plus revenir. Il part dormir chez un ami à Vermeil.' },
+      { msg: 'rumeur', district: 'troisponts', text: 'Au marché : « Le petit Joël est parti à Vermeil. Mama Rose ne parle plus au pasteur. »' }] },
+    { id: 'decouverte', day: 13, hour: 10, cond: [{ fact: 'F3' }, { notFlag: 'signale' }], effects: [
+      { sched: ['bastien', 'chomage'] }, { rel: ['bastien', 'raphael'], d: [-70, -40, 70] },
+      { log: 'Un client réclame son séquestre. Le trou est découvert. Raphaël accuse une erreur du clerc. Bastien est licencié.' },
+      { msg: 'journal', text: 'L’Écho du Socle : « Étude Marchetti : un clerc licencié après une irrégularité comptable. »' }] },
+    { id: 'suspension', day: 13, hour: 10, cond: [{ flag: 'signale' }], effects: [
+      { sched: ['raphael', 'suspendu'] }, { rel: ['bastien', 'raphael'], d: [-30, -20, 30] },
+      { log: 'La chambre des notaires suspend Raphaël Marchetti. Bastien garde sa place et assure l’intérim des dossiers.' },
+      { msg: 'journal', text: 'L’Écho du Socle : « Le notaire Marchetti suspendu à titre conservatoire. »' }] }
+  ],
+  // Scènes : moments où des personnes se retrouvent. Observables si le joueur est là.
+  scenes: [
+    { id: 'enveloppe', day: 4, from: 21, to: 21.7, loc: 'trefle', who: ['raphael', 'sami'], fact: 'F2', cond: [{ notWary: 'raphael' }],
+      text: 'Au fond du Trèfle, Raphaël Marchetti tend une enveloppe épaisse à un homme jeune. L’homme compte sans se cacher, puis secoue la tête.' },
+    { id: 'visite', day: 5, from: 11, to: 11.5, loc: 'etude', who: ['sami', 'raphael', 'bastien'], fact: 'F8',
+      text: 'Devant l’étude, le même homme jeune parle fort. Le notaire le fait entrer vite. Le clerc baisse les yeux.' },
+    { id: 'dispute', day: 7, from: 11.75, to: 12.5, loc: 'eglise', who: ['ezechiel', 'joel', 'rose', 'leonie'], fact: null, opensCase: 'eglise',
+      text: 'Sur le parvis, le pasteur annonce que la caisse des offrandes a disparu. Des voix nomment Joël. Mama Rose crie. Léonie, la trésorière, ne dit rien et regarde ses mains.' }
+  ],
+  // Observations simples : voir une personne à un endroit.
+  observables: [
+    { npc: 'raphael', loc: 'trefle', fact: 'F1', text: 'Raphaël Marchetti entre au Trèfle, la salle de jeu de Vermeil, et y reste.' },
+    { npc: 'raphael', loc: 'hotel', fact: null, text: 'Raphaël Marchetti dort à l’Hôtel Lune.' },
+    { npc: 'joel', loc: 'phare', fact: null, text: 'Joël passe ses soirées au Phare, à Vermeil, loin de Trois-Ponts.' },
+    { npc: 'bastien', loc: 'marche', fact: null, text: 'Bastien Nkulu traîne au marché en semaine, à l’heure où il devrait être à l’étude.', cond: [{ flag: 'never' }] }
+  ],
+  // Événements qui demandent une décision du joueur.
+  events: [
+    { id: 'odile1', day: 1, from: 10, to: 11.5, loc: 'cabinet', klass: 'principale', title: 'Une cliente',
+      text: 'Odile Marchetti, tailleur gris, sac serré contre elle. « Mon mari rentre tard le mardi et le jeudi. Il dit qu’il travaille. Je veux savoir avec qui. » Elle pose 200 crédits sur le bureau.',
+      choices: [
+        { label: 'Accepter l’affaire (+200 cr.)', effects: [{ caseStatus: ['marchetti', 'ouvert'] }, { money: 200 }, { note: 'Affaire acceptée : surveiller Raphaël Marchetti, notaire, le mardi et le jeudi soir.' }] },
+        { label: 'Refuser', effects: [{ caseStatus: ['marchetti', 'refusé'] }, { note: 'Vous avez refusé l’affaire Marchetti. Elle continuera sans vous.' }] }],
+      absent: [{ flag: 'odile_revient' }, { msg: 'cabinet', text: 'Note d’Ima : « Une dame de Bellevue est passée vers 10 h. Elle ne voulait pas laisser son nom. Elle repasse demain à la même heure. »' }] },
+    { id: 'odile2', requires: 'odile_revient', day: 2, from: 10, to: 11.5, loc: 'cabinet', klass: 'principale', title: 'La cliente revient',
+      text: 'La dame de Bellevue est revenue. Odile Marchetti. « Mon mari rentre tard le mardi et le jeudi. Je veux savoir avec qui. »',
+      choices: [
+        { label: 'Accepter l’affaire (+200 cr.)', effects: [{ caseStatus: ['marchetti', 'ouvert'] }, { money: 200 }, { note: 'Affaire acceptée : surveiller Raphaël Marchetti, le mardi et le jeudi soir.' }] },
+        { label: 'Refuser', effects: [{ caseStatus: ['marchetti', 'refusé'] }] }],
+      absent: [{ caseStatus: ['marchetti', 'perdu'] }, { msg: 'cabinet', text: 'Note d’Ima : « La dame de Bellevue n’est pas revenue. Elle a dû aller voir quelqu’un d’autre. »' }] }
+  ],
+  // Dialogues. Premier cas qui correspond = réponse. kind : vérité, mensonge, incomplet, croit faux.
+  dialogue: {
+    odile: [
+      { topic: 'raphael', label: 'Votre mari', kind: 'croit faux', yields: 'odile_croit', text: '« Il rentre à minuit. Il sent le tabac froid et un parfum que je ne connais pas. Je ne suis pas idiote. »' }],
+    raphael: [
+      { topic: 'soirees', label: 'Vos mardis soir', kind: 'mensonge', text: '« Je travaille tard sur des successions. C’est un métier de patience, vous savez. »' },
+      { topic: 'sami', label: 'Sami Okafor', when: [{ knows: 'F2' }], kind: 'mensonge', text: '« Je ne connais pas ce monsieur. » Il regarde la porte.' }],
+    sami: [
+      { topic: 'raphael', label: 'Le notaire', when: [{ knows: 'F1' }], kind: 'incomplet', yields: 'F2', text: '« Le notaire ? Il me doit de l’argent. Comme la moitié de Vermeil. Lui, il paie en retard, mais il paie. »' },
+      { topic: 'raphael', label: 'Le notaire', kind: 'mensonge', text: '« Quel notaire ? Je ne fréquente pas ces gens-là. »' }],
+    toussaint: [
+      { topic: 'raphael', label: 'Le notaire de Bellevue', when: [{ money: 50 }], cost: 50, kind: 'vérité', yields: 'F1', prov: 'grise', text: '« Cinquante, et je n’ai rien dit. Le notaire ? Mardi et jeudi au Trèfle, depuis l’été. Il perd. Il perd beaucoup. »' },
+      { topic: 'raphael', label: 'Le notaire de Bellevue', kind: 'mensonge', text: '« Ici on sert à boire, on ne raconte pas. »' }],
+    bastien: [
+      { topic: 'comptes', label: 'Les comptes de l’étude', when: [{ knows: 'F8' }, { fact: 'F3' }], kind: 'vérité', yields: 'F3', text: '« Vous l’avez vu venir, l’autre, hein. Il y a eu un virement depuis le séquestre. Six mille. Je n’ai rien dit. Si l’étude ferme, je n’ai plus rien. »' },
+      { topic: 'comptes', label: 'Les comptes de l’étude', when: [{ knows: 'F2' }], kind: 'mensonge', text: '« Les comptes sont en ordre. Maître Marchetti est quelqu’un de très rigoureux. »' },
+      { topic: 'raphael', label: 'Votre patron', kind: 'incomplet', text: '« Il est fatigué ces temps-ci. Il oublie des rendez-vous. Ce n’est pas mon rôle d’en parler. »' }],
+    rose: [
+      { topic: 'joel', label: 'Joël', when: [{ flag: 'case_eglise' }], kind: 'vérité', effects: [{ flag: 'vouch_rose' }], text: '« Joël n’a rien pris. Ici personne ne vous parlera, vous êtes un étranger. Allez voir Léonie. Dites que vous venez de ma part. »' },
+      { topic: 'joel', label: 'Joël', kind: 'vérité', text: '« Mon neveu. Il chante à la chorale, il porte mes caisses. Un bon garçon. »' }],
+    leonie: [
+      { topic: 'caisse', label: 'La caisse de l’église', when: [{ flag: 'case_eglise' }, { flag: 'vouch_rose' }], kind: 'vérité', yields: 'F5', text: '« Rose vous envoie… Bon. C’est moi. Mon fils est au CHU depuis trois semaines. Je comptais la remettre avant Pâques. Joël n’a rien fait. »' },
+      { topic: 'caisse', label: 'La caisse de l’église', when: [{ flag: 'case_eglise' }], kind: 'mensonge', text: '« Je ne vous connais pas. Je n’ai rien à dire à quelqu’un qui n’est pas d’ici. »' }],
+    ezechiel: [
+      { topic: 'caisse', label: 'La caisse', when: [{ flag: 'case_eglise' }], kind: 'croit faux', text: '« C’est le petit Joël. Tout le monde le dit. Il traîne à Vermeil le soir, ça finit toujours comme ça. »' }],
+    joel: [
+      { topic: 'caisse', label: 'La caisse', when: [{ flag: 'case_eglise' }], kind: 'vérité', yields: 'F6', prov_rel: 'déclaré', text: '« Je n’ai rien pris ! Je le jure sur ma tante. Pourquoi c’est toujours moi ? »' }],
+    hugo: [
+      { topic: 'diallo', label: 'Les Diallo', when: [{ fact: 'F7' }], kind: 'incomplet', text: '« Patrice ? On ne se voit plus beaucoup. Il est très occupé, maintenant. »' },
+      { topic: 'diallo', label: 'Les Diallo', kind: 'vérité', text: '« Nos amis de toujours. On déjeune chez eux tous les dimanches. »' }],
+    nadia: [
+      { topic: 'aicha', label: 'Aïcha', when: [{ fact: 'F7' }], kind: 'incomplet', text: '« Je l’aime beaucoup. C’est compliqué en ce moment, avec les maris. »' }],
+    ben: [
+      { topic: 'conseil', label: 'Un conseil', when: [{ caseStatus: ['marchetti', 'ouvert'] }], kind: 'vérité', text: '« Mardi et jeudi soir, on le suit depuis l’étude. Vermeil la nuit, c’est plein : on peut rester loin sans le perdre. Bellevue, c’est vide : là, il te verra. »' },
+      { topic: 'conseil', label: 'Un conseil', kind: 'vérité', text: '« Les affaires ne viennent pas toujours au cabinet. Promène-toi. Écoute. »' }],
+    ima: [
+      { topic: 'nouvelles', label: 'Des nouvelles ?', kind: 'vérité', text: '« Rien de spécial. Ah si : au marché, on dit que la caisse de l’église sera comptée dimanche. »' }]
+  },
+  reports: {
+    marchetti: { where: 'cabinet', options: [
+      { id: 'liaison', label: 'Il a une liaison.', effects: [{ flag: 'rep_liaison' }, { home: ['raphael', 'hotel'] }, { rel: ['odile', 'raphael'], d: [-60, -40, 60] }, { money: 100 }, { log: 'Odile chasse Raphaël sur la foi du rapport. Il s’installe à l’Hôtel Lune.' }],
+        result: 'Odile vous croit. Elle met les valises de Raphaël sur le trottoir le soir même.' },
+      { id: 'jeu', label: 'Il joue, et il est endetté.', needs: ['F1'], effects: [{ flag: 'rep_jeu' }, { rel: ['odile', 'raphael'], d: [-20, 10, 20] }, { money: 250 }, { log: 'Odile reprend les comptes du ménage et les clés de l’étude. Raphaël ne retourne pas au Trèfle.' }, { clearSpecial: ['raphael', 'jeu'] }],
+        result: 'Odile écoute sans vous interrompre. « Il n’a pas de maîtresse. Il a honte. » Elle reprend les comptes en main dès le lendemain.' },
+      { id: 'rien', label: 'Rien à signaler.', effects: [{ flag: 'rep_rien' }, { money: 60 }], result: 'Odile paie la moitié. Elle ne vous croit pas.' }],
+      extra: { id: 'signale', label: 'Signaler aussi le détournement à la chambre des notaires', needs: ['F3'], effects: [{ flag: 'signale' }] } },
+    eglise: { where: 'eglise', to: 'ezechiel', options: [
+      { id: 'leonie', label: 'Dire au pasteur, en privé, que Léonie a emprunté la caisse.', needs: ['F5'], effects: [{ flag: 'eglise_resolu' }, { rel: ['rose', 'ezechiel'], d: [10, 0, -10] }, { log: 'Le pasteur organise une collecte pour le fils de Léonie. Elle rembourse ce qu’elle peut. Joël reste.' }],
+        result: 'Le pasteur se tait longtemps. « On réglera ça entre nous. » Le dimanche suivant, il fait une collecte pour l’hôpital.' },
+      { id: 'joel', label: 'Confirmer que c’est Joël.', effects: [{ flag: 'eglise_resolu' }, { home: ['joel', 'studio_sami'] }, { sched: ['joel', 'exil'] }, { rel: ['rose', 'ezechiel'], d: [-40, -20, 40] }, { log: 'Sur votre parole, Joël est chassé de l’église. Il part à Vermeil.' }],
+        result: 'Le pasteur hoche la tête. « Je le savais. » Mama Rose ne vous adressera plus la parole.' }] }
+  },
+  vacation: {
+    place: 'Port-Lys', note: 'Une ville côtière à quatre heures de route. Hôtel, plage, marché aux poissons.',
+    event: { title: 'À l’hôtel', text: 'Un homme vous aborde au petit-déjeuner : sa femme est partie tôt et ne répond pas. Il ne sait pas que vous êtes détective.',
+      help: 'Vous l’aidez. Elle était au marché aux poissons, téléphone oublié dans la chambre. Il vous offre un dîner.',
+      skip: 'Vous finissez votre café. Le soir, vous les voyez dîner ensemble.' }
+  }
+};
+</script>
+
+<!-- ======================= MOTEUR ======================= -->
+<script>
+"use strict";
+const W = window.WORLD;
+const SAVE_VERSION = 1;
+const DOW = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
+const SPEED = 12; // pixels par minute de jeu, à pied
+const $ = id => document.getElementById(id);
+let G = null;
+
+/* ---------- Core : état et horloge ---------- */
+function newGame() {
+  G = { v: SAVE_VERSION, dataVersion: W.dataVersion, t: 8 * 60, money: 300,
+    player: { x: W.places.cabinet.x, y: W.places.cabinet.y, path: [] },
+    away: null, npcs: {}, rel: {}, facts: {}, flags: {}, cases: {}, knowledge: [], messages: [], log: [], done: {}, seen: {}, tail: null, author: false, seq: 0 };
+  for (const [id, n] of Object.entries(W.npcs)) {
+    const p = W.places[n.home];
+    G.npcs[id] = { home: n.home, sched: 'base', specials: JSON.parse(JSON.stringify(n.specials || [])), x: p.x, y: p.y, path: [], dest: n.home, wary: 0 };
+  }
+  for (const [a, b, trust, aff, ten, vis] of W.relations) G.rel[a + '>' + b] = { trust, affection: aff, tension: ten, visibility: vis };
+  note('Lundi matin, au cabinet. Ben fait le café. Ima trie le courrier. Rien sur le bureau.');
+  runThreads();
+}
+const day = (t = G.t) => Math.floor(t / 1440) + 1;
+const hour = (t = G.t) => (t % 1440) / 60;
+const dow = (t = G.t) => (day(t) - 1) % 7;
+const fmtT = t => DOW[dow(t)] + ' ' + day(t) + ' · ' + String(Math.floor(hour(t))).padStart(2, '0') + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+function wlog(text) { G.log.push({ t: G.t, text }); }
+function note(text, extra) { G.knowledge.push(Object.assign({ id: ++G.seq, t: G.t, kind: 'note', text }, extra || {})); }
+
+/* ---------- WorldSystem : quartiers, lieux, foule ---------- */
+function districtAt(x, y) {
+  for (const d of W.districts) { const [rx, ry, rw, rh] = d.rect; if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) return d; }
+  return { id: 'rail', name: 'Corridor ferroviaire' };
+}
+function crowd(x, y, t = G.t) { const d = districtAt(x, y); return W.crowd[d.id] ? W.crowd[d.id](hour(t)) : 0.2; }
+function placeAt(x, y, r = 28) { for (const [id, p] of Object.entries(W.places)) if (Math.hypot(p.x - x, p.y - y) < r) return id; return null; }
+// Trois-Ponts ne touche le reste de la ville que par ses trois ponts.
+function route(x, y, tx, ty) {
+  const left = v => v < 270;
+  if (left(x) === left(tx)) return [[tx, ty]];
+  const by = W.bridges.reduce((b, c) => (Math.abs(c - (y + ty) / 2) < Math.abs(b - (y + ty) / 2) ? c : b));
+  return left(x) ? [[255, by], [305, by], [tx, ty]] : [[305, by], [255, by], [tx, ty]];
+}
+function stepAlong(o, dist) {
+  while (dist > 0 && o.path.length) {
+    const [tx, ty] = o.path[0]; const d = Math.hypot(tx - o.x, ty - o.y);
+    if (d <= dist) { o.x = tx; o.y = ty; o.path.shift(); dist -= d; } else { o.x += (tx - o.x) / d * dist; o.y += (ty - o.y) / d * dist; dist = 0; }
+  }
+}
+
+/* ---------- ScheduleSystem ---------- */
+function scheduledPlace(id, t = G.t) {
+  const n = W.npcs[id], s = G.npcs[id], h = hour(t), d = dow(t), dd = day(t);
+  for (const sc of W.scenes) if (sc.who.includes(id) && sc.day === dd && h >= sc.from && h < sc.to && conds(sc.cond)) return sc.loc;
+  for (const sp of s.specials) {
+    if (!sp.dows.includes(d)) continue;
+    if (sp.optional && s.wary >= dd) continue;
+    for (const [a, b, loc] of sp.blocks) if (h >= a && h < b) return loc === 'home' ? s.home : loc;
+  }
+  const sch = n.schedules[s.sched] || n.schedules.base;
+  const blocks = d === 5 ? (sch.sat || sch.wk) : d === 6 ? (sch.sun || sch.wk) : sch.wk;
+  let loc = blocks[0][1];
+  for (const [a, l] of blocks) if (h >= a) loc = l;
+  return loc === 'home' ? s.home : loc;
+}
+
+/* ---------- NPCSystem : niveaux de simulation ---------- */
+// Niveau 1-2 (joueur en ville) : chaque minute, déplacement réel. Niveau 3 (joueur absent) : placement direct.
+function tickNPCs() {
+  for (const id of Object.keys(G.npcs)) {
+    const s = G.npcs[id], dest = scheduledPlace(id);
+    if (dest !== s.dest) { s.dest = dest; const p = W.places[dest]; s.path = route(s.x, s.y, p.x, p.y); }
+    stepAlong(s, SPEED);
+  }
+}
+function snapNPCs() {
+  for (const id of Object.keys(G.npcs)) { const s = G.npcs[id]; s.dest = scheduledPlace(id); const p = W.places[s.dest]; s.x = p.x; s.y = p.y; s.path = []; }
+}
+
+/* ---------- RelationshipSystem ---------- */
+function relAdd(a, b, d) {
+  const k = a + '>' + b; const r = G.rel[k] || (G.rel[k] = { trust: 0, affection: 0, tension: 0, visibility: 'privée' });
+  const c = v => Math.max(-100, Math.min(100, v));
+  r.trust = c(r.trust + d[0]); r.affection = c(r.affection + d[1]); r.tension = c(r.tension + d[2]);
+}
+
+/* ---------- Conditions et effets (contenu → moteur) ---------- */
+function playerKnows(f) { return G.knowledge.some(k => k.fact === f); }
+function conds(list) {
+  if (!list) return true;
+  return list.every(c => {
+    if (c.fact) return !!G.facts[c.fact];
+    if (c.flag) return !!G.flags[c.flag];
+    if (c.notFlag) return !G.flags[c.notFlag];
+    if (c.knows) return playerKnows(c.knows);
+    if (c.money) return G.money >= c.money;
+    if (c.notWary) return G.npcs[c.notWary].wary < day();
+    if (c.caseStatus) return (G.cases[c.caseStatus[0]] || {}).status === c.caseStatus[1];
+    return true;
+  });
+}
+function apply(effects) {
+  for (const e of effects || []) {
+    if (e.fact) { if (!G.facts[e.fact]) { G.facts[e.fact] = G.t; } }
+    if (e.knows) { (G.npcs[e.knows].knows = G.npcs[e.knows].knows || []).push(e.f); }
+    if (e.rel) relAdd(e.rel[0], e.rel[1], e.d);
+    if (e.home) { G.npcs[e.home[0]].home = e.home[1]; }
+    if (e.sched) G.npcs[e.sched[0]].sched = e.sched[1];
+    if (e.clearSpecial) { const s = G.npcs[e.clearSpecial[0]]; s.specials = s.specials.filter(x => x.tag !== e.clearSpecial[1]); }
+    if (e.flag) G.flags[e.flag] = true;
+    if (e.money) G.money += e.money;
+    if (e.log) wlog(e.log);
+    if (e.note) note(e.note);
+    if (e.caseStatus) { const c = G.cases[e.caseStatus[0]] || (G.cases[e.caseStatus[0]] = {}); c.status = e.caseStatus[1]; c.since = G.t; }
+    if (e.msg && conds(e.cond)) G.messages.push({ id: ++G.seq, t: G.t, channel: e.msg, district: e.district, text: e.text, delivered: false, read: false });
+  }
+}
+
+/* ---------- EventSystem : fils, scènes, événements à choix ---------- */
+function runThreads() {
+  for (const th of W.threads) {
+    if (G.done['th:' + th.id]) continue;
+    if (G.t < ((th.day - 1) * 1440 + th.hour * 60)) continue;
+    G.done['th:' + th.id] = true;
+    if (conds(th.cond)) apply(th.effects);
+  }
+}
+function atPlace(loc, r = 32) { const p = W.places[loc]; return !G.away && Math.hypot(G.player.x - p.x, G.player.y - p.y) < r; }
+function runEvents() {
+  for (const ev of W.events) {
+    if (G.done['ev:' + ev.id]) continue;
+    if (ev.requires && !G.flags[ev.requires]) continue;
+    const start = (ev.day - 1) * 1440 + ev.from * 60, end = (ev.day - 1) * 1440 + ev.to * 60;
+    if (G.t < start) continue;
+    if (G.t <= end && atPlace(ev.loc)) { G.done['ev:' + ev.id] = true; showEvent(ev); return; }
+    if (G.t > end) { G.done['ev:' + ev.id] = true; apply(ev.absent); wlog('Événement manqué : ' + ev.title + '.'); }
+  }
+}
+
+/* ---------- InvestigationSystem : observations et filature ---------- */
+function visible(id) {
+  if (G.away) return false;
+  const s = G.npcs[id];
+  if (G.author) return true;
+  if (G.tail && G.tail.target === id && G.tail.state === 'filature') return true;
+  return districtAt(s.x, s.y).id === districtAt(G.player.x, G.player.y).id || Math.hypot(s.x - G.player.x, s.y - G.player.y) < 130;
+}
+function observe() {
+  if (G.away) return;
+  const near = (x, y, r) => Math.hypot(G.player.x - x, G.player.y - y) < r;
+  for (const sc of W.scenes) {
+    if (G.seen['sc:' + sc.id]) continue;
+    const h = hour(), p = W.places[sc.loc];
+    if (sc.day !== day() || h < sc.from || h >= sc.to || !conds(sc.cond) || !near(p.x, p.y, 120)) continue;
+    const present = sc.who.filter(id => Math.hypot(G.npcs[id].x - p.x, G.npcs[id].y - p.y) < 20);
+    if (present.length < Math.min(2, sc.who.length)) continue;
+    G.seen['sc:' + sc.id] = true;
+    addEvidence({ kind: 'observation', fact: sc.fact, text: sc.text, where: p.name, related: present, reliability: 'vu', truth: 'vrai' });
+    if (sc.opensCase && !G.cases[sc.opensCase]) openFoundCase(sc.opensCase, 'Vous étiez sur le parvis.');
+  }
+  for (const ob of W.observables) {
+    const key = 'ob:' + ob.npc + ':' + ob.loc + ':' + day();
+    if (G.seen[key] || !conds(ob.cond)) continue;
+    const s = G.npcs[ob.npc], p = W.places[ob.loc];
+    if (Math.hypot(s.x - p.x, s.y - p.y) < 10 && near(p.x, p.y, 155)) { // on voit une porte depuis l'autre côté de la rue
+      G.seen[key] = true;
+      if (!G.knowledge.some(k => k.text === ob.text)) addEvidence({ kind: 'observation', fact: ob.fact, text: ob.text, where: p.name, related: [ob.npc], reliability: 'vu', truth: 'vrai' });
+    }
+  }
+}
+function openFoundCase(id, how) {
+  G.cases[id] = { status: 'ouvert', since: G.t, found: true }; G.flags['case_' + id] = true;
+  note('Nouvelle piste, sans client : ' + W.cases[id].title + '. ' + how);
+  toast('Nouvelle piste : ' + W.cases[id].title);
+}
+function addEvidence(e) {
+  const k = Object.assign({ id: ++G.seq, t: G.t, origin: G.away ? G.away.place : 'South City' }, e);
+  G.knowledge.push(k);
+  toast('Au carnet : ' + (e.kind === 'observation' ? 'observation' : 'témoignage'));
+  return k;
+}
+const TAIL_DIST = { proche: 40, moyenne: 85, loin: 140 };
+function startTail(id) {
+  G.tail = { target: id, dist: 'moyenne', suspicion: 0, state: 'filature', since: G.t };
+  wlog('Le joueur commence à suivre ' + W.npcs[id].name + '.');
+  render();
+}
+function tickTail() {
+  const T = G.tail; if (!T || T.state !== 'filature') return;
+  const s = G.npcs[T.target], p = G.player;
+  const want = TAIL_DIST[T.dist]; const d = Math.hypot(s.x - p.x, s.y - p.y);
+  if (d > want) { p.path = [[s.x, s.y]]; stepAlong(p, Math.min(SPEED * 1.15, d - want)); }
+  const c = crowd(p.x, p.y), dd = Math.hypot(s.x - p.x, s.y - p.y);
+  // Le soupçon dépend de la distance ET de la foule : on se cache dans la foule, pas dans le vide.
+  if (dd < 60) T.suspicion += 1 + 6 * (1 - c); else if (dd < 110) T.suspicion += 2.2 * (1 - c); else T.suspicion -= 1;
+  if (s.path.length === 0) T.suspicion -= 0.5;
+  T.suspicion = Math.max(0, Math.min(100, T.suspicion));
+  if (T.suspicion >= 100) {
+    T.state = 'repéré'; s.wary = day() + 2; relAdd(T.target, 'player', [-25, 0, 30]);
+    wlog(W.npcs[T.target].name + ' a repéré le détective. Il change ses habitudes pour deux jours.');
+    note(W.npcs[T.target].short + ' vous a repéré. Il va se méfier quelques jours.');
+    toast('Repéré.');
+  } else if (dd > 125 && c > 0.6 && Math.random() < 0.06) {
+    T.state = 'perdue'; wlog('Le joueur perd ' + W.npcs[T.target].name + ' dans la foule.'); toast('Cible perdue dans la foule. Vos observations restent au carnet.');
+  }
+}
+
+/* ---------- DialogueSystem ---------- */
+function topicsFor(id) {
+  const lines = W.dialogue[id] || []; const seen = new Set(); const out = [];
+  for (const l of lines) { if (seen.has(l.topic)) continue; const first = lines.find(x => x.topic === l.topic && conds(x.when)); if (first) { seen.add(l.topic); out.push(first); } }
+  return out;
+}
+function ask(id, line) {
+  const n = W.npcs[id];
+  if (line.cost) G.money -= line.cost;
+  apply(line.effects);
+  const truthKind = line.kind;
+  if (line.yields) {
+    if (!G.knowledge.some(k => k.text === line.text)) addEvidence({ kind: 'témoignage', fact: W.facts[line.yields] ? line.yields : null, text: n.short + ' : ' + line.text, where: placeName(), related: [id], reliability: 'déclaré', prov: line.prov || 'légitime', truth: truthKind });
+  } else if (!G.knowledge.some(k => k.text === n.short + ' : ' + line.text)) {
+    G.knowledge.push({ id: ++G.seq, t: G.t, kind: 'témoignage', text: n.short + ' : ' + line.text, related: [id], reliability: 'déclaré', truth: truthKind });
+  }
+  G.t += 10; // un entretien prend du temps
+  showModal(n.name, '<p class="quote"></p><p class="kind"></p>', m => {
+    m.querySelector('.quote').textContent = line.text;
+    m.querySelector('.kind').textContent = G.author ? '[vue auteur] ' + truthKind : 'Ce qui est dit n’est pas forcément vrai.';
+  }, [{ label: 'Continuer', act: () => talk(id) }, { label: 'Partir', act: closeModal }]);
+}
+function talk(id) {
+  const n = W.npcs[id], tops = topicsFor(id);
+  showModal(n.name, '<p class="muted"></p>', m => { m.querySelector('p').textContent = n.role + '. Besoin dominant : ' + (G.author ? n.need : 'à vous de le lire') + '.'; },
+    tops.map(l => ({ label: l.label + (l.cost ? ' (' + l.cost + ' cr.)' : ''), act: () => ask(id, l), disabled: l.cost && G.money < l.cost }))
+      .concat([{ label: 'Partir', act: closeModal }]));
+}
+
+/* ---------- Rapports et conclusions ---------- */
+function openReport(caseId) {
+  const R = W.reports[caseId];
+  const opts = R.options.map(o => ({ label: o.label + (o.needs && !o.needs.every(playerKnows) ? ' (il vous manque une preuve)' : ''), disabled: o.needs && !o.needs.every(playerKnows), act: () => conclude(caseId, o) }));
+  showModal('Rapport · ' + W.cases[caseId].title, '<p class="muted">Ce que vous écrivez aura des conséquences. Le monde ne vous dira pas tout de suite si vous aviez raison.</p>' +
+    (R.extra ? '<div class="opts"><label><input type="checkbox" id="rep-extra"' + (R.extra.needs.every(playerKnows) ? '' : ' disabled') + '><span></span></label></div>' : ''), m => {
+      if (R.extra) m.querySelector('span').textContent = R.extra.label + (R.extra.needs.every(playerKnows) ? '' : ' (il vous manque une preuve)');
+    }, opts.concat([{ label: 'Pas encore', act: closeModal }]));
+}
+function conclude(caseId, o) {
+  const R = W.reports[caseId]; const extra = R.extra && document.getElementById('rep-extra') && document.getElementById('rep-extra').checked;
+  apply(o.effects); if (extra) apply(R.extra.effects);
+  G.cases[caseId].status = 'clos'; G.cases[caseId].report = o.id + (extra ? '+signalé' : '');
+  note('Rapport remis (' + W.cases[caseId].title + ') : « ' + o.label + ' »' + (extra ? ' Détournement signalé.' : ''));
+  wlog('Rapport du joueur sur « ' + W.cases[caseId].title + ' » : ' + o.id + (extra ? ' + signalement' : '') + '.');
+  showModal('Conséquence', '<p class="quote"></p>', m => { m.querySelector('.quote').textContent = o.result; }, [{ label: 'Fermer', act: closeModal }]);
+}
+
+/* ---------- TravelSystem : vacances ---------- */
+function openVacation() {
+  showModal('Partir à ' + W.vacation.place, '<p></p><div class="opts" role="radiogroup">' +
+    '<label><input type="radio" name="vdur" value="3" id="vd3" checked><span>3 jours (120 cr.)</span></label>' +
+    '<label><input type="radio" name="vdur" value="6" id="vd6"><span>6 jours (220 cr.)</span></label></div>' +
+    '<h3 style="margin-top:8px">Pendant le séjour</h3><div class="opts">' +
+    '<label><input type="radio" name="vmode" value="prive" id="vm1" checked><span>Vacances privées : téléphone coupé.</span></label>' +
+    '<label><input type="radio" name="vmode" value="limite" id="vm2"><span>Disponibilité limitée : appels importants seulement.</span></label></div>', m => {
+      m.querySelector('p').textContent = W.vacation.note + ' South City continuera sans vous.';
+    }, [{ label: 'Réserver et partir', act: () => {
+      const dur = +document.querySelector('input[name=vdur]:checked').value, mode = document.querySelector('input[name=vmode]:checked').value;
+      const cost = dur === 3 ? 120 : 220; if (G.money < cost) { toast('Pas assez d’argent.'); return; }
+      G.money -= cost; travel(dur, mode);
+    } }, { label: 'Rester', act: closeModal }]);
+}
+function travel(dur, mode) {
+  G.tail = null; save(true);
+  const leave = G.t, until = G.t + dur * 1440;
+  G.away = { place: W.vacation.place, mode, leave, until };
+  wlog('Le joueur part ' + dur + ' jours à ' + W.vacation.place + '.');
+  const startMsg = G.messages.length;
+  // Niveau 3 : simulation simplifiée, par pas de 30 minutes. Les fils et les événements avancent ; personne n'est observé.
+  while (G.t < until) { G.t += 30; runThreads(); runEvents(); }
+  const calls = G.messages.slice(startMsg).filter(m => m.channel === 'telephone');
+  const lines = ['Jour ' + day(leave) + ' : route vers ' + W.vacation.place + '. Hôtel face à la mer.'];
+  if (mode === 'limite') for (const c of calls) { c.delivered = true; lines.push('Appel pendant le séjour, ' + fmtT(c.t) + '. ' + c.text); }
+  else if (calls.length) lines.push('Votre téléphone est resté éteint.');
+  G.away = null; G.player.x = W.places.cabinet.x; G.player.y = W.places.cabinet.y; G.player.path = [];
+  snapNPCs();
+  lines.push('Retour à South City, ' + fmtT(G.t) + '.');
+  const V = W.vacation.event;
+  showModal(W.vacation.place + ' · ' + dur + ' jours', '<div id="vlog" style="display:flex;flex-direction:column;gap:6px"></div>' + (mode === 'limite' ? '' : ''), m => {
+    const box = m.querySelector('#vlog');
+    for (const l of lines) { const p = document.createElement('p'); p.textContent = l; box.appendChild(p); }
+    const p = document.createElement('p'); p.className = 'quote'; p.textContent = V.title + ' — ' + V.text; box.appendChild(p);
+  }, [{ label: 'Aider cet homme', act: () => { G.money += 40; note('Port-Lys : ' + V.help); finishReturn(); } }, { label: 'Ne pas s’en mêler', act: () => { note('Port-Lys : ' + V.skip); finishReturn(); } }]);
+}
+function finishReturn() {
+  closeModal();
+  const pending = G.messages.filter(m => !m.delivered).length;
+  note('De retour au cabinet. ' + (pending ? 'Des choses ont bougé : lisez vos messages, faites le tour.' : 'Rien sur le répondeur.'));
+  deliver(); render();
+}
+
+/* ---------- Messages : livrés seulement par un canal crédible ---------- */
+function deliver() {
+  if (G.away) return;
+  const here = districtAt(G.player.x, G.player.y).id;
+  for (const m of G.messages) {
+    if (m.delivered) continue;
+    if (m.channel === 'journal' && hour() >= 7) m.delivered = true;
+    if (m.channel === 'telephone') m.delivered = true;
+    if (m.channel === 'cabinet' && atPlace('cabinet', 40)) m.delivered = true;
+    if (m.channel === 'rumeur' && m.district === here) m.delivered = true;
+    if (m.delivered) { m.at = G.t; toast('Nouveau message'); }
+  }
+}
+
+/* ---------- SaveSystem : versionné, avec migration ---------- */
+const SAVE_KEY = 'btt-southcity-save';
+function save(quiet) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(Object.assign({}, G, { savedAt: Date.now() }))); if (!quiet) toast('Partie sauvegardée.'); }
+  catch (e) { if (!quiet) toast('Sauvegarde impossible dans ce navigateur.'); }
+}
+function migrate(s) {
+  // v1 est la première version. Les futures versions ajouteront ici leurs conversions, dans l'ordre.
+  if (!s.v) s.v = 1;
+  if (s.dataVersion !== W.dataVersion) s.dataVersion = W.dataVersion;
+  return s;
+}
+function load() {
+  let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { raw = null; }
+  if (!raw) { toast('Aucune sauvegarde.'); return false; }
+  G = migrate(JSON.parse(raw)); for (const k of Object.keys(SIG)) delete SIG[k]; closeModal(); render(); toast('Partie chargée : ' + fmtT(G.t)); return true;
+}
+
+/* ---------- Boucle ---------- */
+let speed = 1, paused = false, acc = 0, last = performance.now();
+function minute() {
+  G.t += 1;
+  tickNPCs();
+  if (G.tail && G.tail.state === 'filature') tickTail(); else stepAlong(G.player, SPEED);
+  runThreads(); runEvents(); observe(); deliver();
+}
+function frame(now) {
+  const dt = Math.min(0.25, (now - last) / 1000); last = now;
+  if (!paused && !modalOpen()) {
+    acc += dt * speed * 10; // vitesse 1 = 10 minutes de jeu par seconde
+    let n = 0; while (acc >= 1 && n < 200) { acc -= 1; minute(); n++; }
+    if (n) render();
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- UI ---------- */
+function placeName() { const id = placeAt(G.player.x, G.player.y); return id ? W.places[id].name : districtAt(G.player.x, G.player.y).name; }
+// Un panneau n'est reconstruit que si ce qu'il montre a changé (sinon les clics et les menus se perdent).
+const SIG = {};
+function changed(key, sig) { if (SIG[key] === sig) return false; SIG[key] = sig; return true; }
+function render() {
+  $('clock').textContent = fmtT(G.t);
+  $('money').textContent = G.money + ' cr.';
+  const d = districtAt(G.player.x, G.player.y);
+  $('here').textContent = placeName() + (placeAt(G.player.x, G.player.y) ? ' · ' + d.name : '');
+  const c = crowd(G.player.x, G.player.y);
+  $('crowd').textContent = 'foule : ' + (c > 0.7 ? 'dense' : c > 0.35 ? 'moyenne' : 'rare');
+  $('taxi-go').disabled = G.money < 15; $('vac-go').hidden = !atPlace('cabinet', 40);
+  renderNear(); renderTail(); renderCases(); renderMsgs(); renderNotebook(); renderAuthor();
+}
+function renderNear() {
+  const el = $('near');
+  const ids = Object.keys(G.npcs).filter(id => visible(id) && Math.hypot(G.npcs[id].x - G.player.x, G.npcs[id].y - G.player.y) < 150)
+    .sort((a, b) => Math.hypot(G.npcs[a].x - G.player.x, G.npcs[a].y - G.player.y) - Math.hypot(G.npcs[b].x - G.player.x, G.npcs[b].y - G.player.y));
+  const sig = ids.slice(0, 6).map(id => id + (Math.hypot(G.npcs[id].x - G.player.x, G.npcs[id].y - G.player.y) <= 45 ? '+' : '-') + (G.npcs[id].path.length ? 'm' : G.npcs[id].dest)).join(',');
+  if (!changed('near', sig)) return;
+  el.innerHTML = '';
+  if (!ids.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Personne que vous connaissez. Touchez la carte pour marcher.'; el.appendChild(p); }
+  for (const id of ids.slice(0, 6)) {
+    const n = W.npcs[id], s = G.npcs[id], dist = Math.hypot(s.x - G.player.x, s.y - G.player.y);
+    const row = document.createElement('div'); row.className = 'person';
+    const l = document.createElement('div'); l.innerHTML = '<span class="n"></span><span class="r"></span>';
+    l.children[0].textContent = n.name; l.children[1].textContent = n.role + (s.path.length ? ' · en chemin' : ' · ' + (W.places[s.dest] ? W.places[s.dest].name : ''));
+    const r = document.createElement('div'); r.className = 'row';
+    const b1 = document.createElement('button'); b1.className = 'btn'; b1.textContent = 'Parler'; b1.disabled = dist > 45; b1.title = dist > 45 ? 'Approchez-vous' : '';
+    b1.addEventListener('click', () => talk(id));
+    const b2 = document.createElement('button'); b2.className = 'btn'; b2.textContent = 'Suivre'; b2.addEventListener('click', () => startTail(id));
+    r.append(b1, b2); row.append(l, r); el.appendChild(row);
+  }
+}
+for (const [id, p] of Object.entries(W.places)) { const o = document.createElement('option'); o.value = id; o.textContent = p.name; $('taxi-dest').appendChild(o); }
+$('taxi-go').addEventListener('click', () => {
+  if (G.money < 15 || G.away) return;
+  const p = W.places[$('taxi-dest').value]; G.money -= 15; G.tail = null;
+  for (let i = 0; i < 15; i++) { G.t += 1; tickNPCs(); runThreads(); runEvents(); }
+  G.player.x = p.x; G.player.y = p.y; G.player.path = []; deliver(); render();
+});
+$('vac-go').addEventListener('click', () => openVacation());
+function renderTail() {
+  const T = G.tail; $('p-tail').hidden = !T; if (!T) { SIG.tail = null; return; }
+  const el = $('tail');
+  if (!changed('tail', T.target + T.state + T.dist + T.since)) {
+    const s0 = G.npcs[T.target];
+    el.querySelectorAll('.tail span')[3].textContent = Math.round(Math.hypot(s0.x - G.player.x, s0.y - G.player.y) / 3) + ' m';
+    el.querySelectorAll('.tail span')[7].textContent = crowd(G.player.x, G.player.y) > 0.6 ? 'vous couvre' : 'ne vous couvre pas';
+    el.querySelector('.meter i').style.width = T.suspicion + '%';
+    return;
+  }
+  el.innerHTML = '';
+  const s = G.npcs[T.target], d = Math.round(Math.hypot(s.x - G.player.x, s.y - G.player.y) / 3);
+  const g = document.createElement('div'); g.className = 'tail';
+  const pairs = [['Cible', W.npcs[T.target].name], ['Distance', d + ' m'], ['État', T.state], ['Foule', crowd(G.player.x, G.player.y) > 0.6 ? 'vous couvre' : 'ne vous couvre pas']];
+  for (const [a, b] of pairs) { const x = document.createElement('span'); x.className = 'muted'; x.textContent = a; const y = document.createElement('span'); y.textContent = b; g.append(x, y); }
+  el.appendChild(g);
+  const m = document.createElement('div'); m.className = 'meter'; m.title = 'Soupçon de la cible'; m.innerHTML = '<i></i>'; m.firstChild.style.width = T.suspicion + '%'; el.appendChild(m);
+  const lab = document.createElement('p'); lab.className = 'muted'; lab.style.fontSize = '12px'; lab.textContent = 'Soupçon de la cible'; el.appendChild(lab);
+  const r = document.createElement('div'); r.className = 'row'; r.style.marginTop = '8px';
+  for (const k of Object.keys(TAIL_DIST)) { const b = document.createElement('button'); b.className = 'btn' + (T.dist === k ? ' on' : ''); b.textContent = k; b.disabled = T.state !== 'filature'; b.addEventListener('click', () => { T.dist = k; render(); }); r.appendChild(b); }
+  const stop = document.createElement('button'); stop.className = 'btn'; stop.textContent = 'Arrêter'; stop.addEventListener('click', () => { G.tail = null; render(); }); r.appendChild(stop);
+  el.appendChild(r);
+}
+function renderCases() {
+  const el = $('cases');
+  const ids = Object.keys(G.cases);
+  if (!changed('cases', JSON.stringify(G.cases) + atPlace('cabinet', 40) + atPlace('eglise', 40))) return;
+  el.innerHTML = '';
+  if (!ids.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Aucune affaire. Restez au cabinet ce matin, ou promenez-vous.'; el.appendChild(p); return; }
+  for (const id of ids) {
+    const c = G.cases[id], C = W.cases[id];
+    const d = document.createElement('div'); d.className = 'case';
+    d.innerHTML = '<div class="row" style="justify-content:space-between"><span class="t"></span><span class="tag"></span></div><p class="muted" style="font-size:12.5px"></p>';
+    d.querySelector('.t').textContent = C.title; d.querySelector('.tag').textContent = c.status;
+    d.querySelector('p').textContent = 'Client : ' + C.client + (c.report ? ' · rapport : ' + c.report : '');
+    if (c.status === 'ouvert') {
+      const R = W.reports[id]; const here = R.where === 'cabinet' ? atPlace('cabinet', 40) : atPlace(R.where, 40);
+      const b = document.createElement('button'); b.className = 'btn'; b.style.marginTop = '6px';
+      b.textContent = R.where === 'cabinet' ? 'Remettre le rapport' : 'Parler au pasteur de la conclusion';
+      b.disabled = !here; if (!here) b.title = 'Allez à : ' + W.places[R.where].name;
+      b.addEventListener('click', () => openReport(id)); d.appendChild(b);
+      if (!here) { const h = document.createElement('p'); h.className = 'muted'; h.style.fontSize = '12px'; h.textContent = 'Conclusion à rendre à : ' + W.places[R.where].name + '.'; d.appendChild(h); }
+    }
+    el.appendChild(d);
+  }
+}
+function renderMsgs() {
+  const el = $('msgs');
+  const list = G.messages.filter(m => m.delivered).slice().reverse();
+  if (!changed('msgs', list.map(m => m.id + (m.read ? 'r' : '')).join(','))) return;
+  el.innerHTML = '';
+  if (!list.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Rien.'; el.appendChild(p); return; }
+  const ch = { journal: 'Journal', telephone: 'Téléphone', cabinet: 'Note au cabinet', rumeur: 'Entendu dans la rue' };
+  for (const m of list) {
+    const d = document.createElement('div'); d.className = 'msg' + (m.read ? '' : ' new');
+    d.innerHTML = '<div class="m"></div><div></div>';
+    d.children[0].textContent = ch[m.channel] + ' · ' + fmtT(m.at || m.t); d.children[1].textContent = m.text;
+    d.addEventListener('click', () => { m.read = true; render(); }); el.appendChild(d);
+  }
+}
+function renderNotebook() {
+  const el = $('notebook');
+  if (!changed('nb', G.knowledge.length + ':' + G.author)) return;
+  el.innerHTML = '<h3 style="color:#6c6455">Carnet</h3>';
+  for (const k of G.knowledge.slice().reverse()) {
+    const d = document.createElement('div'); d.className = 'e';
+    const m = document.createElement('div'); m.className = 'm';
+    m.textContent = fmtT(k.t) + (k.kind !== 'note' ? ' · ' + k.kind + (k.where ? ' · ' + k.where : '') + (k.reliability ? ' · ' + k.reliability : '') + (k.prov && k.prov !== 'légitime' ? ' · provenance ' + k.prov : '') : '');
+    const p = document.createElement('p'); p.textContent = k.text; d.append(m, p);
+    if (G.author && k.truth) { const t = document.createElement('div'); t.className = 'truth'; t.textContent = '[vue auteur] ' + k.truth; d.appendChild(t); }
+    el.appendChild(d);
+  }
+}
+function renderAuthor() {
+  $('p-author').hidden = !G.author; if (!G.author) return;
+  if (!changed('author', G.log.length + ':' + Object.keys(G.facts).length + ':' + G.knowledge.length)) return;
+  const f = $('facts'); f.innerHTML = '';
+  for (const [id, text] of Object.entries(W.facts)) {
+    const p = document.createElement('p'); p.style.color = G.facts[id] !== undefined ? 'var(--chalk)' : 'var(--dust)';
+    p.textContent = id + (G.facts[id] !== undefined ? ' ✓ ' : ' · pas encore ') + text + (playerKnows(id) ? ' — connu du joueur' : ''); f.appendChild(p);
+  }
+  const l = $('wlog'); l.innerHTML = '';
+  for (const e of G.log.slice().reverse()) { const p = document.createElement('div'); p.textContent = fmtT(e.t) + ' — ' + e.text; l.appendChild(p); }
+}
+
+/* Carte */
+const cv = $('map'), cx = cv.getContext('2d');
+function draw() {
+  if (!G) return;
+  cx.fillStyle = '#101214'; cx.fillRect(0, 0, 900, 600);
+  for (const d of W.districts) {
+    const [x, y, w, h] = d.rect; cx.fillStyle = d.fill; cx.fillRect(x, y, w, h);
+    cx.fillStyle = 'rgba(230,226,216,.35)'; cx.font = '600 15px "IBM Plex Sans", sans-serif'; cx.fillText(d.name.toUpperCase(), x + 10, y + 22);
+    cx.font = '11px "IBM Plex Mono", monospace'; cx.fillStyle = 'rgba(230,226,216,.25)'; cx.fillText(d.need, x + 10, y + 37);
+  }
+  cx.fillStyle = '#0b0c0d'; cx.fillRect(250, 0, 40, 600);
+  cx.strokeStyle = '#3a3e44'; cx.setLineDash([6, 6]); cx.beginPath(); cx.moveTo(262, 0); cx.lineTo(262, 600); cx.moveTo(278, 0); cx.lineTo(278, 600); cx.stroke(); cx.setLineDash([]);
+  for (const by of W.bridges) { cx.fillStyle = '#4a4f56'; cx.fillRect(248, by - 7, 44, 14); }
+  cx.strokeStyle = '#353a41'; cx.beginPath(); cx.moveTo(290, 190); cx.lineTo(900, 190); cx.moveTo(290, 400); cx.lineTo(900, 400); cx.stroke();
+  for (const [id, p] of Object.entries(W.places)) {
+    cx.fillStyle = id === 'cabinet' ? '#c9964a' : '#5a5f66'; cx.fillRect(p.x - 5, p.y - 5, 10, 10);
+    cx.fillStyle = 'rgba(230,226,216,.6)'; cx.font = '11px "IBM Plex Sans", sans-serif'; cx.fillText(p.name, p.x + 8, p.y + 4);
+  }
+  for (const id of Object.keys(G.npcs)) {
+    if (!visible(id)) continue;
+    const s = G.npcs[id];
+    cx.beginPath(); cx.arc(s.x, s.y, 7, 0, Math.PI * 2);
+    cx.fillStyle = G.tail && G.tail.target === id ? '#d26a5a' : '#cfd6e0'; cx.fill();
+    cx.fillStyle = '#e6e2d8'; cx.font = '600 11px "IBM Plex Sans", sans-serif'; cx.fillText(W.npcs[id].short, s.x - 10, s.y - 11);
+  }
+  if (!G.away) {
+    const p = G.player; cx.beginPath(); cx.arc(p.x, p.y, 9, 0, Math.PI * 2); cx.fillStyle = '#c9964a'; cx.fill();
+    cx.strokeStyle = '#1a1408'; cx.lineWidth = 2; cx.stroke(); cx.lineWidth = 1;
+    cx.beginPath(); cx.arc(p.x, p.y, 130, 0, Math.PI * 2); cx.strokeStyle = 'rgba(201,150,74,.18)'; cx.stroke();
+  }
+}
+cv.addEventListener('click', e => {
+  if (!G || G.away) return;
+  const r = cv.getBoundingClientRect(); const x = (e.clientX - r.left) * 900 / r.width, y = (e.clientY - r.top) * 600 / r.height;
+  const hit = Object.keys(G.npcs).find(id => visible(id) && Math.hypot(G.npcs[id].x - x, G.npcs[id].y - y) < 14);
+  if (hit) { const near = Math.hypot(G.npcs[hit].x - G.player.x, G.npcs[hit].y - G.player.y) < 45; if (near) talk(hit); else toast(W.npcs[hit].name + ' : approchez-vous pour parler, ou suivez.'); return; }
+  G.tail = null; G.player.path = route(G.player.x, G.player.y, x, y); render();
+});
+
+/* Modale */
+function modalOpen() { return !$('modal').hidden; }
+function showModal(title, html, fill, buttons) {
+  const m = $('modal-body'); m.innerHTML = '<h2></h2>' + html + '<div class="choices"></div>';
+  m.querySelector('h2').textContent = title; if (fill) fill(m);
+  const c = m.querySelector('.choices');
+  for (const b of buttons) { const x = document.createElement('button'); x.textContent = b.label; x.disabled = !!b.disabled; x.addEventListener('click', () => { b.act(); render(); }); c.appendChild(x); }
+  $('modal').hidden = false; const f = c.querySelector('button:not(:disabled)'); if (f) f.focus();
+}
+function closeModal() { $('modal').hidden = true; }
+function showEvent(ev) {
+  showModal(ev.title, '<p class="kind"></p><p class="quote"></p>', m => { m.querySelector('.kind').textContent = 'Affaire ' + ev.klass + ' · ' + fmtT(G.t); m.querySelector('.quote').textContent = ev.text; },
+    ev.choices.map(c => ({ label: c.label, act: () => { apply(c.effects); wlog('Choix du joueur (' + ev.title + ') : ' + c.label); closeModal(); } })));
+}
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3200); }
+
+document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+  speed = +b.dataset.speed || 0; paused = speed === 0;
+  document.querySelectorAll('[data-speed]').forEach(x => x.classList.toggle('on', x === b));
+}));
+$('btn-save').addEventListener('click', () => save(false));
+$('btn-load').addEventListener('click', () => load());
+$('btn-author').addEventListener('click', () => { G.author = !G.author; for (const k of Object.keys(SIG)) delete SIG[k]; $('btn-author').setAttribute('aria-pressed', G.author ? 'true' : 'false'); $('btn-author').classList.toggle('on', G.author); render(); });
+
+newGame(); render(); requestAnimationFrame(frame);
+// Accès pour les tests automatisés
+window.__btt = { get G() { return G; }, minute, travel, save, load, scheduledPlace, startTail, apply, conds, openReport, conclude, W, newGame, render };
+</script>

@@ -6,7 +6,7 @@ Sources :
 
 Les deux documents décrivent le même jeu. Ils s'accordent sur l'essentiel, mais se contredisent
 sur six points. Chaque point ci-dessous dit ce qui bloque, puis ce que je recommande.
-Statut : **à valider par le propriétaire du projet**.
+Statut : décisions 1 à 4 **validées le 17 nov. 2026** (voir en bas). Points 5 et 6 : recommandations en attente.
 
 ## Ce qui est déjà commun (aucune décision à prendre)
 
@@ -96,3 +96,13 @@ personnes accusables est limité.
 4. **Tranche verticale** : un quartier habité, une enquête complète, l'Écho en 3D.
 
 Ne pas lancer l'étape 3 avant que les étapes 1 et 2 aient été jouées par de vraies personnes.
+
+## Décisions validées (17 nov. 2026)
+
+| # | Décision |
+|---|---|
+| D1 | Titre : Behind the Truth. « L'Écho » reste la mécanique centrale. |
+| D2 | Moteur : Unity. Rendu réaliste stylisé. PC d'abord, test mobile Android tôt. |
+| D3 | Une seule ville pour commencer. |
+| D4 | Ville : **South City** (fictive, celle d'ECHOES), avec ses quatre quartiers. Pas de ville réelle. |
+| D5 | Prochaine construction : le prototype « le monde continue sans moi » (`monde/`). |
