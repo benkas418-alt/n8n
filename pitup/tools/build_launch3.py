@@ -9,7 +9,7 @@ import json, subprocess, numpy as np, soundfile as sf, librosa
 from scipy.signal import butter, sosfilt
 SP = "/tmp/claude-0/-home-user-n8n/3a1d2361-6d15-5131-aa88-7efcec5ec51a/scratchpad"; P = f"{SP}/hf/videos/pitup-launch3"
 W = json.load(open(f"{SP}/audio/la/words.json")); PL = json.load(open(f"{SP}/audio/la/places.json"))
-D = 35.4; sr = 48000; n = int(D * sr)
+D = float(__import__("os").environ.get("DUR", "35.4")); sr = 48000; n = int(D * sr)
 def wt(line, word, k=0):
     h = [w for w in W if w[3] == line and w[0].lower().strip(",.?") .startswith(word.lower())]
     return round(h[k][1], 3)
@@ -18,6 +18,9 @@ def wt(line, word, k=0):
 #        swap (slides up through a mask, swish) | mark (highlight sweeps behind the word)
 #   bg: l = light gradient, b = PitUp blue gradient. <a>..</a> = accent colour.
 E = lambda t: round(t - 0.04, 3)
+# category words (no voice): on the beats just before line 7
+BEATS = json.load(open(f"{SP}/audio/la/beats.json")); L7 = json.load(open(f"{SP}/audio/la/lines.json"))[7][0]
+k7 = min(range(len(BEATS)), key=lambda j: abs(BEATS[j] - L7)); CAT = [BEATS[k7 - 4], BEATS[k7 - 3], BEATS[k7 - 2]]
 C = [
  (E(wt(0, "Découvre")), "Découvre", "l", "pop", ""),
  (E(wt(0, "PitUp")), "PitUp", "l", "type", "icon"),
@@ -48,8 +51,7 @@ C = [
  (E(wt(6, "et")), "et le paiement", "l", "pop", ""),
  (E(wt(6, "à")), "à la <a>livraison.</a>", "l", "cam", "glass"),
  # no voice here: the music carries the words (kicks), like the "congolais" motion
- (25.76, "Habillement", "b", "pop", ""), (26.36, "Chaussures", "l", "pop", ""),
- (26.97, "Accessoires", "b", "pop", ""),
+ *[(c, w_, b_, "pop", "") for c, (w_, b_) in zip(CAT, [("Habillement", "b"), ("Chaussures", "l"), ("Accessoires", "b")])],
  (E(wt(7, "Tes")), "Tes <a>achats.</a>", "l", "swap", "sw"),
  (E(wt(7, "ta")), "Ta <a>boutique.</a>", "l", "swap", "sw"),
  (E(wt(7, "ta", 1)), "Ta <a>ville.</a>", "l", "swap", "sw"),
@@ -111,7 +113,7 @@ for i, o in enumerate(on[:-1]):
     if on[i + 1] - o > int(0.16 * sr) and (i == 0 or o - on[i - 1] > int(0.1 * sr)):
         s = k[o:o + int(0.13 * sr)].copy(); s[-400:] *= np.linspace(1, 0, 400); s /= np.abs(s).max() + 1e-6; strokes.append(s)
 for i, (a, h, bg, how, ex) in enumerate(C):
-    if how == "pop": add(a, thock(80 if bg == "b" else 95), 0.22 if a < 25.7 or a > 27.5 else 0.30)
+    if how == "pop": add(a, thock(80 if bg == "b" else 95), 0.22 if a < CAT[0] - 0.05 or a > L7 - 0.1 else 0.30)
     if how == "cam": add(a, click(), 0.22); add(a, thock(120, 0.12, 0.03), 0.12)
     if how == "swap": add(a - 0.12, swish(0.32, 900, 3200), 0.16)
     if how == "mark": add(a, thock(70), 0.3); add(a + 0.12, swish(0.3, 2000, 5000), 0.12)
