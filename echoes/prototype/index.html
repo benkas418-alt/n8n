@@ -1,0 +1,1375 @@
+<title>ECHOES — Tour Halle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une table de travail de détective. Barre d'onglets diégétique en haut, une vue à la fois.
+   Look unique, assumé sombre : bureau la nuit, lumière grise de novembre, ocre de l'acte I. */
+:root {
+  color-scheme: dark;
+  --night: #15171a;      /* fond, bureau éteint */
+  --slab: #1d2024;       /* surfaces */
+  --slab-2: #262a2f;     /* surfaces surélevées */
+  --rule: #353a41;       /* filets */
+  --chalk: #e6e2d8;      /* texte principal */
+  --dust: #9a9fa6;       /* texte secondaire */
+  --ochre: #c9964a;      /* dominante de l'acte I */
+  --ochre-ink: #1a1408;  /* texte sur ocre */
+  --paper: #ddd6c4;      /* carnet, fiches */
+  --paper-ink: #24211b;
+  --alert: #d26a5a;      /* témoin fermé */
+  --ok: #8db38a;
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--night); color: var(--chalk); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ochre); outline-offset: 2px; }
+.app { display: flex; flex-direction: column; min-height: 100%; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; max-width: 1180px; margin: 0 auto; gap: 12px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.brand { font-family: var(--display); font-size: 26px; letter-spacing: .14em; font-weight: 600; }
+.brand small { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--dust); font-weight: 400; margin-left: 8px; }
+.clock { font-family: var(--mono); font-size: 13px; color: var(--ochre); font-variant-numeric: tabular-nums; }
+.fatigue { font-family: var(--mono); font-size: 12px; color: var(--dust); }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+nav.tabs button { background: transparent; border: 1px solid var(--rule); padding: 6px 12px; border-radius: 2px; font-size: 13px; letter-spacing: .04em; }
+nav.tabs button[aria-current="page"] { background: var(--ochre); color: var(--ochre-ink); border-color: var(--ochre); }
+nav.tabs button:disabled { opacity: .35; cursor: not-allowed; }
+.view[hidden] { display: none !important; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--body); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--dust); margin: 0 0 8px; font-weight: 500; }
+p { margin: 0; }
+.muted { color: var(--dust); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.btn { background: var(--slab-2); border: 1px solid var(--rule); padding: 8px 14px; border-radius: 2px; font-size: 14px; }
+.btn:hover:not(:disabled) { border-color: var(--dust); }
+.btn.primary { background: var(--ochre); color: var(--ochre-ink); border-color: var(--ochre); font-weight: 600; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--slab); border: 1px solid var(--rule); padding: 14px; min-width: 0; }
+
+/* Écran d'ouverture */
+.intro { position: fixed; inset: 0; background: var(--night); z-index: 50; overflow-y: auto; padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.intro .inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.intro h1 { font-family: var(--display); font-size: clamp(40px, 9vw, 68px); letter-spacing: .16em; font-weight: 600; margin: 0; line-height: 1; }
+.devise { font-family: var(--display); font-style: italic; font-size: 22px; color: var(--ochre); text-wrap: balance; }
+.warn { border-left: 3px solid var(--ochre); padding: 8px 12px; background: var(--slab); font-size: 14px; }
+.choice { display: flex; gap: 8px; flex-wrap: wrap; }
+.choice label { border: 1px solid var(--rule); padding: 8px 12px; cursor: pointer; }
+.choice input { accent-color: var(--ochre); margin-right: 6px; }
+
+/* Carnet */
+.notebook { background: var(--paper); color: var(--paper-ink); padding: 16px 18px; font-family: var(--display); font-size: 17px; line-height: 1.55; min-width: 0; }
+.notebook h3 { color: #6c6455; }
+.notebook .entry { border-top: 1px dashed #b9b09b; padding-top: 8px; margin-top: 8px; }
+.notebook .entry .when { font-family: var(--mono); font-size: 11px; color: #6c6455; }
+.task { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule); flex-wrap: wrap; }
+.task:first-of-type { border-top: 0; }
+.toggle { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 14px; }
+.toggle input { accent-color: var(--ochre); margin-top: 4px; }
+
+/* 3D */
+.stage { position: relative; background: #0f1113; border: 1px solid var(--rule); min-width: 0; }
+.stage canvas { display: block; width: 100%; height: clamp(300px, 56vh, 560px); touch-action: none; }
+.stage .hud { position: absolute; left: 10px; top: 10px; right: 10px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none; font-family: var(--mono); font-size: 12px; color: var(--dust); }
+.stage .hud b { color: var(--chalk); font-weight: 500; }
+.timeline { display: flex; gap: 10px; align-items: center; padding: 10px; border-top: 1px solid var(--rule); flex-wrap: wrap; }
+.timeline input[type=range] { flex: 1 1 200px; accent-color: var(--ochre); min-width: 0; }
+.timeline .t { font-family: var(--mono); font-size: 18px; color: var(--ochre); min-width: 64px; font-variant-numeric: tabular-nums; }
+.inspect { min-height: 120px; }
+.inspect .piece-title { font-family: var(--display); font-size: 20px; }
+
+/* Fiches / tableau */
+.board { background: #2a2620; border: 1px solid var(--rule); padding: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 820px) { .board { grid-template-columns: minmax(0, 1fr); } }
+.col h3 { color: #b8ab92; }
+.card { background: var(--paper); color: var(--paper-ink); padding: 10px 12px; margin-bottom: 10px; position: relative; font-size: 14px; border: 2px solid transparent; }
+.card.pinned { border-color: var(--ochre); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.card .ct { font-family: var(--display); font-size: 16px; font-weight: 600; line-height: 1.25; padding-right: 64px; }
+.card .meta { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: #6c6455; margin-top: 4px; }
+.card .pin { position: absolute; right: 8px; top: 8px; background: #2a2620; color: var(--paper); border: 0; font-size: 11px; padding: 3px 7px; font-family: var(--mono); }
+.card.pinned .pin { background: var(--ochre); color: var(--ochre-ink); }
+.card .body { margin-top: 6px; font-size: 13.5px; line-height: 1.45; }
+.card .body[hidden] { display: none; }
+.card .more { background: none; border: 0; padding: 0; font-size: 12px; text-decoration: underline; color: #4b4538; margin-top: 4px; }
+.hyp { font-family: var(--display); font-style: italic; }
+
+/* Entretiens */
+.suspects { display: flex; gap: 8px; flex-wrap: wrap; }
+.suspects button { background: var(--slab); border: 1px solid var(--rule); padding: 8px 12px; text-align: left; min-width: 150px; }
+.suspects button[aria-pressed="true"] { border-color: var(--ochre); }
+.suspects button .n { display: block; font-family: var(--display); font-size: 17px; }
+.suspects button .r { display: block; font-size: 12px; color: var(--dust); }
+.suspects button.closed .r { color: var(--alert); }
+.face canvas { display: block; width: 100%; height: clamp(240px, 38vh, 380px); }
+.cue { font-family: var(--display); font-style: italic; font-size: 17px; padding: 10px 12px; border-top: 1px solid var(--rule); min-height: 52px; }
+.assist { font-family: var(--mono); font-size: 12px; color: var(--ochre); padding: 0 12px 10px; }
+.gauges { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; padding: 0 12px 12px; font-family: var(--mono); font-size: 12px; align-items: center; }
+.gauges .bar { height: 6px; background: var(--slab-2); position: relative; }
+.gauges .bar i { position: absolute; inset: 0 auto 0 0; background: var(--dust); }
+.log { height: clamp(220px, 38vh, 380px); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.log .you { color: var(--dust); font-size: 14px; }
+.log .them { font-family: var(--display); font-size: 17px; line-height: 1.45; }
+.log .sys { font-family: var(--mono); font-size: 12px; color: var(--ochre); }
+.log .sound { font-family: var(--mono); font-size: 12px; color: var(--dust); }
+.log .lie { font-family: var(--mono); font-size: 11px; color: var(--alert); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px; border-top: 1px solid var(--rule); }
+.actions .btn { flex: 1 1 110px; }
+.picker { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.picker button { text-align: left; background: var(--slab-2); border: 1px solid var(--rule); padding: 7px 10px; font-size: 13.5px; }
+.silence-bar { height: 3px; background: var(--slab-2); margin: 0 12px 10px; position: relative; overflow: hidden; }
+.silence-bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--chalk); }
+
+/* Vidéo du hall */
+.cctv { background: #0b0c0d; border: 1px solid var(--rule); }
+.cctv canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; image-rendering: pixelated; }
+.cctv .ctrl { display: flex; gap: 6px; align-items: center; padding: 8px; flex-wrap: wrap; }
+.cctv input[type=range] { flex: 1 1 200px; accent-color: var(--ochre); min-width: 0; }
+
+/* Confrontation */
+fieldset { border: 1px solid var(--rule); padding: 12px; margin: 0; min-width: 0; }
+legend { font-family: var(--display); font-size: 19px; padding: 0 6px; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opts label { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.opts input { accent-color: var(--ochre); margin-top: 4px; }
+.limits { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 18px; border-left: 2px solid var(--rule); margin-left: 6px; }
+.limits label { padding: 6px 0; }
+.result { display: flex; flex-direction: column; gap: 14px; }
+.verdict { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .verdict { grid-template-columns: minmax(0, 1fr); } }
+.verdict .panel b { display: block; font-family: var(--display); font-size: 22px; font-weight: 400; }
+.monologue { font-family: var(--display); font-size: 19px; line-height: 1.6; border-left: 3px solid var(--ochre); padding: 4px 0 4px 16px; }
+.limitmap { overflow-x: auto; }
+.limitmap table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 13.5px; }
+.limitmap th, .limitmap td { border: 1px solid var(--rule); padding: 8px; vertical-align: top; text-align: left; }
+.limitmap th { font-weight: 500; color: var(--dust); font-size: 12px; }
+.limitmap td.mark { background: var(--slab-2); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--paper); color: var(--paper-ink); padding: 10px 16px; font-size: 14px; max-width: min(520px, calc(100% - 32px)); z-index: 60; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="intro" id="intro">
+  <div class="inner">
+    <h1>ECHOES</h1>
+    <p class="mono muted">Prototype gris · Acte I · Affaire de la Tour Halle · South City, Le Socle</p>
+    <p class="devise">Les preuves révèlent les faits. Les personnes révèlent les raisons.</p>
+    <div class="warn">
+      <b>Avant de commencer.</b> Cette enquête traite d'une mort violente (non montrée), d'alcool, d'adultère et d'emprise hiérarchique. Jeu pour adultes. Aucune scène ne montre l'acte.
+    </div>
+    <div>
+      <h3>Votre détective</h3>
+      <div class="choice" role="radiogroup">
+        <label><input type="radio" name="gender" id="g-f" value="f" checked>Une détective (partenaire : Ben)</label>
+        <label><input type="radio" name="gender" id="g-m" value="m">Un détective (partenaire : Eden)</label>
+      </div>
+    </div>
+    <p class="muted" style="font-size:14px">Prototype de mécanique, en volumes gris. Il teste une seule chose : ce que vous ressentez quand votre propre reconstitution vous a menti. Le son compte : mettez un casque si vous pouvez.</p>
+    <div class="row"><button class="btn primary" id="start">Ouvrir le cabinet</button></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">ECHOES<small>prototype gris</small></div>
+    <div class="clock" id="clock">Jour 1 · 15 novembre</div>
+    <div class="fatigue" id="fatigue"></div>
+    <nav class="tabs" aria-label="Lieux du jeu">
+      <button data-view="carnet" aria-current="page">Carnet</button>
+      <button data-view="scene">Lieux &amp; Écho</button>
+      <button data-view="entretiens">Entretiens</button>
+      <button data-view="tableau">Tableau</button>
+      <button data-view="video" id="tab-video" disabled>Bande du hall</button>
+      <button data-view="confrontation">Confrontation</button>
+    </nav>
+  </header>
+
+  <!-- CARNET -->
+  <section class="view" id="v-carnet">
+    <div class="grid2">
+      <div class="notebook" id="notebook">
+        <h3>Carnet</h3>
+        <div id="nb-entries"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <div class="panel">
+          <h3>Démarches</h3>
+          <div id="tasks"></div>
+        </div>
+        <div class="panel">
+          <h3>Fin de journée</h3>
+          <p class="muted" style="font-size:14px;margin-bottom:10px">Dormir efface la fatigue des Échos et fait avancer le temps. Certains témoins ne seront plus là le lendemain.</p>
+          <button class="btn" id="sleep">Dormir</button>
+        </div>
+        <div class="panel">
+          <h3>Accessibilité</h3>
+          <label class="toggle"><input type="checkbox" id="opt-gauges"><span>Afficher les jauges de confiance et de tension. <span class="muted">Cela enlève une partie de l'exercice : normalement, on les lit sur le visage et dans la voix.</span></span></label>
+          <label class="toggle"><input type="checkbox" id="opt-assist"><span>Lecture assistée : nommer en texte les micro-expressions.</span></label>
+          <label class="toggle"><input type="checkbox" id="opt-sound" checked><span>Sons (battement de cœur, Écho). Les sons signifiants sont aussi décrits par écrit.</span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIEUX & ÉCHO -->
+  <section class="view" id="v-scene" hidden>
+    <div class="grid2">
+      <div class="stage">
+        <canvas id="scene-canvas" aria-label="Le 7e étage de la Tour Halle en volumes gris"></canvas>
+        <div class="hud"><span id="hud-mode"><b>Lieux</b> · touchez un repère</span><span>glisser : tourner · molette/pincer : zoom</span></div>
+        <div class="timeline" id="timeline" hidden>
+          <button class="btn" id="tl-play" aria-label="Lecture">▶</button>
+          <button class="btn" id="tl-back" aria-label="Minute précédente">−1</button>
+          <span class="t" id="tl-time">22:00</span>
+          <input type="range" id="tl-range" min="0" max="120" step="0.25" value="0" aria-label="Heure de la reconstitution">
+          <button class="btn" id="tl-fwd" aria-label="Minute suivante">+1</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <h3 style="margin:0">Mode</h3>
+            <div class="row">
+              <button class="btn" id="mode-lieux">Lieux</button>
+              <button class="btn primary" id="mode-echo">Lancer l'Écho</button>
+            </div>
+          </div>
+          <p class="muted" style="font-size:14px;margin-top:10px" id="mode-help">Le 7e étage, le lendemain matin. La police a fini. Ce que vous ne relevez pas maintenant sera perdu quand vous quitterez les lieux.</p>
+        </div>
+        <div class="panel inspect" id="inspect" aria-live="polite">
+          <p class="muted">Rien d'examiné pour l'instant.</p>
+        </div>
+        <div class="panel" id="leave-panel">
+          <h3>Point de non-retour</h3>
+          <p class="muted" style="font-size:14px;margin-bottom:10px">Quitter les lieux ferme définitivement l'accès aux indices matériels.</p>
+          <button class="btn" id="leave">Quitter les lieux</button>
+        </div>
+        <div class="panel" id="echo-archive-panel" hidden>
+          <h3>Échos archivés</h3>
+          <div id="echo-archive" class="row"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTRETIENS -->
+  <section class="view" id="v-entretiens" hidden>
+    <div class="suspects" id="suspects" role="group" aria-label="Personnes à interroger"></div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="stage face">
+        <canvas id="face-canvas" aria-label="Visage de la personne interrogée"></canvas>
+        <div class="cue" id="cue" aria-live="polite"></div>
+        <div class="assist" id="assist" hidden></div>
+        <div class="gauges" id="gauges" hidden>
+          <span>Confiance</span><div class="bar"><i id="g-trust"></i></div><span id="g-trust-v">0</span>
+          <span>Tension</span><div class="bar"><i id="g-tension"></i></div><span id="g-tension-v">0</span>
+        </div>
+      </div>
+      <div class="panel" style="padding:0;display:flex;flex-direction:column">
+        <div class="log" id="log" aria-live="polite"></div>
+        <div class="silence-bar" id="silence-bar" hidden><i id="silence-fill"></i></div>
+        <div class="picker" id="picker" hidden></div>
+        <div class="actions" id="actions">
+          <button class="btn" data-a="observer" title="Regarder sans parler">Observer</button>
+          <button class="btn" data-a="empathie">Empathie</button>
+          <button class="btn" data-a="logique">Logique</button>
+          <button class="btn" data-a="franchise">Franchise</button>
+          <button class="btn" data-a="pression">Pression</button>
+          <button class="btn" data-a="silence" title="Ne rien dire. Ne touchez à rien pendant le silence.">Silence</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLEAU -->
+  <section class="view" id="v-tableau" hidden>
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <p class="muted" style="font-size:14px;max-width:70ch">Épinglez ce que vous tenez pour établi. L'Écho reconstituera la soirée à partir de ce tableau, et de rien d'autre. Une seule hypothèse sur la chute à la fois.</p>
+      <button class="btn primary" id="board-echo">Voir l'Écho de ce tableau</button>
+    </div>
+    <div class="board">
+      <div class="col"><h3>Preuves</h3><div id="col-preuve"></div></div>
+      <div class="col"><h3>Témoignages</h3><div id="col-temoignage"></div></div>
+      <div class="col"><h3>Hypothèses (au feutre)</h3><div id="col-hypothese"></div></div>
+    </div>
+  </section>
+
+  <!-- VIDÉO -->
+  <section class="view" id="v-video" hidden>
+    <div class="grid2">
+      <div class="cctv">
+        <canvas id="cctv" width="320" height="180" aria-label="Vidéo du hall, une image par seconde"></canvas>
+        <div class="ctrl">
+          <button class="btn" id="cv-b10">−10 s</button>
+          <button class="btn" id="cv-b1">−1</button>
+          <button class="btn" id="cv-play">▶</button>
+          <button class="btn" id="cv-f1">+1</button>
+          <button class="btn" id="cv-f10">+10 s</button>
+          <input type="range" id="cv-range" min="0" max="7199" value="0" aria-label="Position dans la bande">
+          <span class="mono" id="cv-time">22:00:00</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Pièce à conviction</h3>
+        <p class="muted" style="font-size:14px;margin-bottom:10px">Caméra du hall de la Tour Halle, 22 h – 24 h, une image par seconde. Faites défiler, arrêtez, agrandissez. Une vidéo ne ment jamais, et elle n'explique rien.</p>
+        <button class="btn" id="cv-zoom">Agrandir l'image</button>
+        <div id="cv-desc" style="margin-top:12px;font-family:var(--display);font-size:17px" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFRONTATION -->
+  <section class="view" id="v-confrontation" hidden>
+    <form id="confront" class="result">
+      <p class="muted" style="font-size:14px;max-width:70ch" id="partner-warn"></p>
+      <fieldset><legend>Qui ?</legend><div class="opts" id="f-who"></div></fieldset>
+      <fieldset><legend>Pourquoi ?</legend><div class="opts" id="f-why"></div></fieldset>
+      <fieldset><legend>Ce que vous présentez</legend><p class="muted" style="font-size:13px;margin-bottom:8px">La personne sait comment chaque pièce a été obtenue.</p><div class="opts" id="f-proofs"></div></fieldset>
+      <fieldset id="f-limit-set"><legend>La carte des limites</legend><p class="muted" style="font-size:13px;margin-bottom:8px" id="f-limit-help">Désignez d'abord quelqu'un.</p><div class="limits" id="f-limit"></div></fieldset>
+      <div class="row"><button class="btn primary" type="submit" id="f-submit">Lancer la confrontation</button></div>
+    </form>
+    <div id="outcome" class="result" hidden></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* =========================================================================
+   DONNÉES DE L'AFFAIRE — Acte I, « le mensonge ». Tout est original.
+   Temps de l'Écho en minutes après 22:00.
+   ========================================================================= */
+const POS = {
+  ascenseur: [-6.2, 0, -3.6], portemanteau: [-6.2, 0, -1.6], openspace: [-1.2, 0, -1.2], bureauLucas: [0.8, 0, 0.6],
+  bureauE: [4.0, 0, -3.0], fenetre: [6.2, 0, 0.5], basEscalier: [-5.4, 0, 3.6], hautEscalier: [-2.0, 2.8, 3.6], archives: [3.0, 2.8, 4.0]
+};
+// Petit décalage par personne, pour que deux silhouettes au même endroit restent lisibles
+const OFFSET = { E: [0, 0], C: [0.55, 0.3], M: [-0.55, 0.3], L: [0.45, -0.45], X: [0.45, -0.45] };
+const LEVEL = p => (POS[p][1] > 1 ? 1 : 0);
+const ACTORS = {
+  E: { name: 'Étienne', color: 0xf3ead6 },
+  C: { name: 'Claire', color: 0xd8e3f0 },
+  M: { name: 'Marion', color: 0xe9d6d6 },
+  L: { name: 'Lucas', color: 0xdcead6 },
+  X: { name: '?', color: 0xd9d9d9 }
+};
+const NEEDS = { vu: 'Être vu', appartenir: 'Appartenir', aime: 'Être aimé(e)', controle: 'Contrôler', liberer: 'Se libérer' };
+
+// kind: preuve | temoignage | hypothese ; prov: légitime | grise | illégale
+const PIECES = {
+  police: { t: 'Rapport de police', kind: 'preuve', prov: 'légitime', src: 'Dossier transmis par Inès Varenne',
+    text: 'Étienne Varenne, 56 ans. Retrouvé le 15 novembre à 6 h 40 par l’agente d’entretien, au pied de l’escalier métallique de la mezzanine des archives, 7e étage de la Tour Halle. Alcoolémie : 1,1 g/L. Aucune effraction. Conclusion : chute accidentelle. Classé.',
+    keys: [{ a: 'E', t: 0, p: 'bureauE' }] },
+  autopsie: { t: 'Autopsie (extrait)', kind: 'preuve', prov: 'légitime', src: 'Dossier transmis par Inès Varenne',
+    text: 'Décès entre 23 h 30 et 1 h. Fracture du crâne. Le légiste note une ecchymose récente à l’avant-bras gauche, « compatible avec une prise ferme », sans en tirer de conclusion.' },
+  badges: { t: 'Registre des badges', kind: 'preuve', prov: 'légitime', src: 'Fourni par Inès Varenne',
+    text: 'Entrées seulement : on sort par un bouton poussoir, rien n’est enregistré. 14 nov. : Varenne 7 h 55, Dumas 8 h 12, Ferreira 8 h 40, Varenne 19 h 05 (retour d’un dîner client). Aucune entrée ensuite.' },
+  marche: { t: 'La troisième marche', kind: 'preuve', prov: 'légitime', src: 'Relevé sur les lieux',
+    text: 'En partant du haut, la troisième marche porte un éclat de peinture frais. La police a nettoyé le reste.' },
+  verres: { t: 'Deux verres', kind: 'preuve', prov: 'légitime', src: 'Relevé sur les lieux',
+    text: 'Sur le bureau d’Étienne : une bouteille de whisky offerte par un client, entamée d’un tiers. Deux verres. L’un porte une trace de rouge à lèvres.' },
+  telephone: { t: 'Le téléphone d’Étienne', kind: 'preuve', prov: 'légitime', src: 'Rendu à la famille, prêté par Inès',
+    text: '22 h 58 : appel manqué de Marion. 23 h 16 : message envoyé à Lucas Ferreira : « Demain 8 h. Mon bureau. »',
+    keys: [{ a: 'E', t: 76, p: 'bureauE' }] },
+  lampe: { t: 'La lampe des archives', kind: 'preuve', prov: 'légitime', src: 'Relevé sur les lieux',
+    text: 'Sur la mezzanine, la lampe de bureau des archives est restée allumée. Dessous, un dossier ouvert : « Association — L. Ferreira », annoté au crayon par une autre main que celle d’Étienne.' },
+  manteau: { t: 'Un manteau oublié', kind: 'preuve', prov: 'légitime', src: 'Relevé sur les lieux',
+    text: 'Au portemanteau : un manteau d’homme gris, taille M. Dans la poche, un ticket de tram « Trois-Ponts » du 14 novembre et un trousseau de clés. Personne n’est venu le réclamer.' },
+  carnetLucas: { t: 'Le carnet du tiroir', kind: 'preuve', prov: 'illégale', src: 'Tiroir de Lucas, forcé',
+    text: 'Dernière page, datée du 14 : « Il me l’a promis le 12 juin. Ce soir je reste jusqu’à ce qu’il voie le dossier fini. »' },
+  registre: { t: 'Registre du gardien', kind: 'preuve', prov: 'légitime', src: 'Obtenu avec une lettre de la cliente',
+    text: 'Gaspard Lunel, gardien de nuit. Absent de son poste de 22 h 30 à 23 h 15 : « appel de l’école de ma fille ». Journal de l’ascenseur, appels depuis le 7e : 22 h 50, 23 h 09, 23 h 39.' },
+  video: { t: 'Vidéo du hall', kind: 'preuve', prov: 'légitime', src: 'Obtenue avec une lettre de la cliente',
+    text: 'Caméra du hall, 1 image/s. 22 h 51 : une femme en manteau camel sort. 23 h 03 : une femme aux cheveux courts entre. 23 h 09 : la même ressort. 23 h 40 : un homme en chemise, sans manteau, sort.',
+    keys: [{ a: 'C', t: 51, p: 'ascenseur', out: true }, { a: 'M', t: 63, p: 'ascenseur', in: true }, { a: 'M', t: 69, p: 'ascenseur', out: true }, { a: 'X', t: 100, p: 'ascenseur', out: true }] },
+  // Témoignages
+  C1: { t: 'Claire : « partie vers 22 h 50 »', kind: 'temoignage', prov: 'légitime', who: 'C',
+    text: '« Je suis restée tard avec lui, on a bu un verre. Je suis partie vers 22 h 50. Il était vivant, il travaillait. »',
+    keys: [{ a: 'C', t: 0, p: 'openspace' }, { a: 'C', t: 33, p: 'bureauE' }, { a: 'E', t: 33, p: 'bureauE' }, { a: 'C', t: 50, p: 'ascenseur', out: true }] },
+  C2: { t: 'Claire : la rupture, l’association', kind: 'temoignage', prov: 'légitime', who: 'C',
+    text: '« On était ensemble depuis deux ans. Ce soir-là, il a attendu que le bureau soit vide pour me quitter. Et pour que je parte sans bruit, il m’a donné l’association. Celle qu’il avait promise à Lucas. »',
+    keys: [{ a: 'E', t: 35, p: 'bureauE' }, { a: 'C', t: 35, p: 'bureauE' }] },
+  C3: { t: 'Claire : la veste de Lucas', kind: 'temoignage', prov: 'légitime', who: 'C',
+    text: '« Lucas était parti depuis longtemps. Enfin, je crois. Sa veste était encore au portemanteau quand j’ai pris l’ascenseur. Je me suis dit qu’il l’avait oubliée. »' },
+  M1: { t: 'Marion : « pas bougé de chez moi »', kind: 'temoignage', prov: 'légitime', who: 'M', lie: true,
+    text: '« Je n’ai pas bougé de chez moi. J’ai appelé mon mari vers 23 h, il n’a pas répondu. C’est tout. »' },
+  M2: { t: 'Marion : « je suis montée »', kind: 'temoignage', prov: 'légitime', who: 'M',
+    text: '« Oui, je suis montée. Le gardien n’était pas là. Je l’ai giflé. Il pleurait, il avait bu. Je suis redescendue au bout de cinq minutes. Il était debout. Je le jure sur ma fille. »',
+    keys: [{ a: 'M', t: 63, p: 'ascenseur', in: true }, { a: 'M', t: 65, p: 'bureauE' }, { a: 'E', t: 65, p: 'bureauE' }, { a: 'M', t: 69, p: 'ascenseur', out: true }] },
+  M3: { t: 'Marion : « je savais tout »', kind: 'temoignage', prov: 'légitime', who: 'M',
+    text: '« Je lisais ses messages depuis six mois. Je savais pour Claire. Je savais même que le petit Lucas me mentait au téléphone pour le couvrir : « il est en rendez-vous, madame ». C’est le seul qui avait l’air d’avoir honte. »' },
+  L1: { t: 'Lucas : « parti à 21 h 30 »', kind: 'temoignage', prov: 'légitime', who: 'L', lie: true,
+    text: '« Je suis parti à 21 h 30, comme d’habitude. Tram, Trois-Ponts, maison. »' },
+  L2: { t: 'Lucas : « ils se disputaient »', kind: 'temoignage', prov: 'légitime', who: 'L', lie: true,
+    text: '« Il était de mauvaise humeur. Il se disputait encore avec Claire quand je suis parti, d’ailleurs. »' },
+  L4: { t: 'Lucas : « Claire la mérite »', kind: 'temoignage', prov: 'légitime', who: 'L', lie: true,
+    text: '« L’association ? Claire la mérite sûrement. Elle est là depuis plus longtemps que moi. »' },
+  L5: { t: 'Lucas : la promesse de juin', kind: 'temoignage', prov: 'légitime', who: 'L',
+    text: '« Il m’avait promis l’association. Au repas de juin, devant tout le monde. Il m’appelait « mon grand ». J’ai trente et un ans. »' },
+  L3: { t: 'Lucas : « j’étais aux archives »', kind: 'temoignage', prov: 'légitime', who: 'L',
+    text: '« D’accord. J’étais aux archives. Je finissais le dossier, pour qu’il le trouve le matin. J’ai tout entendu. Claire. Sa femme. Je ne suis pas descendu. Et puis il est monté. Il a raté la marche. Je suis parti. J’ai eu peur. »',
+    keys: [{ a: 'L', t: 0, p: 'archives' }, { a: 'E', t: 77, p: 'bureauE' }, { a: 'L', t: 79, p: 'hautEscalier' }, { a: 'E', t: 79.5, p: 'hautEscalier' }, { a: 'E', t: 81, p: 'basEscalier', fall: true }, { a: 'L', t: 100, p: 'ascenseur', out: true }] },
+  // Hypothèses sur la chute (une seule épinglée à la fois)
+  H1: { t: 'Il est seul quand il tombe', kind: 'hypothese', prov: '—', fall: true,
+    text: 'La version de la police. Il boit, il monte aux archives, il rate une marche.',
+    keys: [{ a: 'E', t: 76, p: 'bureauE' }, { a: 'E', t: 79, p: 'hautEscalier' }, { a: 'E', t: 81, p: 'basEscalier', fall: true }] },
+  H2: { t: 'Marion est encore là quand il tombe', kind: 'hypothese', prov: '—', fall: true,
+    text: 'Elle est venue, ils se sont disputés, elle ne repart qu’après la chute.',
+    keys: [{ a: 'M', t: 63, p: 'ascenseur', in: true }, { a: 'M', t: 66, p: 'bureauE' }, { a: 'E', t: 76, p: 'bureauE' }, { a: 'M', t: 78.5, p: 'hautEscalier' }, { a: 'E', t: 79, p: 'hautEscalier' }, { a: 'E', t: 81, p: 'basEscalier', fall: true }, { a: 'M', t: 86, p: 'ascenseur', out: true }] },
+  H3: { t: 'Claire est revenue', kind: 'hypothese', prov: '—', fall: true,
+    text: 'Elle part à 22 h 50, puis remonte. Ils reprennent la dispute en haut des marches.',
+    keys: [{ a: 'C', t: 72, p: 'ascenseur', in: true }, { a: 'E', t: 76, p: 'bureauE' }, { a: 'C', t: 78.5, p: 'hautEscalier' }, { a: 'E', t: 79, p: 'hautEscalier' }, { a: 'E', t: 81, p: 'basEscalier', fall: true }, { a: 'C', t: 86, p: 'ascenseur', out: true }] },
+  H4: { t: 'Quelqu’un était aux archives', kind: 'hypothese', prov: '—', fall: true,
+    text: 'La lampe allumée, la veste. Quelqu’un est resté là-haut toute la soirée.',
+    keys: [{ a: 'X', t: 0, p: 'archives' }, { a: 'E', t: 76, p: 'bureauE' }, { a: 'X', t: 78.5, p: 'hautEscalier' }, { a: 'E', t: 79, p: 'hautEscalier' }, { a: 'E', t: 81, p: 'basEscalier', fall: true }, { a: 'X', t: 100, p: 'ascenseur', out: true }] }
+};
+const HYP_UNLOCK = { H1: () => true, H2: () => has('telephone') || has('M1') || has('M2'), H3: () => has('C1'), H4: () => has('lampe') || has('manteau') || has('C3') };
+
+// Hotspots des lieux
+const HOTSPOTS = [
+  { id: 'marche', p: [-3.2, 1.6, 3.6], label: 'Escalier' },
+  { id: 'verres', p: [4.0, 0.9, -3.4], label: 'Bureau d’Étienne' },
+  { id: 'telephone', p: [4.7, 0.9, -2.6], label: 'Téléphone' },
+  { id: 'lampe', p: [3.0, 3.8, 4.4], label: 'Archives' },
+  { id: 'manteau', p: [-6.2, 1.7, -1.6], label: 'Portemanteau' },
+  { id: 'tiroir', p: [0.8, 0.9, 0.6], label: 'Bureau de Lucas' }
+];
+
+/* Psychologie : la même fiche pour tout le monde. */
+const SUSPECTS = {
+  C: { name: 'Claire Dumas', role: 'associée, 43 ans', need: 'aime', wound: 'Abandon', defense: 'Je n’ai jamais rien demandé à personne.',
+    trust: 45, tension: 35, she: true,
+    topics: [
+      { id: 'soiree', q: 'Racontez-moi votre soirée.', piece: 'C1' },
+      { id: 'etienne', q: 'Comment allait Étienne ?', line: 'Fatigué. Il recommençait à boire, depuis septembre. Sa fille ne le sait pas.' },
+      { id: 'lucas', q: 'Et Lucas ?', line: 'Un bon garçon. Il voulait tellement qu’Étienne le regarde que ça en devenait gênant.' },
+      { id: 'marion', q: 'Et sa femme ?', line: 'Elle savait. Elle sait toujours tout.' }
+    ],
+    secrets: [
+      { piece: 'C2', via: 'confidence' },
+      { piece: 'C3', via: 'silence' }
+    ],
+    contradictions: {} },
+  M: { name: 'Marion Varenne', role: 'épouse, 54 ans', need: 'controle', wound: 'Trahison', defense: 'Je sais toujours où sont les choses.',
+    trust: 25, tension: 50, she: true,
+    topics: [
+      { id: 'soiree', q: 'Où étiez-vous ce soir-là ?', piece: 'M1' },
+      { id: 'etienne', q: 'Parlez-moi de votre mari.', line: 'Mon mari était un homme très entouré. Trop.' },
+      { id: 'claire', q: 'Vous connaissez Claire Dumas ?', line: 'Je ne parlerai pas de cette femme.' },
+      { id: 'lucas', q: 'Et Lucas Ferreira ?', line: 'Un garçon poli. Il répondait au téléphone quand mon mari ne voulait pas.' }
+    ],
+    secrets: [
+      { piece: 'M3', via: 'confidence' },
+      { line: 'Je tenais ses agendas, ses médicaments, ses anniversaires. Vingt-huit ans. On ne lâche pas quelqu’un parce qu’il vous ment. On resserre.', via: 'silence', id: 'Msil' },
+      { piece: 'M2', via: 'aveu', needsLie: 'M1' }
+    ],
+    contradictions: { video: { lie: 'M1', unlock: 'M2' }, registre: { lie: 'M1', weak: true } } },
+  L: { name: 'Lucas Ferreira', role: 'collaborateur, 31 ans', need: 'vu', wound: 'Rejet', defense: 'Je fais juste mon travail.',
+    trust: 50, tension: 30, she: false,
+    topics: [
+      { id: 'soiree', q: 'Racontez-moi votre soirée.', piece: 'L1' },
+      { id: 'etienne', q: 'Comment était Étienne, ce soir-là ?', piece: 'L2', minTrust: 45, line: 'Comme d’habitude. Pressé.' },
+      { id: 'asso', q: 'Qui devait devenir associé ?', piece: 'L4' },
+      { id: 'marion', q: 'Vous connaissez Marion Varenne ?', line: 'Madame Varenne ? Je… pas vraiment. Je lui passais son mari, au téléphone.' }
+    ],
+    secrets: [
+      { piece: 'L5', via: 'confidence' },
+      { line: 'Vous savez ce que c’est, de travailler quatre ans pour quelqu’un qui oublie votre prénom quand il est fatigué ?', via: 'silence', id: 'Lsil' }
+    ],
+    contradictions: {
+      video: { lie: 'L1', unlock: 'L3', identifies: true },
+      manteau: { lie: 'L1', unlock: 'L3', minTension: 45 },
+      C2: { lie: 'L2', alt: 'L4' },
+      C3: { lie: 'L1' }
+    } }
+};
+
+/* Matrice : besoin × approche → effet sur (confiance, tension) */
+const MATRIX = {
+  aime:     { empathie: [16, -10], franchise: [2, 4], pression: [-15, 28], logiqueVraie: [-4, 18], logiqueFausse: [-20, 10], silence: [4, 6] },
+  controle: { empathie: [6, -4],   franchise: [2, 5], pression: [-18, 20], logiqueVraie: [4, 14],  logiqueFausse: [-22, 12], silence: [4, 6] },
+  vu:       { empathie: [18, -8],  franchise: [3, 4], pression: [-8, 30],  logiqueVraie: [-2, 22], logiqueFausse: [-20, 10], silence: [5, 7] }
+};
+const LINES = {
+  aime: {
+    empathie: ['Merci. Personne ne m’a demandé comment j’allais.', 'Vous êtes gentil. Ça ne sert à rien, mais c’est gentil.'],
+    pression: ['Pourquoi vous me parlez comme ça ?', 'Je n’ai rien fait. Je l’aimais.'],
+    logiqueVraie: ['… Je ne sais pas quoi vous dire.'],
+    logiqueFausse: ['Pourquoi vous me dites ça ? Je vous ai tout dit.'],
+    silenceLow: ['(Elle sourit poliment.) Vous voulez un café ?'], silenceHigh: ['Arrêtez de me regarder comme ça.']
+  },
+  controle: {
+    empathie: ['Je n’ai pas besoin qu’on me tienne la main.', 'Gardez votre compassion. Posez vos questions.'],
+    pression: ['Vous ne me faites pas peur. J’ai enterré mon mari mardi.', 'Faites très attention à ce que vous insinuez.'],
+    logiqueVraie: ['… Vous êtes bien renseigné.'],
+    logiqueFausse: ['Vous vous trompez, et vous le savez.', 'C’est tout ce que vous avez ?'],
+    silenceLow: ['Vous attendez quoi, au juste ?'], silenceHigh: ['Je crois que nous avons terminé.']
+  },
+  vu: {
+    empathie: ['… Personne ne m’a posé la question, en fait.', 'Merci. C’est… merci.'],
+    pression: ['Vous ne savez rien de moi.', 'Pourquoi tout le monde me parle comme ça ?'],
+    logiqueVraie: ['J’ai dû me tromper d’heure.', 'Vous notez tout, vous.'],
+    logiqueFausse: ['Vous aussi, vous ne m’écoutez pas.'],
+    silenceLow: ['(Il remplit le vide.) Le dossier Bertin, c’est moi qui l’ai monté, vous savez. Tout seul.'], silenceHigh: ['Dites quelque chose, s’il vous plaît.']
+  }
+};
+const YOU = {
+  empathie: ['Prenez votre temps.', 'Ça a dû être une soirée difficile.', 'Je ne suis pas là pour vous juger.'],
+  pression: ['Vous me mentez depuis le début.', 'Il est mort, et vous étiez là.', 'Je peux rendre tout ça très public.']
+};
+const CUES = {
+  confidence: ['Les épaules descendent. Le regard revient vers vous.', 'Le visage se détend. Une main lâche l’autre.'],
+  aveu: ['La respiration se coupe. Les yeux brillent, la bouche hésite.', 'Le regard ne vous quitte plus. Quelque chose va sortir.'],
+  tendu: ['La mâchoire travaille. Les mains se cherchent.', 'Le regard part vers la fenêtre et revient trop vite.'],
+  mur: ['Un visage aimable, fermé. Les mains restent à plat.', 'Poli. Rien ne passe.'],
+  rupture: ['La chaise recule. C’est fini.']
+};
+const ASSIST = {
+  confidence: 'Micro-expression : soulagement (0,4 s). Posture ouverte.',
+  aveu: 'Micro-expression : peur puis tristesse (0,3 s). Gorge serrée.',
+  tendu: 'Micro-expression : colère contenue (0,2 s). Contrôle de la respiration.',
+  mur: 'Expression sociale stable. Aucune fuite.',
+  rupture: 'Retrait. Fin de l’échange.'
+};
+
+/* Carte des limites : trois relations, trois lectures sincères et incompatibles. */
+const LIMITS = {
+  L: { rel: 'Étienne et Lucas', points: [
+      'Mars 2021. Embauche. Étienne : « Ici, on ne compte pas ses heures. »',
+      'Juin 2022. Au repas du cabinet, il l’appelle « mon grand » devant tout le monde.',
+      'Janvier 2023. Lucas commence à mentir à Marion au téléphone pour couvrir Étienne.',
+      'Juin 2024. Promesse d’association, au dessert.',
+      '14 novembre. L’association va à Claire.'],
+    reads: { M: [2, 'Le jour où ce garçon m’a menti pour lui, ils étaient déjà de l’autre côté.'],
+             C: [3, 'On ne promet pas une association au dessert à quelqu’un qui vous aime comme un père.'],
+             L: [4, 'Il n’y avait pas de limite. Il me l’a dit le premier jour : ici, on ne compte pas.'] } },
+  C: { rel: 'Étienne et Claire', points: [
+      'Septembre 2019. Claire arrive au cabinet.',
+      'Mars 2022. Un dîner client qui finit à deux.',
+      'Novembre 2022. Il lui dit qu’il va quitter Marion.',
+      'Septembre 2024. Il recommence à boire. Elle couvre.',
+      '14 novembre. Il la quitte, et lui donne l’association.'],
+    reads: { M: [1, 'Un dîner client qui finit à deux, ça n’a plus rien d’un dîner client.'],
+             C: [4, 'Ce soir-là. Avant, c’était de l’amour. Ce soir-là, il m’a payée.'],
+             L: [2, 'Quand il a commencé à promettre. Il promettait à tout le monde.'] } },
+  M: { rel: 'Étienne et Marion', points: [
+      '1996. Mariage.',
+      '2015. Elle reprend ses agendas et ses comptes.',
+      'Mai 2024. Elle commence à lire ses messages.',
+      '14 novembre, 22 h 58. L’appel sans réponse.',
+      '14 novembre, 23 h 05. La gifle.'],
+    reads: { M: [4, 'Je n’ai jamais rien franchi. Une gifle, en vingt-huit ans.'],
+             C: [2, 'Lire les messages de quelqu’un, c’est déjà vivre à sa place.'],
+             L: [1, 'Il disait qu’il ne savait plus où était son propre argent.'] } }
+};
+
+/* ========================================================================= ÉTAT */
+const S = {
+  day: 1, gender: 'f', got: new Set(['police', 'autopsie', 'badges']), pinned: new Set(['police']),
+  left: false, echoRuns: 0, echoToday: 0, echoArchive: [], videoRequested: false, videoArrived: false, registreGot: false,
+  susp: {}, current: 'L', observations: 0, readBody: false, heard: new Set(),
+  bias: { firstHyp: null, talk: { C: 0, M: 0, L: 0 }, consult: {} },
+  revealed: false, xIdentified: false, confronted: false, notes: [], warnedConfront: false, claireGone: false, seen23_40: false
+};
+for (const k of Object.keys(SUSPECTS)) { const s = SUSPECTS[k]; S.susp[k] = { trust: s.trust, tension: s.tension, closed: false, revealed: new Set(), log: [] }; }
+const has = id => S.got.has(id);
+const partner = () => (S.gender === 'f' ? 'Ben' : 'Eden');
+const fmt = m => { const h = 22 + Math.floor(m / 60), mm = Math.floor(m % 60); return String(h % 24).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); };
+const $ = id => document.getElementById(id);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = v => Math.max(0, Math.min(100, v));
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3800); }
+function note(text) { S.notes.unshift({ day: S.day, text }); renderNotebook(); }
+function gain(id, quiet) {
+  if (S.got.has(id)) return false;
+  S.got.add(id);
+  if (!quiet) toast('Nouvelle pièce au tableau : ' + PIECES[id].t);
+  note('Pièce : ' + PIECES[id].t + '.');
+  renderBoard();
+  return true;
+}
+
+/* ========================================================================= SON */
+let AC = null;
+function audio() { if (!$('opt-sound').checked) return null; if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } return AC; }
+function thump(when, gain) {
+  const ac = audio(); if (!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(62, when); o.frequency.exponentialRampToValueAtTime(38, when + 0.12);
+  g.gain.setValueAtTime(0.0001, when); g.gain.exponentialRampToValueAtTime(gain, when + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, when + 0.18);
+  o.connect(g).connect(ac.destination); o.start(when); o.stop(when + 0.2);
+}
+function tick(supposed) {
+  const ac = audio(); if (!ac) return;
+  const play = (t, gain, freq) => {
+    const o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.value = freq; f.type = 'lowpass'; f.frequency.value = 1800;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    o.connect(f).connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.1);
+  };
+  const now = ac.currentTime + 0.01;
+  // Ce qui est prouvé sonne net. Ce qui est supposé arrive un peu en retard, doublé, comme dans une pièce vide.
+  if (supposed) { play(now + 0.09, 0.06, 420); play(now + 0.21, 0.025, 410); } else play(now, 0.08, 440);
+}
+let heartTimer = null;
+function heartLoop() {
+  clearTimeout(heartTimer);
+  const k = S.current, st = S.susp[k];
+  const active = currentView === 'entretiens' && !st.closed && st.tension >= 60 && !(k === 'C' && S.claireGone);
+  if (active) {
+    const ac = audio();
+    if (ac) { const t = ac.currentTime + 0.02; thump(t, 0.35); thump(t + 0.24, 0.22); }
+    const bpm = 70 + (st.tension - 60) * 1.6;
+    heartTimer = setTimeout(heartLoop, 60000 / bpm);
+  } else heartTimer = setTimeout(heartLoop, 900);
+}
+
+/* ========================================================================= NAVIGATION */
+let currentView = 'carnet';
+function show(v) {
+  currentView = v;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view === v ? 'page' : 'false'));
+  document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
+  if (v === 'scene') { resizeScene(); }
+  if (v === 'entretiens') { resizeFace(); renderInterview(); }
+  if (v === 'tableau') renderBoard();
+  if (v === 'video') drawCCTV();
+  if (v === 'confrontation') renderConfront();
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.view)));
+
+/* ========================================================================= CARNET */
+function renderNotebook() {
+  const el = $('nb-entries');
+  el.innerHTML = '';
+  for (const n of S.notes) {
+    const d = document.createElement('div'); d.className = 'entry';
+    d.innerHTML = '<div class="when">Jour ' + n.day + '</div>';
+    const p = document.createElement('p'); p.textContent = n.text; d.appendChild(p); el.appendChild(d);
+  }
+}
+function renderTasks() {
+  const el = $('tasks'); el.innerHTML = '';
+  const tasks = [
+    { label: 'Demander le registre du gardien', sub: 'Avec une lettre signée par Inès. Légitime.', done: S.registreGot, act: () => { S.registreGot = true; gain('registre'); renderTasks(); } },
+    { label: 'Demander la bande vidéo du hall', sub: S.videoArrived ? 'Arrivée.' : (S.videoRequested ? 'Demandée. Elle arrive demain matin.' : 'Même lettre. La société de sécurité répond en un jour.'), done: S.videoRequested, act: () => { S.videoRequested = true; note('Bande du hall demandée. Réponse demain.'); renderTasks(); } }
+  ];
+  for (const t of tasks) {
+    const d = document.createElement('div'); d.className = 'task';
+    const left = document.createElement('div'); left.innerHTML = '<div></div><div class="muted" style="font-size:13px"></div>';
+    left.children[0].textContent = t.label; left.children[1].textContent = t.sub;
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = t.done ? 'Fait' : 'Faire'; b.disabled = t.done;
+    b.addEventListener('click', t.act);
+    d.append(left, b); el.appendChild(d);
+  }
+}
+function renderClock() {
+  $('clock').textContent = 'Jour ' + S.day + ' · ' + (14 + S.day) + ' novembre';
+  $('fatigue').textContent = S.echoToday === 0 ? 'Esprit clair' : (S.echoToday < 2 ? 'Échos aujourd’hui : ' + S.echoToday : (S.echoToday < 4 ? 'Fatigue : les visages se lisent mal' : 'Épuisé : plus d’Écho avant d’avoir dormi'));
+}
+$('sleep').addEventListener('click', () => {
+  S.day++; S.echoToday = 0;
+  if (S.videoRequested && !S.videoArrived) { S.videoArrived = true; $('tab-video').disabled = false; gain('video', true); note('La bande du hall est arrivée. 1 image par seconde, deux heures.'); toast('La bande du hall est arrivée.'); }
+  if (S.day === 2) note('Claire Dumas a appelé : elle part s’installer à Lyon. Elle est joignable aujourd’hui, plus après.');
+  if (S.day >= 3 && !S.claireGone) { S.claireGone = true; note('Claire est partie pour Lyon. Elle ne répond plus.'); }
+  renderClock(); renderTasks(); renderSuspects();
+});
+
+/* ========================================================================= TABLEAU */
+function renderBoard() {
+  for (const kind of ['preuve', 'temoignage', 'hypothese']) {
+    const col = $('col-' + kind); col.innerHTML = '';
+    const ids = Object.keys(PIECES).filter(id => PIECES[id].kind === kind && (kind === 'hypothese' ? HYP_UNLOCK[id]() : has(id)));
+    if (!ids.length) { const p = document.createElement('p'); p.className = 'muted'; p.style.fontSize = '13px'; p.textContent = 'Rien encore.'; col.appendChild(p); }
+    for (const id of ids) col.appendChild(cardFor(id));
+  }
+}
+function cardFor(id) {
+  const P = PIECES[id];
+  const c = document.createElement('div'); c.className = 'card' + (S.pinned.has(id) ? ' pinned' : '');
+  const t = document.createElement('div'); t.className = 'ct' + (P.kind === 'hypothese' ? ' hyp' : ''); t.textContent = P.t;
+  const m = document.createElement('div'); m.className = 'meta';
+  m.textContent = P.kind === 'hypothese' ? 'hypothèse · écrite par vous' : (P.prov + ' · ' + (P.src || (P.who ? 'entretien' : '')));
+  const pin = document.createElement('button'); pin.className = 'pin'; pin.textContent = S.pinned.has(id) ? 'épinglé' : 'épingler';
+  pin.setAttribute('aria-pressed', S.pinned.has(id) ? 'true' : 'false');
+  pin.addEventListener('click', () => togglePin(id));
+  const body = document.createElement('div'); body.className = 'body'; body.textContent = P.text; body.hidden = true;
+  const more = document.createElement('button'); more.className = 'more'; more.textContent = 'lire';
+  more.addEventListener('click', () => { body.hidden = !body.hidden; more.textContent = body.hidden ? 'lire' : 'replier'; if (!body.hidden) S.bias.consult[id] = (S.bias.consult[id] || 0) + 1; });
+  c.append(t, m, pin, more, body);
+  return c;
+}
+function togglePin(id) {
+  const P = PIECES[id];
+  if (S.pinned.has(id)) S.pinned.delete(id);
+  else {
+    if (P.fall) { for (const h of ['H1', 'H2', 'H3', 'H4']) S.pinned.delete(h); if (!S.bias.firstHyp) S.bias.firstHyp = id; }
+    S.pinned.add(id);
+  }
+  renderBoard();
+}
+$('board-echo').addEventListener('click', () => { show('scene'); startEcho(); });
+
+/* ========================================================================= ÉCHO : construction à partir du tableau */
+function buildTracks(pins, overlayTruth) {
+  const keys = [];
+  for (const id of pins) for (const k of (PIECES[id].keys || [])) keys.push(Object.assign({ src: id, supposed: PIECES[id].kind !== 'preuve' }, k));
+  // Après le palier : la silhouette des archives réapparaît dans les anciens Échos (anonyme tant qu'elle n'est pas identifiée)
+  if (overlayTruth) for (const k of PIECES.L3.keys) if (k.a === 'L') keys.push(Object.assign({ src: 'truth', supposed: false }, k, { a: 'X' }));
+  // L'inconnu « X » devient Lucas dès qu'il est identifié
+  const xName = S.xIdentified ? 'L' : 'X';
+  const tracks = {};
+  for (const k of keys) {
+    const a = k.a === 'X' ? xName : k.a;
+    (tracks[a] = tracks[a] || []).push(Object.assign({}, k, { a }));
+  }
+  for (const a of Object.keys(tracks)) {
+    const arr = tracks[a].sort((x, y) => x.t - y.t);
+    // Fusion : une sortie cache l'acteur jusqu'à une nouvelle entrée ; doublons au même instant ignorés
+    const clean = []; let gone = false;
+    for (const k of arr) {
+      if (gone && !k.in) continue;
+      if (k.in) gone = false;
+      const last = clean[clean.length - 1];
+      if (last && Math.abs(last.t - k.t) < 0.01 && last.p === k.p) continue;
+      clean.push(k);
+      if (k.out) gone = true;
+    }
+    tracks[a] = clean;
+  }
+  return tracks;
+}
+function route(a, b) {
+  if (LEVEL(a) === LEVEL(b)) return [POS[a], POS[b]];
+  return LEVEL(a) === 0 ? [POS[a], POS.basEscalier, POS.hautEscalier, POS[b]] : [POS[a], POS.hautEscalier, POS.basEscalier, POS[b]];
+}
+function lerpPath(pts, f) {
+  let total = 0; const seg = [];
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]); seg.push(d); total += d; }
+  let target = f * total;
+  for (let i = 0; i < seg.length; i++) {
+    if (target <= seg[i] || i === seg.length - 1) { const u = seg[i] ? Math.min(1, target / seg[i]) : 1; return pts[i].map((v, j) => v + (pts[i + 1][j] - v) * u); }
+    target -= seg[i];
+  }
+  return pts[pts.length - 1];
+}
+// État d'un acteur à l'instant t : position, visible, tombé
+function sample(track, t) {
+  const first = track[0];
+  const appear = first.in ? first.t : (first.out ? first.t - 1 : Math.min(first.t, 0));
+  if (t < appear) return null;
+  let prev = first;
+  for (let i = 1; i < track.length; i++) {
+    const k = track[i];
+    if (prev.out) { if (!k.in || t < k.t) return null; }
+    const travel = k.fall ? 0.25 : (LEVEL(prev.p) !== LEVEL(k.p) ? 2 : 1);
+    if (t < k.t - travel) return { pos: POS[prev.p], fallen: !!prev.fall };
+    if (t < k.t) {
+      const f = (t - (k.t - travel)) / travel;
+      if (k.fall) { return { pos: lerpPath([POS[prev.p], POS[k.p]], f), fallen: f > 0.6 }; }
+      return { pos: lerpPath(route(prev.p, k.p), f), fallen: false };
+    }
+    prev = k;
+  }
+  if (prev.out && t >= prev.t) return null;
+  return { pos: POS[prev.p], fallen: !!prev.fall };
+}
+
+/* ========================================================================= 3D : la scène */
+let R3 = null;
+function initScene() {
+  if (!window.THREE) { $('inspect').innerHTML = '<p>La 3D n’a pas pu se charger. Le reste du prototype fonctionne.</p>'; return; }
+  const canvas = $('scene-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0f1113); scene.fog = new THREE.Fog(0x0f1113, 18, 34);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xcfd6e0, 0x2a2620, 0.55));
+  const key = new THREE.DirectionalLight(0xfff1dc, 0.6); key.position.set(8, 12, 6); scene.add(key);
+  const grey = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, metalness: 0 });
+  const box = (w, h, d, x, y, z, c, parent) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), grey(c)); m.position.set(x, y, z); (parent || scene).add(m); return m; };
+  // Sol, murs
+  box(14, 0.1, 10, 0, -0.05, 0, 0x3a3d42);
+  box(14, 3.6, 0.1, 0, 1.8, -5, 0x2c2f33); box(0.1, 3.6, 10, -7, 1.8, 0, 0x2c2f33);
+  const glass = new THREE.MeshStandardMaterial({ color: 0x9fb4c4, transparent: true, opacity: 0.12, roughness: 0.1 });
+  const g1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.6, 3.6), glass); g1.position.set(2.2, 1.3, -3.2); scene.add(g1);
+  const g2 = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.6, 0.05), glass); g2.position.set(4.5, 1.3, -1.4); scene.add(g2);
+  const bay = new THREE.Mesh(new THREE.BoxGeometry(0.06, 3.0, 9.6), glass); bay.position.set(6.97, 1.5, 0); scene.add(bay); // baie vitrée
+  // Bureau d'Étienne
+  box(1.8, 0.75, 0.9, 4.2, 0.375, -3.4, 0x55585d); box(0.5, 0.9, 0.5, 4.2, 0.45, -4.2, 0x44474c);
+  box(0.12, 0.3, 0.12, 3.8, 0.9, -3.4, 0x6b6e73); box(0.12, 0.3, 0.12, 4.0, 0.9, -3.45, 0x6b6e73);
+  // Open space
+  for (const [x, z] of [[-2.5, -1.8], [-0.6, -1.8], [-2.5, 0.6], [0.8, 0.6]]) box(1.5, 0.75, 0.8, x, 0.375, z, 0x4d5055);
+  // Ascenseur, portemanteau
+  box(1.4, 2.4, 0.2, -6.8, 1.2, -3.6, 0x5d6168);
+  const rack = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 1.8, 8), grey(0x6b6e73)); rack.position.set(-6.2, 0.9, -1.6); scene.add(rack);
+  const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 0.9, 10), grey(0x7a7d82)); coat.position.set(-6.2, 1.25, -1.6); scene.add(coat);
+  // Mezzanine
+  box(8.6, 0.2, 2.6, 2.2, 2.7, 3.7, 0x45484d);
+  for (let x = -2; x <= 6.4; x += 0.6) box(0.04, 0.9, 0.04, x, 3.25, 2.42, 0x6b6e73);
+  box(8.6, 0.05, 0.05, 2.2, 3.7, 2.42, 0x6b6e73);
+  for (let i = 0; i < 8; i++) box(1.0, 1.8, 0.4, -1 + i * 1.0, 3.7, 4.85, 0x3f4247);
+  box(1.2, 0.75, 0.7, 3.0, 3.18, 4.2, 0x55585d);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffd9a0 }));
+  lamp.position.set(3.2, 3.75, 4.3); scene.add(lamp);
+  const lampLight = new THREE.PointLight(0xffc98a, 0.8, 5); lampLight.position.copy(lamp.position); scene.add(lampLight);
+  // Escalier métallique : du bas (-5.4) au haut (-2.0)
+  for (let i = 0; i < 12; i++) { const f = i / 11; box(0.32, 0.06, 1.0, -5.2 + f * 3.0, 0.2 + f * 2.5, 3.6, 0x777b82); }
+  // Hotspots
+  const hot = [];
+  for (const h of HOTSPOTS) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), new THREE.MeshBasicMaterial({ color: 0xc9964a }));
+    m.position.set(h.p[0], h.p[1], h.p[2]); m.userData = h; scene.add(m); hot.push(m);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.22, 0.26, 24), new THREE.MeshBasicMaterial({ color: 0xc9964a, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
+    ring.position.copy(m.position); m.userData.ring = ring; scene.add(ring);
+  }
+  // Silhouettes de lumière
+  const actors = {};
+  for (const a of Object.keys(ACTORS)) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: ACTORS[a].color, emissive: ACTORS[a].color, emissiveIntensity: 0.35, transparent: true, opacity: 0.82, roughness: 0.6 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 1.2, 14), mat); body.position.y = 0.6; g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 16), mat); head.position.y = 1.42; g.add(head);
+    const label = makeLabel(ACTORS[a].name); label.position.y = 1.95; g.add(label); g.userData.label = label;
+    g.visible = false; scene.add(g); actors[a] = g;
+  }
+  R3 = { renderer, scene, camera, hot, actors, theta: 2.3, phi: 0.95, radius: 15, target: new THREE.Vector3(0, 1.2, 0.5), mode: 'lieux', t: 0, playing: false, tracks: {}, lastT: 0 };
+  setupOrbit(canvas);
+  resizeScene();
+}
+function makeLabel(text) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const x = c.getContext('2d'); x.font = '500 30px "IBM Plex Sans", sans-serif'; x.fillStyle = '#e6e2d8'; x.textAlign = 'center'; x.fillText(text, 128, 42);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
+  s.scale.set(1.8, 0.45, 1); s.userData.canvas = c; return s;
+}
+function relabel(sprite, text) {
+  const c = sprite.userData.canvas, x = c.getContext('2d'); x.clearRect(0, 0, 256, 64);
+  x.font = '500 30px "IBM Plex Sans", sans-serif'; x.fillStyle = '#e6e2d8'; x.textAlign = 'center'; x.fillText(text, 128, 42);
+  sprite.material.map.needsUpdate = true;
+}
+function setupOrbit(canvas) {
+  const pts = new Map(); let downAt = null, moved = 0, pinch0 = 0, r0 = 0;
+  canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); downAt = [e.clientX, e.clientY]; moved = 0;
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); r0 = R3.radius; } });
+  canvas.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    const prev = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); R3.radius = Math.max(5, Math.min(26, r0 * pinch0 / Math.max(1, d))); moved = 99; return; }
+    const dx = e.clientX - prev[0], dy = e.clientY - prev[1]; moved += Math.abs(dx) + Math.abs(dy);
+    R3.theta -= dx * 0.008; R3.phi = Math.max(0.25, Math.min(1.45, R3.phi - dy * 0.006));
+  });
+  const up = e => {
+    if (pts.has(e.pointerId) && pts.size === 1 && moved < 6 && downAt) pickAt(e.clientX, e.clientY);
+    pts.delete(e.pointerId);
+  };
+  canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', e => pts.delete(e.pointerId));
+  canvas.addEventListener('wheel', e => { e.preventDefault(); R3.radius = Math.max(5, Math.min(26, R3.radius * (1 + Math.sign(e.deltaY) * 0.08))); }, { passive: false });
+}
+function pickAt(cx, cy) {
+  if (R3.mode !== 'lieux' || S.left) return;
+  const r = R3.renderer.domElement.getBoundingClientRect();
+  const v = new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  const ray = new THREE.Raycaster(); ray.setFromCamera(v, R3.camera);
+  const hit = ray.intersectObjects(R3.hot, false)[0];
+  if (hit) examine(hit.object.userData.id);
+}
+function resizeScene() {
+  if (!R3) return; const c = R3.renderer.domElement; const w = c.clientWidth, h = c.clientHeight;
+  if (!w || !h) return; R3.renderer.setSize(w, h, false); R3.camera.aspect = w / h; R3.camera.updateProjectionMatrix();
+}
+function examine(id) {
+  const box = $('inspect');
+  if (id === 'tiroir') {
+    if (has('carnetLucas')) { showPiece('carnetLucas'); return; }
+    box.innerHTML = '';
+    const t = document.createElement('div'); t.className = 'piece-title'; t.textContent = 'Le bureau de Lucas';
+    const p = document.createElement('p'); p.style.margin = '8px 0'; p.textContent = 'Rangé au millimètre. Un tiroir fermé à clé. Personne ne regarde.';
+    const m = document.createElement('p'); m.className = 'muted'; m.style.fontSize = '13px'; m.textContent = 'Forcer le tiroir est une intrusion : ce que vous y trouverez sera une preuve illégale.';
+    const r = document.createElement('div'); r.className = 'row'; r.style.marginTop = '10px';
+    const b1 = document.createElement('button'); b1.className = 'btn'; b1.textContent = 'Forcer le tiroir';
+    b1.addEventListener('click', () => { gain('carnetLucas'); showPiece('carnetLucas'); });
+    const b2 = document.createElement('button'); b2.className = 'btn'; b2.textContent = 'Laisser';
+    b2.addEventListener('click', () => { box.innerHTML = '<p class="muted">Vous laissez le tiroir.</p>'; });
+    r.append(b1, b2); box.append(t, p, m, r); return;
+  }
+  gain(id, true); showPiece(id);
+  S.observations++; // lire le lieu entraîne aussi l'œil
+}
+function showPiece(id) {
+  const P = PIECES[id], box = $('inspect'); box.innerHTML = '';
+  const t = document.createElement('div'); t.className = 'piece-title'; t.textContent = P.t;
+  const m = document.createElement('div'); m.className = 'mono muted'; m.style.fontSize = '11px'; m.style.margin = '4px 0 8px'; m.textContent = 'Provenance : ' + P.prov;
+  const p = document.createElement('p'); p.textContent = P.text;
+  box.append(t, m, p);
+}
+$('leave').addEventListener('click', () => {
+  if (S.left) return;
+  S.left = true; $('leave').disabled = true; $('leave').textContent = 'Lieux quittés';
+  if (R3) for (const h of R3.hot) { h.visible = false; h.userData.ring.visible = false; }
+  note('Vous avez quitté le 7e étage. Les lieux seront nettoyés ce soir.');
+  setMode('lieux');
+});
+function setMode(mode) {
+  if (!R3) return;
+  R3.mode = mode;
+  const echo = mode === 'echo';
+  $('timeline').hidden = !echo;
+  $('hud-mode').innerHTML = echo ? '<b>Écho</b> · votre reconstitution' : (S.left ? '<b>Lieux</b> · quittés' : '<b>Lieux</b> · touchez un repère');
+  $('mode-help').textContent = echo
+    ? 'Ce que vous voyez est construit à partir de votre tableau. Rien d’autre. Retirez une épingle, rejouez, et la scène change.'
+    : (S.left ? 'Le 7e étage tel que vous l’avez quitté. Plus aucun indice matériel n’est accessible.' : 'Le 7e étage, le lendemain matin. La police a fini. Ce que vous ne relevez pas maintenant sera perdu quand vous quitterez les lieux.');
+  for (const h of R3.hot) { const v = !echo && !S.left; h.visible = v; h.userData.ring.visible = v; }
+  if (!echo) { for (const a of Object.values(R3.actors)) a.visible = false; R3.playing = false; $('tl-play').textContent = '▶'; }
+}
+$('mode-lieux').addEventListener('click', () => setMode('lieux'));
+$('mode-echo').addEventListener('click', () => startEcho());
+function startEcho(archived) {
+  if (!R3) { toast('La 3D n’est pas disponible.'); return; }
+  if (!archived) {
+    if (S.echoToday >= 4) { toast('Trop d’Échos aujourd’hui. Dormez.'); return; }
+    S.echoToday++; S.echoRuns++;
+    const pins = [...S.pinned];
+    S.echoArchive.push({ day: S.day, pins, label: 'Jour ' + S.day + ' · Écho ' + S.echoRuns });
+    R3.tracks = buildTracks(pins, false);
+    renderArchive(); renderClock();
+  } else {
+    R3.tracks = buildTracks(archived.pins, S.revealed);
+  }
+  R3.t = 0; R3.lastT = 0; $('tl-range').value = 0; setMode('echo'); R3.playing = true; $('tl-play').textContent = '❚❚';
+}
+function renderArchive() {
+  const el = $('echo-archive'); el.innerHTML = '';
+  $('echo-archive-panel').hidden = !S.echoArchive.length;
+  S.echoArchive.forEach(a => {
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Rejouer · ' + a.label;
+    b.addEventListener('click', () => startEcho(a)); el.appendChild(b);
+  });
+}
+$('tl-play').addEventListener('click', () => { if (!R3) return; R3.playing = !R3.playing; if (R3.t >= 120) R3.t = 0; $('tl-play').textContent = R3.playing ? '❚❚' : '▶'; });
+$('tl-back').addEventListener('click', () => { if (R3) { R3.playing = false; R3.t = Math.max(0, R3.t - 1); $('tl-play').textContent = '▶'; } });
+$('tl-fwd').addEventListener('click', () => { if (R3) { R3.playing = false; R3.t = Math.min(120, R3.t + 1); $('tl-play').textContent = '▶'; } });
+$('tl-range').addEventListener('input', e => { if (R3) { R3.playing = false; R3.t = +e.target.value; $('tl-play').textContent = '▶'; } });
+
+function updateEcho(dt) {
+  if (R3.playing) { R3.t = Math.min(120, R3.t + dt * 2.2); if (R3.t >= 120) { R3.playing = false; $('tl-play').textContent = '▶'; } }
+  $('tl-range').value = R3.t; $('tl-time').textContent = fmt(R3.t);
+  for (const a of Object.keys(R3.actors)) {
+    const g = R3.actors[a], tr = R3.tracks[a];
+    if (!tr || !tr.length) { g.visible = false; continue; }
+    const s = sample(tr, R3.t);
+    if (!s) { g.visible = false; continue; }
+    const o = OFFSET[a]; g.visible = true; g.position.set(s.pos[0] + o[0], s.pos[1], s.pos[2] + o[1]);
+    g.rotation.z = s.fallen ? Math.PI / 2 : 0; if (s.fallen) g.position.y += 0.25;
+    // Sons des clés franchies pendant la lecture
+    if (R3.playing) for (const k of tr) if (k.t > R3.lastT && k.t <= R3.t) tick(k.supposed);
+  }
+  R3.lastT = R3.t;
+}
+
+/* ========================================================================= 3D : le visage d'interrogatoire */
+let F3 = null;
+function initFace() {
+  if (!window.THREE) return;
+  const canvas = $('face-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x121416);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50); camera.position.set(0, 1.62, 2.6); camera.lookAt(0, 1.5, 0);
+  scene.add(new THREE.HemisphereLight(0xd6dbe2, 0x221f1a, 0.5));
+  const k = new THREE.DirectionalLight(0xffeedd, 0.85); k.position.set(-2.5, 3, 2.5); scene.add(k);
+  const rim = new THREE.DirectionalLight(0x9fb4c4, 0.35); rim.position.set(3, 2, -2); scene.add(rim);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x9a9da2, roughness: 0.85 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1d20, roughness: 0.5 });
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 1.0, 24), mat); torso.position.y = 0.75; scene.add(torso);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.25, 16), mat); neck.position.y = 1.35; scene.add(neck);
+  const head = new THREE.Group(); head.position.y = 1.62; scene.add(head);
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 32, 32), mat); skull.scale.set(0.9, 1.12, 0.95); head.add(skull);
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.028, 16, 16), dark); eyeL.position.set(-0.08, 0.04, 0.2); head.add(eyeL);
+  const eyeR = eyeL.clone(); eyeR.position.x = 0.08; head.add(eyeR);
+  const browL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.014, 0.02), dark); browL.position.set(-0.08, 0.1, 0.205); head.add(browL);
+  const browR = browL.clone(); browR.position.x = 0.08; head.add(browR);
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.012, 0.02), dark); mouth.position.set(0, -0.11, 0.2); head.add(mouth);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.245, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2.4), new THREE.MeshStandardMaterial({ color: 0x55585d, roughness: 1 }));
+  hair.scale.set(0.92, 1.12, 0.97); hair.position.y = 0.02; head.add(hair);
+  F3 = { renderer, scene, camera, torso, head, eyeL, eyeR, browL, browR, mouth, hair, gaze: 0, gazeT: 0, nextGaze: 0, blink: 0 };
+  resizeFace();
+}
+function resizeFace() {
+  if (!F3) return; const c = F3.renderer.domElement, w = c.clientWidth, h = c.clientHeight; if (!w || !h) return;
+  F3.renderer.setSize(w, h, false); F3.camera.aspect = w / h; F3.camera.updateProjectionMatrix();
+}
+function updateFace(time, dt) {
+  const k = S.current, st = S.susp[k];
+  const tension = st.tension / 100, trust = st.trust / 100;
+  const tired = S.echoToday >= 2 ? 1 : 0;
+  // Coiffure et carrure par personnage
+  F3.hair.scale.y = k === 'M' ? 0.9 : (k === 'C' ? 1.25 : 1.05);
+  F3.torso.scale.x = k === 'L' ? 1.05 : 0.95;
+  const rate = 0.9 + tension * 2.2;
+  F3.torso.scale.y = 1 + Math.sin(time * rate) * (0.012 + tension * 0.02);
+  F3.head.position.y = 1.62 + Math.sin(time * rate) * 0.004;
+  if (st.closed) { F3.head.rotation.set(0.05, 0.9, 0); return; }
+  if (time > F3.nextGaze) { F3.gazeT = (trust > 0.55 ? 0 : (Math.random() < 0.5 ? -1 : 1) * (0.25 + (1 - trust) * 0.4)); F3.nextGaze = time + 1 + Math.random() * (3 - tension * 2); }
+  F3.gaze += (F3.gazeT - F3.gaze) * Math.min(1, dt * (2 + tension * 6));
+  F3.head.rotation.y = F3.gaze * 0.6 + Math.sin(time * 9) * tension * 0.006;
+  F3.head.rotation.x = (trust < 0.4 ? 0.08 : -0.02) + Math.sin(time * 0.7) * 0.01;
+  F3.head.rotation.z = trust > 0.55 ? 0.06 : 0;
+  F3.eyeL.position.x = -0.08 + F3.gaze * 0.015; F3.eyeR.position.x = 0.08 + F3.gaze * 0.015;
+  const browY = 0.1 - tension * 0.025; F3.browL.position.y = browY; F3.browR.position.y = browY;
+  F3.browL.rotation.z = -tension * 0.35 + (trust > 0.55 && tension > 0.55 ? 0.3 : 0); F3.browR.rotation.z = -F3.browL.rotation.z;
+  F3.mouth.scale.x = 1 - tension * 0.35; F3.mouth.position.y = -0.11 - (trust > 0.55 && tension > 0.55 ? 0.006 : 0);
+  // Clignements, plus rares quand la tension monte ; flou de perception si fatigué
+  F3.blink -= dt; const blinking = F3.blink < 0.12 && F3.blink > 0;
+  if (F3.blink < 0) F3.blink = 2 + Math.random() * 4 + tension * 4;
+  F3.eyeL.scale.y = F3.eyeR.scale.y = blinking ? 0.15 : 1;
+  F3.renderer.domElement.style.filter = tired ? 'blur(1.2px)' : 'none';
+}
+
+/* ========================================================================= ENTRETIENS */
+function stateOf(st) {
+  if (st.closed) return 'rupture';
+  if (st.trust >= 55 && st.tension < 55) return 'confidence';
+  if (st.trust >= 55) return 'aveu';
+  if (st.tension >= 55) return 'tendu';
+  return 'mur';
+}
+function renderSuspects() {
+  const el = $('suspects'); el.innerHTML = '';
+  for (const k of ['C', 'M', 'L']) {
+    const s = SUSPECTS[k], st = S.susp[k];
+    const b = document.createElement('button'); b.setAttribute('aria-pressed', S.current === k ? 'true' : 'false');
+    const gone = k === 'C' && S.claireGone;
+    if (st.closed || gone) b.className = 'closed';
+    b.innerHTML = '<span class="n"></span><span class="r"></span>';
+    b.children[0].textContent = s.name; b.children[1].textContent = st.closed ? 'Fermé(e) pour toujours' : (gone ? 'Partie à Lyon' : s.role);
+    b.addEventListener('click', () => { S.current = k; renderSuspects(); renderInterview(); });
+    el.appendChild(b);
+  }
+}
+function say(cls, text) { S.susp[S.current].log.push([cls, text]); }
+function renderInterview() {
+  const k = S.current, st = S.susp[k], s = SUSPECTS[k];
+  const log = $('log'); log.innerHTML = '';
+  if (!st.log.length) { const d = document.createElement('div'); d.className = 'sys'; d.textContent = s.name + ', ' + s.role + '. Un bureau du Socle, une table, deux chaises.'; log.appendChild(d); }
+  for (const [cls, text] of st.log) { const d = document.createElement('div'); d.className = cls; d.textContent = text; log.appendChild(d); }
+  log.scrollTop = log.scrollHeight;
+  const gone = k === 'C' && S.claireGone;
+  document.querySelectorAll('#actions button').forEach(b => { b.disabled = st.closed || gone || silenceOn; });
+  const state = stateOf(st), tired = S.echoToday >= 2;
+  $('cue').textContent = gone ? 'Sa chaise est vide.' : (tired ? 'Vous lisez mal ce visage. Trop d’Échos aujourd’hui.' : (S.lastCue || pick(CUES[state])));
+  S.lastCue = null;
+  $('assist').hidden = !$('opt-assist').checked || tired; $('assist').textContent = '[lecture assistée] ' + ASSIST[state];
+  $('gauges').hidden = !$('opt-gauges').checked;
+  $('g-trust').style.width = st.trust + '%'; $('g-tension').style.width = st.tension + '%';
+  $('g-trust-v').textContent = Math.round(st.trust); $('g-tension-v').textContent = Math.round(st.tension);
+  $('picker').hidden = true;
+}
+function apply(dT, dX) { const st = S.susp[S.current]; st.trust = clamp(st.trust + dT); st.tension = clamp(st.tension + dX); }
+function afterExchange() {
+  const k = S.current, st = S.susp[k], s = SUSPECTS[k];
+  S.bias.talk[k]++;
+  if (st.tension >= 60 && !st.closed) say('them', '« ' + s.defense + ' »');
+  if (st.tension >= 60 && !st.closed) say('sound', '[son] un battement de cœur, le sien, plus rapide');
+  if (st.trust < 30 && st.tension >= 75) {
+    st.closed = true;
+    say('sys', s.name + ' se ferme. Ce témoin ne vous dira plus rien, dans aucune affaire.');
+    note(s.name + ' s’est fermé(e) pour toujours.');
+  }
+  renderSuspects(); renderInterview();
+}
+function heardPiece(id) {
+  const P = PIECES[id];
+  say('them', P.text);
+  if (P.lie && S.readBody) say('lie', '⟂ le corps dit autre chose que la phrase');
+  S.heard.add(id); gain(id);
+}
+function tryUnlock(approach) {
+  const k = S.current, s = SUSPECTS[k], st = S.susp[k], state = stateOf(st);
+  for (const sec of s.secrets) {
+    const id = sec.piece || sec.id; if (st.revealed.has(id)) continue;
+    let ok = false;
+    if (sec.via === 'confidence') ok = state === 'confidence' && (approach === 'empathie' || approach === 'franchise');
+    if (sec.via === 'silence') ok = approach === 'silence' && st.tension >= 40 && st.tension <= 75;
+    if (sec.via === 'aveu') ok = state === 'aveu' && (approach === 'pression' || approach === 'silence') && (!sec.needsLie || S.heard.has(sec.needsLie));
+    if (ok) { st.revealed.add(id); if (sec.piece) heardPiece(sec.piece); else say('them', sec.line); return true; }
+  }
+  return false;
+}
+document.querySelectorAll('#actions button').forEach(b => b.addEventListener('click', () => act(b.dataset.a)));
+function act(a) {
+  audio();
+  const k = S.current, s = SUSPECTS[k], st = S.susp[k], M = MATRIX[s.need], L = LINES[s.need];
+  if (a === 'observer') {
+    say('you', '(Vous observez sans parler.)');
+    S.observations++;
+    if (S.observations >= 3 && !S.readBody) { S.readBody = true; say('sys', 'Lire le corps : vous repérez maintenant quand le corps contredit la phrase.'); note('Vous avez appris à lire le corps : les incohérences se remarquent.'); }
+    S.lastCue = pick(CUES[stateOf(st)]); renderInterview(); return;
+  }
+  if (a === 'empathie') { say('you', pick(YOU.empathie)); apply(...M.empathie); if (!tryUnlock('empathie')) say('them', pick(L.empathie)); afterExchange(); return; }
+  if (a === 'pression') { say('you', pick(YOU.pression)); apply(...M.pression); if (!tryUnlock('pression')) say('them', pick(L.pression)); afterExchange(); return; }
+  if (a === 'franchise') { openPicker('franchise'); return; }
+  if (a === 'logique') { openPicker('logique'); return; }
+  if (a === 'silence') { startSilence(); return; }
+}
+function openPicker(kind) {
+  const k = S.current, s = SUSPECTS[k], el = $('picker'); el.innerHTML = '';
+  const close = document.createElement('button'); close.textContent = 'Annuler'; close.addEventListener('click', () => { el.hidden = true; });
+  if (kind === 'franchise') {
+    for (const tp of s.topics) {
+      const b = document.createElement('button'); b.textContent = tp.q;
+      b.addEventListener('click', () => franchise(tp)); el.appendChild(b);
+    }
+  } else {
+    const ids = [...S.got].filter(id => !(PIECES[id].who === k));
+    if (!ids.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Aucune pièce à opposer.'; el.appendChild(p); }
+    for (const id of ids) { const b = document.createElement('button'); b.textContent = 'Opposer : ' + PIECES[id].t; b.addEventListener('click', () => logic(id)); el.appendChild(b); }
+  }
+  el.appendChild(close); el.hidden = false;
+}
+function franchise(tp) {
+  const k = S.current, s = SUSPECTS[k], st = S.susp[k];
+  say('you', tp.q); apply(...MATRIX[s.need].franchise);
+  if (!tryUnlock('franchise')) {
+    if (tp.piece && (!tp.minTrust || st.trust >= tp.minTrust)) heardPiece(tp.piece);
+    else say('them', tp.line);
+  }
+  afterExchange();
+}
+function logic(pieceId) {
+  const k = S.current, s = SUSPECTS[k], st = S.susp[k], c = s.contradictions[pieceId];
+  say('you', 'Et ça : ' + PIECES[pieceId].t + ' ?');
+  const real = c && (S.heard.has(c.lie) || (c.alt && S.heard.has(c.alt))) && !c.weak;
+  if (real) {
+    apply(...MATRIX[s.need].logiqueVraie);
+    if (c.identifies && !S.xIdentified) { S.xIdentified = true; note('L’homme en chemise de 23 h 40, sur la bande du hall : c’est Lucas.'); }
+    if (c.unlock && !st.revealed.has(c.unlock) && st.tension >= (c.minTension || 0)) { st.revealed.add(c.unlock); heardPiece(c.unlock); if (c.unlock === 'L3') S.xIdentified = true; }
+    else say('them', pick(LINES[s.need].logiqueVraie));
+  } else if (c && c.weak && S.heard.has(c.lie)) {
+    apply(0, 6); say('them', 'Un ascenseur appelé, et alors ? Il y a quarante bureaux dans cette tour.');
+  } else {
+    apply(...MATRIX[s.need].logiqueFausse); say('them', pick(LINES[s.need].logiqueFausse));
+  }
+  afterExchange();
+}
+let silenceOn = false;
+function startSilence() {
+  const k = S.current, s = SUSPECTS[k], st = S.susp[k];
+  silenceOn = true; say('you', '(Vous ne dites rien. La caméra reste.)'); renderInterview();
+  const bar = $('silence-bar'), fill = $('silence-fill'); bar.hidden = false;
+  const dur = 5000, t0 = performance.now();
+  let broken = false;
+  const breakIt = e => { if (e.target.closest && e.target.closest('#silence-bar')) return; broken = true; };
+  document.addEventListener('pointerdown', breakIt, true); document.addEventListener('keydown', breakIt, true);
+  const step = now => {
+    const f = (now - t0) / dur; fill.style.width = Math.min(100, f * 100) + '%';
+    if (broken) { end(false); return; }
+    if (f < 1) requestAnimationFrame(step); else end(true);
+  };
+  function end(held) {
+    silenceOn = false; bar.hidden = true; fill.style.width = '0';
+    document.removeEventListener('pointerdown', breakIt, true); document.removeEventListener('keydown', breakIt, true);
+    if (!held) { say('sys', 'Vous avez rompu le silence trop tôt.'); renderInterview(); return; }
+    apply(...MATRIX[s.need].silence);
+    if (!tryUnlock('silence')) {
+      if (st.tension < 40) say('them', pick(LINES[s.need].silenceLow));
+      else if (st.tension > 75) { apply(-5, 8); say('them', pick(LINES[s.need].silenceHigh)); }
+      else say('them', pick(LINES[s.need].silenceLow));
+    }
+    afterExchange();
+  }
+  requestAnimationFrame(step);
+}
+
+/* ========================================================================= BANDE DU HALL (1 image/s) */
+const CCTV_EVENTS = [
+  { s: 51 * 60 + 2, len: 9, dir: 1, who: 'C', desc: 'Une femme, manteau camel, sac à l’épaule. Elle s’appuie au mur une seconde avant la porte.' },
+  { s: 63 * 60 + 11, len: 7, dir: -1, who: 'M', desc: 'Une femme, cheveux courts gris, imperméable. Elle entre vite, sans regarder la loge du gardien, vide.' },
+  { s: 69 * 60 + 40, len: 8, dir: 1, who: 'M', desc: 'La même femme ressort. Une main sur la bouche.' },
+  { s: 100 * 60 + 6, len: 10, dir: 1, who: 'X', desc: 'Un homme, chemise blanche, sans manteau. En novembre. Il serre un dossier contre lui. Il ne regarde pas la caméra.' }
+];
+let cvSec = 0, cvPlay = false;
+function cctvFrame(sec) { for (const e of CCTV_EVENTS) if (sec >= e.s && sec < e.s + e.len) return { e, f: (sec - e.s) / e.len }; return null; }
+function drawCCTV() {
+  const c = $('cctv'), x = c.getContext('2d'); const W = c.width, H = c.height;
+  x.fillStyle = '#1a1c1e'; x.fillRect(0, 0, W, H);
+  // hall en plongée : sol, porte, loge, ascenseurs
+  x.fillStyle = '#26292c'; x.fillRect(20, 40, 280, 120);
+  x.fillStyle = '#3a3e42'; x.fillRect(285, 70, 15, 50);      // porte d'entrée
+  x.fillStyle = '#30343a'; x.fillRect(30, 50, 40, 26);       // ascenseurs
+  x.fillRect(30, 124, 40, 26);
+  x.fillStyle = '#2e3135'; x.fillRect(150, 44, 60, 22);      // loge vide
+  // grain
+  const seed = cvSec * 9301 + 49297;
+  for (let i = 0; i < 260; i++) { const r = ((seed * (i + 1)) % 233280) / 233280; const r2 = ((seed * (i + 7)) % 233279) / 233279; x.fillStyle = 'rgba(200,200,200,' + (0.04 + r * 0.05) + ')'; x.fillRect(r * W, r2 * H, 1, 1); }
+  const fr = cctvFrame(cvSec);
+  if (fr) {
+    const { e, f } = fr; const t = e.dir === 1 ? f : 1 - f;
+    const px = 70 + t * 215, py = 98 + Math.sin(f * 6) * 2;
+    x.fillStyle = e.who === 'X' ? '#d9d9d4' : (e.who === 'C' ? '#a68b66' : '#8d8f94');
+    x.beginPath(); x.ellipse(px, py, 7, 10, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#c7c3ba'; x.beginPath(); x.arc(px, py - 13, 4.5, 0, Math.PI * 2); x.fill();
+  }
+  x.fillStyle = '#e6e2d8'; x.font = '10px "IBM Plex Mono", monospace';
+  const ts = fmt(cvSec / 60) + ':' + String(cvSec % 60).padStart(2, '0');
+  x.fillText('CAM 02  HALL  14/11  ' + ts, 8, 14);
+  $('cv-time').textContent = ts; $('cv-range').value = cvSec;
+  if (fr && fr.e.who === 'X' && !S.seen23_40) { S.seen23_40 = true; onSeen2340(); }
+}
+function onSeen2340() {
+  note('Bande du hall, 23 h 40 : un homme sort, en chemise, sans manteau.');
+  // Palier de révélation : les anciens Échos peuvent être rejoués, et se recomposent.
+  S.revealed = true;
+  if (S.echoArchive.length) note('Vos anciens Échos ne se rejoueront plus de la même façon.');
+}
+function cvSet(v) { cvSec = Math.max(0, Math.min(7199, v)); $('cv-desc').textContent = ''; drawCCTV(); }
+$('cv-b10').addEventListener('click', () => cvSet(cvSec - 10)); $('cv-b1').addEventListener('click', () => cvSet(cvSec - 1));
+$('cv-f1').addEventListener('click', () => cvSet(cvSec + 1)); $('cv-f10').addEventListener('click', () => cvSet(cvSec + 10));
+$('cv-range').addEventListener('input', e => { cvPlay = false; $('cv-play').textContent = '▶'; cvSet(+e.target.value); });
+$('cv-play').addEventListener('click', () => { cvPlay = !cvPlay; $('cv-play').textContent = cvPlay ? '❚❚' : '▶'; });
+$('cv-zoom').addEventListener('click', () => {
+  const fr = cctvFrame(cvSec);
+  S.bias.consult.video = (S.bias.consult.video || 0) + 1;
+  $('cv-desc').textContent = fr ? fr.e.desc : 'Le hall est vide. La loge du gardien aussi.';
+});
+
+/* ========================================================================= CONFRONTATION */
+function radio(name, value, label, checked) {
+  const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'radio'; i.name = name; i.value = value; i.id = name + '-' + value; if (checked) i.checked = true;
+  const s = document.createElement('span'); s.textContent = label; l.append(i, s); return l;
+}
+function renderConfront() {
+  if (S.confronted) return;
+  $('partner-warn').textContent = partner() + ' : « Une fois qu’on y va, on ne revient pas. Ce qu’on n’a pas trouvé restera dehors. »';
+  const who = $('f-who'); who.innerHTML = '';
+  for (const k of ['C', 'M', 'L']) who.appendChild(radio('who', k, SUSPECTS[k].name));
+  who.appendChild(radio('who', 'none', 'Personne. C’était un accident.'));
+  const why = $('f-why'); why.innerHTML = '';
+  for (const [k, v] of Object.entries(NEEDS)) why.appendChild(radio('why', k, v));
+  const pr = $('f-proofs'); pr.innerHTML = '';
+  for (const id of [...S.got].filter(id => PIECES[id].kind !== 'hypothese')) {
+    const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'checkbox'; i.value = id; i.id = 'proof-' + id;
+    const sp = document.createElement('span'); sp.textContent = PIECES[id].t + ' (' + PIECES[id].prov + ')'; l.append(i, sp); pr.appendChild(l);
+  }
+  who.querySelectorAll('input').forEach(i => i.addEventListener('change', renderLimitPicker));
+  renderLimitPicker();
+}
+function renderLimitPicker() {
+  const sel = document.querySelector('input[name=who]:checked'); const el = $('f-limit'); el.innerHTML = '';
+  if (!sel || sel.value === 'none') { $('f-limit-help').textContent = sel ? 'Sans coupable, pas de relation à cartographier.' : 'Désignez d’abord quelqu’un.'; return; }
+  const L = LIMITS[sel.value];
+  $('f-limit-help').textContent = 'Relation : ' + L.rel + '. Où la limite a-t-elle cédé ? Il n’y a pas de bonne réponse.';
+  L.points.forEach((p, i) => el.appendChild(radio('limit', String(i), p, i === 2)));
+}
+$('confront').addEventListener('submit', e => {
+  e.preventDefault();
+  const who = document.querySelector('input[name=who]:checked'), why = document.querySelector('input[name=why]:checked');
+  if (!who) { toast('Désignez quelqu’un, ou l’accident.'); return; }
+  if (!S.warnedConfront) { S.warnedConfront = true; $('f-submit').textContent = 'Confirmer : c’est irréversible'; toast(partner() + ' : « Sûr(e) ? »'); return; }
+  const proofs = [...document.querySelectorAll('#f-proofs input:checked')].map(i => i.value);
+  const limit = document.querySelector('input[name=limit]:checked');
+  S.confronted = true; $('confront').hidden = true;
+  outcome(who.value, why ? why.value : null, proofs, limit ? +limit.value : null);
+});
+function outcome(who, why, proofs, limit) {
+  const out = $('outcome'); out.hidden = false; out.innerHTML = '';
+  const add = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = text; out.appendChild(e); return e; };
+  const illegal = proofs.filter(p => PIECES[p].prov === 'illégale');
+  const legitStrong = proofs.includes('video') || proofs.includes('L3') || (proofs.includes('manteau') && proofs.includes('autopsie'));
+  const whoOk = who === 'L', whyOk = why === 'vu';
+  add('h2', '', 'Confrontation');
+  if (illegal.length && who === 'L') {
+    add('p', 'monologue', 'Lucas regarde le carnet. « Vous avez fouillé mon bureau. » Il se lève. Inès secoue la tête : elle ne pourra rien faire d’une pièce volée.');
+  }
+  if (who === 'L' && legitStrong && !illegal.length) {
+    add('p', 'monologue', '« Il est monté. Il ne savait pas que j’étais là. Il m’a vu et il a ri. Il a dit : « Tu es encore là, toi ? » Comme on parle d’une lampe qu’on a oublié d’éteindre. Je lui ai pris le bras. Je voulais juste qu’il me regarde. Il a reculé. »');
+    add('p', 'monologue', '« Je suis resté vingt minutes en haut des marches. Il respirait. Je n’ai appelé personne. Personne ne m’a rien demandé, vous savez. J’ai décidé tout seul. »');
+  } else if (who === 'L' && !illegal.length) {
+    add('p', 'monologue', 'Lucas vous écoute jusqu’au bout. « Vous n’avez rien. » Il a raison : rien de ce que vous montrez ne le place dans la tour après 21 h 30.');
+  } else if (who === 'M') {
+    add('p', 'monologue', 'Marion ne baisse pas les yeux. « Je l’ai giflé. Je suis partie. À 23 h 09, la caméra vous le dira. » Elle a raison, et vous le saviez peut-être.');
+  } else if (who === 'C') {
+    add('p', 'monologue', 'Claire pleure sans bruit. « Je l’aimais. Il m’a payée pour que je parte, et je suis partie. » Rien ne la ramène dans la tour.');
+  } else if (who === 'none') {
+    add('p', 'monologue', 'Vous rendez à Inès la version de la police. Elle signe le chèque sans vous regarder.');
+  }
+  const v = document.createElement('div'); v.className = 'verdict';
+  const p1 = document.createElement('div'); p1.className = 'panel'; p1.innerHTML = '<h3>Qui</h3><b></b><p class="muted"></p>';
+  p1.querySelector('b').textContent = whoOk ? 'Juste' : 'Faux';
+  p1.querySelector('p').textContent = whoOk ? (legitStrong && !illegal.length ? 'Et vous pouvez le prouver proprement.' : 'Mais sans preuve recevable, la vérité reste dehors.') : 'Lucas Ferreira était aux archives toute la soirée.';
+  const p2 = document.createElement('div'); p2.className = 'panel'; p2.innerHTML = '<h3>Pourquoi</h3><b></b><p class="muted"></p>';
+  p2.querySelector('b').textContent = whyOk ? 'Juste' : 'Faux';
+  p2.querySelector('p').textContent = 'Être vu. Quatre ans à attendre un regard, et une association donnée à quelqu’un d’autre pour solde de tout compte.';
+  v.append(p1, p2); out.appendChild(v);
+  add('p', 'muted', 'Le jeu note les deux séparément. On peut trouver le bon coupable et rater l’affaire.');
+  // Carte des limites
+  if (who !== 'none') {
+    const L = LIMITS[who];
+    add('h3', '', 'La carte des limites · ' + L.rel);
+    const wrap = document.createElement('div'); wrap.className = 'limitmap';
+    const tbl = document.createElement('table');
+    const head = document.createElement('tr'); ['Moment', 'Vous', 'Marion', 'Claire', 'Lucas'].forEach(h => { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); });
+    tbl.appendChild(head);
+    L.points.forEach((p, i) => {
+      const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.textContent = p; tr.appendChild(td0);
+      const you = document.createElement('td'); if (limit === i) { you.className = 'mark'; you.textContent = 'ici'; } tr.appendChild(you);
+      for (const c of ['M', 'C', 'L']) { const td = document.createElement('td'); if (L.reads[c][0] === i) { td.className = 'mark'; td.textContent = '« ' + L.reads[c][1] + ' »'; } tr.appendChild(td); }
+      tbl.appendChild(tr);
+    });
+    wrap.appendChild(tbl); out.appendChild(wrap);
+    add('p', 'muted', 'Aucune bonne réponse n’est donnée, ni maintenant ni plus tard.');
+  }
+  // Ce que le jeu a retenu
+  const talk = Object.entries(S.bias.talk).sort((a, b) => b[1] - a[1])[0];
+  const cons = Object.entries(S.bias.consult).sort((a, b) => b[1] - a[1])[0];
+  add('h3', '', 'Ce que le jeu a retenu de vous');
+  const ul = document.createElement('ul'); ul.style.margin = '0'; ul.style.paddingLeft = '18px';
+  const li = t => { const e = document.createElement('li'); e.textContent = t; ul.appendChild(e); };
+  li('Votre première hypothèse : ' + (S.bias.firstHyp ? '« ' + PIECES[S.bias.firstHyp].t + ' »' : 'aucune, vous n’avez rien écrit au feutre') + '.');
+  li('La personne que vous avez le plus interrogée : ' + (talk && talk[1] ? SUSPECTS[talk[0]].name + ' (' + talk[1] + ' échanges)' : 'personne') + '.');
+  li('La pièce que vous avez le plus relue : ' + (cons ? PIECES[cons[0]].t + ' (' + cons[1] + ' fois)' : 'aucune') + '.');
+  li('Échos lancés : ' + S.echoRuns + '. Témoins fermés : ' + (Object.keys(S.susp).filter(k => S.susp[k].closed).map(k => SUSPECTS[k].name).join(', ') || 'aucun') + '.');
+  out.appendChild(ul);
+  add('p', 'monologue', 'Note au carnet, trois semaines plus tard : l’école de la fille de Gaspard n’a appelé personne, le soir du 14. Gaspard ne sait pas qui l’a fait.');
+  const again = document.createElement('button'); again.className = 'btn'; again.textContent = 'Recommencer l’affaire'; again.addEventListener('click', () => location.reload());
+  out.appendChild(again);
+}
+
+/* ========================================================================= BOUCLE */
+let lastFrame = performance.now(), cvAcc = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - lastFrame) / 1000); lastFrame = now;
+  if (R3 && currentView === 'scene') {
+    R3.camera.position.set(R3.target.x + R3.radius * Math.sin(R3.phi) * Math.sin(R3.theta), R3.target.y + R3.radius * Math.cos(R3.phi), R3.target.z + R3.radius * Math.sin(R3.phi) * Math.cos(R3.theta));
+    R3.camera.lookAt(R3.target);
+    if (R3.mode === 'echo') updateEcho(dt);
+    for (const h of R3.hot) if (h.visible) { h.userData.ring.lookAt(R3.camera.position); h.scale.setScalar(1 + Math.sin(now / 400) * 0.12); }
+    R3.renderer.render(R3.scene, R3.camera);
+  }
+  if (F3 && currentView === 'entretiens') { updateFace(now / 1000, dt); F3.renderer.render(F3.scene, F3.camera); }
+  if (cvPlay && currentView === 'video') { cvAcc += dt; if (cvAcc > 0.12) { cvAcc = 0; cvSet(cvSec + 1); if (cvSec >= 7199) { cvPlay = false; $('cv-play').textContent = '▶'; } } }
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', () => { resizeScene(); resizeFace(); });
+['opt-gauges', 'opt-assist'].forEach(id => $(id).addEventListener('change', () => renderInterview()));
+
+$('start').addEventListener('click', () => {
+  S.gender = document.querySelector('input[name=gender]:checked').value;
+  audio();
+  $('intro').hidden = true;
+  note('Inès Varenne, 27 ans, au cabinet : « Mon père ne buvait plus depuis quatre ans. La police dit qu’il est tombé ivre dans l’escalier. Je veux savoir ce qui s’est passé dans ce bureau. Pas ce qu’on va écrire dans le dossier. »');
+  note(partner() + ' : « Trois personnes ont vu Étienne ce jour-là. Sa femme, son associée, son collaborateur. On commence par les lieux, avant que le ménage passe. »');
+  initScene(); initFace(); show('scene'); setMode('lieux');
+});
+
+renderNotebook(); renderTasks(); renderClock(); renderBoard(); renderSuspects(); renderArchive();
+requestAnimationFrame(loop); heartLoop();
+// Point d'entrée pour les tests automatisés
+window.__echoes = { S, PIECES, buildTracks, sample, act, logic, franchise, togglePin, startEcho, cvSet, outcome, show, SUSPECTS };
+</script>
