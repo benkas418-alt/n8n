@@ -31,6 +31,8 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Personnes non filmées en Afrique : gros plans sans décor reconnaissable seulement.
 - **Vendeurs PitUp** (14 nov.) : boutiques et stocks d'habillement, chaussures, téléphones, électronique. Les étals de vivres ne servent qu'à illustrer la ville ou le commerce en général.
 - Visuels de l'appli : vraies captures ou vrais enregistrements d'écran dans un **téléphone 3D**, de face, sans grain ni vignettage. Varier les écrans.
+- **Le texte suit le son** (17 nov.) : grosse caisse → le mot tombe d'un coup ; clic de déclencheur photo → la phrase apparaît d'un coup ; clics de clavier → lettre après lettre, une lettre par clic.
+- Fin de vidéo : « **Disponible sur** » au-dessus des badges des stores (17 nov.).
 - **Pas de liste numérotée** à l'écran (14 nov.) : « ça donne l'effet liste ». Animer les mots.
 - Pas de compteur de pages sur les carrousels. Profils sans photo : initiales dans un cercle de couleur.
 - Couleur de marque **#1f88c9**. Poppins pour pubs et carrousels, Lexend pour les vidéos produits.

@@ -4,6 +4,11 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-17
+
+- **Texte et son.** Sur le motion « congolais » : « en une fois quand le son est celui d'une caméra qui prend en photo, lettre après lettre quand c'est un bruit de saisie sur clavier, ainsi de suite ». Retenu : la façon dont un texte apparaît suit la nature du son qui l'accompagne. Rangé : `regles.md`, `2-dossiers/motion-congolais.md`.
+- **Fin de vidéo.** Il veut « Disponible sur » au-dessus des badges App Store et Google Play. Rangé : `regles.md`.
+
 ## 2026-11-15
 
 - **Organisation de la mémoire.** Il a dit : « au lieu qu'à chaque fois dans les sessions, il faut relire, réinstaller les skills… que le truc soit plus simple », « tu m'étudies, pour pouvoir commencer à faire des histoires qui me ressemblent plus et dans ma vision des choses ». Retenu : trois tiroirs, un script de réinstallation, cette compétence. Rangé : `LISEZ-MOI.md`.
