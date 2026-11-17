@@ -11,7 +11,7 @@ SP = "/tmp/claude-0/-home-user-n8n/3a1d2361-6d15-5131-aa88-7efcec5ec51a/scratchp
 W = json.load(open(f"{SP}/audio/la/words.json")); PL = json.load(open(f"{SP}/audio/la/places.json"))
 D = float(__import__("os").environ.get("DUR", "35.4")); sr = 48000; n = int(D * sr)
 def wt(line, word, k=0):
-    h = [w for w in W if w[3] == line and w[0].lower().strip(",.?") .startswith(word.lower())]
+    h = [w for w in W if str(w[3]) == str(line) and w[0].lower().strip(",.?") .startswith(word.lower())]
     return round(h[k][1], 3)
 # ---------------------------------------------------------------- chunks: (start, html, bg, how, extra)
 #   how: pop (kick: rises at once) | cam (dry click: whole phrase at once + flash) | type (letter by letter, one key per letter)
@@ -19,7 +19,7 @@ def wt(line, word, k=0):
 #   bg: l = light gradient, b = PitUp blue gradient. <a>..</a> = accent colour.
 E = lambda t: round(t - 0.04, 3)
 # category words (no voice): on the beats just before line 7
-BEATS = json.load(open(f"{SP}/audio/la/beats.json")); L7 = json.load(open(f"{SP}/audio/la/lines.json"))[7][0]
+BEATS = json.load(open(f"{SP}/audio/la/beats.json")); L7 = json.load(open(f"{SP}/audio/la/lines.json"))["7"][0]
 k7 = min(range(len(BEATS)), key=lambda j: abs(BEATS[j] - L7)); CAT = [BEATS[k7 - 4], BEATS[k7 - 3], BEATS[k7 - 2]]
 C = [
  (E(wt(0, "Découvre")), "Découvre", "l", "pop", ""),
@@ -42,6 +42,8 @@ C = [
  (E(wt(4, "Tu")), "Tu commandes,", "b", "cam", ""),
  (E(wt(4, "la")), "la boutique<br><a>confirme,</a>", "l", "cam", "check"),
  (E(wt(4, "et")), "et nous<br>te livrons.", "b", "pop", "ring"),
+ (E(wt("4b", "et")), "Et tu paies", "l", "pop", ""),
+ (E(wt("4b", "à")), "à la <a>livraison.</a>", "l", "cam", "glass"),
  (E(wt(5, "tu")), "Tu vends ?", "l", "pop", ""),
  (E(wt(5, "ouvre")), "Ouvre ta", "b", "pop", ""),
  (E(wt(5, "propre")), "propre<br>boutique", "b", "type", ""),
@@ -49,8 +51,6 @@ C = [
  (E(wt(6, "Plus")), "+100", "b", "pop", "big"),
  (E(wt(6, "boutiques")), "boutiques<br>locales", "b", "type", "orbit"),
  (E(wt(6, "nous")), "nous ont déjà<br><a>rejoints.</a>", "l", "swap", ""),
- (E(wt(6, "et")), "Et tu paies", "b", "pop", ""),
- (E(wt(6, "à")), "à la <a>livraison.</a>", "l", "cam", "glass"),
  # no voice here: the music carries the words (kicks), like the "congolais" motion
  *[(c, w_, b_, "pop", "") for c, (w_, b_) in zip(CAT, [("Habillement", "b"), ("Chaussures", "l"), ("Accessoires", "b")])],
  (E(wt(7, "Tes")), "Tes <a>achats.</a>", "l", "swap", "sw"),
