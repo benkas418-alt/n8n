@@ -86,7 +86,7 @@ for (a0, b0), (a1, b1) in zip(spans, spans[1:]):
 if FULL:   # the song stays low (lyrics audible in the back) and rises to full on the logo sound
     # -17 dB under the film; on the logo it jumps to -8 dB (the last line stays clear), then to -2 dB once the voice ends
     vend = spans[-1][1]; up = np.clip((t - (I + 0.15)) / 0.45, 0, 1); up2 = np.clip((t - (vend + 0.05)) / 0.4, 0, 1)
-    g = -17.0 * (1 - up) + -8.0 * up; g = g * (1 - up2) + -2.0 * up2
+    g = -17.0 * (1 - up) + float(os.environ.get("LOGO_DB", "-8")) * up; g = g * (1 - up2) + -2.0 * up2
     mus *= (10 ** (g / 20))[:, None]
 else:
     mus *= (10 ** (-14 * w / 20))[:, None]

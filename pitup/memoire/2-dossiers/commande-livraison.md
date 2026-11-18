@@ -19,5 +19,13 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 
 ## Matériel
 
-- Rushs de livraison : annoncés par le fondateur le 18 nov., à recevoir.
+- Rushs de livraison reçus le 18 nov. (4 fichiers WhatsApp, 576×1024 sauf un en 720×1280) : pantalon « Big One » remis au bord de la route (net de 3,3 à 6,8 s), chaussures sorties d'un sachet dans une voiture (net partout), colis remis à une cliente (plus doux), paiement en billets dans la voiture (vidéo couchée : ffmpeg la redresse, recadrer après). Mains seulement, pas de visage reconnaissable. Fichiers hors dépôt.
 - Enregistrement d'écran d'une commande dans l'appli : à demander (sans données de vrais clients).
+
+## v1 livrée (18 nov.)
+
+- `pitup/tools/build_cmd.py` + `place_cl.py`, projet `hf/videos/pitup-commande`, 24 s.
+- Script : « Commander en ligne à Lubumbashi ? Voici comment ça se passe. Tu choisis ton article dans l'application. La boutique confirme ta commande. Ensuite, nous te livrons. Tu vérifies ton article. Et tu paies à la livraison. » + fin validée du film de lancement (« Découvre PitUp. Le commerce, simplement. »).
+- Rushs dans des cadres arrondis 880×1100 sur le fond PitUp (résolution WhatsApp trop faible pour le plein écran). Transitions : flicker à l'ouverture, whip entre rushs, flash blanc sur le paiement. Suivi de commande 2D en haut (Choisir, Confirmer, Livrer, Payer) qui s'allume à chaque étape.
+- Musique « What Did I Miss? », départ à 61,54 s du morceau, −17 dB sous la voix, −13 dB au logo (`LOGO_DB=-13`), pleine après la dernière phrase.
+- Piège : la retranscription entendait « Des coups » pour « Découvre » ; cause : le souffle du logo tombait sur le mot. Les sons du logo sont maintenant placés avant la phrase.
