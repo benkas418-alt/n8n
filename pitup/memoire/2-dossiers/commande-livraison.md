@@ -9,6 +9,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 - **D** (30 s) : site de référence des effets de montage (galerie avec cas concrets).
 - **E** (21 s) : quatre transitions à maîtriser : film burn, masque flicker, flash blanc, whip (transition par mouvement rapide).
 
+- **F** (59 s, 18 nov., graphiste) : cinq sites d'inspiration. Are.na (section Motion : titres, jeux typo, composition, textures) ; Eyecannndy (« iCandy » : bibliothèque de techniques de caméra et de montage, avec le nom de chaque effet) ; Color-hex (palettes ; « tu gardes une DA cohérente du début à la fin ») ; Behance (projets d'artistes : typos, compositions, couleurs) ; Cari (section esthétiques : nom exact d'une « vibe » et images pour un moodboard).
+
 ## Ce que j'en retiens (interprétation, à confirmer)
 
 - Hook en 3 secondes ; script écrit à la main pour Lubumbashi ; un visage réel quand c'est possible (le livreur, la cliente) ; montage net.

@@ -59,3 +59,8 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - Sessions dans un conteneur cloud éphémère : tout ce qui n'est pas poussé sur la branche est perdu.
 - Le dossier de travail (`scratchpad`) n'est pas durable : y fabriquer, mais ranger les scripts et les notes dans le dépôt.
 - Disque très limité (environ 1 Go libre) : supprimer les anciens rendus et les téléchargements au fur et à mesure.
+
+## Sites d'inspiration (envoyés par le fondateur, 18 nov.)
+
+- Are.na (motion, typo, composition), Eyecannndy (nom et exemple de chaque effet de montage), Color-hex (palettes), Behance (projets de designers), Cari (esthétiques nommées, moodboards).
+- Usage : chercher une idée de mouvement ou de transition, puis l'appliquer dans la DA PitUp (jamais copier un univers).
