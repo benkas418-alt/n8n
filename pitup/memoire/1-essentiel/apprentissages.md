@@ -4,6 +4,10 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-18
+
+- **Supports théoriques.** Il envoie trois vidéos (stratégie de contenu, galerie d'effets, quatre transitions) : « Utilise-les comme support théorique. J'ai des rushs des vidéos de livraison aussi. » Retenu : des vidéos peuvent servir de cours (méthode, techniques), pas seulement de références visuelles. Rangé : `2-dossiers/commande-livraison.md`.
+
 ## 2026-11-17
 
 - **Qui est concerné par chaque phrase.** Sur la phrase « +100 boutiques » : « si tu es en train de parler des boutiques, tu dis plus de 100 boutiques locales nous ont déjà rejoints. Et puis… "et tu payes à la livraison", c'est pour les acheteurs, c'est pas pour les vendeurs. » Retenu : ne jamais mettre dans la même phrase une idée pour les acheteurs et une idée pour les vendeurs ; chaque phrase va dans la partie de son public. Rangé : `regles.md`.
