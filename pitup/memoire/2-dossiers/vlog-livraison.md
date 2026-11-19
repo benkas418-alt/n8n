@@ -12,3 +12,11 @@ Demande du 19 nov. 2026 : « Un autre en mode vlog livraison avec des plans de l
 
 « Aujourd'hui, on livre à Golf Tshamalale. » / « La commande vient d'une boutique du centre-ville. » / « Le colis est prêt. On y va. » / « Lubumbashi, en plein après-midi. » / « Ta commande arrive. » / « Tu vérifies, tu paies à la livraison. » / « Encore une livraison réussie. Ta prochaine commande, c'est sur PitUp. »
 Quartier de livraison donné par le fondateur le 19 nov. : **Golf Tshamalale**. Type de boutique : à confirmer. Choix A (filmer) ou B (version immédiate) : pas encore donné.
+
+## v1 livrée (19 nov.)
+
+- Choix du fondateur : « Prends la vidéo des chaussures au niveau de la voiture. Vante un peu le client (avait une belle énergie par exemple). » (option B).
+- `pitup/tools/build_vlog.py` + `place_vl.py`, projet `hf/videos/pitup-vlog`, 26,5 s, plein écran, étalonnage commun (`match_grade.py`).
+- Plans : trajet Snapchat découpé en 3 rues (0,2-3,1 / 3,1-6,4 / 6,4-9,5 s, recadré sans l'autocollant), chaussures dans la voiture (L2 : 0,4 / 3,6 / 8,0 / 16,5 s).
+- Voix : « Aujourd'hui, on livre à Golf Tshamalale. Une paire de baskets, commandée sur PitUp. On traverse Lubumbashi. Le client découvre sa paire. Il vérifie chaque détail. Il avait une belle énergie ! Encore une livraison réussie. » + appel et fin déjà validés.
+- Sons : whoosh aux 1er et 4e changements, flash + déclic sur « commandée sur PitUp », son du logo. Musique : Raindance (Dave & Tems) à partir de 141,65 s (refrain ; l'intro à 13,3 s avait servi le 5 nov.). −14,5 LUFS.
