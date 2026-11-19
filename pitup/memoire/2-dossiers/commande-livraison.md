@@ -45,3 +45,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 ## v4 (19 nov.)
 
 - Le fondateur envoie sans commentaire un trajet en voiture dans les rues de Lubumbashi (Snapchat, 1080×1920, très net, 9,6 s). Placé sur « Ensuite, nous te livrons » (1,0 à 3,2 s du fichier), recadré pour sortir l'autocollant « interdit de fumer » du tableau de bord. Suivent les chaussures dans la voiture puis la remise du colis.
+
+## v5 (19 nov.) : théorie de design appliquée (accord « Ok »)
+
+- Échelle typographique 34 / 55 / 89 / 144 / 233 px (base 34 × 1,618) : chaque texte prend le plus grand palier qui tient ; texte au-dessus d'un cadre ou d'un téléphone : 144 au plus. Phrases longues coupées sur plus de lignes pour garder le grand palier.
+- Entrées « pop » avec anticipation et dépassement (départ à 86 %, `back.out(1.7)`, 0,3 s). Suivi de commande en 34 px, liseré blanc sur l'étape active (lisible sur fond bleu).

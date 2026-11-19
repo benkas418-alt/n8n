@@ -67,7 +67,7 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 
 ## Théorie de design envoyée par le fondateur (19 nov.)
 
-- **Échelle typographique** (vidéo « stop guessing text sizes ») : choisir une taille de base, puis multiplier ou diviser par un ratio fixe (1,618 = nombre d'or ; ratio plus grand = hiérarchie plus marquée, plus « premium »). Pour nos vidéos : 34 → 55 → 89 → 144 → 233 px (base 34, ratio 1,618).
+- **Échelle typographique** (vidéo « stop guessing text sizes ») : choisir une taille de base, puis multiplier ou diviser par un ratio fixe (1,618 = nombre d'or ; ratio plus grand = hiérarchie plus marquée, plus « premium »). Pour nos vidéos : 34 → 55 → 89 → 144 → 233 px (base 34, ratio 1,618). Appliqué dans `build_cmd.py` (variable `SCALE`).
 - **Quatre styles d'une même affiche** : audacieux (deux couleurs qui contrastent, titre exagéré), minimaliste (peu d'éléments, texte petit, beaucoup d'espace), affiche de film (sombre, lumière dramatique, couleurs 60-30-10), éditorial (la photo raconte la même histoire que le texte, deux typographies).
 - **Règle 60-30-10 pour PitUp** : 60 % fond clair, 30 % bleu #1f88c9, 10 % accent (bleu nuit #0d1b2a du texte).
 - **20 principes d'UX et d'animation** (capture Instagram) : les 12 principes d'animation (anticipation, follow-through, ease in/out, arcs, action secondaire, timing, exagération…) et les lois d'UX (Fitts, Hick, Miller, Doherty, Postel, Jakob). Loi de Jakob : « ton appli doit marcher comme celles qu'on connaît » (ex. panier en haut à droite).

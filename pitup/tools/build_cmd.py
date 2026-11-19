@@ -25,7 +25,7 @@ E = lambda t: round(t - 0.04, 3)
 C = [
  (E(wt("0a", "Commander")), "Commander<br>en ligne", "l", "pop", "rk"),
  (E(wt("0a", "à")), "à <a>Lubumbashi ?</a>", "l", "cam", "rk"),
- (E(wt("0b", "Voici")), "Voici comment<br><a>ça se passe.</a>", "b", "swap", ""),
+ (E(wt("0b", "Voici")), "Voici<br>comment<br><a>ça se passe.</a>", "b", "swap", ""),
  (E(wt(1, "Tu")), "Tu choisis", "l", "pop", ""),
  (E(wt(1, "ton")), "ton <a>article</a>", "l", "cam", "card:basket"),
  (E(wt(1, "dans")), "dans <a>l'application.</a>", "l", "swap", "phone:phs_full"),
@@ -40,7 +40,7 @@ C = [
  (E(wt(5, "à")), "à la <a>livraison.</a>", "l", "cam", "rk"),
  # call to action before the logo (19 Nov.)
  (E(wt(6, "Ta")), "Ta prochaine<br>commande,", "b", "pop", ""),
- (E(wt(6, "sur") - 0.1), "c'est sur <a>PitUp.</a>", "l", "cam", "icon"),
+ (E(wt(6, "sur") - 0.1), "c'est sur<br><a>PitUp.</a>", "l", "cam", "icon"),
 ]
 # rush cards: (clip, start, end, entrance)  entrance: flicker | whip | flash
 L = json.load(open(f"{SP}/audio/cl/lines.json"))
@@ -120,9 +120,10 @@ meas = subprocess.run(["ffmpeg", "-i", f"{SP}/audio/cl_raw.wav", "-af", "loudnor
 Iin = float(json.loads(meas[meas.rindex("{"):])["input_i"])
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SP}/audio/cl_raw.wav", "-af", f"volume={-14 - Iin:.2f}dB,aresample=192000,alimiter=limit=0.8:level=0,aresample=48000", "-c:a", "pcm_s16le", f"{P}/assets/mix.wav"], check=True)
 # ---------------------------------------------------------------- html
+SCALE = [34, 55, 89, 144, 233]
 def size(h):
     lines = h.replace("<a>", "").replace("</a>", "").split("<br>"); L = max(4, max(len(x) for x in lines))
-    return int(min(220, 960 / (0.58 * L)))
+    return int(min(240, 960 / (0.53 * L)))
 def letters(h, sid):
     out, j, acc = [], 0, False
     for part in h.replace("<br>", "\n").replace("<a>", "\x01").replace("</a>", "\x02"):
@@ -151,7 +152,9 @@ def extra(ex, sid):
     return ""
 slides = []
 for i, (a, h, bg, how, ex) in enumerate(C):
-    sid = f"s{i}"; fs = 330 if ex == "big" else 118 if ex == "orbit" else size(h)
+    # type scale (founder's design theory, 19 Nov.): base 34 px x 1.618 -> 34, 55, 89, 144, 233; take the largest that fits
+    fit = min(144, size(h)) if ex == "rk" or ex.startswith("phone:") else size(h)   # text above a card or phone: 144 at most
+    sid = f"s{i}"; fs = max(x for x in SCALE if x <= max(fit, 55))
     body = letters(h, sid) if how == "type" else h
     cls = "w" + (" mk" if how == "mark" else "")
     word = f'<div class="{cls}" style="--fs:{fs}px;font-size:{fs}px"><span class="in">{body}</span></div>' if how != "mark" else f'<div class="{cls}" style="font-size:{fs}px"><span class="hl"></span><span class="in">{body}</span></div>'
@@ -197,11 +200,11 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 #flash{{position:absolute;inset:0;background:#fff;opacity:0;z-index:20;pointer-events:none}}
 .tile{{width:190px;height:190px;border-radius:52px;background:#1f88c9;display:flex;align-items:center;justify-content:center}} .tile img{{width:112px}}
 .x-phone{{justify-content:flex-start;padding-top:300px}}
-.x-rk{{justify-content:flex-start;padding-top:250px}} .x-rk .w{{font-size:min(var(--fs),118px)!important}}
+.x-rk{{justify-content:flex-start;padding-top:250px}}
 .rc{{position:absolute;left:100px;top:{RT}px;width:880px;height:1100px;border-radius:44px;object-fit:cover;opacity:0;z-index:5;box-shadow:0 30px 60px rgba(13,40,70,.18)}}
 #trk{{position:absolute;left:60px;right:60px;top:90px;display:flex;justify-content:center;gap:14px;z-index:12;opacity:0}}
-#trk span{{font-weight:600;font-size:32px;letter-spacing:-.01em;padding:12px 26px;border-radius:40px;background:#e3ecf5;color:#7b8fa3}}
-#trk span.on{{background:#1f88c9;color:#fff}}
+#trk span{{font-weight:600;font-size:34px;letter-spacing:-.01em;padding:12px 26px;border-radius:40px;background:#e3ecf5;color:#7b8fa3}}
+#trk span.on{{background:#1f88c9;color:#fff;box-shadow:0 0 0 3px #fff}}
 .shop{{width:260px;height:260px;border-radius:50%;border:8px solid #fff;object-fit:cover}}
 .p3{{position:absolute;left:{PX}px;top:{PY}px;width:{PW}px;height:{PH}px;transform-style:preserve-3d;opacity:0;z-index:7}}
 .ly{{position:absolute;inset:0;border-radius:{PR}px;background:linear-gradient(90deg,#4d5057 0%,#b9bcc2 12%,#8b8e95 35%,#e1e3e7 62%,#9a9da3 85%,#4a4d53 100%)}}
@@ -260,7 +263,7 @@ const cues={json.dumps(cues)}, TYPES={json.dumps(TYPES)}, PHV={json.dumps(PHV)};
 cues.forEach(([a,b,bg,how,ex],i)=>{{
   const s="#s"+i, w=s+" .w .in", x="#s"+i+"x";
   tl.set(s,{{opacity:1}},a); tl.set(s,{{opacity:0}},b); tl.set("#bgb",{{opacity:bg==="b"?1:0}},a);
-  if(how==="pop"){{ tl.fromTo(w,{{y:60,scale:1.1,opacity:0}},E({{y:0,scale:1,opacity:1,duration:.22,ease:"expo.out"}}),a);
+  if(how==="pop"){{ tl.fromTo(w,{{y:70,scale:.86,opacity:0}},E({{y:0,scale:1,opacity:1,duration:.3,ease:"back.out(1.7)"}}),a);
                     tl.to(w,{{scale:1.04,duration:Math.max(.05,b-a-.22),ease:"none"}},a+.22); }}
   if(how==="cam"){{ tl.fromTo(w,{{scale:1.08}},E({{scale:1,duration:.3,ease:"expo.out"}}),a);
                     tl.fromTo("#flash",{{opacity:.7}},E({{opacity:0,duration:.16,ease:"power2.out"}}),a); }}
