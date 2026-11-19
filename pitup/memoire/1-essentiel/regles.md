@@ -36,6 +36,7 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - **Le texte suit le son** (17 nov.) : grosse caisse → le mot tombe d'un coup ; clic de déclencheur photo → la phrase apparaît d'un coup ; clics de clavier → lettre après lettre, une lettre par clic.
 - Fin de vidéo : « **Disponible sur** » au-dessus des badges des stores (17 nov.).
 - **Pas de liste numérotée** à l'écran (14 nov.) : « ça donne l'effet liste ». Animer les mots.
+- **Un seul étalonnage pour tous les rushs d'une vidéo** (19 nov.) : « le colorbranding doit être identique pour tous les rushs ». Outil : `pitup/tools/match_grade.py` (même luminosité, même contraste, couleurs neutres, même courbe finale).
 - **Pas de pastilles d'étapes** (suivi « Choisir / Confirmer / Livrer / Payer » en haut de l'écran) (19 nov.) : « ça fait IA ». Les étapes se disent et se montrent, elles ne s'affichent pas en tableau.
 - Pas de compteur de pages sur les carrousels. Profils sans photo : initiales dans un cercle de couleur.
 - Couleur de marque **#1f88c9**. Poppins pour pubs et carrousels, Lexend pour les vidéos produits.

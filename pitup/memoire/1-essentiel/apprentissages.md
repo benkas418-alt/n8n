@@ -6,6 +6,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-19
 
+- **Étalonnage.** « Le colorbranding doit être identique pour tous les rushs. » Retenu : chaque vidéo a un seul rendu de couleur, quels que soient les téléphones et la lumière des rushs. Rangé : `regles.md`.
 - **Suivi d'étapes refusé.** « Les 4 étapes écrites en haut de l'écran font IA. » Retenu : pas d'interface de suivi plaquée sur une vidéo ; c'est la même famille que l'« effet liste ». Rangé : `regles.md`.
 - **Sons et marque.** « Les sons de SFX que tu ajoutes… c'est tes sons… bas de gamme. Au lieu de t'appuyer sur les autres sons des autres vidéos… de récupérer leurs sons. » Et : « commander en ligne à Lubumbashi… comment il va savoir que c'est PitUp ? En regardant jusqu'à la fin… inclure durant la deuxième ou la troisième PitUp directement. » Retenu : bruitages réels tirés des références ; la marque nommée et visible dès le début. Rangé : `regles.md`.
 - **Théorie de design.** Il envoie deux vidéos (échelle typographique au nombre d'or ; quatre styles d'affiche, règle 60-30-10) et une capture « 20 principes d'UX & d'animation ». Sans commentaire : à traiter comme support théorique, comme le 18 nov. Rangé : `3-atelier/outils.md`.

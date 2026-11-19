@@ -64,3 +64,7 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 ## v8 (19 nov.)
 
 - Suivi des 4 étapes retiré (« ça fait IA »). Rien d'autre ne change.
+
+## v9 (19 nov.)
+
+- Étalonnage commun (`match_grade.py`, 80 % vers la cible : luminosité L≈128, dominantes ramenées près du neutre, contraste ≈ 60, saturation +6 %, légère courbe en S). Avant : L 110 à 172, dominantes jusqu'à +12 rouge / +10 jaune. Après : L 125 à 138, dominantes ±4. Originaux gardés dans `assets/rushf_src/`.
