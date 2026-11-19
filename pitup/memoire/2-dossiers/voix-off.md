@@ -46,3 +46,9 @@ Les essais d'octobre et novembre (voix Rémy, Vivienne, voix dessinées, v21 à 
 
 - Retour : « un peu plus spontané… trop normal… ça fait genre préparé. Rends la voix un peu plus spontanée, et l'intonation. »
 - Recette essayée : texte écrit à l'oral (« Bon ! », « Et hop », « franchement », questions) + consigne « voix spontanée et décontractée, comme une vlogueuse qui raconte sa journée à ses amis, intonation vivante et souriante, rythme naturel ». Choix de la prise : texte exact, hauteur médiane 185-240 Hz, puis la plus grande variation de hauteur (intonation vivante). Résultat jugé par le fondateur : en attente.
+
+## Cadence homogène entre les phrases (19 nov.)
+
+- Retour sur commande-livraison v11 : « la première phrase n'est pas générée dans le bon temps… beaucoup trop aigu… régénérer la voix pour qu'elle suive la même cadence instaurée par le reste de la vidéo ».
+- Mesure : la phrase 1 était à 291 Hz, les autres de 190 à 232 Hz (moyenne 213), 6,5 à 7,9 syllabes/s.
+- Règle de choix : après le choix du texte exact, mesurer la hauteur médiane et le débit de **toutes** les phrases ; toute prise à plus de ±25 Hz de la médiane du film, ou hors 6 à 8 syllabes/s, se régénère. Remplacée par p24 (225 Hz, 6,3 syll./s).

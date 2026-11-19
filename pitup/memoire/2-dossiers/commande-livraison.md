@@ -77,3 +77,7 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 ## v11 (19 nov.)
 
 - Déclic photo Mixkit 1432 ; flash + déclic seulement sur « avec PitUp. » et à l'arrivée du rush du paiement. Whoosh seulement sur le 1er (route) et le 4e changement (dévoilement). Musique Tems « Me & U » de 43,97 s (112 BPM), −18 dB sous la voix. 27,5 s, −15,1 LUFS. Contrôle earshot : déclics détectés à 4,0 s et 16,8 s.
+
+## v12 (19 nov.)
+
+- Seule la première phrase régénérée (p24 : 225 Hz au lieu de 291) ; tout le reste identique à la v11. −14,9 LUFS.
