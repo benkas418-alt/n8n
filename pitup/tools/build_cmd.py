@@ -177,9 +177,19 @@ def phone(i, a, b, src):
 VIDS = "".join(phone(i, a, ends[i], ex[6:]) for i, (a, h, bg, how, ex) in enumerate(C) if ex.startswith("phone:"))
 PHV = {}
 cues = [[c[0], e, c[2], c[3], c[4]] for c, e in zip(C, ends)]
-RV = "".join(f'<video id="r{j}" class="clip rc" src="assets/rush/{k}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + j % 2}"></video>' for j, (k, a, b, how) in enumerate(RUSH))
+FULLRUSH = __import__("os").environ.get("FULLRUSH") == "1"   # rushes fill the screen (19 Nov. request)
+RDIR = "rushf" if FULLRUSH else "rush"
+RV = "".join(f'<video id="r{j}" class="clip rc" src="assets/{RDIR}/{k}.mp4" muted playsinline data-start="{a:.3f}" data-duration="{b - a:.3f}" data-track-index="{5 + j % 2}"></video>' for j, (k, a, b, how) in enumerate(RUSH))
 TRK = "".join(f'<span id="t{j}">{t}</span>' for j, (t, a) in enumerate(STEPS))
 S_ = 0.25
+if FULLRUSH:   # full-screen rush, white words on a dark top gradient so they stay readable
+    RC_CSS = (".rc{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover;opacity:0;z-index:1}"
+              " .x-rk{z-index:3;color:#fff} .x-rk .w{text-shadow:0 4px 30px rgba(0,0,0,.45)} .x-rk a{color:#8fd0ff}"
+              " .x-rk::before{content:'';position:absolute;left:0;right:0;top:0;height:900px;"
+              "background:linear-gradient(rgba(5,20,35,.62),rgba(5,20,35,0));z-index:-1}")
+else:
+    RC_CSS = (f".rc{{position:absolute;left:100px;top:{RT}px;width:880px;height:1100px;border-radius:44px;object-fit:cover;"
+              "opacity:0;z-index:5;box-shadow:0 30px 60px rgba(13,40,70,.18)}")
 doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=1080, height=1920"><script src="assets/gsap.min.js"></script>
 <style>
 @font-face{{font-family:P;src:url(assets/fonts/poppins-600.woff2);font-weight:600}}
@@ -201,7 +211,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .tile{{width:190px;height:190px;border-radius:52px;background:#1f88c9;display:flex;align-items:center;justify-content:center}} .tile img{{width:112px}}
 .x-phone{{justify-content:flex-start;padding-top:300px}}
 .x-rk{{justify-content:flex-start;padding-top:250px}}
-.rc{{position:absolute;left:100px;top:{RT}px;width:880px;height:1100px;border-radius:44px;object-fit:cover;opacity:0;z-index:5;box-shadow:0 30px 60px rgba(13,40,70,.18)}}
+{RC_CSS}
 #trk{{position:absolute;left:60px;right:60px;top:90px;display:flex;justify-content:center;gap:14px;z-index:12;opacity:0}}
 #trk span{{font-weight:600;font-size:34px;letter-spacing:-.01em;padding:12px 26px;border-radius:40px;background:#e3ecf5;color:#7b8fa3}}
 #trk span.on{{background:#1f88c9;color:#fff;box-shadow:0 0 0 3px #fff}}
@@ -301,13 +311,13 @@ Object.entries(phones).forEach(([i,[a,b]])=>{{
   tl.fromTo(st,{{rx:8,ry:-26}},E({{rx:4,ry:22,duration:Math.max(.3,b-a-.65),ease:"sine.inOut",onUpdate:put}}),a+.65);
   put();
 }});
-const RUSH={json.dumps(RUSH)}, STEPS={json.dumps(STEPS)};
+const FULL={str(FULLRUSH).lower()}, RUSH={json.dumps(RUSH)}, STEPS={json.dumps(STEPS)};
 RUSH.forEach(([k,a,b,how],j)=>{{ const r="#r"+j;
   tl.set(r,{{opacity:1}},a); tl.set(r,{{opacity:0}},b);
   if(how==="flicker"){{ [0,.05,.1,.15,.2].forEach((d,q)=>tl.set(r,{{opacity:q%2?0.25:1}},a+d)); tl.set(r,{{opacity:1}},a+.25);
                         tl.fromTo(r,{{scale:1.06}},E({{scale:1,duration:.6,ease:"expo.out"}}),a); }}
-  if(how==="whip"){{ tl.fromTo(r,{{x:700,filter:"blur(18px)"}},E({{x:0,filter:"blur(0px)",duration:.28,ease:"expo.out"}}),a);
-                     tl.to(r,{{x:-700,filter:"blur(18px)",duration:.2,ease:"power3.in"}},b-.2); }}
+  if(how==="whip"){{ tl.fromTo(r,{{x:FULL?1080:700,filter:"blur(18px)"}},E({{x:0,filter:"blur(0px)",duration:.28,ease:"expo.out"}}),a);
+                     tl.to(r,{{x:FULL?-1080:-700,filter:"blur(18px)",duration:.2,ease:"power3.in"}},b-.2); }}
   if(how==="flash"){{ tl.fromTo("#flash",{{opacity:.9}},E({{opacity:0,duration:.22,ease:"power2.out"}}),a); tl.fromTo(r,{{scale:1.08}},E({{scale:1,duration:.4,ease:"expo.out"}}),a); }}
 }});
 tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{C[15][0]});

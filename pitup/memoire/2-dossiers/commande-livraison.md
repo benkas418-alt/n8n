@@ -50,3 +50,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 
 - Échelle typographique 34 / 55 / 89 / 144 / 233 px (base 34 × 1,618) : chaque texte prend le plus grand palier qui tient ; texte au-dessus d'un cadre ou d'un téléphone : 144 au plus. Phrases longues coupées sur plus de lignes pour garder le grand palier.
 - Entrées « pop » avec anticipation et dépassement (départ à 86 %, `back.out(1.7)`, 0,3 s). Suivi de commande en 34 px, liseré blanc sur l'étape active (lisible sur fond bleu).
+
+## v6 plein écran (19 nov.)
+
+- Demande : « Et si les vidéos prenaient tout l'espace, au lieu d'une partie ». Fait avec `FULLRUSH=1` (rushs 1080×1920 dans `assets/rushf/`, mots en blanc sur un dégradé sombre en haut, accent bleu clair #8fd0ff, whip sur toute la largeur). Le trajet est recadré pour sortir l'autocollant.
+- Limite dite d'avance : rushs WhatsApp de 576 px agrandis ×1,9, un peu plus doux que dans les cadres. Les deux versions (v5 cadres, v6 plein écran) sont livrées pour qu'il compare.
