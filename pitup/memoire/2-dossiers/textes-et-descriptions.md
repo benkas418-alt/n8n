@@ -44,3 +44,11 @@ Source : blog d'une agence (« Ruche & Pollen »), données pour la France, chif
 - À tester à Lubumbashi, pas à copier : créneaux 18h-20h et 21h-23h (France) ; durée 45-60 s (nos vidéos font 20-38 s : le taux de visionnage complet compte plus que la longueur).
 - Contradiction avec le support C du 18 nov. (« heure de publication : pas important ») : seul un test sur notre compte tranche.
 - Signe de visibilité bloquée selon l'article : vues sous 200 sur plusieurs vidéos de suite, chute brutale.
+
+## Croissance TikTok : PDF collé par le fondateur (19 nov.)
+
+Source : article d'un vendeur d'outils (ReachLabs), chiffres d'anecdotes non vérifiables (« +269 % », « 5× »). Hypothèses seulement.
+- Utile : profil optimisé (bio avec 3-5 mots-clés, photo nette, vidéos épinglées, lien) ; répondre aux commentaires dans la première heure ; transformer les questions des commentaires en vidéos réponses ; 5 hashtags au plus ; mesurer la rétention plutôt que les likes.
+- Repères à suivre : visionnage complet 35-50 % = bon ; partages 2-5 % = bon ; temps moyen 15-25 s = bon.
+- Horaires : cet article dit 6h-9h et 19h-22h, l'article précédent 18h-20h et 21h-23h : ils se contredisent, donc test sur notre compte.
+- Publicité : seulement après une vidéo qui marche déjà en organique ; toute dépense demande l'accord du fondateur.
