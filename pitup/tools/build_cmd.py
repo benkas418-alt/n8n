@@ -81,7 +81,7 @@ for (a0, b0), (a1, b1) in zip(spans, spans[1:]):
 if FULL:   # the song stays low (lyrics audible in the back) and rises to full on the logo sound
     # -17 dB under the film; on the logo it jumps to -8 dB (the last line stays clear), then to -2 dB once the voice ends
     vend = spans[-1][1]; up = np.clip((t - (I + 0.15)) / 0.45, 0, 1); up2 = np.clip((t - (vend + 0.05)) / 0.4, 0, 1)
-    g = -17.0 * (1 - up) + float(os.environ.get("LOGO_DB", "-8")) * up; g = g * (1 - up2) + -2.0 * up2
+    g = float(os.environ.get("MUS_DB", "-17")) * (1 - up) + float(os.environ.get("LOGO_DB", "-8")) * up; g = g * (1 - up2) + -2.0 * up2
     mus *= (10 ** (g / 20))[:, None]
 else:
     mus *= (10 ** (-14 * w / 20))[:, None]
@@ -112,10 +112,8 @@ REAL = {k: librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for k, f in [("whoosh
 REAL["pop"] = [librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for f in ("pop_C2", "pop_C7", "pop_C9")]
 for i, (a, h, bg, how, ex) in enumerate(C):
     # real sound effects lifted from the founder's motion references (19 Nov.): no more code-made thocks and swishes
-    if how == "pop": add(a, REAL["pop"][i % 3], 0.30)
+    # 19 Nov. (founder): only three sounds in this video: the switch whoosh between rushes, the logo sound, the camera click
     if how == "cam": add(a, REAL["click"], 0.45)
-    if how == "swap": add(a - 0.08, REAL["swish"], 0.55)
-    if how == "mark": add(a, REAL["pop"][0], 0.35)
     if how == "type":
         for j, tt_ in enumerate(TYPES[i]): add(tt_, strokes[(j * 5 + 2) % len(strokes)], 0.26)
 add(I - 0.45, REAL["whoosh"], 0.40); add(ARR1, REAL["pop"][1], 0.18)   # logo sounds kept off "Découvre"

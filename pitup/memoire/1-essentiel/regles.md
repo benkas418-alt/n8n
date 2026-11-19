@@ -56,7 +56,9 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Deux voix seulement : la **sœur** (voix actuelle) et la « jumelle ». Jamais mélangées.
 - Recette de voix de référence : voir `2-dossiers/voix-off.md` (recette « Motion point », validée le 14 nov.).
 - Jamais d'étirement temporel de la voix.
+- **Changer de musique d'une vidéo à l'autre** (19 nov.), en gardant le même style (rap / R&B posé). Déjà utilisées : « What Did I Miss? » (film de lancement), « Obsessed With You » (commande-livraison v10).
 - **Musique avec paroles possible** (17 nov.) : basse sous la voix pendant le film (vers −17 dB), elle remonte quand le logo arrive.
+- **Trois sons seulement** (19 nov., remplace en partie la règle suivante) : « tu es retourné dans tes travers… on garde les trois sons » : le whoosh des changements de plan, le son du logo PitUp quand il arrive, le déclic d'appareil photo. Pas de pop sur chaque mot, pas de souffle sur les glissés.
 - **Bruitages réels, jamais fabriqués par programme** (19 nov.) : « tes sons… bas de gamme, que l'on retrouve partout ». Prendre les bruitages des vidéos de motion design de référence (séparation demucs, repérage `earshot find`, extraits isolés) et les réutiliser. Banque actuelle : `sfx/ref/` (hors dépôt) : whoosh wh_C23, swish wh_E17, pops pop_C2/C7/C9, déclic clk_E21 ; frappes de clavier réelles (Mixkit 1387).
 - **Jamais d'amapiano.** Musique actuelle : Tems « Me & U » (fichier du fondateur, hors dépôt).
 

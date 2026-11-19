@@ -68,3 +68,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 ## v9 (19 nov.)
 
 - Étalonnage commun (`match_grade.py`, 80 % vers la cible : luminosité L≈128, dominantes ramenées près du neutre, contraste ≈ 60, saturation +6 %, légère courbe en S). Avant : L 110 à 172, dominantes jusqu'à +12 rouge / +10 jaune. Après : L 125 à 138, dominantes ±4. Originaux gardés dans `assets/rushf_src/`.
+
+## v10 (19 nov.)
+
+- Sons : seulement whoosh aux changements de rush, son du logo (whoosh avant, pop à l'arrivée de la flèche), déclic sur les phrases « cam ». Pops et swish retirés.
+- Musique : Central Cee « Obsessed With You » à partir de 13,04 s (le premier coup fort tombe sur « Commander »), 72 BPM, phrases calées sur la grille en demi-temps ; normalisée à −15 LUFS avant mixage ; −20 dB sous la voix (`MUS_DB=-20`), −14 dB au logo. 26,5 s, −14,6 LUFS.

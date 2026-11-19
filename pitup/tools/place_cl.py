@@ -2,12 +2,12 @@
 import json, numpy as np, soundfile as sf
 SP = "/tmp/claude-0/-home-user-n8n/3a1d2361-6d15-5131-aa88-7efcec5ec51a/scratchpad"
 P = json.load(open(f"{SP}/audio/cl/pick.json"))
-B = [0.5, 0.98, 1.47, 1.96, 2.42, 2.91, 3.38, 3.86, 4.35, 4.84, 5.33, 5.81, 6.28, 6.77, 7.23, 7.72, 8.18, 8.67, 9.16, 9.62, 10.09, 10.6, 11.08, 11.57, 12.04, 12.52, 12.99, 13.48, 13.94, 14.43, 14.92, 15.4, 15.87, 16.35, 16.82, 17.31, 17.79, 18.28, 18.75, 19.23, 19.72, 20.21, 20.67, 21.16, 21.65, 22.11, 22.6, 23.07, 23.55, 24.04, 24.51, 24.99, 25.48, 25.94, 26.43, 26.92, 27.38, 27.87, 28.36, 28.85, 29.31, 29.8, 30.26, 30.75, 31.24, 31.73, 32.19, 32.68, 33.14, 33.63, 34.12]   # "What Did I Miss?" (Drake), cut at 6.83 s: the stab lands on "Découvre"
-B += [round(B[-1] + 0.4865 * j, 2) for j in range(1, 14)]   # same grid continued to the end
+B = [0.51, 0.93, 1.35, 1.77, 2.18, 2.6, 3.02, 3.44, 3.85, 4.28, 4.71, 5.13, 5.55, 5.97, 6.39, 6.8, 7.22, 7.64, 8.06, 8.48, 8.89, 9.31, 9.73, 10.15, 10.57, 11.0, 11.42, 11.84, 12.26, 12.68, 13.1, 13.5, 13.91, 14.34, 14.77, 15.18, 15.6, 16.02, 16.44, 16.87, 17.3, 17.71, 18.13, 18.55, 18.97, 19.39, 19.81, 20.23, 20.64, 21.06, 21.48, 21.89, 22.31, 22.74, 23.17, 23.59, 24.01, 24.41, 24.82, 25.25, 25.68]   # "Obsessed With You" (Central Cee) from 13.04 s, half-beat grid (72 BPM)
+B += [round(B[-1] + 0.418 * j, 2) for j in range(1, 14)]   # same grid continued to the end
 # delivery video order (18 Nov.): "8" = the validated end line of the launch film
 # spoken order (17 Nov.): "4b" = buyers' line after the delivery, "6" = sellers' line after "open your shop"
 ORDER = ["0a", "0b", "1", "2", "3", "4", "5", "6", "8"]
-GAP_BEFORE = {"4": 6}    # beats without voice after "nous te livrons": the delivery rushes play
+GAP_BEFORE = {"4": 7}    # beats without voice after "nous te livrons": the delivery rushes play
 places, lines, words = [], {}, []; prev = -1
 for i in ORDER:
     p = P[i]; a, sr = sf.read(p["file"], dtype="float32"); a = a if a.ndim == 1 else a.mean(1)
