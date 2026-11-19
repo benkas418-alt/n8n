@@ -30,8 +30,9 @@ function shown(m) {
 }
 
 const esc = (s) => (window.frNames ? window.frNames(s) : String(s ?? "")).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const pct = (p, d = 0) => `${(100 * p).toFixed(d)} %`;
-const two = (x) => (x == null || !isFinite(x) ? "—" : x.toFixed(2));
+// French number format, as on the other pages: 1,19 and 84,1 %.
+const pct = (p, d = 0) => `${(100 * p).toFixed(d).replace(".", ",")} %`;
+const two = (x) => (x == null || !isFinite(x) ? "—" : x.toFixed(2).replace(".", ","));
 const COMP = { "ENG-PL": "Premier League", "ESP-LL": "Liga", "ITA-SA": "Serie A", "GER-BL": "Bundesliga",
   "FRA-L1": "Ligue 1", "GER-DFB": "Coupe d'Allemagne", "UEFA-CL": "Ligue des champions", "UEFA-EL": "Ligue Europa",
   "UEFA-ECL": "Ligue Conférence", "ENG-FAC": "FA Cup", "ESP-CDR": "Coupe du Roi", "ITA-CI": "Coupe d'Italie",
@@ -59,7 +60,8 @@ function load() { try { return JSON.parse(localStorage.getItem(STORE) || "{}"); 
 function save() { try { localStorage.setItem(STORE, JSON.stringify({ odds: state.odds, coupon: state.coupon })); } catch { /* storage blocked */ } }
 
 function verdict(prob, odds) {
-  if (!odds || odds <= 1) return { cls: "v-neutral", text: "—", value: null };
+  // No price typed yet: no verdict, so the phone layout hides the empty cell (D90).
+  if (!odds || odds <= 1) return { cls: "v-neutral", text: "", value: null };
   const v = prob * odds - 1;
   const sig = `${v >= 0 ? "+" : "−"}${Math.abs(100 * v).toFixed(1).replace(".", ",")} %`;
   if (v >= 0.05) return { cls: "v-good", text: `Bonne cote (${sig})`, value: v };
@@ -82,10 +84,16 @@ function matchCard(m) {
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : m.kickoff_date;
   const inCoupon = state.coupon.find((c) => c.match === m.id);
   const GROUPS = { "1x2": "Résultat et double chance", goals: "Nombre de buts", btts: "Les deux équipes marquent", "1up": "1UP / 2UP", first: "Premier but" };
+  // D90: the owner's markets first (1X2, 1UP/2UP, first goal, both score); goal lines folded.
+  const ORDER = ["1x2", "1up", "first", "btts", "goals"];
+  const rank = (x) => { const i = ORDER.indexOf(x.note); return i < 0 ? ORDER.length : i; };
+  const markets = m.markets.map((x, i) => [x, i]).sort((a, z) => rank(a[0]) - rank(z[0]) || a[1] - z[1]).map((a) => a[0]);
+  const bk = !!m.market; // without bookmaker prices the column would only show dashes
+  const cols = bk ? 7 : 6;
   let group = "";
-  const rows = m.markets.map((x) => {
+  const row = (x) => {
     const head = x.note !== group
-      ? `<tr class="group"><td colspan="7"><strong>${esc(GROUPS[x.note] || x.note)}</strong></td></tr>`
+      ? `<tr class="group"><td colspan="${cols}"><strong>${esc(GROUPS[x.note] || x.note)}</strong></td></tr>`
       : "";
     group = x.note;
     const key = `${m.id}:${x.key}`;
@@ -96,13 +104,20 @@ function matchCard(m) {
       <td class="label">${esc(named(x.label, m))}</td>
       <td class="r num" data-h="Chances">${pct(x.prob, 1)}</td>
       <td class="r num" data-h="Cote juste">${two(1 / x.prob)}</td>
-      <td class="r num" data-h="Bookmakers">${marketCell(m.market, x.key)}</td>
+      ${bk ? `<td class="r num" data-h="Bookmakers">${marketCell(m.market, x.key)}</td>` : ""}
       <td class="r"><input type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Cote betPawa ${esc(x.label)}" placeholder="betPawa"
            id="o-${m.id}-${esc(x.key)}" data-key="${esc(key)}" value="${odds ?? ""}"></td>
-      <td><span class="verdict ${v.cls}" id="v-${m.id}-${esc(x.key)}">${v.text}</span></td>
-      <td><button class="add" data-match="${m.id}" data-market="${esc(x.key)}" ${inCoupon && !chosen ? "disabled" : ""}>
+      <td class="vcell"><span class="verdict ${v.cls}" id="v-${m.id}-${esc(x.key)}">${v.text}</span></td>
+      <td class="acell"><button class="add" data-match="${m.id}" data-market="${esc(x.key)}" ${inCoupon && !chosen ? "disabled" : ""}>
         ${chosen ? "retirer" : "+ combiné"}</button></td></tr>`;
-  }).join("");
+  };
+  const main = markets.filter((x) => x.note !== "goals"), extra = markets.filter((x) => x.note === "goals");
+  const extraOpen = extra.some((x) => inCoupon && inCoupon.key === x.key);
+  const rows = main.map(row).join("") + (extra.length
+    ? `<tr class="more-row"><td colspan="${cols}"><button type="button" class="more-btn" data-more="${m.id}" aria-expanded="${extraOpen}">
+        ${extraOpen ? "Masquer" : "Voir"} les paris sur le nombre de buts (${extra.length})</button></td></tr>
+       </tbody><tbody class="extra" id="extra-${m.id}"${extraOpen ? "" : " hidden"}>${(group = "", extra.map(row).join(""))}`
+    : "");
   return `<details class="match" ${inCoupon ? "open" : ""}>
     <summary><span class="teams">${esc(m.home)} – ${esc(m.away)}</span>
       <span class="meta">${esc(COMP[m.competition] || m.competition)} · ${esc(when)}</span>
@@ -110,7 +125,7 @@ function matchCard(m) {
       <span class="probs" aria-label="Chances de victoire"><span>${esc(m.home)} ${pct(p["1"])}</span><span>nul ${pct(p["X"])}</span><span>${esc(m.away)} ${pct(p["2"])}</span></span>
     </summary>
     <div class="table-wrap"><table>
-      <thead><tr><th>Pari</th><th class="r">Chances</th><th class="r">Cote juste</th><th class="r">Bookmakers</th><th class="r">Cote betPawa</th><th>Verdict</th><th></th></tr></thead>
+      <thead><tr><th>Pari</th><th class="r">Chances</th><th class="r">Cote juste</th>${bk ? `<th class="r">Bookmakers</th>` : ""}<th class="r">Cote betPawa</th><th>Verdict</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div></details>`;
 }
 
@@ -123,7 +138,7 @@ function renderList() {
   let html = "", day = "";
   for (const m of ms) {
     const d = new Date(m.kickoff_utc || m.kickoff_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-    if (d !== day) { html += `<h3 class="day">${esc(d)}</h3>`; day = d; }
+    if (d !== day) { html += `<h3 class="day">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</h3>`; day = d; }
     html += matchCard(m);
   }
   document.getElementById("list").innerHTML = html;
@@ -254,6 +269,14 @@ document.addEventListener("click", (e) => {
   const t = e.target.closest("button");
   if (!t) return;
   if (t.id === "elo-ticket") { e.preventDefault(); eloTicket(); return; }
+  if (t.dataset.more) {
+    const body = document.getElementById(`extra-${t.dataset.more}`);
+    const open = body.hidden;
+    body.hidden = !open;
+    t.setAttribute("aria-expanded", String(open));
+    t.textContent = t.textContent.replace(open ? "Voir" : "Masquer", open ? "Masquer" : "Voir");
+    return;
+  }
   if (t.id === "coupon-toggle") {
     const c = document.getElementById("coupon");
     c.classList.toggle("open");

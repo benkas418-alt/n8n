@@ -1439,7 +1439,8 @@ async function route() {
   document.getElementById("menu-btn").setAttribute("aria-expanded", "false");
   readColors();
   const app = document.getElementById("app");
-  app.innerHTML = `<p class="loading">Chargement…</p>`;
+  // D90: a page-shaped skeleton while the data load; the text stays for screen readers.
+  app.innerHTML = `<div class="skeleton" aria-busy="true"><span class="sr-only">Chargement…</span><i class="h1"></i><i class="line"></i><i class="card"></i><i class="card"></i><i class="line"></i></div>`;
   try {
     app.innerHTML = await (PAGES[page] || overview)();
     countUp(app);
