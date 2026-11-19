@@ -41,3 +41,8 @@ La seule voie sûre est un vrai enregistrement : la sœur lit le texte au télé
 ## Histoire détaillée
 
 Les essais d'octobre et novembre (voix Rémy, Vivienne, voix dessinées, v21 à v44 de « Ah, Lubumbashi ») sont dans `historique-complet.md` : chercher « Voix », « v3 » ou « studio ».
+
+## Voix spontanée pour les vlogs (19 nov.)
+
+- Retour : « un peu plus spontané… trop normal… ça fait genre préparé. Rends la voix un peu plus spontanée, et l'intonation. »
+- Recette essayée : texte écrit à l'oral (« Bon ! », « Et hop », « franchement », questions) + consigne « voix spontanée et décontractée, comme une vlogueuse qui raconte sa journée à ses amis, intonation vivante et souriante, rythme naturel ». Choix de la prise : texte exact, hauteur médiane 185-240 Hz, puis la plus grande variation de hauteur (intonation vivante). Résultat jugé par le fondateur : en attente.

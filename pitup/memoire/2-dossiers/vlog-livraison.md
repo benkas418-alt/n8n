@@ -20,3 +20,8 @@ Quartier de livraison donné par le fondateur le 19 nov. : **Golf Tshamalale**. 
 - Plans : trajet Snapchat découpé en 3 rues (0,2-3,1 / 3,1-6,4 / 6,4-9,5 s, recadré sans l'autocollant), chaussures dans la voiture (L2 : 0,4 / 3,6 / 8,0 / 16,5 s).
 - Voix : « Aujourd'hui, on livre à Golf Tshamalale. Une paire de baskets, commandée sur PitUp. On traverse Lubumbashi. Le client découvre sa paire. Il vérifie chaque détail. Il avait une belle énergie ! Encore une livraison réussie. » + appel et fin déjà validés.
 - Sons : whoosh aux 1er et 4e changements, flash + déclic sur « commandée sur PitUp », son du logo. Musique : Raindance (Dave & Tems) à partir de 141,65 s (refrain ; l'intro à 13,3 s avait servi le 5 nov.). −14,5 LUFS.
+
+## v2 essai (19 nov.)
+
+- Retour sur la v1 : voix « trop normale… préparée », vouloir « spontané » ; « d'autres plans de la ville vers midi… en voiture, à pied, plusieurs petits plans mélangés » ; récit « elle est d'abord partie récupérer le colis à la boutique, puis… voir le client » (dicté « collier », compris « colis »). « C'est juste un essai… demain, je pars livrer et je vais prendre toutes les images possibles pour faire le vlog. »
+- Fait : `build_vlog2.py` + `place_vs.py`, 31 s. 16 plans courts : trajet Snapchat en 6 morceaux, 5 plans de rue de @djeudy_243 recadrés en vertical (Alilac, rue, immeuble vitré, portière de minibus, minibus) — doux, et accord de @djeudy à obtenir avant toute publication —, colis (L5), chaussures (L2, début décalé à 0,9 s pour éviter un doigt devant l'objectif). Même étalonnage pour tous. Voix spontanée (voir `voix-off.md`). Raindance au refrain.
