@@ -55,3 +55,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 
 - Demande : « Et si les vidéos prenaient tout l'espace, au lieu d'une partie ». Fait avec `FULLRUSH=1` (rushs 1080×1920 dans `assets/rushf/`, mots en blanc sur un dégradé sombre en haut, accent bleu clair #8fd0ff, whip sur toute la largeur). Le trajet est recadré pour sortir l'autocollant.
 - Limite dite d'avance : rushs WhatsApp de 576 px agrandis ×1,9, un peu plus doux que dans les cadres. Les deux versions (v5 cadres, v6 plein écran) sont livrées pour qu'il compare.
+
+## v7 (19 nov.)
+
+- Base plein écran (v6). Bruitages remplacés par ceux des références C (« important / pas important ») et E (« 4 transitions ») : whoosh sur chaque entrée de rush et avant le logo, swish sur les glissés, pops sur les mots, déclic sur les phrases d'un coup. Contrôle earshot : whoosh détectés, lecture « réel ».
+- Phrase 2 : « Voici comment ça se passe avec PitUp. » (prise p10) ; écran « avec PitUp. » + logo ; logo 2D en haut dès la première image. Indices de scènes remplacés par une recherche par texte (`T("…")`).

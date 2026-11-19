@@ -55,9 +55,12 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Recette de voix de référence : voir `2-dossiers/voix-off.md` (recette « Motion point », validée le 14 nov.).
 - Jamais d'étirement temporel de la voix.
 - **Musique avec paroles possible** (17 nov.) : basse sous la voix pendant le film (vers −17 dB), elle remonte quand le logo arrive.
+- **Bruitages réels, jamais fabriqués par programme** (19 nov.) : « tes sons… bas de gamme, que l'on retrouve partout ». Prendre les bruitages des vidéos de motion design de référence (séparation demucs, repérage `earshot find`, extraits isolés) et les réutiliser. Banque actuelle : `sfx/ref/` (hors dépôt) : whoosh wh_C23, swish wh_E17, pops pop_C2/C7/C9, déclic clk_E21 ; frappes de clavier réelles (Mixkit 1387).
 - **Jamais d'amapiano.** Musique actuelle : Tems « Me & U » (fichier du fondateur, hors dépôt).
 
 ## Structure d'une pub (14 nov.)
+
+- **La marque dans les 3 premières secondes** (19 nov.) : « une nouvelle personne… comment il va savoir que c'est PitUp ? En regardant jusqu'à la fin. » Nommer PitUp dans la 1re ou 2e phrase et montrer le logo 2D dès la première image.
 
 - Accroche : **un plan large un peu aérien, puis un ou deux plans de détail** (« un grand truc, poup, un petit truc »). Cinq secondes sans texte ni voix.
 - Chaque pub fait comprendre **qui** est concerné, **ce que fait** l'appli et **comment**.

@@ -25,7 +25,8 @@ E = lambda t: round(t - 0.04, 3)
 C = [
  (E(wt("0a", "Commander")), "Commander<br>en ligne", "l", "pop", "rk"),
  (E(wt("0a", "à")), "à <a>Lubumbashi ?</a>", "l", "cam", "rk"),
- (E(wt("0b", "Voici")), "Voici<br>comment<br><a>ça se passe.</a>", "b", "swap", ""),
+ (E(wt("0b", "Voici")), "Voici comment<br>ça se passe", "b", "swap", ""),
+ (E(wt("0b", "avec")), "avec <a>PitUp.</a>", "l", "cam", "icon"),   # the brand is named in the first 4 s (19 Nov.)
  (E(wt(1, "Tu")), "Tu choisis", "l", "pop", ""),
  (E(wt(1, "ton")), "ton <a>article</a>", "l", "cam", "card:basket"),
  (E(wt(1, "dans")), "dans <a>l'application.</a>", "l", "swap", "phone:phs_full"),
@@ -44,12 +45,13 @@ C = [
 ]
 # rush cards: (clip, start, end, entrance)  entrance: flicker | whip | flash
 L = json.load(open(f"{SP}/audio/cl/lines.json"))
-RUSH = [("hook", 0.0, C[2][0], "flicker"),
-        ("route", C[9][0], C[10][0] + 1.0, "whip"),   # on the way, streets of Lubumbashi (founder's rush, 19 Nov.)
-        ("livre", C[10][0] + 1.0, C[10][0] + 2.8, "whip"), ("remise", C[10][0] + 2.8, C[11][0], "whip"),
-        ("devoile", C[11][0], C[13][0], "whip"), ("paie", C[13][0], C[15][0], "flash")]
+T = lambda txt: next(c[0] for c in C if c[1].startswith(txt))   # chunk start by its text (no fragile indices)
+RUSH = [("hook", 0.0, T("Voici"), "flicker"),
+        ("route", T("Ensuite"), T("nous te") + 1.0, "whip"),   # on the way, streets of Lubumbashi (founder's rush, 19 Nov.)
+        ("livre", T("nous te") + 1.0, T("nous te") + 2.8, "whip"), ("remise", T("nous te") + 2.8, T("Tu vérifies"), "whip"),
+        ("devoile", T("Tu vérifies"), T("Et tu paies"), "whip"), ("paie", T("Et tu paies"), T("Ta prochaine"), "flash")]
 # order tracker: step lights up when its line starts (hidden during the hook and the end)
-STEPS = [("Choisir", C[3][0]), ("Confirmer", C[6][0]), ("Livrer", C[9][0]), ("Payer", C[13][0])]
+STEPS = [("Choisir", T("Tu choisis")), ("Confirmer", T("La boutique")), ("Livrer", T("Ensuite")), ("Payer", T("Et tu paies"))]
 I = round(wt(8, "Découvre") - 0.05, 3)          # end: the P lands, the arrow rises into it
 ARR0, ARR1 = I + 0.2, round(wt(8, "PitUp") - 0.05, 3)
 TAG = wt(8, "commerce") - 0.1
@@ -106,14 +108,19 @@ strokes = []
 for i, o in enumerate(on[:-1]):
     if on[i + 1] - o > int(0.16 * sr) and (i == 0 or o - on[i - 1] > int(0.1 * sr)):
         s = k[o:o + int(0.13 * sr)].copy(); s[-400:] *= np.linspace(1, 0, 400); s /= np.abs(s).max() + 1e-6; strokes.append(s)
+REAL = {k: librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for k, f in [("whoosh", "wh_C23"), ("swish", "wh_E17"), ("click", "clk_E21")]}
+REAL["pop"] = [librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for f in ("pop_C2", "pop_C7", "pop_C9")]
 for i, (a, h, bg, how, ex) in enumerate(C):
-    if how == "pop": add(a, thock(80 if bg == "b" else 95), 0.22)
-    if how == "cam": add(a, click(), 0.22); add(a, thock(120, 0.12, 0.03), 0.12)
-    if how == "swap": add(a - 0.12, swish(0.32, 900, 3200), 0.16)
-    if how == "mark": add(a, thock(70), 0.3); add(a + 0.12, swish(0.3, 2000, 5000), 0.12)
+    # real sound effects lifted from the founder's motion references (19 Nov.): no more code-made thocks and swishes
+    if how == "pop": add(a, REAL["pop"][i % 3], 0.30)
+    if how == "cam": add(a, REAL["click"], 0.45)
+    if how == "swap": add(a - 0.08, REAL["swish"], 0.55)
+    if how == "mark": add(a, REAL["pop"][0], 0.35)
     if how == "type":
         for j, tt_ in enumerate(TYPES[i]): add(tt_, strokes[(j * 5 + 2) % len(strokes)], 0.26)
-add(I - 0.55, swish(0.5, 600, 3500), 0.14); add(ARR1, thock(110, 0.15, 0.03), 0.12)   # logo sounds kept off "Découvre"
+add(I - 0.45, REAL["whoosh"], 0.40); add(ARR1, REAL["pop"][1], 0.18)   # logo sounds kept off "Découvre"
+for k_, a_, b_, how_ in RUSH:   # whip / flash entries of the rushes
+    if how_ in ("whip", "flash") and a_ > 0.1: add(a_ - 0.06, REAL["whoosh"], 0.42)
 mix = mus + vox + fx[:, None]
 sf.write(f"{SP}/audio/cl_raw.wav", mix, sr, subtype="FLOAT")
 meas = subprocess.run(["ffmpeg", "-i", f"{SP}/audio/cl_raw.wav", "-af", "loudnorm=I=-14:TP=-1.5:print_format=json", "-f", "null", "-"], capture_output=True, text=True).stderr
@@ -259,6 +266,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 {VIDS}
 {RV}
 <div id="trk">{TRK}</div>
+<div class="tile" id="brand0" style="position:absolute;left:480px;top:70px;width:120px;height:120px;border-radius:34px;z-index:12;opacity:0"><img src="assets/icon_white.png" alt="" style="width:70px"></div>
 <div id="end">
  <div id="cv"><img id="ps" src="assets/p_solid.png" alt=""><div class="m" id="mo"><img id="aw" src="assets/arrow_white.png" alt=""></div></div>
  <img id="word" src="assets/logo_word_white.png" alt=""><img id="tag" src="assets/logo_tag_white.png" alt="">
@@ -320,7 +328,7 @@ RUSH.forEach(([k,a,b,how],j)=>{{ const r="#r"+j;
                      tl.to(r,{{x:FULL?-1080:-700,filter:"blur(18px)",duration:.2,ease:"power3.in"}},b-.2); }}
   if(how==="flash"){{ tl.fromTo("#flash",{{opacity:.9}},E({{opacity:0,duration:.22,ease:"power2.out"}}),a); tl.fromTo(r,{{scale:1.08}},E({{scale:1,duration:.4,ease:"expo.out"}}),a); }}
 }});
-tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{C[15][0]});
+tl.set("#brand0",{{opacity:1}},0); tl.set("#brand0",{{opacity:0}},{T("Voici")}); tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{T("Ta prochaine")});
 STEPS.forEach(([t,a],j)=>{{ tl.set("#t"+j,{{className:"on"}},a); tl.fromTo("#t"+j,{{scale:1.25}},E({{scale:1,duration:.3,ease:"back.out(2)"}}),a); }});
 const I={I}; tl.set("#end",{{opacity:1}},I); tl.set("#bgb",{{opacity:1}},I);
 tl.fromTo("#ps",{{scale:.8,opacity:0,transformOrigin:"1040px 450px"}},E({{scale:1,opacity:1,duration:.4,ease:"expo.out"}}),I);
