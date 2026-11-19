@@ -34,3 +34,10 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 
 - Retour : remplacer l'ouverture « au lieu de la première vidéo avec le sachet blanc qui gêne ». Nouveau rush (VID-20260829-WA0199, 15 s) : colis emballé posé sur un sac bleu, sur une table de billard, puis déballage. Retenu : de 3,0 à 6,7 s (net, pas de visage ; une personne apparaît au fond après 6 s). Petite étiquette rose avec un logo de marque, à peine visible.
 - Leçon (interprétation) : un emballage plastique qui couvre l'article gêne ; l'ouverture doit montrer un colis propre ou l'article.
+
+## v3 (19 nov.)
+
+- Retour : « J'ai l'impression qu'il manque quelque chose. » Mon diagnostic, validé (« 1 et 2 ») : (1) le colis ouvert au début n'était jamais dévoilé ; (2) la fin ne disait pas quoi faire.
+- Corrigé : sur « Tu vérifies ton article », les baskets blanches découvertes dans la boîte (même rush que l'ouverture, 0 à 1,25 s, ralenti ×1,6). Phrase d'appel ajoutée avant le logo : « Ta prochaine commande, c'est sur PitUp. » Le suivi de commande disparaît à cette phrase. 26,5 s, −14,6 LUFS.
+- Proposé, en attente d'un rush : un visage (client content à la réception, avec accord).
+- Méthode (interprétation) : quand il dit « il manque quelque chose », chercher une promesse ouverte sans réponse (attente installée, appel à l'action) et proposer deux ou trois pistes classées.

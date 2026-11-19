@@ -6,6 +6,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-19
 
+- **« Il manque quelque chose. »** Vidéo commande v2. J'ai proposé : dévoiler l'article du colis ouvert au début, ajouter un appel à l'action avant le logo, et plus tard un visage. Il a choisi « 1 et 2 ». Retenu : une vidéo qui installe une attente doit la récompenser ; une démonstration finit par une invitation claire. Rangé : `2-dossiers/commande-livraison.md`.
 - **Ouverture de la vidéo commande.** « Au lieu de la première vidéo avec le sachet blanc qui gêne » (le pantalon dans un sachet plastique). Retenu : un plastique qui cache l'article gêne à l'image. Rangé : `2-dossiers/commande-livraison.md`.
 
 ## 2026-11-18

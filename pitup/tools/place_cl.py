@@ -6,7 +6,7 @@ B = [0.5, 0.98, 1.47, 1.96, 2.42, 2.91, 3.38, 3.86, 4.35, 4.84, 5.33, 5.81, 6.28
 B += [round(B[-1] + 0.4865 * j, 2) for j in range(1, 14)]   # same grid continued to the end
 # delivery video order (18 Nov.): "8" = the validated end line of the launch film
 # spoken order (17 Nov.): "4b" = buyers' line after the delivery, "6" = sellers' line after "open your shop"
-ORDER = ["0a", "0b", "1", "2", "3", "4", "5", "8"]
+ORDER = ["0a", "0b", "1", "2", "3", "4", "5", "6", "8"]
 GAP_BEFORE = {"4": 6}    # beats without voice after "nous te livrons": the delivery rushes play
 places, lines, words = [], {}, []; prev = -1
 for i in ORDER:

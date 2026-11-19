@@ -38,12 +38,15 @@ C = [
  (E(wt(4, "ton")), "ton <a>article.</a>", "l", "swap", "rk"),
  (E(wt(5, "Et")), "Et tu paies", "l", "pop", "rk"),
  (E(wt(5, "à")), "à la <a>livraison.</a>", "l", "cam", "rk"),
+ # call to action before the logo (19 Nov.)
+ (E(wt(6, "Ta")), "Ta prochaine<br>commande,", "b", "pop", ""),
+ (E(wt(6, "sur") - 0.1), "c'est sur <a>PitUp.</a>", "l", "cam", "icon"),
 ]
 # rush cards: (clip, start, end, entrance)  entrance: flicker | whip | flash
 L = json.load(open(f"{SP}/audio/cl/lines.json"))
 RUSH = [("hook", 0.0, C[2][0], "flicker"),
         ("livre", C[10][0], C[10][0] + 2.3, "whip"), ("remise", C[10][0] + 2.3, C[11][0], "whip"),
-        ("verif", C[11][0], C[13][0], "whip"), ("paie", C[13][0], L["8"][0] - 0.25, "flash")]
+        ("devoile", C[11][0], C[13][0], "whip"), ("paie", C[13][0], C[15][0], "flash")]
 # order tracker: step lights up when its line starts (hidden during the hook and the end)
 STEPS = [("Choisir", C[3][0]), ("Confirmer", C[6][0]), ("Livrer", C[9][0]), ("Payer", C[13][0])]
 I = round(wt(8, "Découvre") - 0.05, 3)          # end: the P lands, the arrow rises into it
@@ -303,7 +306,7 @@ RUSH.forEach(([k,a,b,how],j)=>{{ const r="#r"+j;
                      tl.to(r,{{x:-700,filter:"blur(18px)",duration:.2,ease:"power3.in"}},b-.2); }}
   if(how==="flash"){{ tl.fromTo("#flash",{{opacity:.9}},E({{opacity:0,duration:.22,ease:"power2.out"}}),a); tl.fromTo(r,{{scale:1.08}},E({{scale:1,duration:.4,ease:"expo.out"}}),a); }}
 }});
-tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{I});
+tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{C[15][0]});
 STEPS.forEach(([t,a],j)=>{{ tl.set("#t"+j,{{className:"on"}},a); tl.fromTo("#t"+j,{{scale:1.25}},E({{scale:1,duration:.3,ease:"back.out(2)"}}),a); }});
 const I={I}; tl.set("#end",{{opacity:1}},I); tl.set("#bgb",{{opacity:1}},I);
 tl.fromTo("#ps",{{scale:.8,opacity:0,transformOrigin:"1040px 450px"}},E({{scale:1,opacity:1,duration:.4,ease:"expo.out"}}),I);
