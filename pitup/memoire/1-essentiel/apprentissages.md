@@ -4,6 +4,10 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-19
+
+- **Ouverture de la vidéo commande.** « Au lieu de la première vidéo avec le sachet blanc qui gêne » (le pantalon dans un sachet plastique). Retenu : un plastique qui cache l'article gêne à l'image. Rangé : `2-dossiers/commande-livraison.md`.
+
 ## 2026-11-18
 
 - **Supports théoriques.** Il envoie trois vidéos (stratégie de contenu, galerie d'effets, quatre transitions) : « Utilise-les comme support théorique. J'ai des rushs des vidéos de livraison aussi. » Retenu : des vidéos peuvent servir de cours (méthode, techniques), pas seulement de références visuelles. Rangé : `2-dossiers/commande-livraison.md`.

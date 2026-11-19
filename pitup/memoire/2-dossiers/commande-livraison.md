@@ -29,3 +29,8 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 - Rushs dans des cadres arrondis 880×1100 sur le fond PitUp (résolution WhatsApp trop faible pour le plein écran). Transitions : flicker à l'ouverture, whip entre rushs, flash blanc sur le paiement. Suivi de commande 2D en haut (Choisir, Confirmer, Livrer, Payer) qui s'allume à chaque étape.
 - Musique « What Did I Miss? », départ à 61,54 s du morceau, −17 dB sous la voix, −13 dB au logo (`LOGO_DB=-13`), pleine après la dernière phrase.
 - Piège : la retranscription entendait « Des coups » pour « Découvre » ; cause : le souffle du logo tombait sur le mot. Les sons du logo sont maintenant placés avant la phrase.
+
+## v2 (19 nov.)
+
+- Retour : remplacer l'ouverture « au lieu de la première vidéo avec le sachet blanc qui gêne ». Nouveau rush (VID-20260829-WA0199, 15 s) : colis emballé posé sur un sac bleu, sur une table de billard, puis déballage. Retenu : de 3,0 à 6,7 s (net, pas de visage ; une personne apparaît au fond après 6 s). Petite étiquette rose avec un logo de marque, à peine visible.
+- Leçon (interprétation) : un emballage plastique qui couvre l'article gêne ; l'ouverture doit montrer un colis propre ou l'article.
