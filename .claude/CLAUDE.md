@@ -11,14 +11,14 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
   Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D90), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D91), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
   Not in this repository. Use the `prediction-modeling` skill for what to log.
 - Work branches: `ccr-4d6bcf99-mmbgxo` and `claude/branche-higgsfield-974raq`; push both.
 
-## Skills in .claude/skills (122) — pick by theme
+## Skills in .claude/skills (146) — pick by theme
 
 38 come from master (marketingskills v2: copywriting, ad-creative, social, sms, offers,
 referrals, onboarding, analytics, aso…; skill-creator, brainstorming, deep-research…).
@@ -32,7 +32,7 @@ Where names overlapped, master's newer version was kept. Main ones added by us:
 | Video (Higgsfield) | seedance-video (our own), html-reel, video-to-superprompt, video-content-strategist, cinematic-scroll-site |
 | Marketing, copy, social | copywriting, copy-editing, content-strategy, content-humanizer, social-content, social-media-manager, social-media-analyzer, ad-creative, paid-ads, marketing-psychology, launch-strategy, referral-program, pricing-strategy, marketing-context, marketing-ideas |
 | Growth, product (PitUp) | decision-council (our own: 5 views + verdict), page-cro, signup-flow-cro, onboarding-cro, churn-prevention, ab-test-setup, analytics-tracking, campaign-analytics, local-seo-manager, app-store-optimization, product-discovery, product-analytics, roast |
-| Design, UI/UX, 3D | design-taste-frontend, no-ai-design-slop, audit-ai-design-slop, ui-design-system, ux-researcher-designer, landing-page, pricing-page, tailwindcss, gsap, animation-systems, build-awwwards-quality-sites, cinematic-scroll-storytelling, threejs, build-threejs-scroll-worlds, webgl-3d-object, 3d-orbit-inspect-demo, react-3d-web, design-first-ui-prompting |
+| Design, UI/UX, 3D | design-critic, design-system-creator, design-trend-analyzer (some_claude_skills), design-taste-frontend, no-ai-design-slop, audit-ai-design-slop, ui-design-system, ux-researcher-designer, landing-page, pricing-page, tailwindcss, gsap, animation-systems, build-awwwards-quality-sites, cinematic-scroll-storytelling, threejs, build-threejs-scroll-worlds, webgl-3d-object, 3d-orbit-inspect-demo, react-3d-web, design-first-ui-prompting |
 | Code, data, deploy | python-pro, fastapi-expert, postgres-pro, sql-pro, database-designer, typescript-pro, javascript-pro, react-expert, nextjs-developer, react-native-expert, flutter-expert, api-designer, debugging-wizard, test-master, secure-code-guardian, devops-engineer, docker-development, ci-cd-pipeline-builder, data-quality-auditor |
 
 Handoffs: skill `handoff-notes` writes notes to `.claude/handoffs/` (committed). Read the
@@ -76,6 +76,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | Austin1serb/Anthropic-Leaked-Source-Code (2026-11-16) | Refused, not downloaded: leaked proprietary code. Cassie is built on the official Claude Agent SDK instead |
 | UXAspects/UXAspects, SixArm/ui-ux-design-guide, notsobigcompany/BigUIPaging (2026-11-17) | Not installed: Angular component library (our site is plain JS); a UI/UX glossary with no licence file (our design skills cover it); SwiftUI paging for iOS (only if PitUp gets a native iOS app). The site cleanup was done with our own design skills instead (D85) |
 | open-jarvis/OpenJarvis (2026-11-18) | Evaluated, owner declined ("Laisse tomber"). Apache 2.0, local-first assistant (Ollama models, Telegram/WhatsApp, scheduled agents). Would need his PC on all day, 16 GB RAM for a usable small model; its WhatsApp channel uses Baileys (ban risk, never for PitUp customers); has a crypto-mining feature. Do not propose again unless asked |
+| erichowens/some_claude_skills (2026-11-19) | 21 of the 23 skills the owner listed installed (MIT, SOURCE.md in each): design-critic, design-system-creator, design-trend-analyzer, color-theory-palette-harmony-expert (photo collages, not UI), seo-visibility-expert, admin-dashboard, technical-writer, mcp-creator, skill-architect, skillful-subagent-creator, team-builder, fullstack-debugger, api-architect, react-performance-optimizer, llm-router, ai-engineer, agent-creator, sound-engineer, video-processing-editing, windows-95-web-designer, pet-memorial-creator. Not installed: skill-creator (name taken by master's version) and automatic-stateful-prompt-improver (forces itself on every complex task; needs its own MCP server, Docker, an OpenAI key and a curl-pipe-bash installer) |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
