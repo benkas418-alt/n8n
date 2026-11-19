@@ -216,7 +216,7 @@ async function overview() {
       <div class="kpi-value">${d.validated_effects}</div>
       <div class="kpi-note">Écarts à un modèle qui ignore la compétition, significatifs sur 2006-2020 et confirmés sur 2021-2026</div></div>
     <div class="card clickable" data-go="performance" tabindex="0"><div class="kpi-label">Modèle actif</div>
-      <div class="kpi-value" style="font-size:1.1rem">${esc(active.name)} v${active.version}</div>
+      <div class="kpi-value" style="font-size:var(--fs-lg)">${esc(active.name)} v${active.version}</div>
       <div class="kpi-note">Promu le ${fdate(active.promoted_at)} · entraîné sur ${(active.n_train || 0).toLocaleString("fr-FR")} matchs</div>
       <div class="meta">Calibration la moins bonne : ${worst ? esc(EVENT_FR[worst.segment.split(":").slice(2).join(":")]) + " (ECE " + num(worst.value, 3) + ")" : "n/d"}</div></div>
   </div>
@@ -478,7 +478,7 @@ async function matchPage() {
   const H = x?.teams?.home, A = x?.teams?.away;
   const when = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : fdate(m.kickoff_date);
   const played = m.home_goals != null;
-  let html = `<p class="small"><a href="#/matchs">Retour aux matchs</a></p>
+  let html = `<p class="small"><a class="back-link" href="#/matchs">Retour aux matchs</a></p>
     <div class="match-top">
       <div class="team-side">${crest(m.home, "h")}<span class="team-name">${esc(m.home)}</span>${H ? formDots(H.form_all.slice(0, 5)) : ""}</div>
       <div class="match-mid"><h1>${esc(m.home)} ${played ? `${m.home_goals} – ${m.away_goals}` : "–"} ${esc(m.away)}</h1>
@@ -1427,7 +1427,11 @@ async function bilan() {
 /* ---------------- Router ---------------- */
 const PAGES = { "": today, hier: hierPage, matchs: home, tickets: ticketsPage, bilan, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
   ...(window.fiPages || {}) };
+// D91: each navigation gets a number; a slow page that finishes after the user moved on is
+// dropped, so it cannot paint over the tab now on screen (quick taps or swipes).
+let routeSeq = 0;
 async function route() {
+  const seq = ++routeSeq;
   resetCharts();
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
   const navPage = page === "match" ? "matchs" : page === "tickets" ? "" : page;
@@ -1442,10 +1446,13 @@ async function route() {
   // D90: a page-shaped skeleton while the data load; the text stays for screen readers.
   app.innerHTML = `<div class="skeleton" aria-busy="true"><span class="sr-only">Chargement…</span><i class="h1"></i><i class="line"></i><i class="card"></i><i class="card"></i><i class="line"></i></div>`;
   try {
-    app.innerHTML = await (PAGES[page] || overview)();
+    const html = await (PAGES[page] || overview)();
+    if (seq !== routeSeq) return;
+    app.innerHTML = html;
     countUp(app);
     foldCards(page);
   } catch (e) {
+    if (seq !== routeSeq) return;
     app.innerHTML = `<div class="empty"><h2>Cette page n'a pas pu être chargée</h2><p class="muted">Le serveur a répondu : ${esc(e.message)}. Vérifiez que le service tourne, puis rechargez la page.</p></div>`;
   }
   window.scrollTo(0, 0);
