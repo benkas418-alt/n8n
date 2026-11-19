@@ -32,6 +32,7 @@ Ces fichiers sont à redemander au fondateur (liste dans `3-atelier/outils.md`, 
 ## Index des dossiers
 
 - `2-dossiers/pub-rejoignez-nous.md` : pub de marque « Rejoignez-nous » (novembre 2026), dossier en cours.
+- `2-dossiers/vlog-livraison.md` : vlog d'une livraison avec des plans de Lubumbashi (19 nov.), en attente des plans.
 - `2-dossiers/commande-livraison.md` : vidéo « une commande, du début à la fin », supports théoriques du 18 nov.
 - `2-dossiers/film-lancement.md` : film de lancement d'après la référence « Meet heyclicky » (17 nov.).
 - `2-dossiers/motion-congolais.md` : motion « congolais » (typographie animée calée sur le son).
