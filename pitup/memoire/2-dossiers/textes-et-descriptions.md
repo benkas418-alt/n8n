@@ -36,3 +36,11 @@ Relire la compétence `pitup-content-engine` (copie dans `pitup/skills/`). Compl
 > #Lubumbashi #RDC #Congo #Lushi #PitUp
 
 Les descriptions précédentes sont dans `descriptions-a-copier.md` et `kit-publication-*.md`.
+
+## Publication TikTok : article collé par le fondateur (19 nov.)
+
+Source : blog d'une agence (« Ruche & Pollen »), données pour la France, chiffres non sourcés (« +300 % en 3 mois »). À traiter comme hypothèses.
+- Retenu : hashtags pertinents seulement ; les 24-48 premières heures décident ; la constance compte.
+- À tester à Lubumbashi, pas à copier : créneaux 18h-20h et 21h-23h (France) ; durée 45-60 s (nos vidéos font 20-38 s : le taux de visionnage complet compte plus que la longueur).
+- Contradiction avec le support C du 18 nov. (« heure de publication : pas important ») : seul un test sur notre compte tranche.
+- Signe de visibilité bloquée selon l'article : vues sous 200 sur plusieurs vidéos de suite, chute brutale.
