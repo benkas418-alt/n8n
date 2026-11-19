@@ -165,3 +165,30 @@ h1, h2, .day { font-family: var(--font); letter-spacing: -0.02em; }
 .swipe-in-right { animation: fi-in-right .26s ease-out; }
 @media (prefers-reduced-motion: reduce) { .swipe-in-left, .swipe-in-right { animation: none; } }
 @media (max-width: 900px) { .tabbar a { font-size: 12px; letter-spacing: -.01em; } }
+
+/* D90: goal lines folded under one button; no empty column. */
+.more-row td { padding: 6px 0 10px; }
+.more-btn { width: 100%; min-height: 44px; border: 1px dashed var(--line); border-radius: 8px; background: transparent;
+            color: var(--muted); font: inherit; font-size: 0.9rem; cursor: pointer; }
+.more-btn:hover { color: var(--text); }
+
+/* D90, phone: touch targets of at least 44 px; the tab bar replaces the back link. */
+@media (max-width: 640px) {
+  .back { display: none; }
+  .filters button, #elo button, .add { min-height: 44px; }
+  .formula > summary { min-height: 44px; display: flex; align-items: center; }
+  input[type="number"] { min-height: 44px; }
+}
+
+/* D90, phone: each market in three short lines - name; chances and fair odds; betPawa price and
+   "+ combiné" side by side. The verdict line appears only once a price is typed. */
+@media (max-width: 640px) {
+  tr.mk { grid-template-columns: 1fr 1fr 1fr; padding: 10px 12px; gap: 6px 10px; }
+  tr.mk td:has(> input) { grid-column: 1 / span 2; }
+  tr.mk td:has(> input) input { width: 100%; }
+  tr.mk td.acell { grid-column: 3; justify-self: end; }
+  tr.mk td.acell .add { width: 100%; }
+  tr.mk td.vcell { grid-column: 1 / -1; order: 10; }
+  tr.mk td.vcell:has(> .verdict:empty) { display: none; }
+}
+.verdict:empty { display: none; }

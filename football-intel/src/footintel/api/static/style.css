@@ -549,3 +549,21 @@ h1 { font-size: 26px; letter-spacing: -0.025em; }
 a.card.teaser { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: inherit; }
 a.card.teaser > span:first-child { display: grid; gap: 2px; }
 .teaser-go { white-space: nowrap; font-size: 13px; color: var(--home); }
+
+/* D90, phone: touch targets of at least 44 px. */
+@media (max-width: 900px) {
+  .menu-btn { height: 44px; min-width: 44px; }
+  .res-group > summary { min-height: 44px; }
+  .more .btn, .more a { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
+/* D90: page skeleton while the data load, instead of a lone "Chargement…" line. */
+.skeleton { display: grid; gap: 14px; padding: 8px 0 40px; }
+.skeleton i { display: block; height: 18px; border-radius: 8px; background: var(--surface); position: relative; overflow: hidden; }
+.skeleton i.h1 { height: 30px; width: 55%; }
+.skeleton i.line { width: 85%; }
+.skeleton i.card { height: 118px; border-radius: 18px; }
+.skeleton i::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); animation: fi-shimmer 1.2s infinite; }
+@keyframes fi-shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .skeleton i::after { animation: none; } }
