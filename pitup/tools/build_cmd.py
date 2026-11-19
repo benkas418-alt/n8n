@@ -328,8 +328,8 @@ RUSH.forEach(([k,a,b,how],j)=>{{ const r="#r"+j;
                      tl.to(r,{{x:FULL?-1080:-700,filter:"blur(18px)",duration:.2,ease:"power3.in"}},b-.2); }}
   if(how==="flash"){{ tl.fromTo("#flash",{{opacity:.9}},E({{opacity:0,duration:.22,ease:"power2.out"}}),a); tl.fromTo(r,{{scale:1.08}},E({{scale:1,duration:.4,ease:"expo.out"}}),a); }}
 }});
-tl.set("#brand0",{{opacity:1}},0); tl.set("#brand0",{{opacity:0}},{T("Voici")}); tl.set("#trk",{{opacity:1}},STEPS[0][1]); tl.set("#trk",{{opacity:0}},{T("Ta prochaine")});
-STEPS.forEach(([t,a],j)=>{{ tl.set("#t"+j,{{className:"on"}},a); tl.fromTo("#t"+j,{{scale:1.25}},E({{scale:1,duration:.3,ease:"back.out(2)"}}),a); }});
+tl.set("#brand0",{{opacity:1}},0); tl.set("#brand0",{{opacity:0}},{T("Voici")}); /* order tracker removed (19 Nov.: "les 4 étapes en haut font IA") */ tl.set("#trk",{{opacity:0}},{T("Ta prochaine")});
+STEPS.length && false && STEPS.forEach(([t,a],j)=>{{ tl.set("#t"+j,{{className:"on"}},a); tl.fromTo("#t"+j,{{scale:1.25}},E({{scale:1,duration:.3,ease:"back.out(2)"}}),a); }});
 const I={I}; tl.set("#end",{{opacity:1}},I); tl.set("#bgb",{{opacity:1}},I);
 tl.fromTo("#ps",{{scale:.8,opacity:0,transformOrigin:"1040px 450px"}},E({{scale:1,opacity:1,duration:.4,ease:"expo.out"}}),I);
 const dx=-0.496*1150, dy=0.868*1150, ps=document.getElementById("ps"), aw=document.getElementById("aw"), o={{x:dx,y:dy}};

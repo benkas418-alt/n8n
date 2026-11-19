@@ -60,3 +60,7 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 
 - Base plein écran (v6). Bruitages remplacés par ceux des références C (« important / pas important ») et E (« 4 transitions ») : whoosh sur chaque entrée de rush et avant le logo, swish sur les glissés, pops sur les mots, déclic sur les phrases d'un coup. Contrôle earshot : whoosh détectés, lecture « réel ».
 - Phrase 2 : « Voici comment ça se passe avec PitUp. » (prise p10) ; écran « avec PitUp. » + logo ; logo 2D en haut dès la première image. Indices de scènes remplacés par une recherche par texte (`T("…")`).
+
+## v8 (19 nov.)
+
+- Suivi des 4 étapes retiré (« ça fait IA »). Rien d'autre ne change.
