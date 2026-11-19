@@ -71,3 +71,10 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - **Quatre styles d'une même affiche** : audacieux (deux couleurs qui contrastent, titre exagéré), minimaliste (peu d'éléments, texte petit, beaucoup d'espace), affiche de film (sombre, lumière dramatique, couleurs 60-30-10), éditorial (la photo raconte la même histoire que le texte, deux typographies).
 - **Règle 60-30-10 pour PitUp** : 60 % fond clair, 30 % bleu #1f88c9, 10 % accent (bleu nuit #0d1b2a du texte).
 - **20 principes d'UX et d'animation** (capture Instagram) : les 12 principes d'animation (anticipation, follow-through, ease in/out, arcs, action secondaire, timing, exagération…) et les lois d'UX (Fitts, Hick, Miller, Doherty, Postel, Jakob). Loi de Jakob : « ton appli doit marcher comme celles qu'on connaît » (ex. panier en haut à droite).
+
+## Retirer des autocollants d'un plan filmé en voiture (19 nov.)
+
+- Demande : enlever les autocollants du pare-brise et « reconstruire ces parties, pas flouter ».
+- Ce qui ne marche pas sur un plan tenu à la main : masque fixe, alignement ECC sur le tableau de bord, reconstruction par images voisines (la rue et les autocollants bougent presque ensemble).
+- Ce qui marche : `pitup/tools/sticker_track_lama.py in.mp4 out.mp4 masks.json ref t0 t1` : chaque autocollant suivi par sa propre texture (corrélation, recherche locale, chaînée), LaMa à chaque image, bords fondus, léger mélange avec les images voisines. Masques à tracer sur l'image lue par OpenCV (débit variable : les numéros d'image diffèrent de ffmpeg).
+- Limite : légère différence de teinte possible dans les grandes zones refaites ; vérifier en zoom.

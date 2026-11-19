@@ -81,3 +81,7 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 ## v12 (19 nov.)
 
 - Seule la première phrase régénérée (p24 : 225 Hz au lieu de 291) ; tout le reste identique à la v11. −14,9 LUFS.
+
+## v13 (19 nov.)
+
+- Plan du trajet nettoyé : autocollants déchirés, traces de colle, papiers, carte au drapeau et frange rouge retirés et reconstruits (`sticker_track_lama.py`, segment 0,9-3,4 s), recadré pour sortir l'autocollant « interdit de fumer ». Reste identique à la v12.
