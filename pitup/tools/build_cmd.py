@@ -108,17 +108,19 @@ strokes = []
 for i, o in enumerate(on[:-1]):
     if on[i + 1] - o > int(0.16 * sr) and (i == 0 or o - on[i - 1] > int(0.1 * sr)):
         s = k[o:o + int(0.13 * sr)].copy(); s[-400:] *= np.linspace(1, 0, 400); s /= np.abs(s).max() + 1e-6; strokes.append(s)
-REAL = {k: librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for k, f in [("whoosh", "wh_C23"), ("swish", "wh_E17"), ("click", "clk_E21")]}
+FLASH = ("avec",)   # 19 Nov.: flash + shutter only on a few moments, not on every phrase
+REAL = {k: librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for k, f in [("whoosh", "wh_C23"), ("swish", "wh_E17"), ("shutter", "shutter")]}
 REAL["pop"] = [librosa.load(f"{SP}/sfx/ref/{f}.wav", sr=sr)[0] for f in ("pop_C2", "pop_C7", "pop_C9")]
 for i, (a, h, bg, how, ex) in enumerate(C):
     # real sound effects lifted from the founder's motion references (19 Nov.): no more code-made thocks and swishes
     # 19 Nov. (founder): only three sounds in this video: the switch whoosh between rushes, the logo sound, the camera click
-    if how == "cam": add(a, REAL["click"], 0.45)
+    if how == "cam" and h.startswith(FLASH): add(a - 0.30, REAL["shutter"], 0.85)   # click peak sits 0.3 s into the file
     if how == "type":
         for j, tt_ in enumerate(TYPES[i]): add(tt_, strokes[(j * 5 + 2) % len(strokes)], 0.26)
 add(I - 0.45, REAL["whoosh"], 0.40); add(ARR1, REAL["pop"][1], 0.18)   # logo sounds kept off "Découvre"
 for k_, a_, b_, how_ in RUSH:   # whip / flash entries of the rushes
-    if how_ in ("whip", "flash") and a_ > 0.1: add(a_ - 0.06, REAL["whoosh"], 0.42)
+    if how_ == "whip" and k_ in ("route", "devoile"): add(a_ - 0.06, REAL["whoosh"], 0.42)   # switch sound on some cuts only
+    if how_ == "flash": add(a_ - 0.30, REAL["shutter"], 0.85)
 mix = mus + vox + fx[:, None]
 sf.write(f"{SP}/audio/cl_raw.wav", mix, sr, subtype="FLOAT")
 meas = subprocess.run(["ffmpeg", "-i", f"{SP}/audio/cl_raw.wav", "-af", "loudnorm=I=-14:TP=-1.5:print_format=json", "-f", "null", "-"], capture_output=True, text=True).stderr
@@ -275,14 +277,14 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 </div>
 <script>
 const tl=gsap.timeline({{paused:true}}); const E=(o)=>Object.assign({{immediateRender:false}},o);
-const cues={json.dumps(cues)}, TYPES={json.dumps(TYPES)}, PHV={json.dumps(PHV)};
+const FL={json.dumps([i for i, c in enumerate(C) if c[3] == "cam" and c[1].startswith(FLASH)])}, cues={json.dumps(cues)}, TYPES={json.dumps(TYPES)}, PHV={json.dumps(PHV)};
 cues.forEach(([a,b,bg,how,ex],i)=>{{
   const s="#s"+i, w=s+" .w .in", x="#s"+i+"x";
   tl.set(s,{{opacity:1}},a); tl.set(s,{{opacity:0}},b); tl.set("#bgb",{{opacity:bg==="b"?1:0}},a);
   if(how==="pop"){{ tl.fromTo(w,{{y:70,scale:.86,opacity:0}},E({{y:0,scale:1,opacity:1,duration:.3,ease:"back.out(1.7)"}}),a);
                     tl.to(w,{{scale:1.04,duration:Math.max(.05,b-a-.22),ease:"none"}},a+.22); }}
   if(how==="cam"){{ tl.fromTo(w,{{scale:1.08}},E({{scale:1,duration:.3,ease:"expo.out"}}),a);
-                    tl.fromTo("#flash",{{opacity:.7}},E({{opacity:0,duration:.16,ease:"power2.out"}}),a); }}
+                    if(FL.includes(i)) tl.fromTo("#flash",{{opacity:.7}},E({{opacity:0,duration:.16,ease:"power2.out"}}),a); }}
   if(how==="swap"){{ tl.fromTo(w,{{yPercent:70,opacity:0,clipPath:"inset(0 0 100% 0)"}},E({{yPercent:0,opacity:1,clipPath:"inset(0 0 0% 0)",duration:.32,ease:"expo.out"}}),a);
                      tl.to(w,{{yPercent:-40,opacity:0,duration:.14,ease:"power2.in"}},b-.14); }}
   if(how==="mark"){{ tl.fromTo(s+" .hl",{{scaleX:0}},E({{scaleX:1,duration:.28,ease:"expo.out"}}),a+.1);

@@ -6,6 +6,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-19
 
+- **Déclic, dosage, musique.** « Le son… caméra… on dirait le son d'une batterie » ; « tu n'es pas obligé de mettre le son à chaque switch… au premier… au quatrième… question de ne pas alourdir » ; « le flash ne doit pas se retrouver partout, et son son non plus » ; musique Central Cee : « elle n'est pas bonne, elle ne va pas avec le truc. Prends une chanson de Tems. » Retenu : effets rares et justes ; Tems pour ce type de vidéo. Rangé : `regles.md`.
 - **Trop de sons.** « Tu es retourné dans tes travers, les sons préfabriqués… ça change le truc. » Il garde trois sons : les switches, le son du logo, la caméra qui prend la photo. Musique : « on garde une musique dans le même style, mais on peut changer » puisque la précédente a servi à la dernière vidéo. Retenu : peu de sons, bien choisis ; une musique nouvelle par vidéo. Rangé : `regles.md`.
 - **Étalonnage.** « Le colorbranding doit être identique pour tous les rushs. » Retenu : chaque vidéo a un seul rendu de couleur, quels que soient les téléphones et la lumière des rushs. Rangé : `regles.md`.
 - **Suivi d'étapes refusé.** « Les 4 étapes écrites en haut de l'écran font IA. » Retenu : pas d'interface de suivi plaquée sur une vidéo ; c'est la même famille que l'« effet liste ». Rangé : `regles.md`.
