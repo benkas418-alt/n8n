@@ -41,3 +41,7 @@ Il a écrit : « Utilise-les comme support théorique. » Ce sont des leçons, p
 - Corrigé : sur « Tu vérifies ton article », les baskets blanches découvertes dans la boîte (même rush que l'ouverture, 0 à 1,25 s, ralenti ×1,6). Phrase d'appel ajoutée avant le logo : « Ta prochaine commande, c'est sur PitUp. » Le suivi de commande disparaît à cette phrase. 26,5 s, −14,6 LUFS.
 - Proposé, en attente d'un rush : un visage (client content à la réception, avec accord).
 - Méthode (interprétation) : quand il dit « il manque quelque chose », chercher une promesse ouverte sans réponse (attente installée, appel à l'action) et proposer deux ou trois pistes classées.
+
+## v4 (19 nov.)
+
+- Le fondateur envoie sans commentaire un trajet en voiture dans les rues de Lubumbashi (Snapchat, 1080×1920, très net, 9,6 s). Placé sur « Ensuite, nous te livrons » (1,0 à 3,2 s du fichier), recadré pour sortir l'autocollant « interdit de fumer » du tableau de bord. Suivent les chaussures dans la voiture puis la remise du colis.

@@ -32,7 +32,7 @@ C = [
  (E(wt(2, "La")), "La boutique", "b", "pop", "shop"),
  (E(wt(2, "confirme")), "<a>confirme</a>", "l", "cam", "check"),
  (E(wt(2, "ta")), "ta commande.", "l", "swap", ""),
- (E(wt(3, "Ensuite")), "Ensuite,", "b", "pop", ""),
+ (E(wt(3, "Ensuite")), "Ensuite,", "l", "pop", "rk"),
  (E(wt(3, "nous")), "nous te <a>livrons.</a>", "l", "cam", "rk"),
  (E(wt(4, "Tu")), "Tu vérifies", "l", "pop", "rk"),
  (E(wt(4, "ton")), "ton <a>article.</a>", "l", "swap", "rk"),
@@ -45,7 +45,8 @@ C = [
 # rush cards: (clip, start, end, entrance)  entrance: flicker | whip | flash
 L = json.load(open(f"{SP}/audio/cl/lines.json"))
 RUSH = [("hook", 0.0, C[2][0], "flicker"),
-        ("livre", C[10][0], C[10][0] + 2.3, "whip"), ("remise", C[10][0] + 2.3, C[11][0], "whip"),
+        ("route", C[9][0], C[10][0] + 1.0, "whip"),   # on the way, streets of Lubumbashi (founder's rush, 19 Nov.)
+        ("livre", C[10][0] + 1.0, C[10][0] + 2.8, "whip"), ("remise", C[10][0] + 2.8, C[11][0], "whip"),
         ("devoile", C[11][0], C[13][0], "whip"), ("paie", C[13][0], C[15][0], "flash")]
 # order tracker: step lights up when its line starts (hidden during the hook and the end)
 STEPS = [("Choisir", C[3][0]), ("Confirmer", C[6][0]), ("Livrer", C[9][0]), ("Payer", C[13][0])]
