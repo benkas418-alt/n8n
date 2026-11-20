@@ -322,6 +322,6 @@ document.addEventListener("click", (e) => {
   const last = state.data.matches.map((m) => m.predicted_at).sort().pop();
   document.getElementById("stamp").textContent = `${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
     + (last ? ` · mis à jour le ${new Date(last).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}` : "")
-    + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · données anciennes : le cycle quotidien n'a pas tourné depuis" : "");
+    + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · pas à jour" : "");
   render();
 })();
