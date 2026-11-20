@@ -1101,7 +1101,7 @@ function upcomingOnly(m) {
 function staleNote(last) {
   if (!last || Date.now() - new Date(last).getTime() < 30 * 36e5) return "";
   const when = new Date(last).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-  return `<div class="finding warn"><p><b>Données du ${esc(when)}.</b> Le cycle quotidien n'a pas tourné depuis : les matchs déjà joués sont masqués, mais les probabilités et les cotes ne sont pas à jour.</p></div>`;
+  return `<div class="finding warn"><p><b>Pas à jour :</b> données du ${esc(when)}. Le calcul du matin n'a pas encore tourné.</p></div>`;
 }
 function fixtureRow(m) {
   const time = m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
@@ -1139,7 +1139,7 @@ async function home() {
   const withGap = inComp.map((m) => ({ m, g: marketGaps(m) })).filter((x) => x.g);
   const top = withGap.sort((a, b) => Math.abs(b.g.gap) - Math.abs(a.g.gap))[0];
   const head = `<div class="page-head"><div><h1>Matchs</h1>
-    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} sur trois semaines. Chaque ligne donne les chances de chaque équipe et le pari à surveiller, avec la cote à partir de laquelle il devient intéressant.</p></div></div>`;
+    <p>${inComp.length} match${inComp.length > 1 ? "s" : ""} sur trois semaines.</p></div></div>`;
   if (!d.matches.length) {
     return head + `<div class="empty"><h2>Aucun match publié pour l'instant</h2>
       <p class="muted">Le cycle du matin récupère les prochains matchs dès que les sources les publient, puis calcule les probabilités. Vous pouvez le lancer tout de suite depuis l'<a href="#/admin">administration</a>.</p></div>`;
@@ -1176,7 +1176,7 @@ async function home() {
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
     <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
-    <span><a href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
+    <span><a class="back-link" href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
   setTimeout(() => {
     const keys = views.map(([k]) => k);
     const go = (k) => {
@@ -1355,13 +1355,13 @@ async function today() {
   } else {
     const when = tday.date === now ? "" : ` pour ${dayLabel(tday.date).toLowerCase()}`;
     const missing = missingLine(tday.missing, tday.n_followed);
-    tickets = `<p class="lead">Les combinaisons de vos équipes les plus susceptibles de passer, à une cote d'au moins 10${esc(when)}.</p>
+    tickets = `<p class="lead">Vos équipes, cote 10 ou plus${esc(when)}.</p>
       ${missing}<div class="grid">${tday.tickets.map(ticketCard).join("")}</div>
-      <p class="more"><a class="btn ghost" href="#/tickets">Voir tous les choix possibles, match par match</a></p>`;
+      <p class="more"><a class="btn ghost" href="#/tickets">Tous les choix, match par match</a></p>`;
   }
   const noticed = (tday?.matches || []).filter((m) => m.followed && (m.scenarios || []).length);
   const notes = noticed.length ? `<section class="today-block"><h2>Ce que la machine a remarqué</h2>
-      <p class="lead">Des situations déjà vues souvent par le passé, qui ont changé le pronostic de ces matchs.</p>
+      <p class="lead">Des situations déjà vues souvent, qui ont changé le pronostic.</p>
       <div class="card">${noticed.map((m) => `<p><b>${esc(m.match)}</b></p>${m.scenarios.map((n) => `<p class="muted">${esc(n.text)}</p>`).join("")}`).join("")}</div></section>` : "";
   const matches = myDay.length
     ? `<section class="today-block"><h2>${firstDay === now ? "Vos matchs aujourd'hui" : `Prochains matchs de vos équipes : ${esc(dayLabel(firstDay).toLowerCase())}`}</h2>
@@ -1371,7 +1371,7 @@ async function today() {
   // D77/D78: one short text per competition, written by a language model from these figures only.
   const lecture = lec && (lec.groups || []).length && lec.date >= now
     ? `<section class="today-block"><h2>Lecture du jour</h2>
-        <p class="lead">Un résumé par compétition, écrit par une IA à partir des seuls chiffres du site, puis vérifié : un texte avec un chiffre inventé est rejeté.</p>
+        <p class="lead">Écrite par une IA à partir des chiffres du site, puis vérifiée.</p>
         <div class="card">${lec.groups.map((g) => `<p><b>${esc(g.competition)}</b></p><p class="muted">${esc(g.text)}</p>`).join("")}</div></section>`
     : "";
   return head + staleNote(d.last_prediction) + `<section class="today-block"><h2>Vos tickets</h2>${tickets}</section>`
@@ -1383,14 +1383,14 @@ async function hierPage() {
   const [d, b] = await Promise.all([get("/home").catch(() => null), get("/bilan").catch(() => null)]);
   if (d) learnMine(d.matches);
   const body = yesterdayBlock(b, localToday());
-  return `<div class="page-head"><div><h1>Hier</h1><p>Vos tickets et tous les résultats de la dernière journée jouée, avec ce que le site avait prévu.</p></div></div>`
+  return `<div class="page-head"><div><h1>Hier</h1><p>Vos tickets et tous les résultats de la dernière journée.</p></div></div>`
     + (body || `<div class="empty"><p class="muted">Pas encore de résultats : ils arrivent avec le calcul de 05:23.</p></div>`);
 }
 
 async function ticketsPage() {
   const t = await get("/tickets").catch(() => null);
   if (t && t.days) t.days = t.days.filter((x) => x.date >= localToday());
-  return `<div class="page-head"><div><h1>Tous les choix</h1><p>Chaque ticket avec ses autres choix possibles, et tous les pronostics de chaque match de vos équipes.</p></div></div>` + ticketsView(t);
+  return `<div class="page-head"><div><h1>Tous les choix</h1><p>Chaque ticket avec ses autres choix, et les pronostics de vos équipes.</p></div></div>` + ticketsView(t);
 }
 
 /* ---------------- Bilan ---------------- */
