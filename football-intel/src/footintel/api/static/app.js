@@ -971,7 +971,7 @@ function strip(p, market, big = false, names = null) {
   const [h, d, a] = p.map((x) => Math.max(0, x || 0));
   const w = (x) => `${(100 * x).toFixed(1)}%`;
   const mk = market ? `<div class="strip-market"><span>marché ${pct(market[0], 0)}</span><span>${pct(market[1], 0)}</span><span>${pct(market[2], 0)}</span></div>` : "";
-  return `<div class="strip${big ? " big" : ""}" role="img" aria-label="Domicile ${pct(h, 0)}, nul ${pct(d, 0)}, extérieur ${pct(a, 0)}">
+  return `<div class="strip${big ? " big" : ""}" role="img" aria-label="${esc(names ? names[0] : "Domicile")} ${pct(h, 0)}, nul ${pct(d, 0)}, ${esc(names ? names[2] : "extérieur")} ${pct(a, 0)}">
     <div class="strip-nums">${[h, d, a].map((x, i) => `<span${i === 0 ? ' class="h"' : i === 2 ? ' class="a"' : ""}>${names ? `<small>${esc(names[i])}</small>` : ""}<b>${Math.round(100 * x)}</b> %</span>`).join("")}</div>
     <div class="strip-bar"><span class="h" style="width:${w(h)}"></span><span class="d" style="width:${w(d)}"></span><span class="a" style="width:${w(a)}"></span></div>${mk}</div>`;
 }
