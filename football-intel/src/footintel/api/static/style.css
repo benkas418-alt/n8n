@@ -24,7 +24,7 @@
   --away: #e6e6e6;
   --away-ink: #000000;
   --away-soft: #1d1d1d;
-  --draw: #5c5c5c;
+  --draw: #6b6b6b; /* D92: 3,5:1, visible next to the two team colours */
   --accent: var(--home);
   --accent-soft: var(--home-soft);
   --accent-faint: rgba(198, 242, 78, 0.16);
@@ -37,11 +37,12 @@
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
-  --space-4: 14px;
-  --space-5: 22px;
+  --space-4: 16px;
+  --space-5: 24px;
   --space-6: 40px;
   --radius: 20px;
   --radius-s: 12px;
+  --radius-xs: 8px; /* D92: inputs, chips, small badges */
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --display: "Barlow Semi Condensed", "Inter", system-ui, sans-serif;
   color-scheme: dark;
@@ -57,13 +58,13 @@
   --faint: #6b6b6b;
   --line: #e4e4e0;
   --control: #c9c9c4;
-  --home: #4d7c0f;
+  --home: #45700d; /* D92: 5,3:1 on --home-soft for small pills */
   --home-ink: #ffffff;
   --home-soft: #eef5df;
   --away: #2b2b2b;
   --away-ink: #ffffff;
   --away-soft: #ececea;
-  --draw: #a3a3a0;
+  --draw: #8c8c88;
   --accent-faint: rgba(77, 124, 15, 0.14);
   --up: #3f6a0b;
   --down: #c4242a;
@@ -87,7 +88,7 @@ h3 { font-size: var(--fs-base); margin-bottom: var(--space-2); }
 p { max-width: 75ch; }
 .muted { color: var(--muted); }
 .small { font-size: var(--fs-xs); }
-:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 6px; }
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: var(--radius-xs); }
 
 /* ---- Shell: sidebar, top bar, canvas ---- */
 .shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
@@ -258,7 +259,7 @@ table.tight td { padding: 9px 6px; vertical-align: middle; }
 
 .heatmap { border-collapse: separate; border-spacing: 3px; width: auto; }
 .heatmap td, .heatmap th { border: 0; text-align: center; min-width: 46px; padding: 8px 4px; }
-.heatmap td { border-radius: 6px; cursor: pointer; font-size: var(--fs-xs); }
+.heatmap td { border-radius: var(--radius-xs); cursor: pointer; font-size: var(--fs-xs); }
 .heatmap td:hover { outline: 2px solid var(--text); }
 .prob-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
@@ -275,7 +276,7 @@ table.hide-stable tr.row-stable { display: none; }
 .btn:active { transform: translateY(1px); }
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--control); }
 .btn.ghost:hover { border-color: var(--text); opacity: 1; }
-code { font-size: var(--fs-xs); background: var(--raised); padding: 1px 6px; border-radius: 6px; }
+code { font-size: var(--fs-xs); background: var(--raised); padding: 1px 6px; border-radius: var(--radius-xs); }
 .loading { color: var(--faint); padding: 40px 0; }
 
 /* ---- Folds: side information closed by default, one click to open ---- */
@@ -319,7 +320,7 @@ details.fold.inner > .fold-body { padding: 0 0 8px; }
   .team-name { font-size: var(--fs-lg); }
 }
 .form { display: inline-flex; gap: 3px; }
-.res { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: var(--fs-xs);
+.res { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: var(--radius-xs); font-size: var(--fs-xs);
   font-weight: 600; flex: none; }
 .res.w { background: var(--home); color: var(--home-ink); }
 .res.d { background: var(--raised); color: var(--text); }
@@ -372,7 +373,7 @@ table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
 /* Small inline bar in the 15-minute windows table. */
-.bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); vertical-align: middle; }
+.bar { display: inline-block; height: 8px; border-radius: var(--radius-xs); background: var(--accent); vertical-align: middle; }
 
 /* Match summary: verdict, safest picks, "more" menu next to the tabs. */
 .verdict { font-size: var(--fs-md); line-height: 1.5; margin: 0; }
@@ -433,8 +434,9 @@ td.pos { color: var(--accent); } td.neg { color: var(--muted); }
 .strip-nums span { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
 .strip-nums span:nth-child(2) { justify-content: center; }
 .strip-nums span:nth-child(3) { justify-content: flex-end; }
-.strip-nums small { font-family: var(--font); font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; min-width: 0; }
+.strip-nums small { font-family: var(--font); font-size: var(--fs-xs); color: var(--muted); overflow: hidden; min-width: 0;
+  /* D92: up to two lines, so "Pays de Galles" is not cut to "Pays de G..." */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; }
 @media (min-width: 761px) { .fixture { grid-template-columns: 54px minmax(0, 1fr) minmax(260px, 1.1fr) 200px; } }
 .fixture .flag b { color: var(--text); font-weight: 600; }
 .fixture .flag .play { color: var(--home); }
@@ -446,7 +448,7 @@ td.pos { color: var(--accent); } td.neg { color: var(--muted); }
 .legs-plain li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
 .legs-plain .t { color: var(--muted); font-family: var(--display); }
 .legs-plain .o { font-family: var(--display); font-weight: 700; text-align: right; }
-.state { display: inline-block; font-size: var(--fs-xs); font-weight: 500; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.state { display: inline-block; font-size: var(--fs-xs); font-weight: 500; padding: 2px 8px; border-radius: var(--radius-xs); white-space: nowrap; }
 .state.won { background: var(--home-soft); color: var(--home); }
 .state.lost { background: var(--down-soft); color: var(--down); }
 .state.open { background: var(--sunk); color: var(--muted); }
@@ -575,3 +577,7 @@ a.card.teaser > span:first-child { display: grid; gap: 2px; }
 
 /* D91: the match page's back link is a full-size touch target on phones. */
 @media (max-width: 900px) { .back-link { display: inline-flex; align-items: center; min-height: 44px; } }
+
+/* D92: every control shows where the keyboard focus is. */
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; }

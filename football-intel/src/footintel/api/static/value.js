@@ -121,7 +121,7 @@ function matchCard(m) {
   return `<details class="match" ${inCoupon ? "open" : ""}>
     <summary><span class="teams">${esc(m.home)} – ${esc(m.away)}</span>
       <span class="meta">${esc(COMP[m.competition] || m.competition)} · ${esc(when)}</span>
-      ${m.market ? `<span class="pill ok" title="${esc(state.data.reliability.market || "")}">cotes de ${m.market.n_bookmakers} bookmakers</span>` : `<span class="pill warn" title="${esc(state.data.reliability.no_odds)}">sans cote de bookmaker : moins fiable</span>`}
+      ${m.market ? `<span class="pill ok" title="${esc(state.data.reliability.market || "")}">cotes de ${m.market.n_bookmakers} bookmakers</span>` : `<span class="pill warn" title="${esc(state.data.reliability.no_odds)}">sans cotes · moins sûr</span>`}
       <span class="probs" aria-label="Chances de victoire"><span>${esc(m.home)} ${pct(p["1"])}</span><span>nul ${pct(p["X"])}</span><span>${esc(m.away)} ${pct(p["2"])}</span></span>
     </summary>
     <div class="table-wrap"><table>
