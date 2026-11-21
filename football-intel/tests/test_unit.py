@@ -996,6 +996,18 @@ def test_stage_of_accepts_a_missing_round():
     assert stage_of(float("nan"), "cup") == "unknown" and stage_of(None, "league") == "league"
 
 
+def test_tickets_leave_out_dc2up_and_name_both_teams():
+    from footintel.analysis.tickets import match_legs
+
+    legs = match_legs({"home": "Betis", "away": "Real Madrid", "p1": 0.3, "p2": 0.45, "p_over": 0.55}, {})
+    assert legs and not any(x["key"].startswith("DC2UP") for x in legs)
+    labels = {x["key"]: x["label"] for x in legs}
+    assert labels["DC1UP_12"] == "DC 1UP Betis ou Real Madrid (pas de nul)"
+    assert labels["12"] == "Double chance Betis ou Real Madrid (pas de nul)"
+    assert all("Betis" in v or "Real Madrid" in v or "buts" in v or "nul" == v.split()[-1] or "marquent" in v
+               for v in labels.values())
+
+
 def test_double_chance_early_payout_bounds_and_settled_cases():
     from footintel.analysis.tickets import dc_up, probabilities
 
@@ -1019,7 +1031,7 @@ def test_tickets_reach_ten_with_one_selection_per_match(tmp_path):
     prices = load_journal(journal)
     assert prices[("H0", "A0", "DC1UP_1X")] == 1.22 and prices[("H0", "A0", "2UP_1")] == 1.8
     matches = [{"id": i, "kickoff_date": "2026-10-31", "kickoff_utc": f"2026-10-31T{12 + i % 8:02d}:00:00Z",
-                "competition": "ENG-PL", "home": f"H{i}", "away": f"A{i}", "p1": 0.45 + 0.01 * (i % 5),
+                "competition": "ENG-PL", "home": f"H{i}", "away": f"A{i}", "p1": 0.40 + 0.04 * (i % 6),
                 "p2": 0.27, "p_over": 0.55} for i in range(16)]
     days = day_tickets(matches, prices, date(2026, 10, 31))
     tickets = {t["tag"]: t for t in days[0]["tickets"]}

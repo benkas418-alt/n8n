@@ -44,10 +44,10 @@ BONUS_MIN_ODDS = 1.2
 MARGIN = {"1": .065, "2": .07, "X": .019, "1X": .038, "X2": .045, "12": .066, "BTTS_Y": .095,
           "BTTS_N": .044, "1UP": .053, "FG": .051, "DC1UP": .035, "DC2UP": .035, "over": .066, "under": .031}
 LABELS = {"1": "Victoire {h}", "X": "Match nul", "2": "Victoire {a}", "1X": "Double chance {h} ou nul",
-          "X2": "Double chance {a} ou nul", "12": "Double chance pas de nul", "1UP_1": "1UP {h}",
+          "X2": "Double chance {a} ou nul", "12": "Double chance {h} ou {a} (pas de nul)", "1UP_1": "1UP {h}",
           "1UP_2": "1UP {a}", "2UP_1": "2UP {h}", "2UP_2": "2UP {a}", "DC1UP_1X": "DC 1UP {h} ou nul",
-          "DC1UP_X2": "DC 1UP {a} ou nul", "DC1UP_12": "DC 1UP pas de nul", "DC2UP_1X": "DC 2UP {h} ou nul",
-          "DC2UP_X2": "DC 2UP {a} ou nul", "DC2UP_12": "DC 2UP pas de nul", "FG_1": "{h} marque en premier",
+          "DC1UP_X2": "DC 1UP {a} ou nul", "DC1UP_12": "DC 1UP {h} ou {a} (pas de nul)", "DC2UP_1X": "DC 2UP {h} ou nul",
+          "DC2UP_X2": "DC 2UP {a} ou nul", "DC2UP_12": "DC 2UP {h} ou {a} (pas de nul)", "FG_1": "{h} marque en premier",
           "FG_2": "{a} marque en premier", "BTTS_Y": "Les deux marquent", "BTTS_N": "Les deux ne marquent pas"}
 # Journal market and selection -> key of this module.
 JOURNAL_KEYS = {("1X2", "H"): "1", ("1X2", "D"): "X", ("1X2", "A"): "2", ("DC", "1X"): "1X", ("DC", "X2"): "X2",
@@ -170,13 +170,17 @@ def is_followed(m: dict) -> bool:
             or _team_followed(m["away"], m.get("away_league") or m["competition"]))
 
 
+# Markets kept out of the tickets at the owner's request (D95). Bilan still settles old tickets.
+NOT_IN_TICKETS = ("DC2UP",)
+
+
 def match_legs(m: dict, journal: dict) -> list[dict]:
     """Every selection of one match with its probability, fair odds and betPawa price,
     best first (probability net of the betPawa margin)."""
     probs = probabilities(m["p1"], m["p2"], m.get("p_over"))
     legs = []
     for key, p in probs.items():
-        if p <= 0.02:
+        if p <= 0.02 or key.split("_")[0] in NOT_IN_TICKETS:
             continue
         known = journal.get((m["home"], m["away"], key))
         price = known or round(1 / p * (1 - margin(key, p)), 2)
