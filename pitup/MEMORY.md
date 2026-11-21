@@ -2,6 +2,7 @@
 
 > À lire en premier dans toute nouvelle session : « Lis `pitup/MEMORY.md` et reprends le travail PitUp ».
 > Dernière mise à jour : 4 novembre 2026.
+> Marketing, biais, éléments du site et 18 règles d'animation (21 novembre 2026) : `pitup/MARKETING-ET-MOTION.md`.
 
 ## 1. Contexte
 
