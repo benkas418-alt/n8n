@@ -1129,6 +1129,8 @@ def test_bilan_settles_every_ticket_market():
     assert settle("FG_2", 1, 1, None) is None  # goal order unknown
     assert settle("1UP_1", 1, 2, ["H", "A", "A"]) == 1  # led 1-0, paid early
     assert settle("2UP_1", 2, 2, ["H", "H", "A", "A"]) == 1 and settle("2UP_1", 2, 2, ["H", "A", "H", "A"]) == 0
+    # A 2UP team that wins by one goal is a winning bet, with or without the goal order.
+    assert settle("2UP_1", 2, 1, None) == 1 and settle("2UP_1", 1, 0, ["H"]) == 1 and settle("2UP_2", 1, 2, None) == 1
     assert settle("DC1UP_X2", 2, 1, ["A", "H", "H"]) == 1 and settle("DC2UP_X2", 2, 1, ["A", "H", "H"]) == 0
     # D88: without the goal order, a side that never scored enough goals cannot have led enough.
     assert settle("DC2UP_12", 1, 1, None) == 0 and settle("DC1UP_X2", 3, 0, None) == 0
