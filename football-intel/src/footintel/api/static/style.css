@@ -273,7 +273,10 @@ table.hide-stable tr.row-stable { display: none; }
 .btn { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; text-decoration: none; font: inherit;
   font-weight: 600; border-radius: 999px; border: 1px solid var(--text); background: var(--text); color: var(--bg); cursor: pointer; }
 .btn:hover { opacity: 0.88; }
-.btn:active { transform: translateY(1px); }
+/* D94: pressed controls shrink to 0.97 (fast in, a little slower back). */
+.btn, .tabbar a, a.card.teaser, .to-top { transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 160ms ease-out; }
+.btn:active, .tabbar a:active, .to-top:active { transform: scale(0.97); transition-duration: 80ms; }
+a.card.teaser:active { transform: scale(0.98); transition-duration: 80ms; }
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--control); }
 .btn.ghost:hover { border-color: var(--text); opacity: 1; }
 code { font-size: var(--fs-xs); background: var(--raised); padding: 1px 8px; border-radius: var(--radius-xs); }
@@ -394,16 +397,79 @@ table.standings tr.me.a td:first-child { border-left: 3px solid var(--away); }
    up and their bars grow. Short, once, and off when the system asks for reduced motion. */
 @keyframes fi-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes fi-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* D94 (motion rules): entries ease out in 260 ms; cards follow each other by 40 ms and the
+   rows of a list by 30 ms; a folded group opens in 200 ms. */
 #app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top {
-  animation: fi-rise 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-#app .grid > .card:nth-child(2), #app .pick:nth-child(2) { animation-delay: 60ms; }
-#app .grid > .card:nth-child(3), #app .pick:nth-child(3) { animation-delay: 120ms; }
-#app .grid > .card:nth-child(n+4) { animation-delay: 160ms; }
+  animation: fi-rise 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#app .grid > .card:nth-child(2), #app .pick:nth-child(2) { animation-delay: 40ms; }
+#app .grid > .card:nth-child(3), #app .pick:nth-child(3) { animation-delay: 80ms; }
+#app .grid > .card:nth-child(n+4) { animation-delay: 120ms; }
+#app .legs-plain > li { animation: fi-rise 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#app .legs-plain > li:nth-child(2) { animation-delay: 30ms; } #app .legs-plain > li:nth-child(3) { animation-delay: 60ms; }
+#app .legs-plain > li:nth-child(4) { animation-delay: 90ms; } #app .legs-plain > li:nth-child(5) { animation-delay: 120ms; }
+#app .legs-plain > li:nth-child(6) { animation-delay: 150ms; } #app .legs-plain > li:nth-child(n+7) { animation-delay: 180ms; }
+#app details[open] > .legs-plain, #app details.fold[open] > .fold-body { animation: fi-rise 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 #app .strip.big .strip-bar span { transform-origin: left center; animation: fi-grow 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 #app .strip.big .strip-bar span.a { transform-origin: right center; }
+/* No tab beyond the first or the last: the page gives 12 px and comes back (ease-in-out, no spring). */
+@keyframes fi-edge-left { 40% { transform: translateX(-12px); } }
+@keyframes fi-edge-right { 40% { transform: translateX(12px); } }
+.edge-left { animation: fi-edge-left 300ms cubic-bezier(0.45, 0, 0.55, 1); }
+.edge-right { animation: fi-edge-right 300ms cubic-bezier(0.45, 0, 0.55, 1); }
 @media (prefers-reduced-motion: reduce) {
-  #app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top, #app .strip.big .strip-bar span { animation: none; }
+  #app .card, #app .essentials, #app .fixtures, #app .pick, #app .match-top, #app .strip.big .strip-bar span,
+  #app .legs-plain > li, #app details[open] > .legs-plain, #app details.fold[open] > .fold-body, .edge-left, .edge-right { animation: none; }
 }
+
+/* D94: rings (Bilan, Hier). The figure that matters in the middle, the words beside it. */
+.ring-row { display: flex; align-items: center; gap: 24px; }
+.ring { position: relative; width: 120px; height: 120px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 12; }
+.ring-track { stroke: var(--sunk); }
+.ring-arc { stroke-dasharray: var(--d); stroke-linecap: butt; animation: fi-ring 700ms cubic-bezier(0.2, 0.7, 0.2, 1) 80ms both; }
+.ring-arc.won { stroke: var(--home); } .ring-arc.lost { stroke: var(--down); } .ring-arc.open { stroke: var(--faint); }
+@keyframes fi-ring { from { stroke-dasharray: 0 400; } }
+.ring p { position: absolute; inset: 0; margin: 0; display: grid; place-content: center; text-align: center; line-height: 1.1; }
+.ring p b { font-family: var(--display); font-size: var(--fs-3xl); font-weight: 700; }
+.ring p span { font-size: var(--fs-xs); color: var(--muted); }
+.ring-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ring-legend li { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.ring-legend b { color: var(--text); font-family: var(--display); font-size: var(--fs-lg); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot.won { background: var(--home); } .dot.lost { background: var(--down); } .dot.open { background: var(--faint); }
+@media (prefers-reduced-motion: reduce) { .ring-arc { animation: none; } }
+
+/* D94: one segment per selection of a ticket. */
+.legbar { display: flex; gap: 4px; margin-top: 8px; max-width: 240px; }
+.legbar i { flex: 1; height: 6px; border-radius: 999px; background: var(--sunk); }
+.legbar i.won { background: var(--home); } .legbar i.lost { background: var(--down); }
+
+/* D94: "Copier le ticket". The two labels cross: the old one blurs out while "Copié" comes in,
+   then one short pulse confirms. */
+.copy-btn { margin-top: 16px; position: relative; display: inline-grid; }
+.copy-btn > span { grid-area: 1 / 1; transition: opacity 180ms ease-out, filter 180ms ease-out, transform 180ms ease-out; }
+.copy-b { opacity: 0; filter: blur(4px); transform: scale(0.8); color: var(--home); }
+.copy-btn.done .copy-a { opacity: 0; filter: blur(4px); transform: scale(0.8); }
+.copy-btn.done .copy-b { opacity: 1; filter: none; transform: none; }
+.copy-btn.done { border-color: var(--home); animation: fi-pulse 300ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes fi-pulse { 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .copy-btn > span { transition: none; filter: none; } .copy-btn.done { animation: none; } }
+
+/* D94: back to the top of long pages; above the tab bar on phones. Enters from 0.95, leaves faster. */
+.to-top { position: fixed; right: 16px; bottom: 24px; z-index: 14; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid var(--control); background: var(--bg); color: var(--text); cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  opacity: 0; transform: scale(0.95); pointer-events: none; transition: opacity 160ms ease-in, transform 160ms ease-in; }
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; transition: opacity 200ms ease-out, transform 200ms ease-out; }
+.to-top svg { width: 20px; height: 20px; }
+@media (max-width: 900px) { .to-top { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+
+/* D94: "Aller au contenu", shown only when reached with the Tab key. */
+.skip { position: fixed; left: 16px; top: 8px; z-index: 40; transform: translateY(-200%); padding: 8px 16px; border-radius: 999px;
+  border: 0; background: var(--text); color: var(--bg); font: inherit; font-weight: 600; cursor: pointer; }
+.skip:focus-visible { transform: none; }
+#app:focus { outline: none; }
 
 /* Tickets du jour */
 .ticket .leg { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }

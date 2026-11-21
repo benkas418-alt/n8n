@@ -54,7 +54,17 @@
     const i = TABS.indexOf(current());
     if (i < 0) return;
     const j = dx < 0 ? i + 1 : i - 1;
-    if (j < 0 || j >= TABS.length) return;
+    if (j < 0 || j >= TABS.length) {
+      // D94: no tab beyond Hier or Bilan; the page gives a little and comes back, so the swipe was felt.
+      const el = box();
+      if (el && !calm()) {
+        el.classList.remove("edge-left", "edge-right");
+        void el.offsetWidth;
+        el.classList.add(dx < 0 ? "edge-left" : "edge-right");
+        setTimeout(() => el.classList.remove("edge-left", "edge-right"), 320);
+      }
+      return;
+    }
     const dir = dx < 0 ? "left" : "right";
     try { sessionStorage.setItem("fi_swipe", dir); } catch { /* private mode */ }
     if (onValue || TABS[j] === "value") { go(TABS[j]); return; }

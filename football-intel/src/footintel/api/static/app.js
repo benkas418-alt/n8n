@@ -1264,16 +1264,68 @@ const dayLabel = (iso) => { const l = new Date(`${iso}T12:00:00`).toLocaleDateSt
 const hhmm = (k) => (k ? new Date(k).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—");
 const localToday = () => new Date().toLocaleDateString("en-CA");
 
+/* D94: a ring with one figure in the middle, as in a dashboard. parts = [[count, "won"|"lost"|"open", word]].
+   The arcs grow from 0 once (ease-out); the legend says the same in words for screen readers. */
+function ring(parts, big, small) {
+  const shown = parts.filter(([n]) => n > 0);
+  const total = shown.reduce((s, [n]) => s + n, 0);
+  if (!total) return "";
+  const C = 2 * Math.PI * 52, gap = shown.length > 1 ? 4 : 0;
+  let at = 0;
+  const arcs = shown.map(([n, cls]) => {
+    const len = Math.max(1, (C * n) / total - gap);
+    const arc = `<circle class="ring-arc ${cls}" r="52" cx="60" cy="60" style="--d:${len.toFixed(1)} ${C.toFixed(1)};stroke-dashoffset:${(-at).toFixed(1)}"></circle>`;
+    at += (C * n) / total;
+    return arc;
+  }).join("");
+  const legend = shown.map(([n, cls, word]) => `<li><i class="dot ${cls}" aria-hidden="true"></i><b>${n}</b> ${esc(word)}</li>`).join("");
+  return `<div class="ring-row"><div class="ring" aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="ring-track" r="52" cx="60" cy="60"></circle>${arcs}</svg>
+    <p><b>${esc(big)}</b><span>${esc(small)}</span></p></div><ul class="ring-legend">${legend}</ul></div>`;
+}
+
+/* D94: one segment per selection of a ticket, green when right, red when wrong, grey when not played. */
+function legBar(legs) {
+  const right = legs.filter((l) => l.won === 1).length;
+  const cls = (w) => (w === 1 ? "won" : w === 0 ? "lost" : "open");
+  return `<span class="legbar" role="img" aria-label="${right} sur ${legs.length} sélections justes">${legs.map((l) => `<i class="${cls(l.won)}"></i>`).join("")}</span>`;
+}
+
+// D94: the text of each ticket of the page, for its "Copier" button (no inline handler: CSP).
+let copyTexts = [];
 function ticketCard(tk) {
   const once = Math.round(1 / tk.prob);
   const legs = tk.legs.map((l) => `<li><span class="t">${hhmm(l.kickoff_utc)}</span>
     <span>${esc(l.match)}<br><span class="muted">${esc(l.label)} · ${pct(l.prob, 0)} de chances</span></span>
     <span class="o">${odds2(l.fair)}</span></li>`).join("");
+  const fr = window.frNames || ((s) => s);
+  const id = copyTexts.push([`Ticket ${tk.tag} · ${tk.name} · cote ${odds2(tk.odds)}`,
+    ...tk.legs.map((l) => `${hhmm(l.kickoff_utc)} ${l.match} : ${l.label} (cote juste ${odds2(l.fair)})`)].map(fr).join("\n")) - 1;
   return `<div class="card ticket"><h2>Ticket ${esc(tk.tag)} · ${esc(tk.name)}</h2>
     <p class="question">Cote totale <b>${odds2(tk.odds)}</b> · passe environ 1 fois sur ${once}</p>
     <ul class="legs-plain">${legs}</ul>
-    <p class="meta">À droite, la cote juste : ne prenez une sélection que si betPawa paie plus.</p></div>`;
+    <p class="meta">À droite, la cote juste : ne prenez une sélection que si betPawa paie plus.</p>
+    <button class="btn ghost copy-btn" type="button" data-copy="${id}"><span class="copy-a">Copier le ticket</span><span class="copy-b" aria-hidden="true">Copié</span></button></div>`;
 }
+
+async function copyTicket(btn) {
+  const text = copyTexts[Number(btn.dataset.copy)];
+  if (text == null) return;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Older browsers, or a page opened over plain HTTP: the old copy command still works.
+    const ta = Object.assign(document.createElement("textarea"), { value: text });
+    ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    const ok = document.execCommand("copy"); ta.remove();
+    if (!ok) return;
+  }
+  btn.classList.add("done");
+  btn.setAttribute("aria-label", "Ticket copié");
+  clearTimeout(btn._t);
+  btn._t = setTimeout(() => { btn.classList.remove("done"); btn.removeAttribute("aria-label"); }, 1800);
+}
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-copy]"); if (b) copyTicket(b); });
 
 /* "Hier" on the Today page (D86, D87): the tickets of the last day played, then every result
    of that day in every competition, the owner's teams first. Same /bilan data as the Bilan page. */
@@ -1294,7 +1346,7 @@ function yesterdayBlock(b, now, teaser = false) {
       ? `<p class="muted small">Raté : ${lost.map((l) => `${esc(l.match)} ${esc(l.score || "")}, « ${esc(l.label)} »`).join(" ; ")}</p>`
       : wait.length ? `<p class="muted small">En attente : ${wait.map((l) => esc(l.match)).join(", ")}</p>` : "";
     return `<li><span class="t">${odds2(t.odds)}</span><span>Ticket ${esc(t.tag)} · ${esc(t.name || "")}
-      <br><span class="muted small">${t.right} sélection${t.right > 1 ? "s" : ""} juste${t.right > 1 ? "s" : ""} sur ${t.legs.length}</span>${why}</span>
+      <br><span class="muted small">${t.right} sélection${t.right > 1 ? "s" : ""} juste${t.right > 1 ? "s" : ""} sur ${t.legs.length}</span>${legBar(t.legs)}${why}</span>
       <span class="state ${cls}">${esc(word)}</span></li>`;
   });
   const games = res && res.date === day ? res.matches : [];
@@ -1329,13 +1381,20 @@ function yesterdayBlock(b, now, teaser = false) {
       <span class="muted small">${parts.filter(Boolean).join(" · ")}</span></span><span class="teaser-go">Voir les résultats</span></a></section>`;
   }
   // On the Hier page the heading is already "Hier": the section names the day itself.
+  const called = games.filter((m) => m.model), right = called.filter((m) => m.model_right).length;
+  const summary = called.length ? `<div class="card"><h3>Le favori du site</h3>${ring([[right, "won", `juste${right > 1 ? "s" : ""}`], [called.length - right, "lost", `raté${called.length - right > 1 ? "s" : ""}`]],
+    `${right}`, `sur ${called.length}`)}</div>` : "";
   return `<section class="today-block"><h2>${esc(dayLabel(day))}</h2>
-    ${games.length ? `<p class="lead">${games.length} match${games.length > 1 ? "s" : ""} joué${games.length > 1 ? "s" : ""} dans ${nComp} compétition${nComp > 1 ? "s" : ""}${tally(games)}.</p>` : ""}
+    ${games.length ? `<p class="lead">${games.length} match${games.length > 1 ? "s" : ""} joué${games.length > 1 ? "s" : ""} dans ${nComp} compétition${nComp > 1 ? "s" : ""}${summary ? "" : tally(games)}.</p>` : ""}
     ${tks.length ? `<div class="card"><h3>Vos tickets</h3><ul class="legs-plain">${tks.join("")}</ul></div>` : ""}
+    ${summary}
     ${mine.length ? `<div class="card"><h3>Vos équipes${tally(mine)}</h3><ul class="legs-plain results">${mine.map(row).join("")}</ul></div>` : ""}
     ${groups ? `<div class="card"><h3>Tous les résultats</h3>${groups}</div>` : ""}
     <p class="more"><a href="#/bilan">Tout le bilan de la semaine</a></p></section>`;
 }
+
+// D94: say when the figures were computed; an older date already gets the "Pas à jour" warning.
+const updated = (last, now) => (last && new Date(last).toLocaleDateString("en-CA") === now ? `<br><span class="muted small">Mis à jour à ${hhmm(last)}.</span>` : "");
 
 async function today() {
   const [d, t, lec, b] = await Promise.all([get("/home"), get("/tickets").catch(() => null), get("/lecture").catch(() => null),
@@ -1347,7 +1406,7 @@ async function today() {
   const firstDay = mine.map((m) => m.kickoff_date).sort()[0];
   const myDay = mine.filter((m) => m.kickoff_date === firstDay);
   const head = `<div class="page-head"><div><h1>Aujourd'hui</h1>
-    <p>${esc(dayLabel(now))}. Vos tickets et les matchs de vos équipes.</p></div></div>`;
+    <p>${esc(dayLabel(now))}. Vos tickets et les matchs de vos équipes.${updated(d.last_prediction, now)}</p></div></div>`;
 
   let tickets;
   if (!tday) {
@@ -1401,7 +1460,7 @@ async function bilan() {
   const tk = b.tickets.length
     ? b.tickets.map((d) => `<h3>${esc(dayLabel(d.date))}</h3><div class="grid">${d.tickets.map((t) => `<div class="card">
         <h2>Ticket ${esc(t.tag)} · cote ${odds2(t.odds)} <span class="state ${stateCls[t.state]}">${esc(t.state)}</span></h2>
-        <p class="question">${t.right} sélection${t.right > 1 ? "s" : ""} juste${t.right > 1 ? "s" : ""} sur ${t.legs.length}</p>
+        <p class="question">${t.right} sélection${t.right > 1 ? "s" : ""} juste${t.right > 1 ? "s" : ""} sur ${t.legs.length}${legBar(t.legs)}</p>
         <ul class="legs-plain">${t.legs.map((l) => `<li><span class="t">${esc(l.score || "—")}</span>
           <span>${esc(l.match)}<br><span class="muted">${esc(l.label)}</span></span><span>${mark(l.won)}</span></li>`).join("")}</ul></div>`).join("")}</div>`).join("")
     : `<div class="empty"><p class="muted">Les tickets sont archivés chaque matin depuis le 5 novembre 2026. Leur bilan s'affiche ici dès que leurs matchs sont joués.</p></div>`;
@@ -1413,14 +1472,23 @@ async function bilan() {
     ? `<p class="lead">Sur les 7 derniers jours, le favori du modèle a eu raison <b>${n(ms, "model_right")} fois sur ${ms.length}</b>.
        ${both.length ? `Sur les ${both.length} matchs où l'on connaît aussi la cote des bookmakers : modèle ${n(both, "model_right")}, bookmakers ${n(both, "market_right")}.` : ""}</p>`
     : `<p class="lead">Aucun match joué ces 7 derniers jours.</p>`;
+  // D94: one ring per section, the figure that matters in the middle.
+  const all = b.tickets.flatMap((d) => d.tickets);
+  const cnt = (s) => all.filter((t) => t.state === s).length;
+  const plural = (n, w) => `${w}${n > 1 ? "s" : ""}`;
+  const tkRing = all.length ? `<div class="card">${ring([[cnt("gagné"), "won", plural(cnt("gagné"), "gagné")], [cnt("perdu"), "lost", plural(cnt("perdu"), "perdu")],
+    [cnt("en cours"), "open", "en attente"]], `${cnt("gagné")}`, `${plural(cnt("gagné"), "gagné")} sur ${all.length}`)}</div>` : "";
+  const right = n(ms, "model_right");
+  const pRing = ms.length ? `<div class="card">${ring([[right, "won", plural(right, "juste")], [ms.length - right, "lost", plural(ms.length - right, "raté")]],
+    `${right}`, `sur ${ms.length}`)}</div>` : "";
   const ok = (r) => (r ? `<span class="state won">juste</span>` : `<span class="state lost">raté</span>`);
   const byDate = [...new Set(ms.map((m) => m.date))];
   const list = byDate.map((dt) => `<h3>${esc(dayLabel(dt))}</h3><div class="card"><ul class="legs-plain results">${ms.filter((m) => m.date === dt).map((m) =>
     `<li><span class="t">${esc(m.score)}</span><span>${esc(m.home)} – ${esc(m.away)}<br>
       <span class="muted">Modèle : ${esc(side(m, m.model))} ${ok(m.model_right)}${m.market ? ` · Bookmakers : ${esc(side(m, m.market))} ${ok(m.market_right)}` : ""}</span></span><span></span></li>`).join("")}</ul></div>`).join("");
   return `<div class="page-head"><div><h1>Bilan</h1><p>Ce qu'ont donné vos tickets et les pronostics des derniers jours.</p></div></div>
-    <section class="today-block"><h2>Vos tickets</h2>${tk}</section>
-    <section class="today-block"><h2>Les pronostics</h2>${summary}
+    <section class="today-block"><h2>Vos tickets</h2>${tkRing}${tk}</section>
+    <section class="today-block"><h2>Les pronostics</h2>${summary}${pRing}
       ${list}</section>`;
 }
 
@@ -1433,6 +1501,7 @@ let routeSeq = 0;
 async function route() {
   const seq = ++routeSeq;
   resetCharts();
+  copyTexts = [];
   const page = (location.hash.replace(/^#\/?/, "").split("?")[0]) || "";
   const navPage = page === "match" ? "matchs" : page === "tickets" ? "" : page;
   document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === navPage));
@@ -1483,4 +1552,26 @@ document.getElementById("menu-btn").onclick = (e) => {
   const open = document.getElementById("sidebar").classList.toggle("open");
   e.currentTarget.setAttribute("aria-expanded", String(open));
 };
+/* D94: "Aller au contenu" for keyboard users (first stop of the Tab key), and a button that
+   brings long pages (Matchs, Hier, Bilan) back to the top. Built here so value.html is untouched. */
+(() => {
+  const main = document.getElementById("app");
+  main.setAttribute("tabindex", "-1");
+  const skip = Object.assign(document.createElement("button"), { type: "button", className: "skip", textContent: "Aller au contenu" });
+  skip.onclick = () => main.focus();
+  document.body.prepend(skip);
+
+  const top = Object.assign(document.createElement("button"), { type: "button", className: "to-top" });
+  top.setAttribute("aria-label", "Revenir en haut de la page");
+  top.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  top.onclick = () => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  document.body.append(top);
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { top.classList.toggle("show", window.scrollY > window.innerHeight * 1.5); ticking = false; });
+  }, { passive: true });
+})();
+
 (window.fiReady || Promise.resolve()).then(route);

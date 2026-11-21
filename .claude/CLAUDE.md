@@ -11,11 +11,12 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
   Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D93), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D94), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`; it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54).
 - **PitUp**: delivery marketplace in Lubumbashi (customers, partner shops, couriers).
-  Not in this repository. Use the `prediction-modeling` skill for what to log.
+  The app is not in this repository; its video sources and notes are in `pitup/` (MEMORY.md; MARKETING-ET-MOTION.md for
+  marketing, biases and 18 animation rules). Use the `prediction-modeling` skill for what to log.
 - Work branches: `ccr-4d6bcf99-mmbgxo` and `claude/branche-higgsfield-974raq`; push both.
 
 ## Skills in .claude/skills (146) — pick by theme
