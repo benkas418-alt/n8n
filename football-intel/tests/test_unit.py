@@ -996,6 +996,23 @@ def test_stage_of_accepts_a_missing_round():
     assert stage_of(float("nan"), "cup") == "unknown" and stage_of(None, "league") == "league"
 
 
+def test_tickets_leave_out_matches_of_unstable_teams():
+    from footintel.analysis.tickets import day_tickets
+
+    teams = [("Man City", "Everton"), ("Fulham", "Chelsea"), ("Aston Villa", "Brentford")] + [
+        (f"H{i}", f"A{i}") for i in range(14)]
+    matches = [{"id": i, "kickoff_date": "2026-10-31", "kickoff_utc": f"2026-10-31T{12 + i % 8:02d}:00:00Z",
+                "competition": "ENG-PL", "home": h, "away": a, "p1": 0.40 + 0.04 * (i % 6), "p2": 0.27,
+                "p_over": 0.55} for i, (h, a) in enumerate(teams)]
+    day = day_tickets(matches, {}, date(2026, 10, 31))[0]
+    used = {x["match_id"] for t in day["tickets"] for x in t["legs"]}
+    assert day["tickets"] and not used & {0, 1, 2}
+    # They stay among the owner's matches, with all their choices.
+    shown = {r["match_id"]: r for r in day["matches"]}
+    assert all(shown[i]["followed"] and shown[i]["alternatives"] for i in (0, 1, 2))
+    assert day["n_followed"] == 14
+
+
 def test_tickets_leave_out_dc2up_and_name_both_teams():
     from footintel.analysis.tickets import match_legs
 

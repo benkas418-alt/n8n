@@ -36,6 +36,9 @@ SIZES = (("A", "Restreint", 5, 5, MIN_ODDS), ("B", "Large", 6, 9, MIN_ODDS), ("C
 # Same list as MY_TEAMS in static/app.js (the owner's followed teams).
 FOLLOWED = {"ENG-PL": "*", "GER-BL": "*", "ITA-SA": {"Lazio", "Inter", "Milan", "Como", "Bologna"},
             "ESP-LL": {"Barcelona", "Ath Madrid", "Real Madrid", "Villarreal", "Betis"}, "FRA-L1": {"Paris SG"}}
+# D96: teams the owner finds too unstable. Their matches stay in Matchs and "my teams", but no
+# ticket takes a selection from a match they play, whoever the opponent is.
+NOT_IN_TICKETS_TEAMS = {"Man City", "Chelsea", "Aston Villa"}
 # Win Bonus of betPawa RDC by number of selections priced 1.20 or more (D67).
 BONUS = {3: .04, 4: .07, 5: .12, 6: .17, 7: .21, 8: .25, 9: .27, 10: .32, 11: .34, 12: .39, 13: .44,
          14: .49, 15: .53, 16: .58}
@@ -274,11 +277,12 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
             legs = match_legs(m, journal)
             base = {"match_id": m["id"], "match": f"{m['home']} – {m['away']}", "kickoff_utc": m.get("kickoff_utc"),
                     "competition": m["competition"], "followed": is_followed(m), "source": m.get("source", "marché"),
-                    "scenarios": m.get("scenarios", [])}
+                    "scenarios": m.get("scenarios", []),
+                    "ticket_ok": not {m["home"], m["away"]} & NOT_IN_TICKETS_TEAMS}
             rows.append(base | {"alternatives": legs})
         pool_all = [{k: v for k, v in r.items() if k not in ("alternatives", "scenarios")} | x for r in rows for x in r["alternatives"]]
         # Tickets use the owner's teams only; a size needs that many of their matches.
-        pool_mine = [x for x in pool_all if x["followed"]]
+        pool_mine = [x for x in pool_all if x["followed"] and x["ticket_ok"]]
         n_mine = len({x["match_id"] for x in pool_mine})
         tickets, missing = [], []
         for tag, name, lo, hi, min_odds in SIZES:
