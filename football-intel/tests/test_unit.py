@@ -1077,7 +1077,7 @@ def test_tickets_email_lists_each_leg_with_its_fair_odds():
     subject, body = tickets_text(data, date(2026, 11, 4))
     assert subject == "Tickets du mercredi 04/11 — 1 ticket"
     assert "(aujourd'hui)" in body and "21:45  Inter – Como" in body
-    assert "1UP Inter @ 1.45 (relevée) · juste 1.40" in body and "1 chance sur 11" in body
+    assert "1UP Inter · cote betPawa 1,45 (relevée) · cote juste 1,40" in body and "passe environ 1 fois sur 11" in body
     assert tickets_text({"days": []}, date(2026, 11, 4))[0] == "Tickets du jour — aucun match"
 
 
@@ -1216,29 +1216,78 @@ def test_archive_keeps_days_without_a_run_and_prefers_the_same_day_version(tmp_p
     assert archive(tmp_path, {"days": [{"date": "2026-11-09", "tickets": [{"tag": "new"}]}]}, date(2026, 11, 9)) == 0
 
 
-def test_plain_week_says_what_happened_in_plain_words():
+def test_tickets_email_explains_each_match_and_choice():
+    from footintel.notify.briefs import explain_match, team_line
+
+    row = {"match_id": 7, "match": "Liverpool – Man United", "p1": 0.56, "p2": 0.2, "source": "marché",
+           "scenarios": [{"text": "Man United joue mieux que ses résultats."}]}
+    brief = {"teams": {
+        "home": {"name": "Liverpool", "labels": ["Aime avoir le ballon"], "form": ["V", "V", "N", "D", "V"],
+                 "figures": {"goals_for": 2.1, "goals_against": 1.0, "formation": "4-3-3", "formation_share": 0.8}},
+        "away": {"name": "Man United", "labels": [], "form": [], "figures": {"goals_for": 1.1, "goals_against": 1.7}}},
+        "matchup": ["Ouverture du score cette saison : 60 %.", "Liverpool voudra le ballon."],
+        "facts": ["Man United n'a plus gagné depuis 4 matchs."]}
+    assert team_line(brief["teams"]["home"]) == ("Liverpool : joue en 4-3-3, aime avoir le ballon ; 2,1 buts marqués "
+                                                 "et 1,0 encaissé par match ; 3 victoires, 1 nul, 1 défaite sur ses "
+                                                 "5 derniers matchs.")
+    text = "\n".join(explain_match(row, [{"key": "2UP_1", "prob": 0.58, "tags": ["A", "B"]},
+                                         {"key": "-3.5", "prob": 0.65, "tags": ["C"]}], brief))
+    assert "1,1 but marqué et 1,7 encaissé par match." in text
+    assert "Le match : Liverpool voudra le ballon." in text and "À noter : Man United n'a plus gagné" in text
+    assert "Le choix (tickets A, B) : 2UP Liverpool gagne si Liverpool gagne, mais aussi si Liverpool mène de 2 buts" in text
+    assert "58 %, contre 56 % pour la victoire simple" in text
+    assert "Moins de 3,5 buts : 65 %. Il passe tant qu'il n'y a pas 4 buts ou plus : un 3-0 ou un 2-1 suffit." in text
+    assert "cotes des bookmakers, leur marge retirée" in text and "Ajustement : Man United joue mieux" in text
+    # Without a profile the e-mail still says why the bet was chosen.
+    assert "Le choix (ticket C)" in "\n".join(explain_match(row, [{"key": "-3.5", "prob": 0.65, "tags": ["C"]}], None))
+
+
+def test_plain_week_explains_compares_and_justifies():
     from datetime import date
 
     from footintel.reports.plain_week import plain_week
 
-    tickets = [{"date": "2026-11-07", "tickets": [
-        {"tag": "B", "name": "Large", "odds": 10.08, "state": "perdu", "right": 5, "legs": [
-            {"match": "Leeds – Tottenham", "label": "DC 1UP Leeds ou nul", "price": 1.4, "score": "1-0", "won": 1},
-            {"match": "Nott'm Forest – Man City", "label": "Moins de 3,5 buts", "price": 1.51, "score": "3-1",
-             "won": 0}]},
-        {"tag": "D", "name": "Court", "odds": 2.6, "state": "gagné", "right": 2, "legs": []}]}]
-    matches = [{"competition": "ENG-PL", "home": "Leeds", "away": "Tottenham", "date": "2026-11-07", "score": "1-0",
-                "model": [0.48, 0.27, 0.25], "model_right": True, "market_right": True},
+    def leg(match, label, key, prob, won, score="1-0"):
+        return {"match": match, "label": label, "key": key, "prob": prob, "price": 1.5, "score": score, "won": won}
+
+    tickets = [
+        {"date": "2026-11-12", "tickets": [
+            {"tag": "B", "name": "Large", "odds": 10.08, "state": "perdu", "right": 1, "legs": [
+                leg("Leeds – Tottenham", "DC 1UP Leeds ou nul", "DC1UP_1X", 0.8, 1),
+                leg("Nott'm Forest – Everton", "Moins de 3,5 buts", "-3.5", 0.66, 0, "3-1")]},
+            {"tag": "D", "name": "Court", "odds": 2.6, "state": "gagné", "right": 2, "legs": [
+                leg("Inter – Como", "2UP Inter", "2UP_1", 0.6, 1, "2-1"),
+                leg("Leeds – Tottenham", "DC 1UP Leeds ou nul", "DC1UP_1X", 0.8, 1)]}]},
+        {"date": "2026-11-04", "tickets": [
+            {"tag": "A", "name": "Restreint", "odds": 10.0, "state": "perdu", "right": 0, "legs": []}]}]
+    m = {"competition": "ENG-PL", "score": "1-0", "model": [0.55, 0.25, 0.2], "market": [0.5, 0.27, 0.23]}
+    matches = [m | {"home": "Leeds", "away": "Tottenham", "date": "2026-11-12", "model_right": True, "market_right": True},
+               m | {"home": "Arsenal", "away": "Fulham", "date": "2026-11-11", "score": "1-1", "model_right": False,
+                    "market_right": False},
+               m | {"home": "Everton", "away": "Brentford", "date": "2026-11-10", "score": "0-2", "model_right": False,
+                    "market_right": True, "market": [0.3, 0.3, 0.4]},
+               m | {"home": "Wolves", "away": "Fulham", "date": "2026-11-05", "model_right": True, "market_right": True},
                {"competition": "ITA-SA", "home": "Parma", "away": "Genoa", "date": "2026-11-08", "score": "0-0",
-                "model": [0.4, 0.3, 0.3], "model_right": False, "market_right": False}]
-    subject, body = plain_week(tickets, matches, date(2026, 11, 13), retrained=True)
-    assert subject == "Ta semaine — 1 ticket(s) gagné(s) sur 2"
-    assert "1 gagné(s), 1 perdu(s), 0 pas encore réglé(s)." in body
-    assert "Raté : Nott'm Forest – Man City 3-1, « Moins de 3,5 buts »." in body
-    assert "Le site a vu juste 1 fois sur 1" in body and "Les ratés" not in body
+                "model": [0.4, 0.3, 0.3], "market": None, "model_right": False, "market_right": None}]
+    scenario = {"learnt_at": "2026-11-09T10:00:00+00:00", "active_leagues": ["ENG-PL", "ESP-LL"],
+                "check": {"leagues": {"ENG-PL": {"gain": 0.2}, "ESP-LL": {"gain": 2.1}, "FRA-L1": {"gain": -0.01}}}}
+    subject, body = plain_week(tickets, matches, date(2026, 11, 13), retrained=True, scenario=scenario)
+    assert subject == "Ta semaine — 1 ticket(s) gagné(s) sur 2, et pourquoi"
+    # Compared with the week before, and with what the site's own chances expected.
+    assert "1 ticket gagné sur 2 (la semaine d'avant : 0 sur 1)." in body
+    assert "le site attendait environ 1 ticket(s) gagné(s) sur ces 2 : tu en as 1, c'est ce qu'annonçaient ses chances" in body
+    # Each miss says whether it was normal for its chance.
+    assert "« Moins de 3,5 buts » : le site le donnait à 66 % : ce genre de pari perd environ 3 fois sur 10" in body
+    assert " • DC 1UP : 2 gagnés sur 2 ; le site en attendait environ 1,6." in body
+    # The owner's teams: misses set against the bookmakers.
+    assert "Le site a trouvé le bon résultat 1 fois sur 3 (la semaine d'avant : 1 sur 1)." in body
+    assert "1 surprise(s) pour tout le monde" in body and "1 erreur(s) du site seul" in body
+    assert "Everton – Brentford 0-2 : le site voyait Everton gagner (55 %) ; les bookmakers, eux, voyaient juste" in body
     assert "Parma" not in body.split("3. LE SITE")[0]  # not one of the owner's Serie A teams
-    assert "Sur 2 matchs de tes championnats, le site a trouvé le bon résultat 1 fois, les bookmakers 1 fois." in body
-    assert "remis à jour" in body and "PSI" not in body and "log loss" not in body
+    assert "(cette semaine) : site 1 sur 3, bookmakers 2 sur 3." in body
+    # What changed in the model, in words.
+    assert "réentraîné" in body and "actifs en Premier League, Liga" in body and "Coupés en Ligue 1" in body
+    assert "PSI" not in body and "log loss" not in body and "ECE" not in body
 
 
 def test_national_elo_rates_matches_and_gives_coherent_markets():

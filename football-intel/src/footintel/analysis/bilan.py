@@ -129,7 +129,9 @@ def ticket_results(engine: Engine, artifacts_dir, days: int = 7, today: date | N
             for leg in t["legs"]:
                 r = res.get(leg["match_id"])
                 won = settle(leg["key"], r["hg"], r["ag"], r["goals"]) if r else None
+                # D97: the key and the chance given before the match, so the weekly report can compare.
                 legs.append({"match": leg["match"], "label": leg["label"], "price": leg["price"],
+                             "key": leg.get("key"), "prob": leg.get("prob"),
                              "score": f"{r['hg']}-{r['ag']}" if r else None, "won": won})
             state = ("perdu" if any(x["won"] == 0 for x in legs) else
                      "gagné" if all(x["won"] == 1 for x in legs) else "en cours")
