@@ -51,3 +51,4 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Prises choisies (c2) : t_0_0, t_1_0, t_2_0, t_3_1, t_4_1, t_7_1, t_8_1. Ressemblance (resemblyzer, contre WA0032) : aperçu v2 0,875 ; aperçu v1 0,808 ; deux extraits réels de 2,5 s entre eux 0,86 à 0,90.
 - Hauteur : sa vraie voix a une médiane d'environ 102 Hz (pyin 85–260 Hz). Beaucoup de prises tombent au plancher de 85 Hz (voix grave ou éraillée) : pyin n'est pas fiable pour lui, juger surtout à la ressemblance et au texte.
 - Script v2 sans la phrase « +100 » (règle du chiffre). Aperçu envoyé : `scratchpad/apercu_voix_presentateur_v2.m4a` (16,8 s, hors dépôt).
+- **Retour sur la v2** (25 nov.) : « 64 % ». Le présentateur attaque ses phrases avec plus d'énergie ; le fondateur exige plus de fluidité, des syllabes moins hachées. Le prénom du présentateur n'est pas écrit dans ce dépôt public.
