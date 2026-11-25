@@ -42,3 +42,12 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 
 - Vidéo TikTok de la sœur (99 s, voix propre, sans musique) : source du clone de la sœur, remise dans `scratchpad/inbox/soeur/src.mp4`.
 - Film de lancement v5 : renvoyé comme **cible de clarté** de voix (« le résultat qui m'avait plu »).
+
+## Voix clonée, version 2 (25 nov.)
+
+- Mode continuation (`pitup/tools/vox_cont_batch.py`), sans texte de style. Amorce : WA0031, voix isolée, 0 à 5 s (« Vous êtes à Lubumbashi… »), avec son texte exact. Référence : WA0031, voix isolée, 0 à 18 s, loudnorm seul.
+- Orthographe : « Pit-ap » donne la bonne prononciation (Whisper écrit « PitApp », comme sur sa vraie voix) ; « Pitt Up » donne « Pitop » : à ne pas utiliser.
+- Échec : une amorce prise à 18,7–23,75 s (« Ouvrez PitUp… ») fait dérailler le modèle (21 s de bruit par phrase). Garder l'amorce du début de la note.
+- Prises choisies (c2) : t_0_0, t_1_0, t_2_0, t_3_1, t_4_1, t_7_1, t_8_1. Ressemblance (resemblyzer, contre WA0032) : aperçu v2 0,875 ; aperçu v1 0,808 ; deux extraits réels de 2,5 s entre eux 0,86 à 0,90.
+- Hauteur : sa vraie voix a une médiane d'environ 102 Hz (pyin 85–260 Hz). Beaucoup de prises tombent au plancher de 85 Hz (voix grave ou éraillée) : pyin n'est pas fiable pour lui, juger surtout à la ressemblance et au texte.
+- Script v2 sans la phrase « +100 » (règle du chiffre). Aperçu envoyé : `scratchpad/apercu_voix_presentateur_v2.m4a` (16,8 s, hors dépôt).
