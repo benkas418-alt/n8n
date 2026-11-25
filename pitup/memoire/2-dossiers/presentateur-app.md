@@ -34,3 +34,11 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Hauteur médiane des prises retenues : environ 121 Hz (écart toléré ±25 Hz).
 - Script : « Yo, les gars ! Attendez… regardez-moi ça. / Un maillot de foot, tout propre. / Des baskets blanches, bien clean. / Et celles-là ? Franchement, elles sont lourdes. / Tout ça, c'est sur PitUp. / Plus de cent boutiques de Lubumbashi, direct dans ton téléphone. / Tu commandes, on te livre, et tu paies à la livraison. / Allez, télécharge l'appli. On se capte sur PitUp ! »
 - Aperçu envoyé au fondateur. Musique : fichiers perdus avec la réinitialisation, à redemander.
+- **Voix v1 refusée** (25 nov.) : timbre pas identique, « PitUp » prononcé « Pito ». Cause : le texte de style de VoxCPM2 écrase le timbre ; la référence ne contenait pas le mot « PitUp ».
+- WA0031 et WA0032 (50 s et 48 s) sont le même texte publicitaire lu au « vous ». Il y dit « PitUp » 5 fois par note (Whisper écrit « PITAP »). v2 : mode continuation avec un passage où il dit « PitUp » comme amorce, sans texte de style.
+- À corriger dans le script v2 : « Plus de cent boutiques de Lubumbashi, direct dans ton téléphone » enfreint la règle du chiffre. Écrire « Plus de cent boutiques locales nous ont déjà rejoints. »
+
+## Sources de voix reçues de nouveau (25 nov., après la réinitialisation)
+
+- Vidéo TikTok de la sœur (99 s, voix propre, sans musique) : source du clone de la sœur, remise dans `scratchpad/inbox/soeur/src.mp4`.
+- Film de lancement v5 : renvoyé comme **cible de clarté** de voix (« le résultat qui m'avait plu »).
