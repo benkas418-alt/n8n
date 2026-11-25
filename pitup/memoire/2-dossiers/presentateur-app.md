@@ -52,3 +52,13 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Hauteur : sa vraie voix a une médiane d'environ 102 Hz (pyin 85–260 Hz). Beaucoup de prises tombent au plancher de 85 Hz (voix grave ou éraillée) : pyin n'est pas fiable pour lui, juger surtout à la ressemblance et au texte.
 - Script v2 sans la phrase « +100 » (règle du chiffre). Aperçu envoyé : `scratchpad/apercu_voix_presentateur_v2.m4a` (16,8 s, hors dépôt).
 - **Retour sur la v2** (25 nov.) : « 64 % ». Le présentateur attaque ses phrases avec plus d'énergie ; le fondateur exige plus de fluidité, des syllabes moins hachées. Le prénom du présentateur n'est pas écrit dans ce dépôt public.
+
+## Voix clonée, version 3 (25 nov.)
+
+- But : plus d'élan en début de phrase, syllabes liées (retour « 64 % »).
+- Mesure du haché : `pitup/tools/voice_chop.py` compte les creux d'énergie courts (50 à 250 ms, 15 dB sous la parole) par seconde. Sa vraie voix : 2,2 à 2,4. Aperçu v2 : 3,4 (d'où le haché entendu). Aperçu v3 : 2,2.
+- Recette : `pitup/tools/vox_jobs.py` (un seul chargement du modèle, détecte les dérapages), 25 pas d'inférence au lieu de 10, cfg 2,0. Le script en **3 blocs de 2 à 3 phrases** au lieu de 7 phrases séparées : le modèle lie mieux les phrases entre elles.
+- Amorce F : WA0031, voix isolée, 5,72 à 13,82 s, avec son texte exact écrit « Pit-ap est votre application de shopping… » (sa phrase la plus vive, qui contient le nom). Référence : `ref2.wav`.
+- Prises retenues : f_0_1, f_1_1, g_0_3. Ressemblance 0,867 (v2 : 0,875). Texte entièrement juste, « PitUp » entendu « PITAP ».
+- Choix : `tr_dir.py` (texte), `score_clone.py` (ressemblance), `voice_chop.py` (haché). Écarter « tu perds la livraison », « on s'est capté », un « Pitap ? » qui monte en question.
+- **Piège ffmpeg** : avec `-ss` placé après `-i`, les temps des filtres (`afade … st=`) restent ceux du fichier d'origine ; mon fondu de fin a rendu deux amorces muettes, et une amorce muette fait dérailler VoxCPM2 (20 s de bruit). Mettre `-ss`/`-to` **avant** `-i` et vérifier le volume de l'amorce (`volumedetect`).
