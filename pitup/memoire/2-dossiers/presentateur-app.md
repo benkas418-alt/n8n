@@ -11,3 +11,10 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 
 - Logos visibles : maillot avec logos de grandes marques, baskets avec logo de marque (règle « pas de grande marque visible »).
 - Les articles montrés sont-ils vendus sur PitUp ? Ne pas l'affirmer sans confirmation.
+
+## Réponses du fondateur (25 nov.)
+
+- « GitHub » dans ses messages dictés = **PitUp** (déformation de la dictée). Tous les articles montrés sont vendus sur PitUp. Maillots et logos : « il n'y a pas de souci, tu peux les mettre ».
+- Voix : il renvoie les deux messages du 27 sept. (WA0031, WA0032, 50 s et 48 s).
+- Montage : cuts et transitions propres ; le passage où il s'approche de la caméra (« il zoome ») → le logo PitUp s'agrandit. En ouverture ou en fin ; en ouverture, rapide (hook ≈ 3 s).
+- **Attendre** sa vidéo sur « comment attirer l'attention » avant de monter.

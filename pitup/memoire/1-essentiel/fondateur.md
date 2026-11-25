@@ -24,7 +24,7 @@ Le journal brut des retours est dans `apprentissages.md`.
 
 - Il juge **à l'œil et à l'oreille**, pas sur les chiffres. Une mesure ne le convainc pas si le résultat lui paraît flou ou robotique.
 - Il commence souvent par ce qui va (« c'est carré », « c'est très bien fait »), puis donne **le** point qui ne va pas. Ce point est la vraie demande.
-- Ses messages sont dictés : des mots sont déformés (« Pita », « Bombashi », « RTL » pour Airtel). Lire le sens, pas la lettre. En cas de doute réel, poser une seule question.
+- Ses messages sont dictés : des mots sont déformés (« Pita », « Bombashi », « RTL » pour Airtel, « GitHub » pour PitUp, « collier » pour colis). Lire le sens, pas la lettre. En cas de doute réel, poser une seule question.
 - Il explique le **pourquoi** quand on le lui demande ou quand il s'agace (« tu sais pourquoi je préfère… »). Noter ce pourquoi : il vaut pour les prochaines vidéos.
 - Quand il renvoie un fichier, c'est une consigne : utiliser **ce** fichier, pas un autre.
 - Il s'agace quand on lui ressert ce qu'il a déjà refusé, ou qu'on contourne sa demande par une autre source.
