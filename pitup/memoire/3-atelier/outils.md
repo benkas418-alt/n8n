@@ -78,3 +78,9 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - Ce qui ne marche pas sur un plan tenu à la main : masque fixe, alignement ECC sur le tableau de bord, reconstruction par images voisines (la rue et les autocollants bougent presque ensemble).
 - Ce qui marche : `pitup/tools/sticker_track_lama.py in.mp4 out.mp4 masks.json ref t0 t1` : chaque autocollant suivi par sa propre texture (corrélation, recherche locale, chaînée), LaMa à chaque image, bords fondus, léger mélange avec les images voisines. Masques à tracer sur l'image lue par OpenCV (débit variable : les numéros d'image diffèrent de ffmpeg).
 - Limite : légère différence de teinte possible dans les grandes zones refaites ; vérifier en zoom.
+
+## Réinitialisation de l'environnement (25 nov.)
+
+- Le scratchpad, les fichiers envoyés (musiques, voix de référence de la sœur) et les outils installés ont disparu. Réinstallé : `installer.sh voix` + `son`, demucs dans le venv voxcpm, OpenCV système, extras d'écoute d'earshot (torch CPU).
+- Ressources graphiques réutilisables dans le dépôt : `pitup/shared-assets/` (icône blanche, logo texte, slogan, polices Poppins, gsap) et `pitup/carousel-rdc/` (badges App Store et Google Play).
+- À redemander au fondateur : référence de la voix de la sœur, musiques (Tems « Me & U », Raindance, Drake…).

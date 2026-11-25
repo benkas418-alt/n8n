@@ -25,3 +25,12 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Vidéo des deux filles vues d'en haut (14 s) : angle inhabituel, main qui fonce sur l'objectif et le couvre (interruption), texte affiché tout de suite.
 - Application : ouvrir sur le présentateur qui s'avance vers la caméra et la couvre, le logo PitUp jaillit du noir, le tout en 3 s ; puis un article par plan, 2-3 s chacun.
 - Plans de ville (Snapchat, 25 nov.) : par la vitre d'une voiture (drapeau du Congo à la fin, 6 s) et dans un minibus (passagers de dos, 3,5 s). Mis de côté pour une autre vidéo, à étalonner.
+
+## Voix clonée, version 1 (25 nov.)
+
+- Référence : WA0031, voix isolée par demucs, 0 à 14,2 s, passe-haut 70 Hz, débruitage léger (afftdn −30), loudnorm −18. Fichier hors dépôt (`scratchpad/audio/gh/ref.wav`).
+- Style VoxCPM2 : « voix masculine jeune et dynamique, décontractée et souriante, comme un jeune qui parle à ses potes, claire et bien articulée, rythme vivant ».
+- « Yo les gars ! » seul est trop court : le modèle le déforme. Le fusionner avec la phrase suivante.
+- Hauteur médiane des prises retenues : environ 121 Hz (écart toléré ±25 Hz).
+- Script : « Yo, les gars ! Attendez… regardez-moi ça. / Un maillot de foot, tout propre. / Des baskets blanches, bien clean. / Et celles-là ? Franchement, elles sont lourdes. / Tout ça, c'est sur PitUp. / Plus de cent boutiques de Lubumbashi, direct dans ton téléphone. / Tu commandes, on te livre, et tu paies à la livraison. / Allez, télécharge l'appli. On se capte sur PitUp ! »
+- Aperçu envoyé au fondateur. Musique : fichiers perdus avec la réinitialisation, à redemander.
