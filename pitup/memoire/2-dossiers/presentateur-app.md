@@ -18,3 +18,10 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Voix : il renvoie les deux messages du 27 sept. (WA0031, WA0032, 50 s et 48 s).
 - Montage : cuts et transitions propres ; le passage où il s'approche de la caméra (« il zoome ») → le logo PitUp s'agrandit. En ouverture ou en fin ; en ouverture, rapide (hook ≈ 3 s).
 - **Attendre** sa vidéo sur « comment attirer l'attention » avant de monter.
+
+## Leçons d'accroche envoyées le 25 nov.
+
+- Vidéo « Croquette Saumon » (74 s) : phrase qui interpelle d'entrée (« Qu'est-ce que tu fais, frère ? ») + geste brusque vers la caméra ; il nomme le hook (« le but, c'est de vous attraper ») ; un changement de décor ou de plan toutes les 2-3 s ; bruitages marqués ; curiosité entretenue.
+- Vidéo des deux filles vues d'en haut (14 s) : angle inhabituel, main qui fonce sur l'objectif et le couvre (interruption), texte affiché tout de suite.
+- Application : ouvrir sur le présentateur qui s'avance vers la caméra et la couvre, le logo PitUp jaillit du noir, le tout en 3 s ; puis un article par plan, 2-3 s chacun.
+- Plans de ville (Snapchat, 25 nov.) : par la vitre d'une voiture (drapeau du Congo à la fin, 6 s) et dans un minibus (passagers de dos, 3,5 s). Mis de côté pour une autre vidéo, à étalonner.
