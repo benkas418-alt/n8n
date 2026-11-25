@@ -1,0 +1,25 @@
+"""Changes made with the owner, in plain French, for the weekly report.
+
+One entry for each change that alters what he sees or bets: the date it went live and one or
+two sentences on what changed and why. The weekly report lists the entries of its week. Add an
+entry with each decision of docs/DECISIONS.md that changes the tickets, the site or the model.
+"""
+
+from datetime import date
+
+NEWS: list[tuple[str, str]] = [
+    ("2026-11-21", ("Le site affiche des anneaux de résultats, une barre par ticket et un bouton "
+                   "« Copier le ticket ».")),
+    ("2026-11-21", ("Le DC 2UP ne va plus dans les tickets, à ta demande. Les paris « pas de nul » nomment "
+                   "maintenant les deux équipes, par exemple « Betis ou Real Madrid (pas de nul) ».")),
+    ("2026-11-21", ("Manchester City, Chelsea et Aston Villa ne vont plus dans les tickets : tu les trouves "
+                   "trop instables. Leurs matchs restent visibles dans Matchs.")),
+    ("2026-11-25", ("Le courriel des tickets explique chaque match : le style des deux équipes, leur forme, "
+                   "et pourquoi le modèle a choisi ce pari plutôt que la victoire simple. Ce bilan compare "
+                   "aussi chaque semaine à la précédente et dit pourquoi un pari a perdu.")),
+]
+
+
+def news_between(start: date, end: date) -> list[str]:
+    """Entries dated from `start` to `end`, oldest first."""
+    return [text for day, text in NEWS if start.isoformat() <= day <= end.isoformat()]

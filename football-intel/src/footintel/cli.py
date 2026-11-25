@@ -343,7 +343,15 @@ def cmd_email_tickets(args, settings, engine):
     from footintel.notify.email import send_report
     from footintel.notify.tickets import local_today, tickets_text
 
-    subject, body = tickets_text(tickets(), local_today())
+    data = tickets()
+    briefs = {}
+    if data.get("days"):
+        from footintel.notify.briefs import match_briefs
+
+        # D97: only the matches of the tickets of the day the e-mail shows (at most the first two days).
+        ids = sorted({x["match_id"] for d in data["days"][:2] for t in d["tickets"] for x in t["legs"]})
+        briefs = match_briefs(engine, ids)
+    subject, body = tickets_text(data, local_today(), briefs)
     from footintel.agents.analysts import latest
 
     lec = latest(settings.artifacts_dir, local_today())
