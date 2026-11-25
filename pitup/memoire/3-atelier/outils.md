@@ -84,3 +84,15 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - Le scratchpad, les fichiers envoyés (musiques, voix de référence de la sœur) et les outils installés ont disparu. Réinstallé : `installer.sh voix` + `son`, demucs dans le venv voxcpm, OpenCV système, extras d'écoute d'earshot (torch CPU).
 - Ressources graphiques réutilisables dans le dépôt : `pitup/shared-assets/` (icône blanche, logo texte, slogan, polices Poppins, gsap) et `pitup/carousel-rdc/` (badges App Store et Google Play).
 - À redemander au fondateur : référence de la voix de la sœur, musiques (Tems « Me & U », Raindance, Drake…).
+
+## Inventaire du dépôt (25 nov.) : ce qui n'est PAS perdu
+
+- Logos de 24 boutiques : `pitup/videos/pitup-story/assets/shops/` (+ `names.json`). Autres logos : `pitup/tools/shoplogo.cjs <nom>` les cherche sur pi-tup.com.
+- Écrans de l'appli : `appshot.cjs` (accueil, marketplace, shopping, produit, boutique), `cartshot.cjs`, `loginshot.cjs`, `cardlogo.cjs` capturent pi-tup.com en vue mobile (site joignable depuis le conteneur). Ce sont des captures fixes : un enregistrement d'écran filmé reste à demander.
+- Photos réelles et articles : `pitup/videos/pitup-story/assets/real/` et `st/`.
+- Voix : `phones.py` (phonèmes, pour vérifier « pit-ap »), `voice_human.py`, `prep_soeur.py`, `room_tail.py`, `add_breath.py`, `wiener_denoise.py`, `voice_qa.sh`, `vox_cont*.py`.
+- Mixage et rythme : `mix_duck.py`, `mix_bed.py`, `beats*.py`, `music.py`.
+- Téléphone 3D : `glbshot.cjs` (le modèle .glb n'est pas dans le dépôt).
+- Notes marketing du 21 nov. (présentes seulement sur master) : copiées dans `2-dossiers/marketing-et-motion.md`.
+- Aucune autre branche distante ne contient de fichier PitUp absent de notre branche, à part `ccr-66613461-5optll` (`pitup/tiktok-veille/`, un workflow de veille TikTok).
+

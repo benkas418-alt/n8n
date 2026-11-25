@@ -39,6 +39,7 @@ Ces fichiers sont à redemander au fondateur (liste dans `3-atelier/outils.md`, 
 - `2-dossiers/motion-congolais.md` : motion « congolais » (typographie animée calée sur le son).
 - `2-dossiers/voix-off.md` : la voix de la sœur, la recette validée, les pièges.
 - `2-dossiers/images-et-plans.md` : quelles images utiliser, lesquelles sont refusées, sources libres.
+- `2-dossiers/marketing-et-motion.md` : notes marketing et règles d'animation tirées de 7 publications Instagram (21 nov.).
 - `2-dossiers/textes-et-descriptions.md` : règles d'écriture, descriptions TikTok, dernière description livrée.
 - `2-dossiers/descriptions-a-copier.md`, `kit-publication-*.md` : textes déjà livrés.
 - `2-dossiers/historique-complet.md` : l'ancien `MEMORY.md` (623 lignes), journal détaillé de tout ce qui a été fait depuis octobre 2026. À consulter par recherche de mot clé, pas à lire en entier.

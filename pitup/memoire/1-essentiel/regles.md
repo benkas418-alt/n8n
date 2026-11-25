@@ -78,3 +78,4 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Dépôt public : ni voix, ni musique, ni vidéo de tiers, ni capture de vrais utilisateurs.
 - Ne pas mettre son adresse électronique dans une requête vers un service extérieur. Ne jamais lui demander de coller un secret dans la discussion.
 - Pousser seulement sur la branche de la session. Pas de pull request sans demande explicite.
+- **Inventaire avant de demander.** Avant de dire au fondateur qu'un fichier ou un outil manque, chercher dans le dépôt (`pitup/`, `git ls-tree` sur toutes les branches distantes) puis dans le conteneur. Ne lui demander que ce qui n'est nulle part (25 nov.).

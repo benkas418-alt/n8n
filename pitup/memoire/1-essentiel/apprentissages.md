@@ -7,6 +7,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 ## 2026-11-25
 
 - **Voix du présentateur ratée.** « La voix n'est pas identique… au timbre de sa voix. Ensuite, dans la prononciation de PitUp… il dit Pito… c'est bizarre… Tu as un peu raté. » Cause (interprétation) : consigne de style qui écrase le timbre + référence trop débruitée ; « PitUp » écrit tel quel est mal lu. Retenu : pour cloner une personne réelle, mode continuation (extrait + texte exact), pas de consigne de style, référence peu traitée, choix des prises par ressemblance mesurée à sa vraie voix ; écrire PitUp de façon à obtenir « pit-ap ». Rangé : `2-dossiers/presentateur-app.md`.
+- **Inventaire.** « Pour les outils, ne vérifie pas simplement l'environnement cloud de Claude. Vérifie aussi le dépôt GitHub. » Retenu : avant de dire qu'il manque quelque chose, chercher dans le dépôt (`pitup/`, toutes les branches distantes) et dans le conteneur. Le 25 nov., j'avais déclaré perdus les logos de boutiques et les écrans de l'appli : les logos sont dans le dépôt et les écrans se refont depuis pi-tup.com. Rangé : `regles.md`, `3-atelier/outils.md`.
 
 ## 2026-11-19
 
