@@ -277,7 +277,7 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
             legs = match_legs(m, journal)
             base = {"match_id": m["id"], "match": f"{m['home']} – {m['away']}", "kickoff_utc": m.get("kickoff_utc"),
                     "competition": m["competition"], "followed": is_followed(m), "source": m.get("source", "marché"),
-                    "scenarios": m.get("scenarios", []),
+                    "scenarios": m.get("scenarios", []), "p1": m["p1"], "p2": m["p2"],
                     "ticket_ok": not {m["home"], m["away"]} & NOT_IN_TICKETS_TEAMS}
             rows.append(base | {"alternatives": legs})
         pool_all = [{k: v for k, v in r.items() if k not in ("alternatives", "scenarios")} | x for r in rows for x in r["alternatives"]]

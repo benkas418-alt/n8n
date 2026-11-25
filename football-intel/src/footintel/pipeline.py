@@ -45,12 +45,16 @@ def _notify(settings: Settings, title: str, report_paths) -> None:
 def _email_weekly(engine: Engine, settings: Settings, report_paths, retrained: bool) -> bool:
     """D80: the e-mail body is the week in plain words; the technical report is attached."""
     from footintel.analysis.bilan import forecast_results, ticket_results
+    from footintel.analysis.scenario_adjust import load as load_scenarios
     from footintel.notify.email import email_weekly
     from footintel.notify.tickets import local_today
     from footintel.reports.plain_week import plain_week
 
-    subject, body = plain_week(ticket_results(engine, settings.artifacts_dir), forecast_results(engine),
-                               local_today(), retrained)
+    # D97: two weeks of tickets and four weeks of forecasts, to compare with the weeks before.
+    today = local_today()
+    subject, body = plain_week(ticket_results(engine, settings.artifacts_dir, days=14, today=today),
+                               forecast_results(engine, days=28, today=today), today, retrained,
+                               load_scenarios(settings.artifacts_dir))
     return email_weekly(settings, report_paths, body, subject)
 
 
