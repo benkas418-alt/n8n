@@ -4,6 +4,10 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-25
+
+- **Voix du présentateur ratée.** « La voix n'est pas identique… au timbre de sa voix. Ensuite, dans la prononciation de PitUp… il dit Pito… c'est bizarre… Tu as un peu raté. » Cause (interprétation) : consigne de style qui écrase le timbre + référence trop débruitée ; « PitUp » écrit tel quel est mal lu. Retenu : pour cloner une personne réelle, mode continuation (extrait + texte exact), pas de consigne de style, référence peu traitée, choix des prises par ressemblance mesurée à sa vraie voix ; écrire PitUp de façon à obtenir « pit-ap ». Rangé : `2-dossiers/presentateur-app.md`.
+
 ## 2026-11-19
 
 - **Cadence de la voix.** « La première phrase… beaucoup trop aigu… Je ne demande pas de changer, je demande de régénérer la voix pour qu'elle suive la même cadence. » Retenu : contrôler hauteur et débit de chaque phrase par rapport au reste du film avant de livrer. Rangé : `2-dossiers/voix-off.md`.
