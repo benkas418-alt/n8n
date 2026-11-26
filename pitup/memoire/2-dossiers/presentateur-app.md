@@ -91,3 +91,9 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 
 - Accroche refaite : rush `hook` = G1 21,3 à 24,8 s (il vient de découvrir l'objectif, parle face caméra, puis pose pouce et index près de l'écran et les écarte comme pour zoomer). Pincement fermé vers 2,45–2,5 s du plan, point (600, 1090) ; doigts écartés à 2,75 s. Le logo naît au point de pincement à 2,5 s, grandit dans l'ouverture des doigts (centre (300, 950), échelle 2,2) jusqu'à 2,75 s, puis remplit l'écran en bleu jusqu'à la coupe vers le maillot (3,34 s).
 - Sons : seulement le vrai déclic photo Mixkit 1432 à chaque changement de plan (logo → maillot, maillot → baskets blanches, → noires, → portable, → téléphone, → fin) et le vrai clavier sur « Tu commandes, ». Musique Drake inchangée. −14,6 LUFS.
+
+## Montage v5 (26 nov.)
+
+- Geste au ralenti : plan `hook` de 2,40 à 2,95 s joué 3 fois plus lentement (`minterpolate` mci). Logo posé image par image (`KEYS` dans `build_gh.py`) : né au contact des doigts (755, 1296), suit la remontée du pincement, grandit avec l'écartement, puis reste centré (540, 960) dans l'ouverture, à l'écart de l'index ; ensuite il remplit l'écran et on coupe sur le maillot (4,39 s). Le texte du maillot attend le logo (silence de 1,85 s avant « Un maillot », la musique porte).
+- Déclics photo sur un changement de plan sur deux : logo → maillot, baskets blanches → noires, portable → téléphone.
+- 19,8 s, −14,5 LUFS environ.

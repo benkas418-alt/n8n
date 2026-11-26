@@ -25,7 +25,7 @@ def wd(i, word, k=0, after=0.0):   # whisper word start in voice file i, searche
 # voice pieces: (name, file, start, end, silence before)
 c = lambda i, t: round(cut_at(i, t), 3)
 PIECES = [("A1", 0, 0.0, c(0, 1.68), 0.05), ("A2", 0, c(0, 1.68), c(0, 2.68), 0.08), ("A3", 0, c(0, 2.68), c(0, 3.76), 0.05),
-          ("B", 0, c(0, 3.76), c(0, 5.55), 0.80), ("C", 0, c(0, 5.55), len(V[0]) / sr, 0.12),
+          ("B", 0, c(0, 3.76), c(0, 5.55), 1.85), ("C", 0, c(0, 5.55), len(V[0]) / sr, 0.12),
           ("D", 1, 0.0, c(1, 2.17), 0.16), ("E", 1, c(1, 2.17), len(V[1]) / sr, 0.14),
           ("F1", 2, 0.0, c(2, 0.78), 0.30), ("F2", 2, c(2, 0.78), c(2, 3.40), 0.12), ("G", 2, c(2, 3.40), len(V[2]) / sr, 0.40)]
 voice, place, t = [], {}, 0.0
@@ -42,15 +42,22 @@ def at(name, word=None, k=0):   # timeline time of a piece start or of a word in
 
 # 26 Nov. (founder): the logo is born between his thumb and index when he spreads them on the screen (zoom gesture),
 # grows with the gesture, then fills the screen. Hook rush = G1 21.3-24.8 s: fingers closed at 2.45-2.6 s, spread by 2.85 s.
-HOOK_PINCH, PINCH_XY, SPREAD_END, SPREAD_XY, SPREAD_SC = 2.5, (600, 1090), 2.75, (300, 950), 2.2
-LOGO0 = HOOK_PINCH
+# 26 Nov. (founder, v4): slow the gesture down, keep the logo centred between his fingers and following them.
+# Hook rush clip 2.40-2.95 s plays 3x slower (motion-interpolated). Finger keypoints read frame by frame on the graded
+# clip: (clip time, centre between thumb and index x, y, logo width / 300 from the finger spread).
+SLOW_A, SLOW_B, SLOW_F = 2.40, 2.95, 3.0
+def slow_t(c): return c if c <= SLOW_A else SLOW_A + SLOW_F * (min(c, SLOW_B) - SLOW_A) + max(0, c - SLOW_B)
+KEYS = [(2.45, 755, 1296, .12), (2.55, 800, 1134, .15), (2.62, 755, 1069, .22), (2.70, 670, 1225, 1.65),
+        (2.75, 500, 980, 2.2), (2.80, 540, 960, 2.4), (2.90, 540, 960, 2.5)]   # open: centred in the opening, clear of his index
+LOGO0 = slow_t(KEYS[0][0])
+FILL0 = slow_t(KEYS[-1][0])                # then the logo grows until its blue fills the screen
 CUT1 = at("B") - 0.08                    # logo -> jersey
 PH0 = at("F1") - 0.22                    # the app in a 3D phone: "Tu commandes, on te livre, paiement à la livraison"
 END0 = at("G") - 0.12                    # "Allez, télécharge l'appli": logo, stores
 D = round(place["G"][1] + 2.4, 2); n = int(D * sr)
 CUTS = [CUT1, at("C") - 0.06, at("D") - 0.06, at("E") - 0.06]
 # shots: (clip, timeline start, timeline end, clip time at start)
-SHOTS = [("hook", 0.0, CUT1, 0.0), ("maillot2", CUTS[0], CUTS[1], 0.85),
+SHOTS = [("hook", 0.0, CUT1, -1.0), ("maillot2", CUTS[0], CUTS[1], 0.85),
          ("blanches", CUTS[1], CUTS[2], 0.7), ("noires", CUTS[2], CUTS[3], 0.1), ("laptop", CUTS[3], PH0, 0.4)]
 # words on screen: (start, html, dark text on the light background); each stays until the next one
 WORDS = [(at("A1"), "Yo les gars !", 0, "pop"), (at("A2"), "Attendez…", 0, "pop"), (at("A3"), "Regardez ça !", 0, "pop"),
@@ -85,7 +92,7 @@ for i, o in enumerate(on[:-1]):
         q = kb[o:o + int(0.13 * sr)].copy(); q[-400:] *= np.linspace(1, 0, 400); q /= np.abs(q).max() + 1e-6; strokes.append(q)
 # 26 Nov. (founder): code-made thock / click / swish banned; a real camera click on each change of shot
 SH = load(f"{SP}/sfx/mk/1432.mp3")                                           # Mixkit 1432, click peak 0.31 s in
-for x in [CUT1] + CUTS[1:] + [PH0, END0]: add(x - 0.30, SH, 0.75)
+for x in ([CUT1] + CUTS[1:] + [PH0, END0])[::2]: add(x - 0.30, SH, 0.75)   # 1st, 3rd, 5th change (founder: alternate)
 for k, (a, h, dk, how) in enumerate(WORDS):
     if how == "type":
         for j, t_ in enumerate(TYPES[k]):
@@ -111,7 +118,13 @@ subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SP}/audio/gh_raw.wav", "
 
 # ---------------------------------------------------------------- shots, cut to their exact length
 os.makedirs(f"{P}/assets/cut", exist_ok=True)
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{P}/assets/rushf/hook.mp4", "-filter_complex",
+                f"[0]trim=0:{SLOW_A},setpts=PTS-STARTPTS[a];[0]trim={SLOW_A}:{SLOW_B},setpts={SLOW_F}*(PTS-STARTPTS),"
+                f"minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:vsbmc=1[b];[0]trim={SLOW_B},setpts=PTS-STARTPTS[c];[a][b][c]concat=n=3:v=1[v]",
+                "-map", "[v]", "-an", "-c:v", "libx264", "-crf", "15", "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30",
+                "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", f"{P}/assets/cut/0.mp4"], check=True)
 for j, (k, a, b, off) in enumerate(SHOTS):
+    if off < 0: continue
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{max(0, off):.3f}", "-i", f"{P}/assets/rushf/{k}.mp4", "-t", f"{b - a + 0.1:.3f}",
                     "-an", "-c:v", "libx264", "-crf", "15", "-preset", "medium", "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30",
                     "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", f"{P}/assets/cut/{j}.mp4"], check=True)
@@ -139,6 +152,10 @@ PHONE = (f'<div class="sh3" id="H"></div><div class="p3" id="Pp">{LAY}'
          f'<div class="fr" style="transform:translateZ({DZ / 2 + .5}px)"></div></div>'
          f'<video id="Vp" class="clip scr3" src="assets/scr/app.mp4" muted playsinline data-start="{PH0:.3f}" data-duration="{END0 - PH0:.3f}" data-track-index="6"></video>'
          f'<div class="g3" id="Gp"><b class="isl"></b></div>')
+# logo keyframes: born at the contact of his fingers, centred between them, size from their spread
+LOGO_JS = f'tl.set("#lt",{{x:{KEYS[0][1] - 540},y:{KEYS[0][2] - 960},scale:{KEYS[0][3]},rotation:0}},{LOGO0:.3f});' + "".join(
+    f'tl.to("#lt",{{x:{x1 - 540},y:{y1 - 960},scale:{s1},duration:{slow_t(c1) - slow_t(c0):.3f},ease:"none"}},{slow_t(c0):.3f});'
+    for (c0, x0, y0, s0), (c1, x1, y1, s1) in zip(KEYS, KEYS[1:]))
 doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=1080, height=1920">
 <script src="assets/gsap.min.js"></script><style>
 @font-face{{font-family:P;src:url(assets/fonts/poppins-600.woff2);font-weight:600}}
@@ -199,8 +216,8 @@ WORDS.forEach(([a,b,how],k)=>{{ const w="#w"+k;
 const L0={LOGO0:.3f}, C1={CUT1:.3f}, P0={PH0:.3f}, E0={END0:.3f};
 tl.set("#lg",{{opacity:1}},L0); tl.set("#lg",{{opacity:0}},C1); tl.set("#shade",{{opacity:0}},L0); tl.set("#shade",{{opacity:1}},C1);
 // born at the pinch point, follows the spread of the fingers to the centre, then fills the screen
-tl.fromTo("#lt",{{x:{PINCH_XY[0] - 540},y:{PINCH_XY[1] - 960},scale:.08,rotation:-10}},E({{x:{SPREAD_XY[0] - 540},y:{SPREAD_XY[1] - 960},scale:{SPREAD_SC},rotation:0,duration:{SPREAD_END - HOOK_PINCH:.2f},ease:"power2.out"}}),L0);
-tl.to("#lt",{{scale:9,borderRadius:"20px",duration:Math.max(.2,C1-{SPREAD_END:.2f}),ease:"power3.in"}},{SPREAD_END:.2f});
+{LOGO_JS}
+tl.to("#lt",{{x:0,y:0,scale:9,borderRadius:"20px",duration:Math.max(.2,C1-{FILL0:.3f}),ease:"power3.in"}},{FILL0:.3f});
 tl.to("#lt img",{{opacity:0,duration:.12}},C1-.14);
 // the app in a realistic 3D phone: one state drives body, screen and glass so they stay locked together
 tl.set("#app",{{opacity:1}},P0); tl.set("#app",{{opacity:0}},E0); tl.set("#shade",{{opacity:0}},P0);
@@ -225,4 +242,4 @@ tl.set({{}},{{}},{D}); window.__timelines=window.__timelines||{{}}; window.__tim
 open(f"{P}/index.html", "w").write(doc)
 for nm, (s, e, i, f0) in place.items(): print(f"voice {nm:3s} {s:6.2f}-{e:6.2f}")
 for s in SHOTS: print("shot", s)
-print("logo", round(LOGO0, 2), "cut1", round(CUT1, 2), "phone", round(PH0, 2), "end", round(END0, 2), "D", D)
+print("fill", round(FILL0, 2), "logo", round(LOGO0, 2), "cut1", round(CUT1, 2), "phone", round(PH0, 2), "end", round(END0, 2), "D", D)
