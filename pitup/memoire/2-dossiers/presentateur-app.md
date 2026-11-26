@@ -62,3 +62,12 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Prises retenues : f_0_1, f_1_1, g_0_3. Ressemblance 0,867 (v2 : 0,875). Texte entièrement juste, « PitUp » entendu « PITAP ».
 - Choix : `tr_dir.py` (texte), `score_clone.py` (ressemblance), `voice_chop.py` (haché). Écarter « tu perds la livraison », « on s'est capté », un « Pitap ? » qui monte en question.
 - **Piège ffmpeg** : avec `-ss` placé après `-i`, les temps des filtres (`afade … st=`) restent ceux du fichier d'origine ; mon fondu de fin a rendu deux amorces muettes, et une amorce muette fait dérailler VoxCPM2 (20 s de bruit). Mettre `-ss`/`-to` **avant** `-i` et vérifier le volume de l'amorce (`volumedetect`).
+
+## Montage v1 (26 nov., sans musique)
+
+- Le fondateur répond « Okay » à la voix v3 (sans pourcentage) : pris comme un accord pour monter.
+- `pitup/tools/build_gh.py` → projet `hf/videos/pitup-gh`, 19,0 s. Rushs réétalonnés ensemble (`match_grade.py`) avec deux nouveaux plans tirés de G1 : `hook` (15,9 à 19,2 s, main sur l'objectif à 3,07 s) et `close2` (26,1 à 29,2 s, main sur l'objectif à 2,93 s). Dans G1, la main couvre l'objectif de 19,0 à 20,8 s puis à partir de 29,0 s (temps ffmpeg).
+- Déroulé : « Yo les gars ! Attendez… Regardez ça ! » (il s'avance, couvre l'objectif) → logo PitUp 2D qui grandit sur le noir à 2,65 s, son du logo → maillot (souffle) → baskets blanches (déclic + flash) → baskets noires (déclic + flash) → au portable « C'est sur PitUp / Tu commandes » (souffle) → il s'approche « on te livre / Paiement à la livraison » → « Allez, télécharge l'appli. On se capte ! », main sur l'objectif → fin bleue : logo, PitUp, slogan, pi-tup.com, « Disponible sur », badges.
+- Sons Mixkit choisis avec `earshot rank` : souffle 1491, déclic 1432, carillon du logo 2573.
+- Textes : blancs sur dégradé sombre en haut, 1 à 3 mots, « Paiement à la livraison » sur 2 lignes.
+- −14,6 LUFS (voix et sons seuls). Musique à ajouter : `BED=<fichier> python build_gh.py`.
