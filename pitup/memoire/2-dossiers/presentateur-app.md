@@ -86,3 +86,8 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Musique : Drake, son coup d'orchestre (7,34 s du morceau) sur le logo du début (`HIT=7.34`). −18 dB sous la voix, −21 dB pendant l'appel à l'action, −2 dB une fois la voix finie, fondu final 0,8 s. Ne pas remonter la musique à l'arrivée du logo de fin : il arrive sur la dernière phrase, et à −8 dB Whisper n'entendait plus « On se capte sur PitUp ».
 - Sons : coup sourd sur les mots qui surgissent (« Lourdes ! » plus grave), déclic sec sur « Un maillot », « Des baskets blanches », « Et celles-là ? », « Paiement à la livraison » ; « Tu commandes, » tapé lettre à lettre avec le clavier ; glissé + coup sur les deux logos ; glissé sur l'entrée du maillot et du téléphone.
 - Commande : `BED=scratchpad/audio/drake.wav python pitup/tools/build_gh.py`. 18,7 s, −14,5 LUFS, crête −1,9 dB. Texte entièrement juste à la retranscription du mix final.
+
+## Montage v4 (26 nov.)
+
+- Accroche refaite : rush `hook` = G1 21,3 à 24,8 s (il vient de découvrir l'objectif, parle face caméra, puis pose pouce et index près de l'écran et les écarte comme pour zoomer). Pincement fermé vers 2,45–2,5 s du plan, point (600, 1090) ; doigts écartés à 2,75 s. Le logo naît au point de pincement à 2,5 s, grandit dans l'ouverture des doigts (centre (300, 950), échelle 2,2) jusqu'à 2,75 s, puis remplit l'écran en bleu jusqu'à la coupe vers le maillot (3,34 s).
+- Sons : seulement le vrai déclic photo Mixkit 1432 à chaque changement de plan (logo → maillot, maillot → baskets blanches, → noires, → portable, → téléphone, → fin) et le vrai clavier sur « Tu commandes, ». Musique Drake inchangée. −14,6 LUFS.

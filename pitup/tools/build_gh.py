@@ -3,9 +3,9 @@
 # v2 (26 Nov., founder): no sound effects from a sound bank ("ça donne IA", chime refused) -> voice (and music) only
 # until the real sounds of his reference videos are back; no shot that repeats an earlier gesture (the second lens
 # cover is gone); to fill, show the app in a realistic 3D phone (pi-tup.com recording, prices hidden) or the PitUp logo.
-# v3 (26 Nov., founder): sounds = the launch film v5 sound design, rebuilt with the same code (thock on a popping word,
-# dry click on a phrase that lands at once, swish on entries, real keyboard strokes on a typed word, swish + thock on the
-# logo); music "What Did I Miss?" (Drake), its orchestra hit (7.34 s into the song) on the hook logo.
+# v4 (26 Nov., founder): the code-made thock / click / swish of the launch film are banned; the only sounds are a real
+# camera click (Mixkit 1432) on each change of shot and real keyboard strokes on the typed word. Music "What Did I Miss?"
+# (Drake), its orchestra hit (7.34 s into the song) on the hook logo.
 # usage: build_gh.py   (env BED=<music wav> HIT=7.34 MUS_DB=-17 LOGO_DB=-8 for the music; without BED: voice only)
 import json, os, subprocess, numpy as np, soundfile as sf, librosa
 from scipy.signal import butter, sosfilt
@@ -40,15 +40,17 @@ def at(name, word=None, k=0):   # timeline time of a piece start or of a word in
     s, e, i, f0 = place[name]
     return s if word is None else round(s + wd(i, word, k, f0) - f0, 3)
 
-LOGO0 = place["A3"][1] + 0.02            # the lens is covered: logo grows out of the black
+# 26 Nov. (founder): the logo is born between his thumb and index when he spreads them on the screen (zoom gesture),
+# grows with the gesture, then fills the screen. Hook rush = G1 21.3-24.8 s: fingers closed at 2.45-2.6 s, spread by 2.85 s.
+HOOK_PINCH, PINCH_XY, SPREAD_END, SPREAD_XY, SPREAD_SC = 2.5, (600, 1090), 2.75, (300, 950), 2.2
+LOGO0 = HOOK_PINCH
 CUT1 = at("B") - 0.08                    # logo -> jersey
 PH0 = at("F1") - 0.22                    # the app in a 3D phone: "Tu commandes, on te livre, paiement à la livraison"
 END0 = at("G") - 0.12                    # "Allez, télécharge l'appli": logo, stores
 D = round(place["G"][1] + 2.4, 2); n = int(D * sr)
 CUTS = [CUT1, at("C") - 0.06, at("D") - 0.06, at("E") - 0.06]
-HOOK_BLACK = 3.07                        # frame where his hand fully covers the lens
 # shots: (clip, timeline start, timeline end, clip time at start)
-SHOTS = [("hook", 0.0, LOGO0, HOOK_BLACK - LOGO0), ("maillot2", CUTS[0], CUTS[1], 0.85),
+SHOTS = [("hook", 0.0, CUT1, 0.0), ("maillot2", CUTS[0], CUTS[1], 0.85),
          ("blanches", CUTS[1], CUTS[2], 0.7), ("noires", CUTS[2], CUTS[3], 0.1), ("laptop", CUTS[3], PH0, 0.4)]
 # words on screen: (start, html, dark text on the light background); each stays until the next one
 WORDS = [(at("A1"), "Yo les gars !", 0, "pop"), (at("A2"), "Attendez…", 0, "pop"), (at("A3"), "Regardez ça !", 0, "pop"),
@@ -76,36 +78,18 @@ for s, y in voice:
 fx = np.zeros(n, np.float32); rng = np.random.default_rng(7)
 def add(t0, s, g):
     i = int(t0 * sr); s = s[:max(0, n - i)]; fx[i:i + len(s)] += g * s
-def thock(f0, dur=0.2, tau=0.05):   # launch film v5: short pitched body + noise transient
-    tt = np.arange(int(dur * sr)) / sr; f = f0 + 1.6 * f0 * np.exp(-tt / 0.018)
-    body = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-tt / tau)
-    nz = np.convolve(rng.standard_normal(len(tt)) * np.exp(-tt / 0.004), np.ones(12) / 12, "same")
-    return (body + 0.35 * nz).astype(np.float32)
-def click():   # dry shutter-like click: two short filtered noise bursts
-    L = int(0.09 * sr); o = np.zeros(L, np.float32); s2 = butter(2, [1800, 7000], "bandpass", fs=sr, output="sos")
-    for d in (0, int(0.045 * sr)):
-        b = rng.standard_normal(int(0.012 * sr)).astype(np.float32) * np.exp(-np.arange(int(0.012 * sr)) / (0.003 * sr)); o[d:d + len(b)] += sosfilt(s2, b)
-    return o / (np.abs(o).max() + 1e-6)
-def swish(dur, f1, f2):
-    L = int(dur * sr); nz = rng.standard_normal(L).astype(np.float32); o = np.zeros(L, np.float32)
-    for j in range(0, L, 1200):
-        fc = f1 + (f2 - f1) * j / L; s2 = butter(2, [fc * 0.7, fc * 1.4], "bandpass", fs=sr, output="sos"); o[j:j + 1200] = sosfilt(s2, nz[j:j + 1200])
-    return o * np.sin(np.linspace(0, np.pi, L)) ** 2 / (np.abs(o).max() + 1e-6)
 kb, _ = librosa.load(f"{SP}/sfx/kb/1387.mp3", sr=sr); on = librosa.onset.onset_detect(y=kb, sr=sr, units="samples", backtrack=True)
 strokes = []
 for i, o in enumerate(on[:-1]):
     if on[i + 1] - o > int(0.16 * sr) and (i == 0 or o - on[i - 1] > int(0.1 * sr)):
         q = kb[o:o + int(0.13 * sr)].copy(); q[-400:] *= np.linspace(1, 0, 400); q /= np.abs(q).max() + 1e-6; strokes.append(q)
+# 26 Nov. (founder): code-made thock / click / swish banned; a real camera click on each change of shot
+SH = load(f"{SP}/sfx/mk/1432.mp3")                                           # Mixkit 1432, click peak 0.31 s in
+for x in [CUT1] + CUTS[1:] + [PH0, END0]: add(x - 0.30, SH, 0.75)
 for k, (a, h, dk, how) in enumerate(WORDS):
-    if how == "pop": add(a, thock(70 if "Lourdes" in h else 95), 0.30 if "Lourdes" in h else 0.24)
-    if how == "cam": add(a, click(), 0.22); add(a, thock(120, 0.12, 0.03), 0.12)
     if how == "type":
         for j, t_ in enumerate(TYPES[k]):
             if h[j] != " ": add(t_, strokes[(j * 5 + 2) % len(strokes)], 0.26)
-add(LOGO0 - 0.40, swish(0.45, 600, 3500), 0.22); add(LOGO0, thock(110, 0.15, 0.03), 0.30)      # hook logo
-add(CUT1 - 0.12, swish(0.32, 900, 3200), 0.16)                                                # logo -> jersey
-add(PH0 - 0.10, swish(0.32, 900, 3200), 0.16)                                                 # the phone comes in
-add(END0 - 0.45, swish(0.6, 600, 3500), 0.22); add(END0, thock(110, 0.15, 0.03), 0.28)        # end logo
 mix = vox + fx
 BED = os.environ.get("BED")
 if BED:   # launch film recipe: -17 dB under the film, -8 dB from the end logo, -2 dB once the voice is over
@@ -167,7 +151,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
    white-space:nowrap;text-shadow:0 4px 30px rgba(0,0,0,.45);opacity:0;z-index:12}}
 .w .in{{display:inline-block}} .w .k{{display:inline-block;opacity:0}} .w a{{color:#8fd0ff;text-decoration:none}}
 .w.dk{{color:#0d1b2a;text-shadow:none;top:200px}} .w.dk a{{color:#1f88c9}}
-#lg{{position:absolute;inset:0;background:#000;opacity:0;z-index:10}}
+#lg{{position:absolute;inset:0;opacity:0;z-index:10}}
 .tile{{position:absolute;left:390px;top:810px;width:300px;height:300px;border-radius:82px;background:#1f88c9;display:flex;align-items:center;justify-content:center}}
 .tile img{{width:178px}}
 #app{{position:absolute;inset:0;background:radial-gradient(110% 70% at 80% 0%,#ffffff 0%,#f3f7fb 50%,#e4eef7 100%);opacity:0;z-index:5}}
@@ -214,8 +198,9 @@ WORDS.forEach(([a,b,how],k)=>{{ const w="#w"+k;
 // hook: the 2D logo grows out of the black, then its blue fills the screen and the jersey cuts in
 const L0={LOGO0:.3f}, C1={CUT1:.3f}, P0={PH0:.3f}, E0={END0:.3f};
 tl.set("#lg",{{opacity:1}},L0); tl.set("#lg",{{opacity:0}},C1); tl.set("#shade",{{opacity:0}},L0); tl.set("#shade",{{opacity:1}},C1);
-tl.fromTo("#lt",{{scale:.2,rotation:-12}},E({{scale:1,rotation:0,duration:.38,ease:"back.out(2)"}}),L0);
-tl.to("#lt",{{scale:9,borderRadius:"20px",duration:Math.max(.2,C1-L0-.42),ease:"power3.in"}},L0+.42);
+// born at the pinch point, follows the spread of the fingers to the centre, then fills the screen
+tl.fromTo("#lt",{{x:{PINCH_XY[0] - 540},y:{PINCH_XY[1] - 960},scale:.08,rotation:-10}},E({{x:{SPREAD_XY[0] - 540},y:{SPREAD_XY[1] - 960},scale:{SPREAD_SC},rotation:0,duration:{SPREAD_END - HOOK_PINCH:.2f},ease:"power2.out"}}),L0);
+tl.to("#lt",{{scale:9,borderRadius:"20px",duration:Math.max(.2,C1-{SPREAD_END:.2f}),ease:"power3.in"}},{SPREAD_END:.2f});
 tl.to("#lt img",{{opacity:0,duration:.12}},C1-.14);
 // the app in a realistic 3D phone: one state drives body, screen and glass so they stay locked together
 tl.set("#app",{{opacity:1}},P0); tl.set("#app",{{opacity:0}},E0); tl.set("#shade",{{opacity:0}},P0);
