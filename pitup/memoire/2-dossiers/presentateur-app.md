@@ -97,3 +97,7 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Geste au ralenti : plan `hook` de 2,40 à 2,95 s joué 3 fois plus lentement (`minterpolate` mci). Logo posé image par image (`KEYS` dans `build_gh.py`) : né au contact des doigts (755, 1296), suit la remontée du pincement, grandit avec l'écartement, puis reste centré (540, 960) dans l'ouverture, à l'écart de l'index ; ensuite il remplit l'écran et on coupe sur le maillot (4,39 s). Le texte du maillot attend le logo (silence de 1,85 s avant « Un maillot », la musique porte).
 - Déclics photo sur un changement de plan sur deux : logo → maillot, baskets blanches → noires, portable → téléphone.
 - 19,8 s, −14,5 LUFS environ.
+
+## Montage v6 (26 nov.)
+
+- Retour sur la v5 : le logo apparaissait trop tôt, petit, pendant le pincement fermé. Maintenant il naît à 3,05 s (début de l'écartement, timeline ralentie), au point de séparation (690, 1060), et grandit avec l'écart des doigts : (3,20 s, 740, 1110, ×1,5), (3,30 s, 730, 1160, ×1,7), (3,40 s, 540, 1160, ×1,85), puis reste sous le bout de l'index et à droite du pouce (420, 1060, ×1,85) jusqu'à 3,90 s ; ensuite il remplit l'écran (coupe à 4,39 s). Le coup d'orchestre de Drake suit la naissance du logo.

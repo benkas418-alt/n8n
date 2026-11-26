@@ -47,10 +47,13 @@ def at(name, word=None, k=0):   # timeline time of a piece start or of a word in
 # clip: (clip time, centre between thumb and index x, y, logo width / 300 from the finger spread).
 SLOW_A, SLOW_B, SLOW_F = 2.40, 2.95, 3.0
 def slow_t(c): return c if c <= SLOW_A else SLOW_A + SLOW_F * (min(c, SLOW_B) - SLOW_A) + max(0, c - SLOW_B)
-KEYS = [(2.45, 755, 1296, .12), (2.55, 800, 1134, .15), (2.62, 755, 1069, .22), (2.70, 670, 1225, 1.65),
-        (2.75, 500, 980, 2.2), (2.80, 540, 960, 2.4), (2.90, 540, 960, 2.5)]   # open: centred in the opening, clear of his index
-LOGO0 = slow_t(KEYS[0][0])
-FILL0 = slow_t(KEYS[-1][0])                # then the logo grows until its blue fills the screen
+# 26 Nov. (founder, v5): the logo must not show before the fingers open. It is born between thumb and index the
+# moment they start to separate and grows with the spread. Keypoints read on the slowed clip (timeline time, centre
+# between the two finger tips x, y, logo width / 300 ~ 0.38 x tip distance, capped so it stays between the tips).
+KEYS = [(3.05, 690, 1060, .10), (3.10, 680, 1090, .6), (3.20, 740, 1110, 1.5), (3.30, 730, 1160, 1.7),
+        (3.40, 540, 1160, 1.85), (3.50, 450, 1020, 1.85), (3.70, 420, 1060, 1.85), (3.90, 420, 1060, 1.85)]   # under the index tip, right of the thumb
+LOGO0 = KEYS[0][0]
+FILL0 = KEYS[-1][0]                        # fingers start to close again: the logo fills the screen
 CUT1 = at("B") - 0.08                    # logo -> jersey
 PH0 = at("F1") - 0.22                    # the app in a 3D phone: "Tu commandes, on te livre, paiement à la livraison"
 END0 = at("G") - 0.12                    # "Allez, télécharge l'appli": logo, stores
@@ -154,7 +157,7 @@ PHONE = (f'<div class="sh3" id="H"></div><div class="p3" id="Pp">{LAY}'
          f'<div class="g3" id="Gp"><b class="isl"></b></div>')
 # logo keyframes: born at the contact of his fingers, centred between them, size from their spread
 LOGO_JS = f'tl.set("#lt",{{x:{KEYS[0][1] - 540},y:{KEYS[0][2] - 960},scale:{KEYS[0][3]},rotation:0}},{LOGO0:.3f});' + "".join(
-    f'tl.to("#lt",{{x:{x1 - 540},y:{y1 - 960},scale:{s1},duration:{slow_t(c1) - slow_t(c0):.3f},ease:"none"}},{slow_t(c0):.3f});'
+    f'tl.to("#lt",{{x:{x1 - 540},y:{y1 - 960},scale:{s1},duration:{c1 - c0:.3f},ease:"none"}},{c0:.3f});'
     for (c0, x0, y0, s0), (c1, x1, y1, s1) in zip(KEYS, KEYS[1:]))
 doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=1080, height=1920">
 <script src="assets/gsap.min.js"></script><style>
