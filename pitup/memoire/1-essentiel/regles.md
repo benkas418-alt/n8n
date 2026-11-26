@@ -79,3 +79,5 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - Ne pas mettre son adresse électronique dans une requête vers un service extérieur. Ne jamais lui demander de coller un secret dans la discussion.
 - Pousser seulement sur la branche de la session. Pas de pull request sans demande explicite.
 - **Inventaire avant de demander.** Avant de dire au fondateur qu'un fichier ou un outil manque, chercher dans le dépôt (`pitup/`, `git ls-tree` sur toutes les branches distantes) puis dans le conteneur. Ne lui demander que ce qui n'est nulle part (25 nov.).
+- **Aucun bruitage de banque** (26 nov.) : souffles, carillons ou « pops » d'une banque de sons « donnent IA ». Seuls les sons tirés de ses vidéos de référence sont admis. S'ils ne sont pas disponibles, monter sans bruitage et le lui dire, au lieu de les remplacer.
+- **Un geste, une fois** (26 nov.) : ne pas reprendre un plan ou un geste déjà vu dans la même vidéo (ex. la main sur l'objectif au début et à la fin). Pour combler un passage : l'appli dans un téléphone 3D (enregistrement de pi-tup.com, prix masqués) ou le logo PitUp.

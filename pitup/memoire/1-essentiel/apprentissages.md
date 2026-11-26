@@ -4,6 +4,11 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-26
+
+- **Bruitages de banque refusés.** « Le bruitage que tu utilises, il est nul… ça donne IA. Tu utilises des sons de cloche… on en a déjà parlé. » Cause : les vrais sons tirés de ses références (perdus avec la réinitialisation) remplacés en silence par des sons Mixkit (souffle 1491, carillon 2573). Retenu : jamais de son de banque à la place des sons de ses références ; s'ils manquent, ne mettre aucun bruitage et le lui dire. Rangé : `regles.md`.
+- **Pas deux fois le même geste.** « Au début… avec ses deux doigts, il augmente la taille du logo… et à la fin… on le voit faire un truc pareil, c'est pas bon. » Et : « les scènes où tu as essayé de combler avec des plans déjà utilisés, enlève-les. » Retenu : un geste fort (main sur l'objectif) une seule fois ; pour combler, montrer l'appli dans un téléphone ou le logo PitUp. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
+
 ## 2026-11-25
 
 - **Voix du présentateur ratée.** « La voix n'est pas identique… au timbre de sa voix. Ensuite, dans la prononciation de PitUp… il dit Pito… c'est bizarre… Tu as un peu raté. » Cause (interprétation) : consigne de style qui écrase le timbre + référence trop débruitée ; « PitUp » écrit tel quel est mal lu. Retenu : pour cloner une personne réelle, mode continuation (extrait + texte exact), pas de consigne de style, référence peu traitée, choix des prises par ressemblance mesurée à sa vraie voix ; écrire PitUp de façon à obtenir « pit-ap ». Rangé : `2-dossiers/presentateur-app.md`.

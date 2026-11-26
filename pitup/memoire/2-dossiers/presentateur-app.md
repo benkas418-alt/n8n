@@ -71,3 +71,11 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - Sons Mixkit choisis avec `earshot rank` : souffle 1491, déclic 1432, carillon du logo 2573.
 - Textes : blancs sur dégradé sombre en haut, 1 à 3 mots, « Paiement à la livraison » sur 2 lignes.
 - −14,6 LUFS (voix et sons seuls). Musique à ajouter : `BED=<fichier> python build_gh.py`.
+- **Retour sur le montage v1** (26 nov.) : bruitages refusés (« ça donne IA », carillon) ; les plans `close` et `close2` (il refait le geste vers l'objectif) refusés ; combler avec l'appli dans un téléphone ou le logo.
+
+## Montage v2 (26 nov., sans musique ni bruitage)
+
+- Plus aucun bruitage. Plus de flash. Plans `close`/`close2` retirés.
+- « Tout ça, c'est sur PitUp » : au portable. « Tu commandes, on te livre, paiement à la livraison » : téléphone 3D réaliste sur fond clair, écran = défilement de Shopping › Vêtements & Mode sur pi-tup.com. « Allez, télécharge l'appli… » : fin bleue (logo, PitUp, slogan, pi-tup.com, « Disponible sur » à « télécharge »). 18,7 s.
+- Capture de l'appli : `recordVideo` de Playwright ne filme qu'en 1x, dans un coin de l'image : à ne pas utiliser. Faire une capture image par image (`page.screenshot` à chaque pas de défilement de 9 px, facteur 2), puis assembler à 30 i/s. Les prix sont masqués par un script injecté (règle « aucun prix »). Fichiers hors dépôt (`scratchpad/app/`).
+- Encoder les plans avec `-g 30 -keyint_min 30` : sinon HyperFrames signale des images clés trop rares (risque d'image figée).
