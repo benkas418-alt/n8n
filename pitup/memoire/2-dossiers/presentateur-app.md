@@ -79,3 +79,10 @@ Demande : deux rushs (WA0033, WA0034, 34 s et 32 s, sans son) : un jeune homme �
 - « Tout ça, c'est sur PitUp » : au portable. « Tu commandes, on te livre, paiement à la livraison » : téléphone 3D réaliste sur fond clair, écran = défilement de Shopping › Vêtements & Mode sur pi-tup.com. « Allez, télécharge l'appli… » : fin bleue (logo, PitUp, slogan, pi-tup.com, « Disponible sur » à « télécharge »). 18,7 s.
 - Capture de l'appli : `recordVideo` de Playwright ne filme qu'en 1x, dans un coin de l'image : à ne pas utiliser. Faire une capture image par image (`page.screenshot` à chaque pas de défilement de 9 px, facteur 2), puis assembler à 30 i/s. Les prix sont masqués par un script injecté (règle « aucun prix »). Fichiers hors dépôt (`scratchpad/app/`).
 - Encoder les plans avec `-g 30 -keyint_min 30` : sinon HyperFrames signale des images clés trop rares (risque d'image figée).
+
+## Montage v3 (26 nov., musique et sons)
+
+- Fichiers reçus (hors dépôt, `scratchpad/inbox/sons/`) : Tems « Me & U », Drake « What Did I Miss? », film v5, motion « congolais » v3, référence « drench » (vidéo de tiers, 10,5 s, source de la bande-son du motion « congolais » : clics, coups, clavier ; ni souffle ni impact de logo, vérifié avec `earshot rank`).
+- Musique : Drake, son coup d'orchestre (7,34 s du morceau) sur le logo du début (`HIT=7.34`). −18 dB sous la voix, −21 dB pendant l'appel à l'action, −2 dB une fois la voix finie, fondu final 0,8 s. Ne pas remonter la musique à l'arrivée du logo de fin : il arrive sur la dernière phrase, et à −8 dB Whisper n'entendait plus « On se capte sur PitUp ».
+- Sons : coup sourd sur les mots qui surgissent (« Lourdes ! » plus grave), déclic sec sur « Un maillot », « Des baskets blanches », « Et celles-là ? », « Paiement à la livraison » ; « Tu commandes, » tapé lettre à lettre avec le clavier ; glissé + coup sur les deux logos ; glissé sur l'entrée du maillot et du téléphone.
+- Commande : `BED=scratchpad/audio/drake.wav python pitup/tools/build_gh.py`. 18,7 s, −14,5 LUFS, crête −1,9 dB. Texte entièrement juste à la retranscription du mix final.

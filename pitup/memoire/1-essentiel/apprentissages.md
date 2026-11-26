@@ -8,6 +8,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 - **Bruitages de banque refusés.** « Le bruitage que tu utilises, il est nul… ça donne IA. Tu utilises des sons de cloche… on en a déjà parlé. » Cause : les vrais sons tirés de ses références (perdus avec la réinitialisation) remplacés en silence par des sons Mixkit (souffle 1491, carillon 2573). Retenu : jamais de son de banque à la place des sons de ses références ; s'ils manquent, ne mettre aucun bruitage et le lui dire. Rangé : `regles.md`.
 - **Pas deux fois le même geste.** « Au début… avec ses deux doigts, il augmente la taille du logo… et à la fin… on le voit faire un truc pareil, c'est pas bon. » Et : « les scènes où tu as essayé de combler avec des plans déjà utilisés, enlève-les. » Retenu : un geste fort (main sur l'objectif) une seule fois ; pour combler, montrer l'appli dans un téléphone ou le logo PitUp. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
+- **Sons de référence renvoyés.** Il renvoie le film de lancement v5, le motion « congolais » v3 et la référence « drench » (16 nov.) : « des bruitages qu'on avait déjà faits… pour un rendu professionnel ». Musique : « What Did I Miss? » (Drake), choisie parmi Tems et Drake. « Fais d'abord, on voit le rendu. » Retenu : les sons du film v5 sont faits par le code de `build_launch3.py` (coup sourd, déclic sec, glissé) + vrai clavier Mixkit 1387 ; c'est cette palette qu'il approuve, pas les sons de banque Mixkit (souffle, carillon). Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
 
 ## 2026-11-25
 
