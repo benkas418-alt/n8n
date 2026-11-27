@@ -8,7 +8,7 @@ import pandas as pd
 from footintel.analysis.stories import CONFIRMED_FOR_MODEL, scenario_columns
 from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
 from footintel.models.baseline import EloPoisson, MarketImplied, NaiveFrequency, PoissonFeatures
-from footintel.models.ml import CORE_FEATURES, WITH_MARKET_FEATURES, logistic, random_forest, xgboost
+from footintel.models.ml import CORE_FEATURES, WITH_MARKET_FEATURES, logistic, neural_net, random_forest, xgboost
 
 MARKET_PROBS = ["mkt_p_home", "mkt_p_draw", "mkt_p_away"]
 
@@ -223,6 +223,9 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     "logreg_market": lambda: logistic(WITH_MARKET_FEATURES, "logreg_market"),
     "rf_core": lambda: random_forest(CORE_FEATURES, "rf_core"),
     "xgb_core": lambda: xgboost(CORE_FEATURES, "xgb_core"),
+    # D98: neural networks, without and with the bookmakers' odds as inputs.
+    "nn_core": lambda: neural_net(CORE_FEATURES, "nn_core"),
+    "nn_market": lambda: neural_net(WITH_MARKET_FEATURES, "nn_market"),
 }
 
 # Reference models are compared against, never deployed for predictions.
