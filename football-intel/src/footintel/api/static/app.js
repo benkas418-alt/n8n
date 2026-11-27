@@ -86,6 +86,15 @@ const isRate = (m) => RATE.has(m) || m.startsWith("score_") || m.startsWith("tot
 const esc = (s) => (window.frNames ? window.frNames(s) : String(s ?? "")).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pct = (v, d = 1) => (v == null ? "n/d" : `${(100 * v).toFixed(d)} %`);
 const num = (v, d = 2) => (v == null ? "n/d" : Number(v).toFixed(d));
+/* Public model names (D106). The weekly refits keep the public number; the owner decides
+   when Hermès gets a new number. Accepts "routed_competition v3" or a name and a version. */
+const MODEL_NAMES = { routed_competition: "Hermès 1.0", lgbm_market: "LightGBM", national_elo: "Modèle des sélections" };
+function modelName(name, version) {
+  if (name == null) return "aucun";
+  const m = String(name).match(/^(\S+) v(\d+)$/);
+  const key = m ? m[1] : String(name);
+  return MODEL_NAMES[key] || (version != null ? `${key} v${version}` : String(name));
+}
 const val = (m, v) => (isRate(m) ? pct(v) : num(v));
 const diff = (m, v) => (v == null ? "n/d" : isRate(m) ? `${v > 0 ? "+" : ""}${(100 * v).toFixed(1)} pts` : `${v > 0 ? "+" : ""}${Number(v).toFixed(2)}`);
 const fdate = (d) => (d ? new Date(d).toLocaleDateString("fr-FR") : "n/d");
@@ -216,7 +225,7 @@ async function overview() {
       <div class="kpi-value">${d.validated_effects}</div>
       <div class="kpi-note">Écarts à un modèle qui ignore la compétition, significatifs sur 2006-2020 et confirmés sur 2021-2026</div></div>
     <div class="card clickable" data-go="performance" tabindex="0"><div class="kpi-label">Modèle actif</div>
-      <div class="kpi-value" style="font-size:var(--fs-lg)">${esc(active.name)} v${active.version}</div>
+      <div class="kpi-value" style="font-size:var(--fs-lg)">${esc(modelName(active.name, active.version))}</div>
       <div class="kpi-note">Promu le ${fdate(active.promoted_at)} · entraîné sur ${(active.n_train || 0).toLocaleString("fr-FR")} matchs</div>
       <div class="meta">Calibration la moins bonne : ${worst ? esc(EVENT_FR[worst.segment.split(":").slice(2).join(":")]) + " (ECE " + num(worst.value, 3) + ")" : "n/d"}</div></div>
   </div>
@@ -665,7 +674,7 @@ function modelsCard(m, M, pr) {
   const names = [m.home, "Nul", m.away];
   const pick = (p) => p.indexOf(Math.max(...p));
   const rows = [];
-  if (M.active) rows.push({ label: M.active.label, p: M.active.p, note: "utilisé pour les tickets" });
+  if (M.active) rows.push({ label: M.active.label, p: M.active.p, note: "modèle des tickets" });
   M.side.forEach((s) => rows.push({ label: s.label, p: s.p, note: "affiché pour comparer" }));
   if (pr?.market?.every((v) => v != null)) rows.push({ label: "Bookmakers", p: pr.market, note: "cotes sans la marge" });
   const cell = (p, i) => `<td class="num">${i === pick(p) ? `<b>${pct(p[i], 0)}</b>` : pct(p[i], 0)}</td>`;
@@ -677,15 +686,15 @@ function modelsCard(m, M, pr) {
     const a = pick(M.active.p), b = pick(side.p);
     say = a === b
       ? `Les deux modèles voient le même résultat : <b>${esc(a === 1 ? "match nul" : `victoire de ${names[a]}`)}</b>.`
-      : `Les modèles ne sont pas d'accord : le modèle actuel voit <b>${esc(a === 1 ? "un nul" : names[a])}</b>, ${esc(side.label)} voit <b>${esc(b === 1 ? "un nul" : names[b])}</b>. Prudence sur ce match.`;
+      : `Les modèles ne sont pas d'accord : ${esc(M.active.label)} voit <b>${esc(a === 1 ? "un nul" : names[a])}</b>, ${esc(side.label)} voit <b>${esc(b === 1 ? "un nul" : names[b])}</b>. Prudence sur ce match.`;
   }
   const R = (M.record || []).find((r) => r.name === side.name);
   const rec = !R || !R.matches
     ? `<p class="meta">${esc(side.label)} vient d'être ajouté : son bilan apparaîtra après les premiers matchs joués.</p>`
-    : `<p class="meta">Sur les ${R.matches} matchs joués où les deux modèles avaient donné leur avis : modèle actuel ${R.active} bons résultats, ${esc(R.label)} ${R.side}${R.market_matches ? `, bookmakers ${R.market} sur ${R.market_matches}` : ""}. Ils étaient d'accord ${R.agree} fois.${R.note ? ` ${esc(R.note)}.` : ""}</p>`;
+    : `<p class="meta">Sur les ${R.matches} matchs joués où les deux modèles avaient donné leur avis : ${esc(M.active?.label || "Hermès 1.0")} ${R.active} bons résultats, ${esc(R.label)} ${R.side}${R.market_matches ? `, bookmakers ${R.market} sur ${R.market_matches}` : ""}. Ils étaient d'accord ${R.agree} fois.${R.note ? ` ${esc(R.note)}.` : ""}</p>`;
   return `<div class="card" style="margin-top:var(--space-4)"><h2>Ce que disent les modèles</h2>
     <p class="question">${say}</p>${table}${rec}
-    <p class="meta">En gras : le résultat le plus probable pour chacun. Seul le modèle actuel sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
+    <p class="meta">En gras : le résultat le plus probable pour chacun. Seul ${esc(M.active?.label || "Hermès 1.0")} sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
 }
 
 /* When a team scores and concedes, and what follows the first goal. */
@@ -763,7 +772,7 @@ function tabAnalysis(m, d, pr) {
       <div class="card"><h2>Fiabilité</h2>
         <p>${pr.sufficient_data ? '<span class="badge fact">données suffisantes</span>' : '<span class="badge falling">données insuffisantes</span>'}</p>
         <ul class="list">${(q.warnings || []).map((w) => `<li>${esc(w)}</li>`).join("") || "<li>Aucun avertissement.</li>"}</ul>
-        <p class="meta">${esc(pr.model)}, calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")}.</p></div></div>
+        <p class="meta">${esc(modelName(pr.model))}, calculé le ${new Date(pr.predicted_at).toLocaleString("fr-FR")}.</p></div></div>
       <div class="card"><h2>Facteurs de la prévision</h2><p class="question">Sur quoi repose cette estimation ?</p>
         ${fold("Voir les facteurs", `<table><tbody>${Object.entries(pr.factors).map(([k, v]) => `<tr><td>${esc(FACTOR_FR[k] || k)}</td><td class="num">${v == null ? "n/d" : k.startsWith("comp_") && k !== "comp_goals_mean" ? pct(v) : num(v, k.startsWith("elo") || k.startsWith("rest") || k.startsWith("games") ? 0 : 2)}</td></tr>`).join("")}</tbody></table>`, { inner: true, open: true })}</div></div>`;
   }
@@ -842,7 +851,7 @@ async function performance() {
   <div class="grid two" style="margin-top:16px">
     <div class="card"><h2>Historique des versions</h2><p class="question">Quand et pourquoi le modèle actif a-t-il changé ?</p>
       <div class="table-wrap"><table><thead><tr><th>Version</th><th>Statut</th><th>Créée</th><th>Promue</th><th>Décision</th></tr></thead><tbody>
-      ${d.versions.map((v) => `<tr><td>${esc(v.name)} v${v.version}</td><td><span class="badge ${v.status === "active" ? "fact" : "stable"}">${esc(v.status)}</span></td><td>${fdate(v.created_at)}</td><td>${fdate(v.promoted_at)}</td><td class="small">${esc(v.decision_note)}</td></tr>`).join("")}
+      ${d.versions.map((v) => `<tr><td>${esc(MODEL_NAMES[v.name] ? `${MODEL_NAMES[v.name]} · entraînement ${v.version}` : `${v.name} v${v.version}`)}</td><td><span class="badge ${v.status === "active" ? "fact" : "stable"}">${esc(v.status)}</span></td><td>${fdate(v.created_at)}</td><td>${fdate(v.promoted_at)}</td><td class="small">${esc(v.decision_note)}</td></tr>`).join("")}
       </tbody></table></div></div>
     <div class="card"><h2>Résultats en conditions réelles</h2><p class="question">Les prédictions enregistrées avant les matchs tiennent-elles ?</p>
       ${d.live.length ? `<table><thead><tr><th>Prédicteur</th><th>Marché</th><th class="num">n</th><th class="num">Log loss</th><th class="num">Réussite</th></tr></thead><tbody>${d.live.map((r) => `<tr><td>${esc(r.predictor_kind)} ${esc(r.model_name)}</td><td>${esc(r.market)}</td><td class="num">${r.n}</td><td class="num">${num(r.log_loss, 3)}</td><td class="num">${pct(r.accuracy, 0)}</td></tr>`).join("")}</tbody></table>`
@@ -961,7 +970,7 @@ async function admin() {
         <td><button class="btn ghost" style="white-space:nowrap" data-run="${esc(k)}">Lancer maintenant</button></td><td class="small" id="run-${esc(k)}">${esc(d.running[k]?.status || "")}</td></tr>`).join("")}</tbody></table>
       <p class="small muted">Un cycle déjà en cours (manuel ou planifié) est refusé grâce aux verrous.</p></div>
     <div class="card"><h2>Modèles</h2>
-      <table><tbody>${d.models.map((m) => `<tr><td>${esc(m.name)} v${m.version}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
+      <table><tbody>${d.models.map((m) => `<tr><td>${esc(MODEL_NAMES[m.name] ? `${MODEL_NAMES[m.name]} · entraînement ${m.version}` : `${m.name} v${m.version}`)}</td><td><span class="badge ${m.status === "active" ? "fact" : "stable"}">${esc(m.status)}</span></td><td>${fdate(m.promoted_at)}</td></tr>`).join("")}</tbody></table>
       <p><button class="btn ghost" id="rollback">Revenir à la version précédente</button> <span class="small" id="rollback-state"></span></p>
       <p class="small muted">Critères de promotion (fixés avant évaluation) :</p>
       <ul class="small muted">${Object.entries(d.promotion).map(([k, v]) => `<li><code>${esc(k)}</code> = ${esc(String(v))}</li>`).join("")}</ul></div>
@@ -1205,7 +1214,7 @@ async function home() {
   }).join("");
   const more = hidden > 0 ? `<p class="more"><button class="btn ghost" id="show-all" type="button">Afficher les ${hidden} matchs des deux semaines suivantes</button></p>` : "";
   const status = `<div class="status-line" style="margin-top:var(--space-5)">
-    <span>Modèle <b>${esc(d.model || "aucun")}</b></span>
+    <span>Modèle <b>${esc(modelName(d.model))}</b></span>
     <span>Calcul le plus récent <b>${d.last_prediction ? new Date(d.last_prediction).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "aucun"}</b></span>
     <span><a class="back-link" href="#/performance">Voir la fiabilité du modèle</a></span></div>`;
   setTimeout(() => {
