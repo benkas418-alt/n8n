@@ -106,3 +106,10 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 | `danielwh2/cuelume` | 14 sons d'interface synthétisés (Web Audio) | **Refusé par le fondateur** (27 nov. : « juste p5.js et video-shotcraft »). Désinstallé. |
 | `elevenlabs/skills` | Compétences pour l'API ElevenLabs | **Refusé par le fondateur** (27 nov.). Désinstallé ; règle « jamais ElevenLabs » inchangée. |
 
+## Charte et contrôle avant livraison (27 nov.)
+
+- Charte lisible par le code : `pitup/charte/charte.json` (couleurs, polices, échelle de tailles, formats, textes interdits, règle acheteurs/vendeurs, fin « Disponible sur » + badges, sons bannis, musiques déjà utilisées, volume −14 LUFS). Idée tirée du dépôt `langchain-ai/lca-managed-agents`, sans LangChain ni clé.
+- Contrôle : `python3 pitup/tools/charte_lint.py <projet> --video rendu.mp4 --script build.py --musique nom:début`. ERREUR = livraison bloquée ; ATTENTION = à dire au fondateur (ex. musique déjà utilisée).
+- **Toujours livrer avec** `bash pitup/tools/livrer.sh <projet> <Nom.mp4> --script ... --musique ...` : rendu, contrôle, puis copie dans `scratchpad/livrables/` seulement si la charte est respectée.
+- Quand le fondateur fixe une nouvelle règle mesurable, l'ajouter aussi à `charte.json`.
+

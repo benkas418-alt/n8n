@@ -31,6 +31,7 @@ Ces fichiers sont à redemander au fondateur (liste dans `3-atelier/outils.md`, 
 
 ## Index des dossiers
 
+- `2-dossiers/motion-p5.md` : motion design dessiné avec p5.js (points-boutiques → logo), 27 nov.
 - `2-dossiers/motion-acheteurs.md` : motion design simple pour les acheteurs, d'après deux cours sur l'accroche (27 nov.).
 - `2-dossiers/pub-rejoignez-nous.md` : pub de marque « Rejoignez-nous » (novembre 2026), dossier en cours.
 - `2-dossiers/presentateur-app.md` : présentation de l'appli par un collaborateur avec sa voix clonée (25 nov.).
