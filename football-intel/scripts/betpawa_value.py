@@ -146,171 +146,249 @@ def settle(market: str, sel: str, hg: int, ag: int, goals: list[str] | None) -> 
     return int(best[side] >= need or (hg > ag if side == "H" else ag > hg))
 
 
+def placement_1x2(conn, match_id: int, captured) -> tuple[tuple | None, str]:
+    """D103: the 1X2 fair probability known at the capture: the last The Odds API snapshot taken
+    before it (margin removed, averaged over its books), else the last prediction of the site made
+    before it. Never a closing price: it was not known when the bet was placed."""
+    from datetime import datetime
+
+    from footintel.analysis.value_ledger import placement_reference
+
+    rows = conn.execute(text("""SELECT o.bookmaker, o.snapshot_label, o.selection, o.price
+        FROM odds_snapshots o JOIN data_sources d ON d.id = o.source_id
+        WHERE o.match_id = :m AND o.market = '1X2' AND d.code = 'the_odds_api'"""), {"m": match_id}).all()
+    by: dict = defaultdict(dict)
+    for book, label, sel, price in rows:
+        by[(label, book)][sel] = price
+    snaps: dict = defaultdict(list)
+    for (label, _), prices in by.items():
+        if "@" in str(label) and (f := fair3(prices)):
+            snaps[label].append(f)
+    timed = []
+    for label, probs in snaps.items():
+        try:
+            t = datetime.fromisoformat(label.split("@", 1)[1])
+        except ValueError:
+            continue
+        timed.append((t, (tuple(np.mean(probs, axis=0)), f"the_odds_api {label} ({len(probs)} books)")))
+    pick = placement_reference([(t, v) for t, v in timed], captured)
+    if pick:
+        return pick[1]
+    pred = conn.execute(text("""SELECT p_home, p_draw, p_away, predicted_at FROM predictions
+        WHERE match_id = :m AND predicted_at <= :t ORDER BY predicted_at DESC LIMIT 1"""),
+        {"m": match_id, "t": captured}).first()
+    if pred and pred.p_home is not None:
+        return (pred.p_home, pred.p_draw, pred.p_away), f"prédiction du site {pred.predicted_at:%Y-%m-%d %H:%M} UTC"
+    return None, "indisponible"
+
+
+def evaluate(conn, r: dict) -> dict | None:
+    """One price (observation or played selection): match, CLV at the close, EV at placement, settlement."""
+    from footintel.analysis.value_ledger import ev, to_utc
+
+    market, sel = r["market"].upper(), r["selection"].upper()
+    if sel not in MARKETS.get(market, set()):
+        print(f"skip {r['home']} - {r['away']}: marché inconnu {market} {sel}")
+        return None
+    found = conn.execute(text("""SELECT m.id, c.code, m.kickoff_utc FROM matches m
+        JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
+        JOIN competitions c ON c.id = m.competition_id WHERE th.name = :h AND ta.name = :a
+        AND m.kickoff_date BETWEEN CAST(:d AS date) - 1 AND CAST(:d AS date) + 1"""),
+        {"h": r["home"], "a": r["away"], "d": r["match_date"]}).first()
+    if found is None:
+        print(f"skip {r['home']} - {r['away']} {r['match_date']}: match introuvable")
+        return None
+    m = found.id
+    pred = conn.execute(text("""SELECT p_over_2_5, exp_home_goals, exp_away_goals
+        FROM predictions WHERE match_id = :m ORDER BY predicted_at DESC LIMIT 1"""), {"m": m}).first()
+    p_over = market_over(conn, m) or (pred.p_over_2_5 if pred else None)
+    eh, ea = ((pred.exp_home_goals, pred.exp_away_goals)
+              if pred and pred.exp_home_goals and pred.exp_away_goals else DEFAULT_GOALS)
+    price = float(r["price"])
+    p_close, ref = market_1x2(conn, m)
+    prob_close = fair_prob(market, sel, p_close, p_over, eh, ea) if p_close else None
+    p_place, ref_place = placement_1x2(conn, m, to_utc(r["captured_at"]))
+    prob_place = fair_prob(market, sel, p_place, p_over, eh, ea) if p_place else None
+    score = conn.execute(text("SELECT home_goals, away_goals FROM match_outcomes WHERE match_id = :m"),
+                         {"m": m}).first()
+    won = None
+    if score:
+        evs = conn.execute(text("""SELECT e.team_id = mm.home_team_id AS home FROM match_events e
+            JOIN matches mm ON mm.id = e.match_id WHERE e.match_id = :m AND e.type = 'goal'
+            ORDER BY e.minute, coalesce(e.extra_minute, 0), e.id"""), {"m": m}).all()
+        goals = ["H" if g.home else "A" for g in evs] if evs or score.home_goals + score.away_goals == 0 else None
+        won = settle(market, sel, score.home_goals, score.away_goals, goals)
+    weak = "the_odds_api" in ref and int(ref.rsplit("(", 1)[1].split()[0]) < 3 if "(" in ref else False
+    return {**r, "market": market, "selection": sel, "match_id": m, "competition": found.code,
+            "kickoff_utc": found.kickoff_utc.isoformat() if found.kickoff_utc else "",
+            "fair": prob_close, "ref": ref + (" — référence faible (moins de 3 bookmakers)" if weak else ""),
+            "clv": ev(price, prob_close), "fair_place": prob_place, "ref_place": ref_place,
+            "ev_place": ev(price, prob_place), "won": won}
+
+
 def main() -> None:
+    from footintel.analysis.value_ledger import (
+        coupon_money,
+        coupon_roi_ci,
+        latest_per_key,
+        settlement_agrees,
+    )
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="reference/betpawa_prices.csv")
+    ap.add_argument("--coupons", default="reference/betpawa_coupons.csv")
+    ap.add_argument("--legs", default="reference/betpawa_coupon_legs.csv")
     ap.add_argument("--ledger", default="reports/betpawa_ledger.csv", help="one row per selection (D101)")
     args = ap.parse_args()
-    with open(args.csv, encoding="utf-8") as fh:
-        rows = list(csv.DictReader(fh))
-    if not rows:
-        print("No betPawa price recorded yet.")
-        return
+
+    def read(path):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                return list(csv.DictReader(fh))
+        except FileNotFoundError:
+            return []
+
+    prices, coupons, legs = read(args.csv), read(args.coupons), read(args.legs)
+    placed = {c["coupon_id"]: c["placed_at"] for c in coupons}
+
+    # 1. Coupons: the real money, one bet per coupon (D103).
+    print("1. COUPONS (argent réel, un pari par coupon)")
+    money = coupon_money(coupons)
+    if not coupons:
+        print("  Aucun coupon enregistré.")
+    else:
+        print(f"  {money['coupons']} coupons : {money['won']} gagnés, {money['lost']} perdus, "
+              f"{money['refunded']} remboursés, {money['open']} en cours.")
+        if money["stakes"]:
+            print(f"  Mises {money['stakes']:,.0f} FC, retours {money['returned']:,.2f} FC, net {money['net']:+,.2f} FC, "
+                  f"ROI {money['roi']:+.1%}.")
+            ci = coupon_roi_ci(coupons)
+            if ci:
+                print(f"  Intervalle du ROI (coupons rééchantillonnés) : {ci[0]:+.0%} à {ci[1]:+.0%}.")
+            print("  Attention : " + (f"{money['coupons']} coupons seulement, le ROI peut changer de signe "
+                                       "avec quelques coupons de plus." if money["coupons"] < 30 else "voir l'intervalle."))
+        weeks: dict = defaultdict(list)
+        for c in coupons:
+            weeks[c["placed_at"][:10]].append(c)
+        for day, cs in sorted(weeks.items()):
+            m = coupon_money(cs)
+            roi = f", ROI {m['roi']:+.1%}" if m["roi"] is not None else ""
+            print(f"    {day} : {len(cs)} coupon(s), net {m['net']:+,.2f} FC{roi}")
+
     engine = get_engine()
-    out = []
     with engine.connect() as conn:
-        for r in rows:
-            market, sel = r["market"].upper(), r["selection"].upper()
-            if sel not in MARKETS.get(market, set()):
-                print(f"skip {r}: unknown market or selection")
-                continue
-            found = conn.execute(text("""SELECT m.id, c.code FROM matches m JOIN teams th ON th.id = m.home_team_id
-                JOIN teams ta ON ta.id = m.away_team_id JOIN competitions c ON c.id = m.competition_id
-                WHERE th.name = :h AND ta.name = :a
-                AND m.kickoff_date BETWEEN CAST(:d AS date) - 1 AND CAST(:d AS date) + 1"""),
-                {"h": r["home"], "a": r["away"], "d": r["match_date"]}).first()
-            m, comp = (found.id, found.code) if found else (None, None)
-            if m is None:
-                print(f"skip {r['home']} - {r['away']} {r['match_date']}: match not found")
-                continue
-            p, src = market_1x2(conn, m)
-            pred = conn.execute(text("""SELECT p_over_2_5, exp_home_goals, exp_away_goals
-                FROM predictions WHERE match_id = :m ORDER BY predicted_at DESC LIMIT 1"""), {"m": m}).first()
-            p_over = market_over(conn, m) or (pred.p_over_2_5 if pred else None)
-            eh, ea = ((pred.exp_home_goals, pred.exp_away_goals)
-                      if pred and pred.exp_home_goals and pred.exp_away_goals else DEFAULT_GOALS)
-            prob = fair_prob(market, sel, p, p_over, eh, ea) if p else None
-            score = conn.execute(text("SELECT home_goals, away_goals FROM match_outcomes WHERE match_id = :m"),
-                                 {"m": m}).first()
-            won = None
-            if score:
-                ev = conn.execute(text("""SELECT e.team_id = mm.home_team_id AS home FROM match_events e
-                    JOIN matches mm ON mm.id = e.match_id WHERE e.match_id = :m AND e.type = 'goal'
-                    ORDER BY e.minute, coalesce(e.extra_minute, 0), e.id"""), {"m": m}).all()
-                goals = ["H" if g.home else "A" for g in ev] if ev or score.home_goals + score.away_goals == 0 else None
-                won = settle(market, sel, score.home_goals, score.away_goals, goals)
-            price = float(r["price"])
-            out.append({**r, "match_id": m, "competition": comp, "fair": prob, "ref": src,
-                        "ev": None if prob is None else price * prob - 1,
-                        "ret": None if won is None else won * price - 1})
+        played = []
+        for x in legs:
+            e = evaluate(conn, {**x, "captured_at": placed.get(x["coupon_id"], x["match_date"]), "source": "coupon"})
+            if e:
+                played.append(e)
+        # Market observations: the last price of each selection; the file keeps every price (history).
+        obs_all = [e for r in prices if (e := evaluate(conn, r))]
+    obs = latest_per_key(obs_all, lambda o: (o["match_id"], o["market"], o["selection"]))
 
-    # D101: one observation per selection (the last price captured before the match), a ledger
-    # with every field, and intervals that resample matches, not rows: two bets on one match move together.
-    last: dict = {}
-    for o in out:
-        k = (o["match_id"], o["market"].upper(), o["selection"].upper())
-        if k not in last or o["captured_at"] >= last[k]["captured_at"]:
-            last[k] = o
-    obs = sorted(last.values(), key=lambda o: (o["match_date"], o["home"], o["market"]))
-    print(f"{len(out)} cotes lues, {len(obs)} sélections distinctes (la dernière cote relevée de chacune).")
-    write_ledger(obs, args.ledger)
-    for o in obs:
-        fair_odds = f"{1 / o['fair']:.2f}" if o["fair"] else "—"
-        ev = f"{o['ev']:+.1%}" if o["ev"] is not None else "—"
-        ret = "—" if o["ret"] is None else ("gagné" if o["ret"] > 0 else "perdu")
-        print(f"{o['match_date']} {o['home']} - {o['away']} {o['market']} {o['selection']} @ {o['price']}"
-              f" | juste {fair_odds} ({o['ref']}) | EV {ev} | {ret}")
-    print()
+    # 2. Played selections: quality of the prices taken, never counted as separate bets.
+    print("\n2. SÉLECTIONS JOUÉES (qualité des cotes prises ; l'argent est compté au point 1)")
+    if not played:
+        print("  Aucune sélection jouée enregistrée.")
+    for market in sorted({o["market"] for o in played}):
+        rows = [o for o in played if o["market"] == market]
+        won = sum(o["result"] == "gagné" for o in rows)
+        lost = sum(o["result"] == "perdu" for o in rows)
+        print("  " + quality_line(market, rows) + f" ; résultats betPawa : {won} gagnées, {lost} perdues, "
+              f"dans {len({o['coupon_id'] for o in rows})} coupons")
+    agree = [settlement_agrees(o["won"], o["result"]) for o in played]
+    checked = [a for a in agree if a is not None]
+    if checked:
+        print(f"  Contrôle du règlement : notre calcul est d'accord avec betPawa sur {sum(checked)} sélections "
+              f"sur {len(checked)}.")
+        for o, a in zip(played, agree, strict=True):
+            if a is False:
+                print(f"    désaccord : {o['home']} - {o['away']} {o['market']} {o['selection']} (betPawa : {o['result']})")
+
+    # 3. Market observations: is betPawa above the fair price, market by market?
+    print(f"\n3. OBSERVATIONS DE MARCHÉ ({len(obs_all)} cotes, {len(obs)} sélections distinctes, "
+          "la dernière cote relevée de chacune)")
     for market in sorted({o["market"] for o in obs}):
-        print(market_line(market, [o for o in obs if o["market"] == market]))
-    print()
-    # D102: ROI only on real bets (source "betslip"); a screenshot of a whole market (home, draw and
-    # away of one match) measures the bookmaker's margin, not a betting result.
-    bets = [o for o in obs if o.get("source") == "betslip"]
-    print(f"Tes paris réels (coupons) : {len(bets)} sélections.")
-    for market in sorted({o["market"] for o in bets}):
-        print("  " + market_line(market, [o for o in bets if o["market"] == market]))
-    print(roi_by(bets, "competition", "Paris réels par compétition"))
-    print(reference_timing(obs))
-
-
-def roi_by(obs: list[dict], key: str, title: str) -> str:
-    """Observed ROI of settled selections, grouped by `key` (stake of 1 on each)."""
-    groups: dict = defaultdict(list)
+        print("  " + quality_line(market, [o for o in obs if o["market"] == market]))
+    bands: dict = defaultdict(list)
+    from footintel.analysis.value_ledger import odds_band
     for o in obs:
-        if o["ret"] is not None:
-            groups[o[key] or "?"].append(o["ret"])
-    if not groups:
-        return f"{title} : aucune sélection réglée."
-    rows = [f"  {k}: {len(v)} réglées, net {sum(v):+.2f}, ROI observé {np.mean(v):+.1%}"
-            for k, v in sorted(groups.items(), key=lambda kv: -len(kv[1]))]
-    return "\n".join([f"{title} (ROI observé = gain net / mises) :", *rows])
+        if o["clv"] is not None:
+            bands[odds_band(float(o["price"]))].append(o)
+    if bands:
+        print("  Par plage de cotes (CLV) :")
+        for label, rows in bands.items():
+            print(f"    {label} : " + quality_line("", rows).lstrip(": "))
+    print(reference_timing(obs))
+    write_ledger(obs + played, args.ledger)
+
+
+def quality_line(market: str, rows: list[dict]) -> str:
+    """Selections, matches, competitions, odds range, mean CLV and mean EV at placement, with their sample warning."""
+    from footintel.analysis.value_ledger import cluster_ci, sample_warning
+
+    odds = sorted(float(o["price"]) for o in rows)
+    out = (f"{market}: {len(rows)} sélections, {len({o['match_id'] for o in rows})} matchs, "
+           f"{len({o['competition'] for o in rows})} compétitions, cotes {odds[0]:.2f} à {odds[-1]:.2f}")
+    for key, name in (("clv", "CLV"), ("ev_place", "EV au placement")):
+        vals = [o for o in rows if o[key] is not None]
+        if not vals:
+            out += f" ; {name} : indisponible"
+            continue
+        n_match = len({o["match_id"] for o in vals})
+        out += f" ; {name} moyenne {np.mean([o[key] for o in vals]):+.1%} sur {len(vals)}"
+        warn = sample_warning(n_match)
+        if n_match >= 20:
+            lo, hi = cluster_ci([o[key] for o in vals], [o["match_id"] for o in vals])
+            out += f" [{lo:+.1%} ; {hi:+.1%}]"
+        if warn:
+            out += f" ({warn})"
+    return out
 
 
 def reference_timing(obs: list[dict]) -> str:
-    """Where each fair price comes from. Closing prices are taken at kick-off, after the capture: a
-    betPawa price above them is the closing-line test. Snapshot prices carry their own time."""
+    """Where each closing fair price comes from. A closing price is taken at kick-off, after the
+    capture: a betPawa price above it is the closing-line test. A snapshot keeps its own time."""
     count: dict = defaultdict(int)
     for o in obs:
         if o["fair"] is not None:
             ref = o["ref"]
-            count["clôture (après le relevé)" if "closing" in ref and "pre_closing" not in ref
-                  else "avant clôture" if "pre_closing" in ref else "instantané The Odds API (heure dans le registre)"] += 1
-    return "Référence de la cote juste : " + ", ".join(f"{k} {v}" for k, v in count.items())
+            count["clôture (après le relevé)" if " closing" in ref else "avant clôture" if "pre_closing" in ref
+                  else "instantané The Odds API (heure dans le registre)"] += 1
+    missing = sum(o["fair"] is None for o in obs)
+    return ("Référence de la cote juste (CLV) : " + ", ".join(f"{k} {v}" for k, v in count.items())
+            + f" ; sans référence : {missing}.")
 
 
-def cluster_ci(values: list[float], groups: list, samples: int = 2000, seed: int = 0) -> tuple[float, float]:
-    """95 % interval of the mean when whole matches are resampled."""
-    by = defaultdict(list)
-    for v, g in zip(values, groups, strict=True):
-        by[g].append(v)
-    keys = list(by)
-    rng = np.random.default_rng(seed)
-    means = []
-    for _ in range(samples):
-        pick = [x for k in rng.choice(len(keys), len(keys)) for x in by[keys[k]]]
-        means.append(np.mean(pick))
-    return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
+LEDGER_FIELDS = ["source", "coupon_id", "captured_at", "match_date", "kickoff_utc", "competition", "home", "away",
+                 "market", "selection", "price", "fair_close", "ref_close", "clv", "fair_place", "ref_place",
+                 "ev_place", "our_result", "betpawa_result"]
 
 
-def market_line(market: str, rows: list[dict]) -> str:
-    """Prices, matches, competitions and odds range, then the expected value and the settled return."""
-    priced = [o for o in rows if o["ev"] is not None]
-    settled = [o for o in rows if o["ret"] is not None]
-    odds = sorted(float(o["price"]) for o in rows)
-    head = (f"{market}: {len(rows)} sélections sur {len({o['match_id'] for o in rows})} matchs, "
-            f"{len({o['competition'] for o in rows})} compétitions, cotes {odds[0]:.2f} à {odds[-1]:.2f} "
-            f"(médiane {np.median(odds):.2f})")
-    if not priced:
-        return head + "; pas de prix juste"
-    line = head + f"; EV moyenne {np.mean([o['ev'] for o in priced]):+.1%}"
-    if len({o["match_id"] for o in priced}) >= 20:
-        lo, hi = cluster_ci([o["ev"] for o in priced], [o["match_id"] for o in priced])
-        line += f" [{lo:+.1%} ; {hi:+.1%}]"
-    if settled:
-        won = sum(o["ret"] > 0 for o in settled)
-        gains = sum(o["ret"] for o in settled if o["ret"] > 0)
-        losses = -sum(o["ret"] for o in settled if o["ret"] < 0)
-        # D102: observed ROI for a stake of 1 on each selection, kept apart from the expected value above.
-        line += (f"; {len(settled)} réglées ({won} gagnées) : mises {len(settled)}, gains {gains:.2f}, "
-                 f"pertes {losses:.2f}, net {gains - losses:+.2f}, ROI observé {(gains - losses) / len(settled):+.1%}")
-        if len({o["match_id"] for o in settled}) >= 20:
-            lo, hi = cluster_ci([o["ret"] for o in settled], [o["match_id"] for o in settled])
-            line += f" [{lo:+.1%} ; {hi:+.1%}]"
-    return line
-
-
-LEDGER_FIELDS = ["captured_at", "source", "match_date", "competition", "home", "away", "market", "selection", "price",
-                 "fair_odds", "fair_prob", "ref", "ev", "won", "profit"]
-
-
-def write_ledger(obs: list[dict], path: str) -> None:
-    """One row per selection: what betPawa offered, the fair price, the result, the profit for a stake of 1."""
+def write_ledger(rows: list[dict], path: str) -> None:
+    """One row per selection (observation or played): prices, both references and both measures,
+    our settlement and betPawa's. Same data, same file: the rows are sorted."""
     from pathlib import Path
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
+
+    def num(x, fmt=".4f"):
+        return "" if x is None else format(x, fmt)
+
     with open(path, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=LEDGER_FIELDS)
         w.writeheader()
-        for o in obs:
-            w.writerow({**{k: o[k] for k in ("captured_at", "source", "match_date", "competition", "home", "away", "market",
-                                             "selection", "price", "ref")},
-                        "fair_odds": f"{1 / o['fair']:.3f}" if o["fair"] else "",
-                        "fair_prob": f"{o['fair']:.4f}" if o["fair"] else "",
-                        "ev": f"{o['ev']:.4f}" if o["ev"] is not None else "",
-                        "won": "" if o["ret"] is None else int(o["ret"] > 0),
-                        "profit": "" if o["ret"] is None else f"{o['ret']:.4f}"})
-    print(f"Registre écrit : {path}")
+        for o in sorted(rows, key=lambda o: (o.get("source", ""), o.get("coupon_id", ""), o["match_date"],
+                                             o["home"], o["market"], o["selection"], o["captured_at"])):
+            w.writerow({"source": o.get("source", ""), "coupon_id": o.get("coupon_id", ""),
+                        **{k: o.get(k, "") for k in ("captured_at", "match_date", "kickoff_utc", "competition",
+                                                    "home", "away", "market", "selection", "price")},
+                        "fair_close": num(o["fair"]), "ref_close": o["ref"], "clv": num(o["clv"]),
+                        "fair_place": num(o["fair_place"]), "ref_place": o["ref_place"], "ev_place": num(o["ev_place"]),
+                        "our_result": "" if o["won"] is None else ("gagné" if o["won"] else "perdu"),
+                        "betpawa_result": o.get("result", "")})
+    print(f"Registre écrit : {path} ({len(rows)} lignes)")
+
 
 if __name__ == "__main__":
     main()

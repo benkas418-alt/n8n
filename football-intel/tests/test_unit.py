@@ -1385,3 +1385,126 @@ def test_neural_net_gives_probabilities_that_sum_to_one():
     df["away_goals"] = rng.integers(0, 3, n)
     p = model.fit(df).predict(df.head(20))
     assert p.shape == (20, 3) and np.allclose(p.sum(axis=1), 1) and (p.values > 0).all()
+
+
+# ---- D103: betPawa value ledger (three data sets, three measures) ----
+
+def test_value_ledger_dedupe_keeps_history_and_ignores_order():
+    import random
+
+    from footintel.analysis.value_ledger import latest_per_key
+
+    rows = [{"k": "Slovan 2UP 2", "price": 1.22, "captured_at": "2026-11-24T10:36"},
+            {"k": "Slovan 2UP 2", "price": 1.23, "captured_at": "2026-11-24T10:44"},
+            {"k": "Como 2UP 1", "price": 1.21, "captured_at": "2026-11-24T10:36"},
+            {"k": "Como 2UP 1", "price": 1.21, "captured_at": "2026-11-24T10:44"}]
+    shuffled = rows[:]
+    random.Random(1).shuffle(shuffled)
+    a = latest_per_key(rows, lambda r: r["k"])
+    b = latest_per_key(shuffled, lambda r: r["k"])
+    assert len(rows) == 4  # history kept
+    assert len(a) == 2 and {r["price"] for r in a} == {1.23, 1.21}
+    assert sorted((r["k"], r["captured_at"]) for r in a) == sorted((r["k"], r["captured_at"]) for r in b)
+
+
+def test_value_ledger_margin_removal_and_ev_by_hand():
+    from footintel.analysis.value_ledger import ev, fair_probs, overround
+
+    p = fair_probs({"H": 2.0, "D": 3.5, "A": 4.0})
+    # 1/2 + 1/3.5 + 1/4 = 1.0357...: margin 3.57 %, home 0.5 / 1.0357 = 0.4828.
+    assert abs(overround({"H": 2.0, "D": 3.5, "A": 4.0}) - 0.035714) < 1e-5
+    assert abs(sum(p) - 1) < 1e-12 and abs(p[0] - 0.482759) < 1e-5
+    assert abs(ev(2.10, p[0]) - (2.10 * 0.482759 - 1)) < 1e-5
+    assert fair_probs({"H": 2.0, "D": 1.0, "A": 4.0}) is None and ev(2.0, None) is None
+
+
+def test_value_ledger_placement_never_uses_later_prices():
+    from datetime import UTC, datetime
+
+    from footintel.analysis.value_ledger import placement_reference, to_utc
+
+    snaps = [(datetime(2026, 11, 26, 6, 0, tzinfo=UTC), 0.55), (datetime(2026, 11, 26, 17, 0, tzinfo=UTC), 0.62)]
+    captured = to_utc("2026-11-26T14:20")  # Lubumbashi time, 12:20 UTC
+    assert captured == datetime(2026, 11, 26, 12, 20, tzinfo=UTC)
+    assert placement_reference(snaps, captured) == snaps[0]  # the closing-time price is not known yet
+    assert placement_reference(snaps, datetime(2026, 11, 26, 5, 0, tzinfo=UTC)) is None
+
+
+def test_value_ledger_coupon_is_one_bet_with_refunds_by_hand():
+    from footintel.analysis.value_ledger import coupon_money
+
+    coupons = [{"status": "gagné", "stake_fc": 1000, "payout_fc": 16312.77},
+               {"status": "perdu", "stake_fc": 4000, "payout_fc": 0},
+               {"status": "remboursé", "stake_fc": 500, "payout_fc": 0},
+               {"status": "en cours", "stake_fc": 2000, "payout_fc": 0}]
+    m = coupon_money(coupons)
+    # Settled stakes 5 500; returned 16 312.77 + 500 refund; net 11 312.77; ROI 205.69 %.
+    assert (m["won"], m["lost"], m["refunded"], m["open"]) == (1, 1, 1, 1)
+    assert m["stakes"] == 5500 and abs(m["returned"] - 16812.77) < 1e-9 and abs(m["net"] - 11312.77) < 1e-9
+    assert abs(m["roi"] - 11312.77 / 5500) < 1e-12
+    assert coupon_money(coupons) == m  # same data, same result
+
+
+def test_value_ledger_bets_on_one_match_move_together():
+    from footintel.analysis.value_ledger import cluster_ci
+
+    vals = [0.1, -0.2, 0.3, -0.1, 0.05, 0.2, -0.3, 0.15]
+    once = cluster_ci(vals, list(range(8)))
+    # The same bets entered twice for each match must not narrow the interval.
+    twice = cluster_ci([v for v in vals for _ in range(2)], [g for g in range(8) for _ in range(2)])
+    assert abs(once[0] - twice[0]) < 1e-9 and abs(once[1] - twice[1]) < 1e-9
+
+
+def test_value_ledger_owner_files_are_consistent():
+    import csv
+    import math
+    from pathlib import Path
+
+    from footintel.analysis.value_ledger import SETTLED, coupon_money, to_utc
+
+    ref = Path(__file__).resolve().parents[1] / "reference"
+    coupons = list(csv.DictReader(open(ref / "betpawa_coupons.csv", encoding="utf-8")))
+    legs = list(csv.DictReader(open(ref / "betpawa_coupon_legs.csv", encoding="utf-8")))
+    assert len({c["coupon_id"] for c in coupons}) == len(coupons)
+    for c in coupons:
+        mine = [x for x in legs if x["coupon_id"] == c["coupon_id"]]
+        assert len(mine) == int(c["n_legs"]) and c["status"] in SETTLED | {"en cours"}
+        assert abs(math.prod(float(x["price"]) for x in mine) - float(c["total_odds"])) < 0.02
+        assert (c["status"] == "perdu") == any(x["result"] == "perdu" for x in mine)
+        assert all(to_utc(c["placed_at"]).date() <= __import__("datetime").date.fromisoformat(x["match_date"])
+                   for x in mine)
+    m = coupon_money(coupons)
+    assert m["stakes"] == 14000 and abs(m["returned"] - 93663.23) < 0.01
+
+
+def test_backtest_compares_models_and_market_on_the_same_matches():
+    import pandas as pd
+
+    from footintel.evaluation.backtest import summarize
+
+    rows = []
+    for mid in range(40):
+        hg, ag = (1, 0) if mid % 3 else (0, 0)
+        base = {"match_id": mid, "competition": "ENG-PL", "season": 2024, "home_goals": hg, "away_goals": ag}
+        rows.append(base | {"model": "routed_competition", "p_home": 0.5, "p_draw": 0.3, "p_away": 0.2})
+        # The market prices only half of the matches.
+        mk = (0.55, 0.25, 0.2) if mid < 20 else (None, None, None)
+        rows.append(base | {"model": "market_implied", "p_home": mk[0], "p_draw": mk[1], "p_away": mk[2]})
+    s = summarize(pd.DataFrame(rows))
+    n = s.set_index(["model", "segment"])["n"]
+    assert n[("routed_competition", "all")] == 40 and n[("market_implied", "all")] == 20
+    assert n[("routed_competition", "with_odds")] == n[("market_implied", "with_odds")] == 20
+    assert n[("routed_competition", "without_odds")] == 20
+
+
+def test_plain_week_counts_real_coupons_per_coupon():
+    from datetime import date
+
+    from footintel.reports.plain_week import plain_week
+
+    coupons = [{"placed_at": "2026-11-24T10:36+02:00", "stake_fc": "1000", "status": "gagné", "payout_fc": "16312.77"},
+               {"placed_at": "2026-11-26T14:20+02:00", "stake_fc": "3000", "status": "perdu", "payout_fc": "0"},
+               {"placed_at": "2026-11-10T14:20+02:00", "stake_fc": "5000", "status": "perdu", "payout_fc": "0"}]
+    _, body = plain_week([], [], date(2026, 11, 30), coupons=coupons)
+    assert "2 coupon(s) : 1 gagné(s), 1 perdu(s), 0 en cours." in body
+    assert "Mises 4 000 FC, retours 16 313 FC, gain net +12 313 FC (ROI +308%)." in body

@@ -1,0 +1,56 @@
+coupon_id,match_date,home,away,market,selection,price,result
+13989972824,2026-11-24,Bodo/Glimt,LASK,1UP,1,1.22,gagné
+13989972824,2026-11-24,Galatasaray,Aston Villa,2UP,1,2.87,gagné
+13989972824,2026-11-24,Arsenal,Dortmund,1UP,1,1.27,gagné
+13989972824,2026-11-24,Como,AEK,2UP,1,1.21,gagné
+13989972824,2026-11-24,Feyenoord,Porto,1UP,2,1.54,gagné
+13989972824,2026-11-24,RB Leipzig,Lens,2UP,1,1.31,gagné
+13989972824,2026-11-24,Real Madrid,PSV Eindhoven,2UP,1,1.09,gagné
+13989972824,2026-11-24,Slovan Bratislava (SVK),Betis,2UP,2,1.22,gagné
+13990057715,2026-11-24,Bodo/Glimt,LASK,2UP,1,1.41,gagné
+13990057715,2026-11-24,Galatasaray,Aston Villa,1UP,1,1.77,gagné
+13990057715,2026-11-24,Arsenal,Dortmund,OU3.5,U,1.41,gagné
+13990057715,2026-11-24,Como,AEK,2UP,1,1.21,gagné
+13990057715,2026-11-24,Feyenoord,Porto,1UP,2,1.54,gagné
+13990057715,2026-11-24,Man City,Napoli,BTTS,Y,1.57,gagné
+13990057715,2026-11-24,RB Leipzig,Lens,2UP,1,1.31,gagné
+13990057715,2026-11-24,Real Madrid,PSV Eindhoven,1X2,H,1.12,gagné
+13990057715,2026-11-24,Slovan Bratislava (SVK),Betis,2UP,2,1.23,gagné
+14014067579,2026-11-25,Sabah,Barcelona,1X2,A,1.05,gagné
+14014067579,2026-11-25,Slavia Praha (CZE),Villarreal,1UP,2,1.63,gagné
+14014067579,2026-11-25,Ath Madrid,Viking,1UP,1,1.08,gagné
+14014067579,2026-11-25,Club Brugge,Liverpool,1UP,2,1.30,gagné
+14014067579,2026-11-25,Shakhtar Donetsk (UKR),Fenerbahce,1UP,2,1.74,gagné
+14014067579,2026-11-25,Inter,Stuttgart,1UP,1,1.21,gagné
+14014067579,2026-11-25,Lille,Bayern Munich,1UP,2,1.35,gagné
+14014067579,2026-11-25,Paris SG,Roma,BTTS,Y,1.42,gagné
+14014067579,2026-11-25,Sp Lisbon,Man United,1UP,1,1.66,gagné
+14014241228,2026-11-25,Club Brugge,Liverpool,BTTS,Y,1.38,perdu
+14014241228,2026-11-25,Shakhtar Donetsk (UKR),Fenerbahce,1UP,2,1.74,gagné
+14014241228,2026-11-25,Inter,Stuttgart,1UP,1,1.21,gagné
+14014241228,2026-11-25,Lille,Bayern Munich,1UP,2,1.35,gagné
+14014241228,2026-11-25,Paris SG,Roma,2UP,1,1.50,perdu
+14014241228,2026-11-25,Sp Lisbon,Man United,BTTS,Y,1.45,gagné
+14025562476,2026-11-26,Brighton,Universitatea Craiova,2UP,1,1.09,gagné
+14025562476,2026-11-26,Viktoria Plzeň (CZE),Benfica,2UP,2,1.42,perdu
+14025562476,2026-11-26,Dinamo Zagreb (CRO),Leverkusen,2UP,2,1.61,gagné
+14025562476,2026-11-26,Celta,Bournemouth,2UP,2,1.85,gagné
+14025562476,2026-11-26,St. Gilloise,Lech Poznan,2UP,1,1.32,perdu
+14025562476,2026-11-26,Crystal Palace,Sociedad,BTTS,Y,1.49,gagné
+14025562476,2026-11-26,Freiburg,Twente,2UP,1,1.76,gagné
+14025562476,2026-11-26,Sunderland,Jagiellonia,2UP,1,1.20,perdu
+14025604562,2026-11-26,Ajax,Thun,1UP,1,1.10,gagné
+14025604562,2026-11-26,Besiktas,Hapoel Be'er Sheva (ISR),1UP,1,1.15,gagné
+14025604562,2026-11-26,Brighton,Universitatea Craiova,1UP,1,1.09,gagné
+14025604562,2026-11-26,FC Iberia 1999 Tiflis,Getafe,1UP,2,1.31,perdu
+14025604562,2026-11-26,Salzburg,FC Ararat-Armenia,1UP,1,1.09,gagné
+14025604562,2026-11-26,Viktoria Plzeň (CZE),Benfica,1UP,2,1.24,perdu
+14025604562,2026-11-26,Dinamo Zagreb (CRO),Leverkusen,2UP,2,1.61,gagné
+14025604562,2026-11-26,Celta,Bournemouth,1UP,2,1.47,gagné
+14025604562,2026-11-26,St. Gilloise,Lech Poznan,2UP,1,1.32,perdu
+14025604562,2026-11-26,Crystal Palace,Sociedad,BTTS,Y,1.49,gagné
+14025604562,2026-11-26,Ferencvárosi TC (HUN),NK Celje (SVN),1UP,1,1.22,perdu
+14025604562,2026-11-26,Borac Banja Luka (BIH),Atalanta,1UP,2,1.23,gagné
+14025604562,2026-11-26,Juventus,Omonia Nikosia (CYP),1UP,1,1.12,gagné
+14025604562,2026-11-26,Freiburg,Twente,1UP,1,1.39,gagné
+14025604562,2026-11-26,Sunderland,Jagiellonia,2UP,1,1.20,perdu

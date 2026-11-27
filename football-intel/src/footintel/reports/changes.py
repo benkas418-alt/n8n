@@ -21,6 +21,7 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-27", ("Deux autres méthodes testées sur 5 saisons, venues des dépôts que tu as envoyés : LightGBM et les réglages d'un modèle de sélections. Elles font au mieux aussi bien que les bookmakers, pas mieux : rien n'est changé. Notre modèle des sélections fait déjà 62,6 % de bons résultats sur les matchs officiels.")),
     ("2026-11-27", ("Tes cotes betPawa ont maintenant un registre : pour chaque sélection, la cote proposée, la cote juste, le résultat et le gain. Une sélection relevée deux fois ne compte qu'une fois. C'est lui qui dira, marché par marché, si betPawa paie au-dessus de la cote juste.")),
     ("2026-11-27", ("Le registre betPawa sépare tes vrais paris (tes coupons) des simples relevés de cotes, et calcule pour tes paris le gain net et le ROI par marché et par compétition.")),
+    ("2026-11-27", ("Tes 6 coupons sont enregistrés avec leur mise et leur paiement. Le bilan de la semaine montre maintenant l'argent réel, coupon par coupon, à part de la qualité des cotes prises.")),
 ]
 
 
