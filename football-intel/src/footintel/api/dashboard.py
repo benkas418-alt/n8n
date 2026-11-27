@@ -260,6 +260,18 @@ LIGHTGBM_SOURCE = f"""(
                     WHERE sv.name = 'lightgbm' AND sx.match_id = hp.match_id AND sx.p_over_2_5 IS NOT NULL))"""
 
 
+def _snap_market(snap: dict | None, fallback=None) -> list | None:
+    """Fair 1X2 of the bookmakers' average stored with a prediction: the raw prices with the
+    power method (D114), else the stored proportional values."""
+    from footintel.analysis.demargin import fair_probs
+
+    odds = (snap or {}).get("odds_1x2")
+    if odds and all(o is not None for o in odds) and (f := fair_probs(odds)):
+        return f
+    mk = fallback if fallback is not None else [(snap or {}).get(k) for k in ("mkt_p_home", "mkt_p_draw", "mkt_p_away")]
+    return [float(x) for x in mk] if mk and all(x is not None for x in mk) else None
+
+
 def _lgbm_goals(ids: list[int]) -> dict[int, dict]:
     """LightGBM's latest goal markets for these matches (D109)."""
     if not ids:
@@ -318,7 +330,8 @@ def home(model: str = "hermes") -> dict:
                th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
                p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.sufficient_data,
                p.feature_snapshot->>'mkt_p_home' AS mkt_home,
-               p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away
+               p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away,
+               p.feature_snapshot->'odds_1x2' AS odds_1x2
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
         LEFT JOIN LATERAL (SELECT * FROM {_source(model)} p WHERE p.match_id = m.id
@@ -332,12 +345,12 @@ def home(model: str = "hermes") -> dict:
     # Bookmaker average from The Odds API when the model's own odds (football-data.co.uk) are missing.
     prices, _ = _odds_api_prices([m["id"] for m in matches])
     overs = _market_over_2_5([m["id"] for m in matches])
-    if model != "lightgbm":
-        _hermes_goals(matches, {m["id"]: (m["mkt_home"], m["mkt_draw"], m["mkt_away"]) for m in matches
-                                if m["mkt_home"] is not None}, overs)
     for m in matches:
         mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
-        m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
+        m["market"] = _snap_market({"odds_1x2": m.pop("odds_1x2")}, mk)
+    if model != "lightgbm":
+        _hermes_goals(matches, {m["id"]: tuple(m["market"]) for m in matches if m["market"]}, overs)
+    for m in matches:
         if m["market"] is None and (c := market_consensus(prices.get(m["id"], []))):
             m["market"] = [c["1"], c["X"], c["2"]]
         # Result and goal markets only: the order-dependent ones need a fit, not useful here.
@@ -427,9 +440,9 @@ def match(match_id: int, model: str = "hermes") -> dict:
     if pred and model != "lightgbm":
         pred = dict(pred)
         snap0 = pred["feature_snapshot"] or {}
-        mk = (snap0.get("mkt_p_home"), snap0.get("mkt_p_draw"), snap0.get("mkt_p_away"))
+        mk = _snap_market(snap0)
         row = {**pred, "id": match_id}  # the prediction row has its own id
-        _hermes_goals([row], {match_id: mk} if mk[0] is not None else {}, _market_over_2_5([match_id]))
+        _hermes_goals([row], {match_id: tuple(mk)} if mk else {}, _market_over_2_5([match_id]))
         goals_source = row["goals_source"]
         pred.update({k: row[k] for k in ("p_over_1_5", "p_over_2_5", "p_over_3_5", "p_btts",
                                          "exp_home_goals", "exp_away_goals")})
@@ -448,7 +461,7 @@ def match(match_id: int, model: str = "hermes") -> dict:
             "exp_home_goals": pred["exp_home_goals"], "exp_away_goals": pred["exp_away_goals"],
             "score_grid": grid, "top_scores": top, "data_quality": pred["data_quality"],
             "sufficient_data": pred["sufficient_data"], "goals_source": goals_source,
-            "market": [snap.get("mkt_p_home"), snap.get("mkt_p_draw"), snap.get("mkt_p_away")],
+            "market": _snap_market(snap) or [None, None, None],
             "factors": {k: snap.get(k) for k in ("elo_home", "elo_away", "elo_diff", "form5_ppg_h",
                                                    "form5_ppg_a", "rest_days_h", "rest_days_a",
                                                    "games_14d_h", "games_14d_a", "comp_over25_rate",
@@ -548,6 +561,8 @@ def _odds_api_prices(ids: list[int]) -> tuple[dict[int, list], dict[int, object]
 
 def _market_over_2_5(ids: list[int]) -> dict[int, float]:
     """Bookmakers' average P(over 2.5), margin removed, from the latest football-data.co.uk snapshot."""
+    from footintel.analysis.demargin import fair_probs
+
     if not ids:
         return {}
     out: dict[int, float] = {}
@@ -561,7 +576,7 @@ def _market_over_2_5(ids: list[int]) -> dict[int, float]:
                                     AND o2.bookmaker = 'market_avg')
         GROUP BY o.match_id""", ids=ids):
         if r["o"] and r["u"] and r["o"] > 1 and r["u"] > 1:
-            out[r["match_id"]] = (1 / r["o"]) / (1 / r["o"] + 1 / r["u"])
+            out[r["match_id"]] = fair_probs([r["o"], r["u"]])[0]  # D114: power method
     return out
 
 
@@ -685,7 +700,7 @@ def value_board(days: int = 7, model: str = "hermes") -> dict:
                p.sufficient_data, (p.feature_snapshot->>'mkt_p_home') IS NOT NULL AS has_odds,
                (p.feature_snapshot->>'elo_home')::float AS elo_home, (p.feature_snapshot->>'elo_away')::float AS elo_away,
                (p.feature_snapshot->>'mkt_p_home')::float AS mkt_home, (p.feature_snapshot->>'mkt_p_draw')::float AS mkt_draw,
-               (p.feature_snapshot->>'mkt_p_away')::float AS mkt_away,
+               (p.feature_snapshot->>'mkt_p_away')::float AS mkt_away, p.feature_snapshot->'odds_1x2' AS odds_1x2,
                mv.name || ' v' || mv.version AS model, mv.name AS source_model
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
@@ -698,8 +713,9 @@ def value_board(days: int = 7, model: str = "hermes") -> dict:
     prices, captured = _odds_api_prices([r["id"] for r in rows])
     overs = _market_over_2_5([r["id"] for r in rows])
     if model != "lightgbm":
-        _hermes_goals(rows, {r["id"]: (r["mkt_home"], r["mkt_draw"], r["mkt_away"]) for r in rows
-                             if r["mkt_home"] is not None}, overs)
+        fair = {r["id"]: _snap_market({"odds_1x2": r["odds_1x2"]}, [r["mkt_home"], r["mkt_draw"], r["mkt_away"]])
+                for r in rows}
+        _hermes_goals(rows, {k: tuple(v) for k, v in fair.items() if v}, overs)
     matches = []
     for r in rows:
         market = market_consensus(prices.get(r["id"], []))
