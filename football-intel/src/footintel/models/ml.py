@@ -78,3 +78,14 @@ def neural_net(features: list[str], name: str) -> SklearnClassifierModel:
               "n_iter_no_change": 10}
     return SklearnClassifierModel(name, "neural_net", features, MLPClassifier(random_state=42, **params), params)
 
+
+
+def lightgbm(features: list[str], name: str) -> SklearnClassifierModel:
+    """LightGBM (D99 test, shown next to the active model since D105). Many small trees
+    with few leaves and at least 200 matches per leaf, so it cannot learn single matches."""
+    from lightgbm import LGBMClassifier  # heavy import, only when used
+
+    params = {"n_estimators": 400, "learning_rate": 0.02, "num_leaves": 15, "min_child_samples": 200,
+              "subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "reg_lambda": 1.0}
+    return SklearnClassifierModel(name, "lightgbm", features,
+                                  LGBMClassifier(random_state=42, verbose=-1, **params), params)

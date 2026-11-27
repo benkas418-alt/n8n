@@ -8,7 +8,8 @@ import pandas as pd
 from footintel.analysis.stories import CONFIRMED_FOR_MODEL, scenario_columns
 from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
 from footintel.models.baseline import EloPoisson, MarketImplied, NaiveFrequency, PoissonFeatures
-from footintel.models.ml import CORE_FEATURES, WITH_MARKET_FEATURES, logistic, neural_net, random_forest, xgboost
+from footintel.models.ml import (CORE_FEATURES, WITH_MARKET_FEATURES, lightgbm, logistic, neural_net,
+                                random_forest, xgboost)
 
 MARKET_PROBS = ["mkt_p_home", "mkt_p_draw", "mkt_p_away"]
 
@@ -226,10 +227,18 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     # D98: neural networks, without and with the bookmakers' odds as inputs.
     "nn_core": lambda: neural_net(CORE_FEATURES, "nn_core"),
     "nn_market": lambda: neural_net(WITH_MARKET_FEATURES, "nn_market"),
+    # D99 test, D105: LightGBM, without and with the bookmakers' odds as inputs.
+    "lgbm_core": lambda: lightgbm(CORE_FEATURES, "lgbm_core"),
+    "lgbm_market": lambda: lightgbm(WITH_MARKET_FEATURES, "lgbm_market"),
 }
 
 # Reference models are compared against, never deployed for predictions.
 REFERENCE_MODELS = {"naive_frequency", "market_implied"}
+
+# D105: models that predict next to the active one, shown on the match page. Their
+# predictions go to `side_predictions`, never to `predictions`, so tickets, reports and
+# evaluations keep using the active model only. Name -> label shown to the owner.
+SIDE_MODELS = {"lgbm_market": "LightGBM"}
 
 
 def build(name: str) -> ProbModel:

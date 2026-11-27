@@ -9,12 +9,19 @@ import pandas as pd
 from sqlalchemy import Engine, select
 
 from footintel.config import Settings
-from footintel.db.models import Match, ModelVersion, Prediction, UserPrediction
+from footintel.db.models import (
+    Match,
+    ModelVersion,
+    Prediction,
+    SidePrediction,
+    UserPrediction,
+)
 from footintel.db.session import session_scope
 from footintel.features.builder import ALL_FEATURES, build_features
 from footintel.features.dataset import load_matches
 from footintel.models.base import GOAL_COLS, PROB_COLS
-from footintel.models.registry import load_model
+from footintel.models.registry import load_model, train_version
+from footintel.models.zoo import SIDE_MODELS
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +76,16 @@ def data_quality(row: pd.Series, model_features: list[str], settings: Settings) 
             "missing_features": missing_used, "warnings": warnings, "sufficient": sufficient}
 
 
+def _upcoming(feats: pd.DataFrame, now: datetime, horizon_days: int) -> pd.DataFrame:
+    feats = feats.copy()
+    feats["deadline"] = [kickoff_deadline(None if pd.isna(k) else k.to_pydatetime(), d)
+                         for k, d in zip(feats["kickoff_utc"], feats["kickoff_date"], strict=True)]
+    # Context leagues are never predicted: they only rate clubs met in European cups.
+    return feats[(feats["status"] == "scheduled") & feats["is_target"].fillna(True).astype(bool)
+                 & (feats["deadline"] > now)
+                 & (feats["deadline"] <= now + timedelta(days=horizon_days))]
+
+
 @dataclass
 class PredictSummary:
     created: int = 0
@@ -94,13 +111,7 @@ def predict_upcoming(engine: Engine, settings: Settings, horizon_days: int = PRE
     summary.model = f"{mv.name} v{mv.version}"
     model = load_model(mv)
 
-    feats = build_features(load_matches(engine, as_of=now))
-    feats["deadline"] = [kickoff_deadline(None if pd.isna(k) else k.to_pydatetime(), d)
-                         for k, d in zip(feats["kickoff_utc"], feats["kickoff_date"], strict=True)]
-    # Context leagues are never predicted: they only rate clubs met in European cups.
-    upcoming = feats[(feats["status"] == "scheduled") & feats["is_target"].fillna(True).astype(bool)
-                     & (feats["deadline"] > now)
-                     & (feats["deadline"] <= now + timedelta(days=horizon_days))]
+    upcoming = _upcoming(build_features(load_matches(engine, as_of=now)), now, horizon_days)
     if upcoming.empty:
         log.info("No upcoming match within %d days", horizon_days)
         return summary
@@ -131,6 +142,68 @@ def predict_upcoming(engine: Engine, settings: Settings, horizon_days: int = PRE
     log.info("Predictions: %d new, %d unchanged, %d refused (%s)", summary.created,
              summary.unchanged, summary.refused, summary.model)
     return summary
+
+
+# A side model is refitted once a week with the latest results, like the active one.
+SIDE_REFIT_DAYS = 7
+
+
+def _side_version(engine: Engine, settings: Settings, name: str, feats: pd.DataFrame,
+                  now: datetime) -> ModelVersion:
+    """The current version of side model `name`, refitted when missing or a week old.
+    Status "side": never "active", "candidate" or "retired", so promotion and rollback
+    can never turn it into the model of the tickets."""
+    with session_scope(engine) as s:
+        mv = s.scalars(select(ModelVersion).where(ModelVersion.name == name, ModelVersion.status == "side")
+                       .order_by(ModelVersion.version.desc())).first()
+        if mv is not None and as_utc(mv.created_at) > now - timedelta(days=SIDE_REFIT_DAYS):
+            s.expunge(mv)
+            return mv
+    new_id = train_version(engine, settings, feats, name)
+    with session_scope(engine) as s:
+        for old in s.scalars(select(ModelVersion).where(ModelVersion.name == name,
+                                                         ModelVersion.status == "side")):
+            old.status = "side_retired"
+        mv = s.get(ModelVersion, new_id)
+        mv.status, mv.decision_note = "side", "D105: shown next to the active model, never used for tickets"
+        s.flush()
+        s.expunge(mv)
+        return mv
+
+
+def predict_side(engine: Engine, settings: Settings, horizon_days: int = PREDICT_DAYS,
+                 now: datetime | None = None) -> dict:
+    """1X2 of each side model (D105) for the same matches as the active model."""
+    now = now or datetime.now(UTC)
+    feats = build_features(load_matches(engine, as_of=now))
+    upcoming = _upcoming(feats, now, horizon_days)
+    out: dict = {}
+    for name in SIDE_MODELS:
+        mv = _side_version(engine, settings, name, feats, now)
+        if upcoming.empty:
+            out[name] = {"version": mv.version, "created": 0, "unchanged": 0}
+            continue
+        probs = load_model(mv).predict(upcoming)
+        created = unchanged = 0
+        with session_scope(engine) as s:
+            for idx, row in upcoming.iterrows():
+                p = probs.loc[idx]
+                if any(pd.isna(p[c]) for c in PROB_COLS):
+                    continue
+                snapshot = {f: _clean(row[f]) for f in mv.features or []}
+                latest = s.scalars(select(SidePrediction)
+                                   .where(SidePrediction.match_id == int(row["match_id"]),
+                                          SidePrediction.model_version_id == mv.id)
+                                   .order_by(SidePrediction.predicted_at.desc())).first()
+                if latest is not None and latest.feature_snapshot == snapshot:
+                    unchanged += 1
+                    continue
+                s.add(SidePrediction(match_id=int(row["match_id"]), model_version_id=mv.id, predicted_at=now,
+                                     feature_snapshot=snapshot, **{c: float(p[c]) for c in PROB_COLS}))
+                created += 1
+        out[name] = {"version": mv.version, "created": created, "unchanged": unchanged}
+        log.info("Side model %s v%d: %d new, %d unchanged", name, mv.version, created, unchanged)
+    return out
 
 
 def submit_user_prediction(engine: Engine, match_id: int, pick: str, confidence: int, *,

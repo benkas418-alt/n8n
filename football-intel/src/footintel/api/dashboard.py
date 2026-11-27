@@ -3,7 +3,7 @@ size and data status, so the interface never shows a number without its context.
 
 import math
 from functools import lru_cache
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 import numpy as np
@@ -399,10 +399,41 @@ def match(match_id: int) -> dict:
         out["summary"] = {"verdict": verdict(pred["p_home"], pred["p_draw"], pred["p_away"], pred["p_over_2_5"],
                                              m["home"], m["away"]),
                           "safe_picks": safe_picks(out["markets"])}
+    out["models"] = side_models_for(match_id, pred)
     before = m["kickoff_date"]
     out["sheets"] =[team_sheet(get_engine(), m["home_team_id"], m["home"], before).__dict__,
                      team_sheet(get_engine(), m["away_team_id"], m["away"], before).__dict__]
     return out
+
+
+def side_models_for(match_id: int, pred) -> dict:
+    """D105: the active model, each side model and the market on this match, plus their
+    record on the same played matches."""
+    from footintel.analysis.side_models import PRE_MATCH
+    from footintel.models.zoo import SIDE_MODELS
+
+    rows = _rows(f"""SELECT DISTINCT ON (mv.name) mv.name, mv.version, sp.p_home, sp.p_draw, sp.p_away,
+                            sp.predicted_at
+                     FROM side_predictions sp JOIN model_versions mv ON mv.id = sp.model_version_id
+                     JOIN matches m ON m.id = sp.match_id
+                     WHERE sp.match_id = :m AND (m.status = 'scheduled' OR sp.predicted_at < {PRE_MATCH})
+                     ORDER BY mv.name, sp.predicted_at DESC""", m=match_id)
+    side = [{"name": r["name"], "label": SIDE_MODELS.get(r["name"], r["name"]),
+             "version": r["version"], "p": [r["p_home"], r["p_draw"], r["p_away"]],
+             "predicted_at": r["predicted_at"]} for r in rows if r["name"] in SIDE_MODELS]
+    active = None
+    if pred:
+        active = {"name": pred["model"], "label": "Modèle actuel", "version": pred["version"],
+                  "p": [pred["p_home"], pred["p_draw"], pred["p_away"]], "predicted_at": pred["predicted_at"]}
+    return {"active": active, "side": side, "record": side_record(datetime.now(UTC).date().isoformat())}
+
+
+@lru_cache(maxsize=2)
+def side_record(day: str) -> list[dict]:
+    """Cached for the day: the export asks it once per match."""
+    from footintel.analysis.side_models import RECORD_SQL, record
+
+    return record(_rows(RECORD_SQL))
 
 
 # --- 5. Model performance --------------------------------------------------------

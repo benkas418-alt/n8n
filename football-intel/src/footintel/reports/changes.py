@@ -23,6 +23,9 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-27", ("Le registre betPawa sépare tes vrais paris (tes coupons) des simples relevés de cotes, et calcule pour tes paris le gain net et le ROI par marché et par compétition.")),
     ("2026-11-27", ("Tes 6 coupons sont enregistrés avec leur mise et leur paiement. Le bilan de la semaine montre maintenant l'argent réel, coupon par coupon, à part de la qualité des cotes prises.")),
     ("2026-11-27", ("Nouvelle page « Valeur de mes paris » (menu, Analyses) : tes coupons, ton gain cumulé, la qualité des cotes que tu prends marché par marché, et les données qui manquent.")),
+    ("2026-11-28", ("Sur la page d'un match, l'encadré « Ce que disent les modèles » montre côte à côte le modèle "
+                   "actuel, LightGBM et les bookmakers, et combien de fois chacun a vu juste sur les mêmes "
+                   "matchs. Seul le modèle actuel fait tes tickets.")),
 ]
 
 
