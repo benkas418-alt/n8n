@@ -57,7 +57,8 @@ JOURNAL_KEYS = {("1X2", "H"): "1", ("1X2", "D"): "X", ("1X2", "A"): "2", ("DC", 
                 ("DC", "12"): "12", ("1UP", "1"): "1UP_1", ("1UP", "2"): "1UP_2", ("2UP", "1"): "2UP_1",
                 ("2UP", "2"): "2UP_2", ("DC1UP", "1X"): "DC1UP_1X", ("DC1UP", "X2"): "DC1UP_X2",
                 ("DC1UP", "12"): "DC1UP_12", ("FG", "1"): "FG_1", ("FG", "2"): "FG_2", ("BTTS", "Y"): "BTTS_Y",
-                ("BTTS", "N"): "BTTS_N", ("OU2.5", "O"): "+2.5", ("OU2.5", "U"): "-2.5"}
+                ("BTTS", "N"): "BTTS_N", ("OU2.5", "O"): "+2.5", ("OU2.5", "U"): "-2.5",
+                ("OU1.5", "O"): "+1.5", ("OU1.5", "U"): "-1.5", ("OU3.5", "O"): "+3.5", ("OU3.5", "U"): "-3.5"}
 
 
 def dc_up(lh: float, la: float, need: int, n_max: int = 16) -> tuple[float, float, float]:

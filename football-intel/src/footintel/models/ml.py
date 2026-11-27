@@ -65,3 +65,16 @@ def xgboost(features: list[str], name: str) -> SklearnClassifierModel:
     est = XGBClassifier(objective="multi:softprob", eval_metric="mlogloss", n_jobs=4,
                         random_state=42, **params)
     return SklearnClassifierModel(name, "xgboost", features, est, params)
+
+
+def neural_net(features: list[str], name: str) -> SklearnClassifierModel:
+    """Neural network (D98 test): two hidden layers trained by backpropagation (Adam).
+    Early stopping on a 10 % slice of the training fold, and an L2 penalty, keep it from
+    learning the noise of past seasons."""
+    from sklearn.neural_network import MLPClassifier
+
+    params = {"hidden_layer_sizes": (64, 32), "alpha": 1e-3, "learning_rate_init": 1e-3,
+              "batch_size": 512, "max_iter": 200, "early_stopping": True, "validation_fraction": 0.1,
+              "n_iter_no_change": 10}
+    return SklearnClassifierModel(name, "neural_net", features, MLPClassifier(random_state=42, **params), params)
+

@@ -1370,3 +1370,18 @@ def test_national_team_names_are_french_in_the_tickets_email():
     _, body = tickets_text({"days": [day]}, date(2026, 11, 17))
     assert "Pays de Galles – Portugal" in body and "Wales" not in body
     assert "Tickets A et B non construits : il faut au moins 5 matchs" in body
+
+
+def test_neural_net_gives_probabilities_that_sum_to_one():
+    import pandas as pd
+
+    from footintel.models.zoo import build
+
+    rng = np.random.default_rng(0)
+    model = build("nn_core")
+    n = 600
+    df = pd.DataFrame({f: rng.normal(size=n) for f in model.features})
+    df["home_goals"] = rng.integers(0, 4, n)
+    df["away_goals"] = rng.integers(0, 3, n)
+    p = model.fit(df).predict(df.head(20))
+    assert p.shape == (20, 3) and np.allclose(p.sum(axis=1), 1) and (p.values > 0).all()
