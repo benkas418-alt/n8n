@@ -12,14 +12,16 @@
     "accent_sur_bleu": ["#bfe3ff", "#8fd0ff"],
     "ombre": ["#0d2846"],
     "objectif_du_telephone_3d": ["#3b4a63"],
-    "voile_sombre_sur_rush": ["#051423"]
+    "voile_sombre_sur_rush": ["#051423"],
+    "papier_creme": ["#efe9dd"]
   },
   "couleurs_neutres_admises": "gris (rouge, vert et bleu à moins de 14 d'écart : téléphone 3D, ombres), noir, blanc, transparence",
   "polices": ["Poppins"],
   "polices_videos_produit": ["Lexend"],
   "tailles_texte_px": [34, 55, 89, 144, 233],
   "tailles_texte_service_px": [36, 40],
-  "_tailles": "Échelle d'or 34 x 1,618 (théorie de design envoyée le 19 nov.). 36 et 40 : seulement « Disponible sur » et pi-tup.com sur la fin.",
+  "tailles_micro_px": [21],
+  "_tailles": "Échelle d'or 34 x 1,618 (théorie de design envoyée le 19 nov.). 36 et 40 : seulement « Disponible sur » et pi-tup.com sur la fin. 21 (= 34 / 1,618) : micro-typographie éditoriale en capitales espacées, style « drench » demandé le 27 nov.",
   "formats": {"story": [1080, 1920], "carre": [1080, 1080], "carte": [1200, 630]},
   "video": {"images_par_seconde": 30, "lufs": -14, "tolerance_lufs": 1.0, "crete_max_db": -1.0},
   "texte": {
