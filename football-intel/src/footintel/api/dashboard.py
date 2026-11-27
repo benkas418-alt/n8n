@@ -644,8 +644,6 @@ def tickets(model: str = "hermes") -> dict:
                                                      m["competition"])
         matches.append({k: m[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "home", "away")}
                        | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or probs.get("O2.5"),
-                          # D119: the side the match page favours (the view's own model).
-                          "view_p1": probs.get("1"), "view_p2": probs.get("2"),
                           "source": "marché" if mk.get("1") else ("LightGBM" if lightgbm else "modèle"),
                           "scenarios": notes,
                           "home_league": (leagues.get(m["id"]) or {}).get("home_league"),
