@@ -11,7 +11,7 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
   Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D119), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D120), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`, shown as **Hermès 1.1** (D106, D109: goal markets from bookmakers, else LightGBM with odds, else Hermès); it equals the market; no edge shown (not proof of none) (CLV −2.5 % at average price, D54). LightGBM (`lightgbm`, every market) predicts next
   to it in `side_predictions` (D105, D107). Site switch Hermès / LightGBM (D107): pages and tickets
   follow the choice; the e-mail stays on Hermès. Bookmakers > LightGBM > Hermès on goals (D108). Line-ups and late news are already in the closing price (D117) and betPawa follows Pinnacle within minutes (D118).
