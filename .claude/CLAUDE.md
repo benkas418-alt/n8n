@@ -11,7 +11,7 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
   Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D114), `docs/RESULTS.md`,
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D115), `docs/RESULTS.md`,
   `docs/DATA_SOURCES.md`. Active model `routed_competition`, shown as **Hermès 1.1** (D106, D109: goal markets from bookmakers, else LightGBM with odds, else Hermès); it equals the market; no edge shown (not proof of none) (CLV −2.5 % at average price, D54). LightGBM (`lightgbm`, every market) predicts next
   to it in `side_predictions` (D105, D107). Site switch Hermès / LightGBM (D107): pages and tickets
   follow the choice; the e-mail stays on Hermès. Bookmakers > LightGBM > Hermès on goals (D108).
@@ -82,7 +82,7 @@ newest one when the owner says "reprends où on s'est arrêtés". Project plugin
 | storytold/craft-anything (2026-11-27) | Not installed: Rust desktop app (MIT/Apache-2.0, early alpha, 40 MB) that studies a site, app or game and has a local Claude Code rebuild it. Needs the owner's PC with Claude Code logged in; "Deep" mode reads other programs' code. Use only on sites he owns or may inspect (PitUp); we already do study-then-build here with Playwright and the design skills. The reel sent with it (graduate_ml) explains backpropagation and gradient descent, nothing on the tool. Owner wanted it to collect football data: not done, it rebuilds apps rather than collecting data, and the sources that hold the missing data forbid collection. Free way to watch reels when vidIQ is out of credits: yt-dlp, ffmpeg tile sheet, faster-whisper on a soundfile array |
 | liveljack/soccer_prediction, 0ywfe/football-prediction-model, sktime/pytorch-forecasting, LightGBM, tinygrad, karpathy/micrograd, Gabvaztor/Consciences (2026-11-27) | Not installed; tested where useful (D99): soccer_prediction's national Elo settings and LightGBM give no gain over our models (LightGBM with odds = market level). Others: same XGBoost method, time-series tool, NN teaching libraries (neural nets tested in D98), old TensorFlow framework |
 | higgsfield-ai/higgsfield, o3de, ai-agent frameworks lists | Not relevant (GPU training framework; game engine — owner may revisit) |
-| langchain-ai/lca-managed-agents (2026-11-28) | Not installed: LangChain course starter (design agent in Slack), needs a paid Anthropic key and LangSmith |
+| langchain-ai/lca-managed-agents (2026-11-27) | Not installed: LangChain course starter (design agent in Slack), needs a paid Anthropic key and LangSmith |
 | 3641397194-wq/gpt6-Astra, claude-code-best/claude-code, asgeirtj/system_prompts_leaks | Refused: jailbreak injector with unknown relay; unauthorised reconstruction of proprietary code; leaked confidential prompts |
 
 ## Owner's betting habits (betPawa; stated 2026-10-30)
