@@ -855,3 +855,18 @@ Règle fixée avant (30 matchs ou plus, moyenne au-dessus de 0, intervalle au-de
 Pistes par championnat contre le vendredi (intervalle à 99 % sous 0, les deux moitiés) : Portugal −0,00681 [−0,01163 ; −0,00171], Turquie −0,00665 [−0,01091 ; −0,00162]. Contre la clôture, aucun championnat n'a un écart sous 0 avec son intervalle.
 
 Vérification sur 2016-2020 (`scripts/leads_por_tur_check.py`) : Portugal −0,00275 [−0,00670 ; +0,00124], 365 paris d'Hermès, valeur contre la clôture de Pinnacle −8,59 % [−9,86 ; −7,39] ; Turquie +0,00024 [−0,00359 ; +0,00399], 278 paris, −4,89 % [−5,89 ; −3,84]. Non confirmées. 2026-27 (81 matchs chacun, pour information) : Portugal +0,018, Turquie −0,020.
+
+## Les vrais paris du propriétaire contre la cote juste (27/11/2026, D121)
+
+Registre betPawa du cycle du 27/11 (artefact `betpawa-ledger`, run 46042691716), source `coupon` : 55 sélections de 6 coupons (24 au 26/11, coupes d'Europe). Cote juste = moyenne des bookmakers au moment du pari, marge retirée par la méthode puissance. Valeur = cote × probabilité juste − 1.
+
+| Marché | Sélections | Valeur moyenne | Au-dessus de la cote juste | Gagnées | Attendu |
+|---|---|---|---|---|---|
+| 1UP | 26 | −1,7 % | 35 % | 88 % | 75 % |
+| 2UP | 20 | −3,3 % | 10 % | 70 % | 71 % |
+| BTTS | 6 | −10,5 % | 17 % | 83 % | 61 % |
+| 1X2 | 2 | −3,8 % | 0 % | 100 % | 89 % |
+| Moins de 3,5 | 1 | −20,5 % | 0 % | 100 % | 56 % |
+| **Toutes** | **55** | **−3,7 %** | **22 %** | **82 %** | **72 %** |
+
+Coupons (valeur avec le Bonus Gagnant, D67) : 8 sélections −4 % (gagné), 9 sélections −44 % (gagné), 9 sélections +10 % (gagné), 6 sélections +17 % (perdu), 8 sélections −28 % (perdu), 15 sélections −26 % (perdu). Mises 14 000 FC, gains 93 663 FC. Six coupons ne permettent pas de juger un résultat : la valeur attendue reste négative.
