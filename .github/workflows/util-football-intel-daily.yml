@@ -193,8 +193,10 @@ jobs:
       - name: Export to the private site
         run: footintel export-supabase
 
-      # D71: the Tickets du jour by e-mail (skipped when SMTP is not configured).
+      # D71: the Tickets du jour by e-mail (skipped when SMTP is not configured). It reads the
+      # database, not the site: a failed export must not stop it (27/11).
       - name: E-mail the Tickets du jour
+        if: always() && steps.predict.outcome == 'success'
         continue-on-error: true
         run: footintel email-tickets
 

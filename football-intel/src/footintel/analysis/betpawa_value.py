@@ -138,7 +138,7 @@ def placement_1x2(conn, match_id: int, captured) -> tuple[tuple | None, str]:
     """D103: the 1X2 fair probability known at the capture: the last The Odds API snapshot taken
     before it (margin removed, averaged over its books), else the last prediction of the site made
     before it. Never a closing price: it was not known when the bet was placed."""
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     from footintel.analysis.value_ledger import placement_reference
 
@@ -158,6 +158,8 @@ def placement_1x2(conn, match_id: int, captured) -> tuple[tuple | None, str]:
             t = datetime.fromisoformat(label.split("@", 1)[1])
         except ValueError:
             continue
+        if t.tzinfo is None:  # snapshot labels are written in UTC, with or without the "Z"
+            t = t.replace(tzinfo=UTC)
         timed.append((t, (tuple(np.mean(probs, axis=0)), f"the_odds_api {label} ({len(probs)} books)")))
     pick = placement_reference([(t, v) for t, v in timed], captured)
     if pick:

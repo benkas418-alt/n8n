@@ -51,7 +51,12 @@ def collect(client) -> tuple[dict[str, object], list[str]]:
     def get(path: str):
         if path in cache:
             return cache[path]
-        r = client.get(PREFIX + path)
+        try:
+            r = client.get(PREFIX + path)
+        except Exception as exc:  # one broken page must not stop the export (27/11)
+            log.exception("Snapshot %s failed", path)
+            failed.append(f"{path} -> {type(exc).__name__}: {exc}")
+            return None
         if r.status_code != 200:
             failed.append(f"{path} -> {r.status_code}")
             return None
