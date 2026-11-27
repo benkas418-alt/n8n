@@ -1,0 +1,52 @@
+{
+  "_lire": "Charte PitUp lisible par le code (idée du dépôt langchain-ai/lca-managed-agents : brand.json + contrôle qui bloque un visuel hors charte). Chaque valeur vient d'une décision du fondateur, notée dans pitup/memoire/1-essentiel/regles.md. Contrôle : python3 pitup/tools/charte_lint.py <projet> [--video rendu.mp4] [--script build.py] [--musique nom:debut].",
+  "nom": "PitUp",
+  "site": "pi-tup.com",
+  "couleurs": {
+    "bleu": "#1f88c9",
+    "bleu_clair": "#3aa2df",
+    "bleu_fonce": "#1672ab",
+    "texte": "#0d1b2a",
+    "fond": "#f5f8fb",
+    "fond_degrade": ["#ffffff", "#f3f7fb", "#e4eef7"],
+    "accent_sur_bleu": ["#bfe3ff", "#8fd0ff"],
+    "ombre": ["#0d2846"],
+    "objectif_du_telephone_3d": ["#3b4a63"],
+    "voile_sombre_sur_rush": ["#051423"]
+  },
+  "couleurs_neutres_admises": "gris (rouge, vert et bleu à moins de 14 d'écart : téléphone 3D, ombres), noir, blanc, transparence",
+  "polices": ["Poppins"],
+  "polices_videos_produit": ["Lexend"],
+  "tailles_texte_px": [34, 55, 89, 144, 233],
+  "tailles_texte_service_px": [36, 40],
+  "_tailles": "Échelle d'or 34 x 1,618 (théorie de design envoyée le 19 nov.). 36 et 40 : seulement « Disponible sur » et pi-tup.com sur la fin.",
+  "formats": {"story": [1080, 1920], "carre": [1080, 1080], "carte": [1200, 630]},
+  "video": {"images_par_seconde": 30, "lufs": -14, "tolerance_lufs": 1.0, "crete_max_db": -1.0},
+  "texte": {
+    "interdits": [
+      {"motif": "\\b\\d[\\d\\s.,]*\\s?(FC|CDF|USD|francs?)\\b|\\$\\s?\\d", "raison": "aucun prix"},
+      {"motif": "disponible dès maintenant", "raison": "formule interdite"},
+      {"motif": "vente de t[ée]l[ée]phones|t[ée]l[ée]phones? à vendre", "raison": "pas de vente de téléphones"},
+      {"motif": "(^|\\n)\\s*\\d+\\s*[.)]\\s", "raison": "pas de liste numérotée"},
+      {"motif": "(^|[.!?]\\s+)PitUp\\b", "raison": "aucune phrase ne commence par PitUp"},
+      {"motif": "ElevenLabs", "raison": "jamais ElevenLabs"}
+    ],
+    "chiffre_autorise": "+100 boutiques locales",
+    "chiffre_doit_dire": "nous ont déjà rejoints",
+    "acheteurs": "paies à la livraison|paiement à la livraison",
+    "vendeurs": "\\+ ?100|plus de (100|cent) boutiques"
+  },
+  "fin": {"badges": ["appstore.svg", "Google_Play_Store_badge_EN.svg"], "au_dessus_des_badges": "Disponible sur"},
+  "son": {
+    "bannis_fichiers": ["2573", "1491", "fun-sfx"],
+    "bannis_code": ["thock(", "swish(", "def click("],
+    "admis": {"declic_photo": "Mixkit 1432", "clavier": "Mixkit 1387"},
+    "regle_declics": "un changement de plan sur deux"
+  },
+  "musiques_deja_utilisees": [
+    {"titre": "Drake - What Did I Miss?", "fichier": "drake", "videos": ["film de lancement v4-v5", "présentateur v3-v6"]},
+    {"titre": "Tems - Me & U", "fichier": "tems", "videos": ["commande-livraison v11-v13 (à partir de 43,97 s)", "motion acheteurs v1 (à partir de 46,07 s)"]},
+    {"titre": "Sam Recks - Visa", "fichier": "visa", "videos": ["film de lancement v3"]}
+  ],
+  "musiques_bannies": ["amapiano", "Obsessed With You"]
+}
