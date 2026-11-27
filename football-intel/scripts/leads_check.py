@@ -8,6 +8,8 @@ Each file is a pickled walk_forward() frame with market_implied and routed_compe
 import pickle
 
 import numpy as np
+
+
 def boot(d, n=4000, seed=0):
     rng = np.random.default_rng(seed)
     return np.percentile([d[rng.integers(0, len(d), len(d))].mean() for _ in range(n)], [2.5, 97.5])
@@ -23,7 +25,7 @@ def run(path, label):
     lh = -np.log(np.clip(ph[np.arange(n), y], 1e-12, 1)); lm = -np.log(np.clip(pm[np.arange(n), y], 1e-12, 1))
     print(f"\n=== {label} : {n} matchs avec cotes ===")
     obs = (y == 0)
-    dh, dm = ph[:, 0] - obs, pm[:, 0] - obs
+    dh, _dm = ph[:, 0] - obs, pm[:, 0] - obs
     print(f"Piste 1 : victoire domicile annoncée Hermès {ph[:,0].mean()*100:.1f} %, marché {pm[:,0].mean()*100:.1f} %, réel {obs.mean()*100:.1f} %")
     print(f"   Hermès moins réel {dh.mean()*100:+.2f} pts IC {np.round(boot(dh)*100,2)} ; Hermès moins marché {(ph[:,0]-pm[:,0]).mean()*100:+.2f} pts IC {np.round(boot(ph[:,0]-pm[:,0])*100,2)}")
     for s in sorted(H.season.unique()):
