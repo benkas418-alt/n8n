@@ -671,3 +671,13 @@ Test saison par saison 2021-2025, mêmes 10 846 matchs, écart de log loss appar
 | Plus de 3,5 buts | −0,0043 (−0,0061 ; −0,0026) | −0,0060 (−0,0079 ; −0,0041) | +0,0035 |
 
 Bon côté de plus de 2,5 buts avec cotes : LightGBM 58,0 %, Hermès 56,7 %. BTTS : 55,1 % contre 54,7 %.
+
+## Avant Hermès 1.1 : LightGBM contre les bookmakers, et Hermès 1.1 contre Hermès 1.0 (28/11/2026, D108)
+
+| Plus de 2,5 buts, 2021-2025, 8 907 matchs avec cotes | Écart avec les bookmakers (avant le match) | Bon côté |
+|---|---|---|
+| Bookmakers (moyenne sans marge) | — | 58,6 % |
+| LightGBM | +0,0032 (IC +0,0018 ; +0,0047) | 58,0 % |
+| Hermès 1.0 | +0,0101 (IC +0,0078 ; +0,0124) | 56,7 % |
+
+Saison 2026-27 (452 matchs, hors échantillon) : bon côté sur plus de 2,5 buts, bookmakers 62,2 %, Hermès 1.1 60,4 %, Hermès 1.0 57,1 %. 1UP, 2UP et premier but (348 matchs) : Hermès 1.1 = Hermès 1.0.
