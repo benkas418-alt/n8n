@@ -259,7 +259,7 @@ SIDE_MODELS = {"lightgbm": "LightGBM"}  # D107: every market, not only 1X2 (was 
 
 # D106: names the owner sees. The weekly refits keep the public number of Hermès;
 # the owner decides when it changes. Same list in static/app.js (MODEL_NAMES).
-PUBLIC_NAMES = {"routed_competition": "Hermès 1.0", **SIDE_MODELS}
+PUBLIC_NAMES = {"routed_competition": "Hermès 1.1", **SIDE_MODELS}  # 1.1: goal blend, D109
 
 
 def build(name: str) -> ProbModel:
