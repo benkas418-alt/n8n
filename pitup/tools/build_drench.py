@@ -90,7 +90,7 @@ tile(f"{REF}/samba.jpg", "t_samba"); tile(f"{REF}/rolex.jpg", "t_rolex", (60, 38
 tile(f"{REF}/robes9.jpg", "t_robes", (0, 0, 736, 860)); tile(f"{APP}/p138.jpg", "a_montre"); tile(f"{APP}/p190.jpg", "a_samba")
 
 # ---- scenes: one every two beats, hard cuts. (kind, logo colour, line under the logo)
-SC = [("paper", "navy", ""), ("lushi", "cream", ""), ("lac", "cream", "Les boutiques de Lubumbashi"),
+SC = [("paper", "navy", ""), ("lushi", "navy", ""), ("lac", "cream", "Les boutiques de Lubumbashi"),
       ("phone", "cream", "dans ton téléphone."), ("studio:am95", "cream", ""), ("gridp", "navy", ""),
       ("studiol:robe", "navy", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:tees", "cream", ""),
       ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:corteiz", "cream", "")]
@@ -127,13 +127,11 @@ def scene(i, kind):
         extra = micro("PITUP", "tl dk", "") + micro("LUBUMBASHI — RDC", "tr dk", "")
         if kind == "paper2": extra += '<div class="out">boutiques</div>' + micro("COMMERCE LOCAL<br>EN LIGNE", "bl dk", "")
         return f'<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>{extra}'
-    if kind == "lushi":   # three wide bands of the city on paper, the logo between them
+    if kind == "lushi":   # 27 Nov. (founder): back to the opening collage, two strong city shots offset left and right
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
-                '<img class="ph" src="assets/img/lb_alilac.jpg" style="left:0;top:0;width:1080px;height:640px">'
-                '<img class="ph" src="assets/img/lb_avenue.jpg" style="left:0;top:640px;width:1080px;height:640px">'
-                '<img class="ph" src="assets/img/lb_tour.jpg" style="left:0;top:1280px;width:1080px;height:640px">'
-                '<div class="bgc" style="top:640px;height:640px;bottom:auto;background:rgba(13,27,42,.38)"></div>'   # the logo stays readable on the busy avenue
-                + micro("LUBUMBASHI — RDC", "", "right:64px;top:150px;text-align:right;text-shadow:0 2px 12px rgba(13,27,42,.8)"))
+                '<img class="ph" src="assets/img/lb_alilac.jpg" style="left:0;top:100px;width:680px;height:470px;object-position:40% 50%">'
+                '<img class="ph" src="assets/img/lb_avenue.jpg" style="left:400px;top:1060px;width:680px;height:540px;object-position:60% 50%">'
+                + micro("LUBUMBASHI — RDC", "dk", "right:64px;top:120px;text-align:right"))
     if kind == "lac":     # the city seen from afar, full screen
         return ('<div class="bgc" style="background:#0d1b2a"></div><img class="ph" src="assets/img/lb_lac.jpg" style="left:0;top:990px;width:1080px;height:640px">' +
                 micro("11°40′ S<br>27°28′ E", "", "left:64px;top:150px") + micro("LUBUMBASHI<br>HAUT-KATANGA · RDC", "", "right:64px;top:150px;text-align:right"))
@@ -236,7 +234,7 @@ const SC={json.dumps([[T0[i], T1[i], k, c, bool(l)] for i, (k, c, l) in enumerat
 let li=0;
 SC.forEach(([a,b,k,c,hasLine],i)=>{{ const s="#s"+i;
   tl.set(s,{{opacity:1}},a); tl.set(s,{{opacity:0}},b);
-  ["navy","blue","cream"].forEach(n=>tl.set("#w"+n,{{opacity:n===c?1:0,y:k==="lushi"?240:0}},a));   // on the central band of the triptych
+  ["navy","blue","cream"].forEach(n=>tl.set("#w"+n,{{opacity:n===c?1:0}},a));
   tl.fromTo(s,{{scale:1.035}},E({{scale:1,duration:b-a,ease:"power1.out"}}),a);              // slow settle inside each look
   tl.fromTo(s+" .ph",{{y:(j)=>j?40:-40}},E({{y:0,duration:.5,ease:"expo.out"}}),a);
   tl.fromTo(s+" .mc",{{opacity:0,y:10}},E({{opacity:1,y:0,duration:.25,stagger:.05,ease:"power2.out"}}),a+.05);

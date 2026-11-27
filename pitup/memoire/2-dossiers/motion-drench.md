@@ -51,3 +51,9 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Étalonnage `vivid()` des plans de ville : balance des blancs à mi-chemin du gris moyen, même plage de contraste (percentiles 1 à 99,3), même exposition, saturation ×1,22, légère courbe en S. Plus de désaturation (l'ancien `grade()` reste pour rien d'autre que la référence).
 - Triptyque 3 × 640 px plein cadre (Alilac Center, avenue, tour vitrée) ; voile nuit à 38 % sur la bande du milieu pour lire le logo crème ; le logo descend de 240 px dans cette scène seulement (centre de la bande du milieu).
 - 15,2 s, −13,7 LUFS, charte : 0 erreur.
+
+## v6 (27 nov.) : retour au collage décalé
+
+- Retour sur la v5 : « les plans vont s'afficher comme au tout début… deux plans, l'un du côté gauche, l'autre du côté droit, un peu décalés ».
+- Scène « lushi » : papier, Alilac Center en haut à gauche (680 × 470, y 100), avenue aux taxis jaunes en bas à droite (680 × 540, y 1060), logo navy à sa place habituelle entre les deux, « LUBUMBASHI — RDC » en haut à droite. Couleurs vives (`vivid()`) gardées. Triptyque et décalage du logo retirés.
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.
