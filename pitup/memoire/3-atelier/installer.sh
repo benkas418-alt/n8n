@@ -34,11 +34,8 @@ skills() {
       n=$(basename "$(dirname "$f")"); [ -e "$SK/$n" ] || cp -r "$(dirname "$f")" "$SK/$n"
     done
   done
-  # 27 nov. : le fondateur a demandé d'installer aussi les compétences ElevenLabs (préfixe elevenlabs-, pour ne pas écraser d'autres noms)
-  d="$H/.skills-src/elevenlabs-skills"; [ -d "$d" ] || git clone -q --depth 1 https://github.com/elevenlabs/skills.git "$d"
-  find "$d" -mindepth 2 -name SKILL.md | while read -r f; do n=$(basename "$(dirname "$f")"); [ -e "$SK/elevenlabs-$n" ] || cp -r "$(dirname "$f")" "$SK/elevenlabs-$n"; done
-  # bibliothèques web : cuelume (sons d'interface) et p5.js 2.4.0 (dessin génératif) dans $H/ext/npm/node_modules
-  mkdir -p "$H/ext/npm"; [ -d "$H/ext/npm/node_modules/p5" ] || (cd "$H/ext/npm" && { [ -f package.json ] || npm init -y >/dev/null; } && npm install --silent cuelume p5@2.4.0)
+  # p5.js 2.4.0 (dessin génératif) dans $H/ext/npm/node_modules (27 nov. : le fondateur garde p5.js et video-shotcraft seulement)
+  mkdir -p "$H/ext/npm"; [ -d "$H/ext/npm/node_modules/p5" ] || (cd "$H/ext/npm" && { [ -f package.json ] || npm init -y >/dev/null; } && npm install --silent p5@2.4.0)
   [ -f "$SK/hyperframes/SKILL.md" ] || npx -y skills add heygen-com/hyperframes -g --agent claude-code -y </dev/null >/dev/null 2>&1 || true
   echo "Compétences : $(ls "$SK" | wc -l) dans $SK"
 }

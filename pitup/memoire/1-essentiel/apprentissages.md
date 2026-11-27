@@ -7,6 +7,7 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 ## 2026-11-27
 
 - **Dépôts d'outils.** Il envoie 4 dépôts sans consigne, puis « Installé le 2 premier » (dicté). Ambigu (sa liste ou mon tableau) : j'ai installé les deux lectures (compétences ElevenLabs + cuelume, et p5.js ; video-shotcraft l'était déjà). Retenu : quand il envoie des dépôts, les étudier puis proposer ; quand sa réponse est ambiguë et que l'action est sans risque, faire les deux et le dire. Rangé : `3-atelier/outils.md`.
+- **Précision.** « Non, juste p5.js et video-shotcraft. » Retenu : sur quatre dépôts envoyés, il ne garde que ceux que j'avais jugés utiles pour les vidéos ; ElevenLabs et cuelume désinstallés. Mieux valait poser une seule question que tout installer. Rangé : `3-atelier/outils.md`, `installer.sh`.
 
 ## 2026-11-26
 
