@@ -719,3 +719,14 @@ Chaque tranche contient sa valeur annoncée dans l'intervalle. Réserve : une se
 - Biais : Hermès annonce la victoire à domicile à 45,0 % en moyenne (marché 43,9 %, réel 43,5 %) et la victoire à l'extérieur à 30,4 % (marché 31,3 %, réel 31,1 %). Hermès surestime un peu l'avantage du terrain.
 - Quand Hermès donne 3 à 8 points de plus que le marché à la victoire à domicile (2 296 matchs) : Hermès 65,6 %, marché 60,9 %, réel 63,2 %. La réalité tombe entre les deux. Quand Hermès donne 3 à 8 points de moins (551 matchs) : Hermès 29,2 %, marché 33,1 %, réel 29,8 %. Hermès a raison et le marché surestime le favori à domicile.
 - Plus de 2,5 buts : Hermès perd dans les cinq championnats (+0,0076 à +0,0130, IC tous au-dessus de 0), annonce 54,2 % contre 52,9 % pour les bookmakers et 53,1 % de réel. C'est déjà corrigé par Hermès 1.1 (D109) quand le prix des bookmakers existe.
+
+## Les deux pistes de D111 sur des saisons indépendantes (28/11/2026, D112)
+
+Règles fixées avant de regarder. Saisons 2016-2020, jamais utilisées pour D111, puis 2026-27.
+
+| Piste | Règle | 2016-2020 | 2026-27 | Verdict |
+|---|---|---|---|---|
+| 1. Hermès surestime la victoire à domicile | Au-dessus du réel et du marché | Hermès 45,2 %, marché 44,1 %, réel 44,5 % ; Hermès − réel +0,62 point (IC −0,35 ; +1,54) | Hermès 44,4 %, marché 43,2 %, réel 45,8 % | Non confirmée |
+| 2. Hermès a raison quand il donne 3 à 8 points de moins au domicile | Log loss Hermès < marché, IC sous 0 | 702 matchs : réel 30,3 %, Hermès 29,7 %, marché 33,8 % ; écart −0,0018 (IC −0,0092 ; +0,0055) | 30 matchs : réel 36,7 % ; écart +0,0219 | Non confirmée |
+
+Hermès donne toujours environ 1 point de plus que le marché à la victoire à domicile, mais rien ne montre que le marché ait raison ou tort sur ce point.
