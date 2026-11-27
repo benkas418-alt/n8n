@@ -14,6 +14,10 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 - **Logo du geste : ralentir, centrer, suivre.** « Tu dois ralentir la vidéo… centrer le logo… il doit bien suivre la gestuelle des doigts. » Et : « les clics caméra, tu dois un peu les alterner, pas les mettre qui se suivent. » Retenu : un effet lié à un geste se cale image par image sur le geste (points relevés sur une grille), au ralenti si le geste est rapide ; déclic photo un changement de plan sur deux. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
 - **Le logo naît de l'écartement, pas avant.** « Il doit suivre l'agrandissement des mains, pas d'abord venir, il est petit quelque part… Quand les mains commencent à se séparer, le logo apparaît entre les deux doigts, il commence à grandir. » Retenu : un objet lié à un geste n'apparaît qu'au début du mouvement qui le crée ; sa taille suit l'écart des doigts ; il reste entre les bouts de doigts. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
 
+## 2026-11-27
+
+- **Dépôts d'outils.** Il envoie 4 dépôts sans consigne, puis « Installé le 2 premier » (dicté). Ambigu (sa liste ou mon tableau) : j'ai installé les deux lectures (compétences ElevenLabs + cuelume, et p5.js ; video-shotcraft l'était déjà). Retenu : quand il envoie des dépôts, les étudier puis proposer ; quand sa réponse est ambiguë et que l'action est sans risque, faire les deux et le dire. Rangé : `3-atelier/outils.md`.
+
 ## 2026-11-25
 
 - **Voix du présentateur ratée.** « La voix n'est pas identique… au timbre de sa voix. Ensuite, dans la prononciation de PitUp… il dit Pito… c'est bizarre… Tu as un peu raté. » Cause (interprétation) : consigne de style qui écrase le timbre + référence trop débruitée ; « PitUp » écrit tel quel est mal lu. Retenu : pour cloner une personne réelle, mode continuation (extrait + texte exact), pas de consigne de style, référence peu traitée, choix des prises par ressemblance mesurée à sa vraie voix ; écrire PitUp de façon à obtenir « pit-ap ». Rangé : `2-dossiers/presentateur-app.md`.
