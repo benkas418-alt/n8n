@@ -1,5 +1,7 @@
 """Model B: supervised 1X2 classifiers on pre-match features."""
 
+from typing import ClassVar
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -8,8 +10,19 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
-from footintel.features.builder import CONTEXT_FEATURES, ELO_FEATURES, MARKET_FEATURES, side_features
-from footintel.models.base import PROB_COLS, ProbModel, encode_result
+from footintel.features.builder import (
+    CONTEXT_FEATURES,
+    ELO_FEATURES,
+    MARKET_FEATURES,
+    side_features,
+)
+from footintel.models.base import (
+    GOAL_COLS,
+    PROB_COLS,
+    ProbModel,
+    encode_result,
+    markets_from_lambdas,
+)
 
 CORE_FEATURES = ELO_FEATURES + side_features("h") + side_features("a") + CONTEXT_FEATURES
 WITH_MARKET_FEATURES = CORE_FEATURES + MARKET_FEATURES
@@ -89,3 +102,38 @@ def lightgbm(features: list[str], name: str) -> SklearnClassifierModel:
               "subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "reg_lambda": 1.0}
     return SklearnClassifierModel(name, "lightgbm", features,
                                   LGBMClassifier(random_state=42, verbose=-1, **params), params)
+
+
+class LightGBMGoals(ProbModel):
+    """D107: goals of each team from two LightGBM regressors (Poisson loss), then the same
+    score table as Hermès, so every goal market (over/under, BTTS, scores) comes from them."""
+
+    family = "lightgbm_poisson"
+    PARAMS: ClassVar[dict] = {"n_estimators": 400, "learning_rate": 0.02, "num_leaves": 15, "min_child_samples": 200,
+              "subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "reg_lambda": 1.0}
+
+    def __init__(self, name: str, features: list[str]):
+        self.name, self.features = name, list(features)
+
+    def _pipe(self) -> Pipeline:
+        from lightgbm import LGBMRegressor
+
+        return Pipeline(_preprocess() + [("reg", LGBMRegressor(objective="poisson", random_state=42,
+                                                                verbose=-1, **self.PARAMS))])
+
+    def fit(self, train: pd.DataFrame) -> "LightGBMGoals":
+        train = train[train[["home_goals", "away_goals"]].notna().all(axis=1)]
+        self.home_ = self._pipe().fit(train[self.features], train["home_goals"])
+        self.away_ = self._pipe().fit(train[self.features], train["away_goals"])
+        return self
+
+    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+        x = df[self.features]
+        lam_h = np.clip(self.home_.predict(x), 0.05, 8.0)
+        lam_a = np.clip(self.away_.predict(x), 0.05, 8.0)
+        out = markets_from_lambdas(lam_h, lam_a)
+        out.index = df.index
+        return out[PROB_COLS + GOAL_COLS]
+
+    def params(self) -> dict:
+        return {**self.PARAMS, "features": self.features}

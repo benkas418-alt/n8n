@@ -88,7 +88,7 @@ const pct = (v, d = 1) => (v == null ? "n/d" : `${(100 * v).toFixed(d)} %`);
 const num = (v, d = 2) => (v == null ? "n/d" : Number(v).toFixed(d));
 /* Public model names (D106). The weekly refits keep the public number; the owner decides
    when Hermès gets a new number. Accepts "routed_competition v3" or a name and a version. */
-const MODEL_NAMES = { routed_competition: "Hermès 1.0", lgbm_market: "LightGBM", national_elo: "Modèle des sélections" };
+const MODEL_NAMES = { routed_competition: "Hermès 1.0", lightgbm: "LightGBM", lgbm_market: "LightGBM (1N2 seul)", national_elo: "Modèle des sélections" };
 function modelName(name, version) {
   if (name == null) return "aucun";
   const m = String(name).match(/^(\S+) v(\d+)$/);
@@ -135,7 +135,19 @@ const season = (y) => `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
 const badge = (status) => `<span class="badge ${esc(status)}">${esc(STATUS[status] || status)}</span>`;
 const na = (title, why) => `<div class="unavailable"><strong>${esc(title)}</strong> — non collecté.<br><span class="small">${esc(why)}</span></div>`;
 
+/* D107: the model the owner views the site with. Hermès 1.0 by default; LightGBM on request.
+   Only the pages below change; history pages (Hier, Bilan) and the e-mail stay on Hermès. */
+const VIEWS = { hermes: "Hermès 1.0", lightgbm: "LightGBM" };
+const PER_MODEL = /^\/(home|tickets|value-board|match\/\d+)(\?|$)/;
+const VIEW_PAGES = new Set(["", "matchs", "tickets", "match"]);
+function viewModel() { try { return localStorage.getItem("fi_model") === "lightgbm" ? "lightgbm" : "hermes"; } catch { return "hermes"; } }
+function setViewModel(m) { try { localStorage.setItem("fi_model", m); } catch { /* storage blocked */ } }
+function withModel(path) {
+  return viewModel() === "lightgbm" && PER_MODEL.test(path) ? `${path}${path.includes("?") ? "&" : "?"}model=lightgbm` : path;
+}
+
 async function get(path) {
+  path = withModel(path);
   if (window.fiGet) return window.fiGet(path);  // private site: data from Supabase (web/site.js)
   const r = await fetch(API + path);
   if (!r.ok) throw new Error(`${r.status} ${path}`);
@@ -1629,7 +1641,7 @@ async function route() {
   try {
     const html = await (PAGES[page] || overview)();
     if (seq !== routeSeq) return;
-    app.innerHTML = html;
+    app.innerHTML = viewBanner(page) + html;
     countUp(app);
     foldCards(page);
   } catch (e) {
@@ -1639,6 +1651,38 @@ async function route() {
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
+
+/* D107: Hermès / LightGBM switch in the top bar; the choice is kept on this device. */
+function viewBanner(page) {
+  if (viewModel() !== "lightgbm") return "";
+  return VIEW_PAGES.has(page)
+    ? `<div class="view-banner" role="status"><b>Vue LightGBM.</b> Les probabilités, les avis et les tickets de cette page viennent de LightGBM. Ton e-mail du matin reste sur Hermès 1.0.</div>`
+    : `<div class="view-banner" role="status">Cette page reste sur Hermès 1.0 : LightGBM n'a pas encore d'historique.</div>`;
+}
+(function modelSwitch() {
+  const bar = document.querySelector(".topbar");
+  if (!bar) return;
+  const box = document.createElement("div");
+  box.className = "seg model-switch";
+  box.setAttribute("role", "group");
+  box.setAttribute("aria-label", "Modèle affiché");
+  box.innerHTML = Object.entries(VIEWS).map(([k, label]) =>
+    `<button type="button" class="seg-btn" data-view="${k}" aria-pressed="false">${label.replace(" 1.0", "")}</button>`).join("");
+  const paint = () => box.querySelectorAll("button").forEach((b) => {
+    const on = b.dataset.view === viewModel();
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-view]");
+    if (!b || b.dataset.view === viewModel()) return;
+    setViewModel(b.dataset.view);
+    paint();
+    route();
+  });
+  bar.insertBefore(box, document.getElementById("brand-sub"));
+  paint();
+})();
 // Navigation from rows and cards (data-go), without inline handlers: the site's CSP forbids them.
 function goFrom(el) { const { go: page, ...p } = el.dataset; go(page, p); }
 document.addEventListener("click", (e) => { const el = e.target.closest("[data-go]"); if (el) goFrom(el); });

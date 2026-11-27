@@ -1518,21 +1518,23 @@ def test_lightgbm_gives_probabilities_that_sum_to_one():
     from footintel.models.zoo import SIDE_MODELS, build
 
     rng = np.random.default_rng(0)
-    model = build("lgbm_market")
+    model = build("lightgbm")
     n = 900
     df = pd.DataFrame({f: rng.normal(size=n) for f in model.features})
     df["home_goals"] = rng.integers(0, 4, n)
     df["away_goals"] = rng.integers(0, 3, n)
     p = model.fit(df).predict(df.head(20))
-    assert p.shape == (20, 3) and np.allclose(p.sum(axis=1), 1) and (p.values > 0).all()
-    assert set(SIDE_MODELS) <= {"lgbm_market", "lgbm_core"}
+    probs = p[["p_home", "p_draw", "p_away"]]
+    assert np.allclose(probs.sum(axis=1), 1) and (probs.values > 0).all()
+    assert p["p_over_2_5"].between(0, 1).all() and (p["p_over_1_5"] >= p["p_over_2_5"]).all()
+    assert (p["exp_home_goals"] > 0).all() and set(SIDE_MODELS) == {"lightgbm"}
 
 
 def test_side_record_counts_the_same_matches_for_every_model():
     from footintel.analysis.side_models import record
 
     def row(side, active, market, hg, ag):
-        return {"name": "lgbm_market", "sh": side[0], "sd": side[1], "sa": side[2],
+        return {"name": "lightgbm", "sh": side[0], "sd": side[1], "sa": side[2],
                 "ah": active[0], "ad": active[1], "aa": active[2],
                 "mh": market[0], "md": market[1], "ma": market[2], "home_goals": hg, "away_goals": ag}
 

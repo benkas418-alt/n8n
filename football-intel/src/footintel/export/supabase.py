@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 PREFIX = "/api/dash"
 SCORE_CELLS = range(6)  # heatmap rows and columns 0..5 (5 means 5+)
 BATCH_BYTES = 2_000_000
+LIGHTGBM_PAGES = ("/home", "/value-board", "/tickets")
 
 
 def snapshot_paths(get) -> list[str]:
@@ -32,10 +33,13 @@ def snapshot_paths(get) -> list[str]:
         if c.get("is_target") and c.get("type") == "league":
             paths.append(f"/teams?competition={c['code']}")
             paths += [f"/team/{t['id']}" for t in get(f"/teams?competition={c['code']}") or []]
+    # D107: the same pages seen with LightGBM (switch on the site); the e-mail stays on Hermès.
+    paths += [f"{p}?model=lightgbm" for p in LIGHTGBM_PAGES]
     for m in (get("/home") or {}).get("matches", []):
         if not m.get("detail", True):
             continue  # far fixtures without probabilities: listed only, no match page
-        paths += [f"/match/{m['id']}", f"/match/{m['id']}/insights", f"/match/{m['id']}/players"]
+        paths += [f"/match/{m['id']}", f"/match/{m['id']}?model=lightgbm",
+                  f"/match/{m['id']}/insights", f"/match/{m['id']}/players"]
     return list(dict.fromkeys(paths))
 
 

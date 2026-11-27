@@ -650,3 +650,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 
 /* D105: models side by side; keep "27 %" on one line on phones. */
 .models-cmp td.num, .models-cmp th.num { white-space: nowrap; }
+
+/* D107: model switch in the top bar, and the reminder above the pages it changes. */
+.model-switch { margin-left: auto; padding: 3px; }
+.model-switch .seg-btn { height: 28px; padding: 0 12px; font-size: var(--fs-xs); border: 0; background: none; cursor: pointer; font-family: inherit; }
+.model-switch .seg-btn.on { background: var(--text); color: var(--bg); }
+.model-switch + .fresh { margin-left: 0; }
+.view-banner { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface); font-size: var(--fs-sm); color: var(--muted); }
+.view-banner b { color: var(--text); }

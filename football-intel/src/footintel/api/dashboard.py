@@ -240,6 +240,31 @@ def team(team_id: int) -> dict:
 LIST_CAP, DETAIL_DAYS = 600, 7
 
 
+# D107: the owner can view the site with LightGBM instead of Hermès. Its rows have the same
+# shape as `predictions`; the frozen inputs (odds, Elo) come from Hermès's latest row of the
+# same match. Matches LightGBM does not predict (national teams) keep Hermès's row.
+_PRED_COLS = """match_id, model_version_id, predicted_at, p_home, p_draw, p_away, p_over_1_5, p_over_2_5,
+                p_over_3_5, p_btts, exp_home_goals, exp_away_goals"""
+LIGHTGBM_SOURCE = f"""(
+  SELECT sp.id, sp.match_id, sp.model_version_id, sp.predicted_at, sp.p_home, sp.p_draw, sp.p_away,
+         sp.p_over_1_5, sp.p_over_2_5, sp.p_over_3_5, sp.p_btts, sp.exp_home_goals, sp.exp_away_goals,
+         h.feature_snapshot, h.data_quality, COALESCE(h.sufficient_data, TRUE) AS sufficient_data
+  FROM side_predictions sp JOIN model_versions smv ON smv.id = sp.model_version_id AND smv.name = 'lightgbm'
+  LEFT JOIN LATERAL (SELECT feature_snapshot, data_quality, sufficient_data FROM predictions hp
+                     WHERE hp.match_id = sp.match_id ORDER BY hp.predicted_at DESC LIMIT 1) h ON TRUE
+  WHERE sp.p_over_2_5 IS NOT NULL
+  UNION ALL
+  SELECT hp.id, {_PRED_COLS}, hp.feature_snapshot, hp.data_quality, hp.sufficient_data
+  FROM predictions hp
+  WHERE NOT EXISTS (SELECT 1 FROM side_predictions sx JOIN model_versions sv ON sv.id = sx.model_version_id
+                    WHERE sv.name = 'lightgbm' AND sx.match_id = hp.match_id AND sx.p_over_2_5 IS NOT NULL))"""
+
+
+def _source(model: str) -> str:
+    """The table the pages read predictions from: Hermès (default) or LightGBM."""
+    return LIGHTGBM_SOURCE if model == "lightgbm" else "predictions"
+
+
 @router.get("/matches/upcoming")
 def upcoming() -> list[dict]:
     return _rows("""
@@ -264,9 +289,9 @@ def _order_markets(ph, pa, po, eh, ea) -> tuple | None:
 
 
 @router.get("/home")
-def home() -> dict:
+def home(model: str = "hermes") -> dict:
     """Upcoming matches with the latest stored prediction, for the start page."""
-    matches = _rows("""
+    matches = _rows(f"""
         SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
                th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
                p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.sufficient_data,
@@ -274,7 +299,7 @@ def home() -> dict:
                p.feature_snapshot->>'mkt_p_draw' AS mkt_draw, p.feature_snapshot->>'mkt_p_away' AS mkt_away
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
-        LEFT JOIN LATERAL (SELECT * FROM predictions p WHERE p.match_id = m.id
+        LEFT JOIN LATERAL (SELECT * FROM {_source(model)} p WHERE p.match_id = m.id
                            ORDER BY p.predicted_at DESC LIMIT 1) p ON true
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE AND c.is_target
           AND m.kickoff_date < CURRENT_DATE + :days
@@ -311,7 +336,9 @@ def home() -> dict:
                             (SELECT name || ' v' || version FROM model_versions WHERE status = 'active'
                              ORDER BY promoted_at DESC LIMIT 1) AS model,
                             (SELECT max(predicted_at) FROM predictions) AS last_prediction""")
-    return {**status, "matches": matches}
+    if model == "lightgbm":
+        status["model"] = "lightgbm"
+    return {**status, "view": model, "matches": matches}
 
 
 @router.get("/match/{match_id}/insights")
@@ -356,7 +383,7 @@ def _score_grid(lh: float, la: float, n: int = 6) -> list[list[float]]:
 
 
 @router.get("/match/{match_id}")
-def match(match_id: int) -> dict:
+def match(match_id: int, model: str = "hermes") -> dict:
     m = _one("""SELECT m.id, m.kickoff_date, m.kickoff_utc, m.status, m.round, m.neutral_venue,
                        c.code AS competition, c.name AS competition_name, m.home_team_id, m.away_team_id,
                        th.name AS home, ta.name AS away, o.home_goals, o.away_goals
@@ -365,10 +392,12 @@ def match(match_id: int) -> dict:
                 LEFT JOIN match_outcomes o ON o.match_id = m.id WHERE m.id = :m""", m=match_id)
     if not m:
         raise HTTPException(404, "unknown match")
-    pred = _one("""SELECT p.*, mv.name AS model, mv.version FROM predictions p
-                   JOIN model_versions mv ON mv.id = p.model_version_id
-                   WHERE p.match_id = :m ORDER BY p.predicted_at DESC LIMIT 1""", m=match_id)
-    out = {"match": m, "prediction": None}
+    pred_sql = """SELECT p.*, mv.name AS model, mv.version FROM {src} p
+                  JOIN model_versions mv ON mv.id = p.model_version_id
+                  WHERE p.match_id = :m ORDER BY p.predicted_at DESC LIMIT 1"""
+    hermes = _one(pred_sql.format(src="predictions"), m=match_id)
+    pred = _one(pred_sql.format(src=_source(model)), m=match_id) if model == "lightgbm" else hermes
+    out = {"match": m, "prediction": None, "view": model}
     if pred:
         grid = _score_grid(pred["exp_home_goals"], pred["exp_away_goals"]) if pred["exp_home_goals"] else None
         top = []
@@ -399,7 +428,7 @@ def match(match_id: int) -> dict:
         out["summary"] = {"verdict": verdict(pred["p_home"], pred["p_draw"], pred["p_away"], pred["p_over_2_5"],
                                              m["home"], m["away"]),
                           "safe_picks": safe_picks(out["markets"])}
-    out["models"] = side_models_for(match_id, pred)
+    out["models"] = side_models_for(match_id, hermes)
     before = m["kickoff_date"]
     out["sheets"] =[team_sheet(get_engine(), m["home_team_id"], m["home"], before).__dict__,
                      team_sheet(get_engine(), m["away_team_id"], m["away"], before).__dict__]
@@ -518,7 +547,7 @@ def _market_order(p1: float, p2: float, p_over: float | None, eh: float, ea: flo
 
 
 @router.get("/tickets")
-def tickets() -> dict:
+def tickets(model: str = "hermes") -> dict:
     """Tickets du jour (D69): three combos of 10 or more for each of the next two match days,
     with every alternative of each match. Market 1X2 and over 2.5 when known, else the model's."""
     from datetime import UTC, datetime
@@ -527,7 +556,8 @@ def tickets() -> dict:
     from footintel.analysis.tickets import LOCAL_OFFSET, day_tickets, load_journal
     from footintel.config import get_settings
 
-    board = value_board(days=4)["matches"]
+    board = value_board(days=4, model=model)["matches"]
+    lightgbm = model == "lightgbm"
     learnt = scenario_adjust.load(get_settings().artifacts_dir)
     ids = [m["id"] for m in board]
     snaps = {r["match_id"]: r for r in _rows("""
@@ -549,24 +579,27 @@ def tickets() -> dict:
     for m in board:
         if m["kickoff_utc"] and m["kickoff_utc"] <= now:
             continue  # already started: no longer playable
-        mk = m.get("market") or {}
-        model = {r["key"]: r["prob"] for r in m["markets"]}
-        p1, p2 = (mk["1"], mk["2"]) if mk.get("1") else (model.get("1"), model.get("2"))
+        # D107: in the LightGBM view, LightGBM's own probabilities decide every match (it already
+        # reads the bookmakers' odds); Hermès's view keeps the market price when there is one.
+        mk = {} if lightgbm and m.get("source_model") == "lightgbm" else (m.get("market") or {})
+        probs = {r["key"]: r["prob"] for r in m["markets"]}
+        p1, p2 = (mk["1"], mk["2"]) if mk.get("1") else (probs.get("1"), probs.get("2"))
         if p1 is None or p2 is None:
             continue
-        # D72: league matches only, where the scenario weights were learnt.
+        # D72: league matches only, where the scenario weights were learnt (on the market price).
         s = snaps.get(m["id"]) or {}
         notes = []
-        if s.get("ctype") == "league":
+        if s.get("ctype") == "league" and mk.get("1"):
             p1, p2, notes = scenario_adjust.adjust(p1, p2, s.get("snap"), learnt, m["home"], m["away"],
                                                      m["competition"])
         matches.append({k: m[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "home", "away")}
-                       | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or model.get("O2.5"),
-                          "source": "marché" if mk.get("1") else "modèle", "scenarios": notes,
+                       | {"p1": p1, "p2": p2, "p_over": mk.get("O2.5") or probs.get("O2.5"),
+                          "source": "marché" if mk.get("1") else ("LightGBM" if lightgbm else "modèle"),
+                          "scenarios": notes,
                           "home_league": (leagues.get(m["id"]) or {}).get("home_league"),
                           "away_league": (leagues.get(m["id"]) or {}).get("away_league")})
     today = (datetime.now(UTC) + LOCAL_OFFSET).date()
-    return {"days": day_tickets(matches, load_journal(), today),
+    return {"view": model, "days": day_tickets(matches, load_journal(), today),
             "note": "Cotes betPawa vérifiées sur les captures du propriétaire quand « vérifiée », sinon estimées "
                     "par la marge mesurée de chaque marché (docs/RESULTS.md). Aucun avantage démontré sur le marché."}
 
@@ -606,20 +639,20 @@ def bilan() -> dict:
 
 
 @router.get("/value-board")
-def value_board(days: int = 7) -> dict:
+def value_board(days: int = 7, model: str = "hermes") -> dict:
     """Upcoming predicted matches with the model probability of each betting market."""
     from footintel.analysis.value import RELIABILITY, market_consensus, market_probabilities
 
-    rows = _rows("""
+    rows = _rows(f"""
         SELECT m.id, m.kickoff_date, m.kickoff_utc, c.code AS competition, c.name AS competition_name,
                th.name AS home, ta.name AS away, p.p_home, p.p_draw, p.p_away, p.p_over_1_5, p.p_over_2_5,
                p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.predicted_at,
                p.sufficient_data, (p.feature_snapshot->>'mkt_p_home') IS NOT NULL AS has_odds,
                (p.feature_snapshot->>'elo_home')::float AS elo_home, (p.feature_snapshot->>'elo_away')::float AS elo_away,
-               mv.name || ' v' || mv.version AS model
+               mv.name || ' v' || mv.version AS model, mv.name AS source_model
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
-        JOIN LATERAL (SELECT * FROM predictions p WHERE p.match_id = m.id
+        JOIN LATERAL (SELECT * FROM {_source(model)} p WHERE p.match_id = m.id
                       ORDER BY p.predicted_at DESC LIMIT 1) p ON TRUE
         JOIN model_versions mv ON mv.id = p.model_version_id
         WHERE m.status = 'scheduled' AND m.kickoff_date >= CURRENT_DATE
@@ -635,7 +668,7 @@ def value_board(days: int = 7) -> dict:
             market |= _market_order(market["1"], market["2"], overs.get(r["id"]),
                                     r["exp_home_goals"] or 1.4, r["exp_away_goals"] or 1.1)
         matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
-                                          "home", "away", "predicted_at", "has_odds", "model")}
+                                          "home", "away", "predicted_at", "has_odds", "model", "source_model")}
                        | {"markets": market_probabilities(r), "market": market,
                           "elo": [round(r["elo_home"]), round(r["elo_away"])] if r["elo_home"] and r["elo_away"] else None})
-    return {"generated_for_days": days, "reliability": RELIABILITY, "matches": matches}
+    return {"generated_for_days": days, "view": model, "reliability": RELIABILITY, "matches": matches}

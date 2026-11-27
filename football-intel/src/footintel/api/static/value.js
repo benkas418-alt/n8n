@@ -1,6 +1,8 @@
 /* Odds checker: model probability against the odds the user types in. */
 const root = document.getElementById("root");
 const SRC = root.dataset.src;
+// D107: the model chosen with the switch of the main site (Hermès by default).
+const VIEW = (() => { try { return localStorage.getItem("fi_model") === "lightgbm" ? "lightgbm" : "hermes"; } catch { return "hermes"; } })();
 const STORE = "fi_value_odds";
 const state = { data: null, comp: "mine", q: "", odds: {}, coupon: [], eloMkt: "2UP" };
 /* The owner's teams (same list as MY_TEAMS in app.js), learnt by name from their league
@@ -301,9 +303,9 @@ document.addEventListener("click", (e) => {
   try {
     if (window.fiGet) {
       await window.fiReady;
-      state.data = await window.fiGet("/value-board");
+      state.data = await window.fiGet(VIEW === "lightgbm" ? "/value-board?model=lightgbm" : "/value-board");
     } else {
-      const r = await fetch(SRC);
+      const r = await fetch(VIEW === "lightgbm" ? `${SRC}?model=lightgbm` : SRC);
       if (!r.ok) throw new Error(r.status);
       state.data = await r.json();
     }
@@ -320,7 +322,7 @@ document.addEventListener("click", (e) => {
   const ids = new Set(state.data.matches.map((m) => m.id));
   state.coupon = (saved.coupon || []).filter((c) => ids.has(c.match));
   const last = state.data.matches.map((m) => m.predicted_at).sort().pop();
-  document.getElementById("stamp").textContent = `${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
+  document.getElementById("stamp").textContent = `${VIEW === "lightgbm" ? "Avis de LightGBM · " : "Avis d'Hermès 1.0 · "}${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
     + (last ? ` · mis à jour le ${new Date(last).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}` : "")
     + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · pas à jour" : "");
   render();
