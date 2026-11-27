@@ -648,6 +648,7 @@ function tabSummary(m, d, x, pr) {
           <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
           <div><span class="kpi-label">Buts attendus</span><span class="kpi-value">${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span><span class="kpi-note">${pr.sufficient_data ? "" : "historique court : prudence"}</span></div>
         </div></section></div>
+    ${modelsCard(m, d.models, pr)}
     <div class="grid two" style="margin-top:var(--space-4)">
       <div class="card"><h2>Les paris les plus sûrs</h2>
         <p class="question">Les plus probables selon le modèle, parmi les marchés dont la fiabilité est vérifiée (résultat, double chance, buts).</p>
@@ -655,6 +656,36 @@ function tabSummary(m, d, x, pr) {
         <p class="meta"><b>Règle :</b> ne jouer que si la cote betPawa est <b>au-dessus</b> de la cote juste. En dessous, le pari perd de l'argent sur la durée, même s'il passe souvent. Le modèle est au niveau du marché, sans avantage démontré. <a href="value.html">Comparer avec vos cotes</a></p></div>
       <div class="card"><h2>Ce qu'il faut savoir</h2>${facts}
         <p class="meta">Détails : onglets Paris (tous les marchés), Moments du match, Joueurs.</p></div></div>`;
+}
+
+/* D105: the active model, LightGBM and the bookmakers side by side, and how often each
+   one was right on the same played matches. Only the active model feeds the tickets. */
+function modelsCard(m, M, pr) {
+  if (!M || !M.side?.length) return "";
+  const names = [m.home, "Nul", m.away];
+  const pick = (p) => p.indexOf(Math.max(...p));
+  const rows = [];
+  if (M.active) rows.push({ label: M.active.label, p: M.active.p, note: "utilisé pour les tickets" });
+  M.side.forEach((s) => rows.push({ label: s.label, p: s.p, note: "affiché pour comparer" }));
+  if (pr?.market?.every((v) => v != null)) rows.push({ label: "Bookmakers", p: pr.market, note: "cotes sans la marge" });
+  const cell = (p, i) => `<td class="num">${i === pick(p) ? `<b>${pct(p[i], 0)}</b>` : pct(p[i], 0)}</td>`;
+  const table = `<table class="tight models-cmp"><thead><tr><th></th><th class="num">${esc(m.home)}</th><th class="num">Nul</th><th class="num">${esc(m.away)}</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td>${esc(r.label)}<div class="small muted">${esc(r.note)}</div></td>${[0, 1, 2].map((i) => cell(r.p, i)).join("")}</tr>`).join("")}</tbody></table>`;
+  const side = M.side[0];
+  let say = "";
+  if (M.active) {
+    const a = pick(M.active.p), b = pick(side.p);
+    say = a === b
+      ? `Les deux modèles voient le même résultat : <b>${esc(a === 1 ? "match nul" : `victoire de ${names[a]}`)}</b>.`
+      : `Les modèles ne sont pas d'accord : le modèle actuel voit <b>${esc(a === 1 ? "un nul" : names[a])}</b>, ${esc(side.label)} voit <b>${esc(b === 1 ? "un nul" : names[b])}</b>. Prudence sur ce match.`;
+  }
+  const R = (M.record || []).find((r) => r.name === side.name);
+  const rec = !R || !R.matches
+    ? `<p class="meta">${esc(side.label)} vient d'être ajouté : son bilan apparaîtra après les premiers matchs joués.</p>`
+    : `<p class="meta">Sur les ${R.matches} matchs joués où les deux modèles avaient donné leur avis : modèle actuel ${R.active} bons résultats, ${esc(R.label)} ${R.side}${R.market_matches ? `, bookmakers ${R.market} sur ${R.market_matches}` : ""}. Ils étaient d'accord ${R.agree} fois.${R.note ? ` ${esc(R.note)}.` : ""}</p>`;
+  return `<div class="card" style="margin-top:var(--space-4)"><h2>Ce que disent les modèles</h2>
+    <p class="question">${say}</p>${table}${rec}
+    <p class="meta">En gras : le résultat le plus probable pour chacun. Seul le modèle actuel sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
 }
 
 /* When a team scores and concedes, and what follows the first goal. */

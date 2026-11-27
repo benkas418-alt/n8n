@@ -1508,3 +1508,38 @@ def test_plain_week_counts_real_coupons_per_coupon():
     _, body = plain_week([], [], date(2026, 11, 30), coupons=coupons)
     assert "2 coupon(s) : 1 gagné(s), 1 perdu(s), 0 en cours." in body
     assert "Mises 4 000 FC, retours 16 313 FC, gain net +12 313 FC (ROI +308%)." in body
+
+
+# ---- D105: side models next to the active one ----
+
+def test_lightgbm_gives_probabilities_that_sum_to_one():
+    import pandas as pd
+
+    from footintel.models.zoo import SIDE_MODELS, build
+
+    rng = np.random.default_rng(0)
+    model = build("lgbm_market")
+    n = 900
+    df = pd.DataFrame({f: rng.normal(size=n) for f in model.features})
+    df["home_goals"] = rng.integers(0, 4, n)
+    df["away_goals"] = rng.integers(0, 3, n)
+    p = model.fit(df).predict(df.head(20))
+    assert p.shape == (20, 3) and np.allclose(p.sum(axis=1), 1) and (p.values > 0).all()
+    assert set(SIDE_MODELS) <= {"lgbm_market", "lgbm_core"}
+
+
+def test_side_record_counts_the_same_matches_for_every_model():
+    from footintel.analysis.side_models import record
+
+    def row(side, active, market, hg, ag):
+        return {"name": "lgbm_market", "sh": side[0], "sd": side[1], "sa": side[2],
+                "ah": active[0], "ad": active[1], "aa": active[2],
+                "mh": market[0], "md": market[1], "ma": market[2], "home_goals": hg, "away_goals": ag}
+
+    rows = [row((.5, .3, .2), (.4, .35, .25), (.45, .3, .25), 2, 0),   # all right
+            row((.2, .3, .5), (.5, .3, .2), (None, None, None), 0, 1),  # only LightGBM right, no odds
+            row((.3, .4, .3), (.3, .3, .4), (.5, .3, .2), 1, 1)]        # only LightGBM right
+    r = record(rows)[0]
+    assert (r["matches"], r["side"], r["active"], r["agree"]) == (3, 3, 1, 1)
+    assert (r["market"], r["market_matches"]) == (1, 2)
+    assert "aucune conclusion" in r["note"]

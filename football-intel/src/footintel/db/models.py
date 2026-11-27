@@ -481,6 +481,26 @@ class Prediction(Base):
     match: Mapped[Match] = relationship()
 
 
+class SidePrediction(Base):
+    """1X2 of a side model (D105), next to the active model. Kept apart from `predictions`
+    so tickets, reports and evaluations never pick it up by mistake."""
+    __tablename__ = "side_predictions"
+    __table_args__ = (
+        UniqueConstraint("match_id", "model_version_id", "predicted_at"),
+        Index("ix_side_predictions_match", "match_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"))
+    model_version_id: Mapped[int] = mapped_column(ForeignKey("model_versions.id"))
+    predicted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    p_home: Mapped[float] = mapped_column(Float)
+    p_draw: Mapped[float] = mapped_column(Float)
+    p_away: Mapped[float] = mapped_column(Float)
+    # Same frozen inputs as the active prediction, to skip a run when nothing changed.
+    feature_snapshot: Mapped[dict] = mapped_column(JSON)
+
+
 class UserPrediction(Base):
     __tablename__ = "user_predictions"
     __table_args__ = (

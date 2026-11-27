@@ -14,7 +14,7 @@ from footintel.ingestion.international import predict_national, sync_internation
 from footintel.jobs import JobAlreadyRunning, acquire_lock, release_lock
 from footintel.models import registry
 from footintel.postmatch.evaluate import evaluate_finished
-from footintel.predictions.service import predict_upcoming
+from footintel.predictions.service import predict_side, predict_upcoming
 from footintel.reports.daily import postmatch_report, prematch_report
 
 log = logging.getLogger(__name__)
@@ -88,6 +88,8 @@ def morning(engine: Engine, settings: Settings) -> dict:
     _step("sync_onefootball", lambda: tasks.sync_onefootball(engine, settings), results)
     _step("predict", lambda: predict_upcoming(engine, settings), results)
     _step("predict_national", lambda: predict_national(engine, settings), results)
+    # D105: LightGBM next to the active model, on the match page only.
+    _step("predict_side", lambda: predict_side(engine, settings), results)
     _step("prematch_report", lambda: prematch_report(engine, settings).paths, results)
     if isinstance(results.get("prematch_report"), dict):
         _step("notify", lambda: _notify(settings, "Football Intel — avant-match", results["prematch_report"]), results)
