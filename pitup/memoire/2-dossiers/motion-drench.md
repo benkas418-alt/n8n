@@ -19,3 +19,12 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Détourage (rembg, `/home/user/rembg`, API Python, pas la ligne de commande) : sur l'image entière il prend toute la personne ; recadrer serré sur l'article d'abord. Baskets blanches : `isnet-general-use` ; maillot : `birefnet-general-lite` puis couper les mains sur les bords ; baskets noires : raté avec les deux (garder en photo).
 - Le contrôle de charte a bloqué une couleur de projecteur hors palette (#2b3b50) : remplacée par #3b4a63 (déjà dans la charte).
 - Couleur crème #efe9dd et micro-typographie 21 px ajoutées à la charte.
+
+## v2 (27 nov.) : les articles de l'appli
+
+- Consigne : « prendre des images et des visuels qui sont sur l'application… premium, pro, beau et tendance chez les jeunes ».
+- Inventaire de pi-tup.com (Shopping › Vêtements, Sports) par Playwright : 238 photos d'articles, toutes à 500 px maximum (assez pour des détourages de taille moyenne, pas pour du plein écran). Fichiers hors dépôt : `scratchpad/appimg/` (`prods.json` : nom, fichier, adresse).
+- Retenus : Air Jordan 4 « Nigel Sylvester » bleue (p036, logo de la boutique coupé en haut), Nike Air Force Foamposite violette (p021, main coupée sous la semelle), Nike Shox TL noire (p161), maillot Congo RDC (p209), maillot Barça « lion » (p214) ; grille : mur de Nike TN (p007), Dunk bordeaux (p031), casquettes (p143), polos (p003) ; collage : Barça + Dunk marron (p122).
+- Détourage : `isnet-general-use` pour Jordan, Congo, Barça ; `birefnet-general-lite` pour Foamposite et Shox. Couleurs gardées (contraste +8 %), pas de désaturation : les articles doivent ressortir.
+- Scènes : papier → Lubumbashi (drapeau, taxi) → nuit « Les boutiques de Lubumbashi » → téléphone « dans ton téléphone. » → studio Jordan 4 → grille éditoriale TN / Dunk / casquettes / polos → studio maillot Congo « Tu commandes, » → grille « on te livre, » → studio Foamposite → collage Barça + Dunk « tu paies à la livraison. » → grille « Livré où tu veux. » → studio Shox TL → fin. Petites capitales : nom de l'article en bas à gauche, « SUR PITUP » en haut à droite.
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.

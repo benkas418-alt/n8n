@@ -59,14 +59,25 @@ def grade_cut(src, dst, box=None):   # same cinema look on a cut-out, alpha kept
     im = im.crop(im.getbbox()); a = np.asarray(im, float); x = a[..., :3] / 255; g = x @ np.array([.299, .587, .114])
     x = g[..., None] + (x - g[..., None]) * 0.7; x = np.clip((x - .5) * 1.12 + .5, 0, 1)
     out = np.dstack([(x * 255), a[..., 3]]).astype(np.uint8); Image.fromarray(out).save(dst)
-grade_cut(f"{CUT}/blanches_isnet-general-use.png", f"{A}/img/cut_blanches.png")
-grade_cut(f"{CUT}/maillot_birefnet-general-lite.png", f"{A}/img/cut_maillot.png", (60, 0, 1020, 1170))   # hands at the edges cut off
+# 27 Nov. (founder): products come from the app listings (pi-tup.com), the most premium and trendy ones; colours kept
+APP = f"{SP}/appimg"
+def keep_cut(src, dst, cut_bottom=0.0):   # app product cut-out: colour kept, slight contrast, alpha kept
+    im = Image.open(src).convert("RGBA"); im = im.crop(im.getbbox())
+    if cut_bottom: im = im.crop((0, 0, im.width, int(im.height * (1 - cut_bottom))))
+    a = np.asarray(im, float); x = np.clip((a[..., :3] / 255 - .5) * 1.08 + .5, 0, 1)
+    Image.fromarray(np.dstack([x * 255, a[..., 3]]).astype(np.uint8)).save(dst)
+PROD = {"jordan": ("p036_isnet.png", 0, "AIR JORDAN 4<br>NIGEL SYLVESTER"), "foam": ("p021_biref.png", 0.17, "NIKE AIR FORCE<br>FOAMPOSITE"),
+        "shox": ("p161_biref.png", 0, "NIKE SHOX TL"), "congo": ("p209_isnet.png", 0, "MAILLOT<br>CONGO RDC"),
+        "barca": ("p214_isnet.png", 0.06, "MAILLOT<br>FC BARCELONE")}
+for k, (f, cb, _) in PROD.items(): keep_cut(f"{APP}/{f}", f"{A}/img/cut_{k}.png", cb)
+for f in ["p007", "p031", "p143", "p003", "p122", "p214"]:   # product photos for the editorial grid and the collage
+    shutil.copy(f"{APP}/{f}.jpg", f"{A}/img/{f}.jpg")
 
 # ---- scenes: one every two beats, hard cuts. (kind, logo colour, line under the logo)
 SC = [("paper", "navy", ""), ("collage1", "navy", ""), ("night", "cream", "Les boutiques de Lubumbashi"),
-      ("phone", "cream", "dans ton téléphone."), ("paper2", "blue", ""), ("studio:maillot", "cream", "Tu commandes,"),
-      ("grid", "cream", "on te livre,"), ("studio:blanches", "cream", ""), ("collage2", "navy", "tu paies à la livraison."),
-      ("grid2", "cream", "Livré où tu veux.")]
+      ("phone", "cream", "dans ton téléphone."), ("studio:jordan", "cream", ""), ("gridp", "navy", ""),
+      ("studio:congo", "cream", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:foam", "cream", ""),
+      ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:shox", "cream", "")]
 T0 = [b(2 * i) for i in range(len(SC))]; E0 = b(2 * len(SC)); D = round(b(2 * len(SC) + 8) + 0.3, 2); n = int(D * sr)
 T1 = T0[1:] + [E0]
 
@@ -106,8 +117,13 @@ def scene(i, kind):
                 '<img class="ph" src="assets/img/c1_taxi.jpg" style="left:520px;top:980px;width:560px;height:760px;">' + micro("LUBUMBASHI", "tr dk", ""))
     if kind == "collage2":
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
-                '<img class="ph" src="assets/img/c2_1.5.jpg" style="left:0;top:140px;width:600px;height:640px;object-position:50% 70%">'
-                '<img class="ph" src="assets/img/noires.jpg" style="left:480px;top:1180px;width:600px;height:640px;object-position:50% 45%">')
+                '<img class="ph" src="assets/img/p214.jpg" style="left:0;top:140px;width:600px;height:640px">'
+                '<img class="ph" src="assets/img/p122.jpg" style="left:480px;top:1250px;width:600px;height:600px">')
+    if kind == "gridp":   # editorial grid of real app listings, labels in small capitals
+        tiles = [("p007", "NIKE TN", 64, 200), ("p031", "NIKE DUNK", 556, 200), ("p143", "CASQUETTES", 64, 1150), ("p003", "POLOS", 556, 1150)]
+        return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>' +
+                "".join(f'<img class="ph" src="assets/img/{f}.jpg" style="left:{x}px;top:{y}px;width:460px;height:560px">'
+                        + micro(lab, "dk", f"left:{x}px;top:{y + 578}px") for f, lab, x, y in tiles))
     if kind in ("night", "grid", "grid2"):
         h = '<div class="bgc" style="background:#0d1b2a"></div>'
         if kind == "night":
@@ -129,7 +145,7 @@ def scene(i, kind):
     if kind.startswith("studio:"):   # the product floats in a dark studio under one spotlight, like the rock in "drench"
         return ('<div class="bgc" style="background:radial-gradient(60% 45% at 50% 30%,#3b4a63 0%,#0d1b2a 70%)"></div>'
                 '<div class="floor"></div><div class="shadow"></div>'
-                f'<img class="prod" src="assets/img/cut_{kind[7:]}.png" alt="">')
+                f'<img class="prod" src="assets/img/cut_{kind[7:]}.png" alt="">' + micro(PROD[kind[7:]][2], "", "left:64px;bottom:150px") + micro("SUR PITUP", "", "right:64px;top:150px;text-align:right"))
     if kind.startswith("photo:"):
         return f'<img class="full" src="assets/img/{kind[6:]}.jpg"><div class="vig"></div>'
 SCN = "".join(f'<div class="sc" id="s{i}">{scene(i, k)}</div>' for i, (k, c, l) in enumerate(SC))
@@ -147,8 +163,8 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .ph{{position:absolute;object-fit:cover}}
 .full{{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover}}
 .floor{{position:absolute;left:0;right:0;bottom:0;height:520px;background:linear-gradient(rgba(13,27,42,0),rgba(59,74,99,.5) 35%,#0d1b2a)}}
-.shadow{{position:absolute;left:310px;top:1735px;width:460px;height:60px;border-radius:50%;background:rgba(0,0,0,.6);filter:blur(22px)}}
-.prod{{position:absolute;left:50%;top:1170px;width:720px;margin-left:-360px;height:540px;object-fit:contain}}
+.shadow{{position:absolute;left:310px;top:1755px;width:460px;height:60px;border-radius:50%;background:rgba(0,0,0,.6);filter:blur(22px)}}
+.prod{{position:absolute;left:50%;top:1240px;width:700px;margin-left:-350px;height:500px;object-fit:contain}}
 .vig{{position:absolute;inset:0;background:radial-gradient(75% 60% at 50% 50%,rgba(13,27,42,0) 40%,rgba(13,27,42,.72) 100%)}}
 .mc{{position:absolute;font-weight:500;font-size:21px;letter-spacing:.14em;line-height:1.5;color:#efe9dd}}
 .mc.dk{{color:#0d1b2a}} .mc.tl{{left:64px;top:150px}} .mc.tr{{right:64px;top:150px;text-align:right}} .mc.bl{{left:64px;bottom:150px}}
