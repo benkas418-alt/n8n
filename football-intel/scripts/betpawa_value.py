@@ -2,7 +2,8 @@
 
 Run from football-intel/: python scripts/betpawa_value.py [--csv reference/betpawa_prices.csv]
 
-Each row of the CSV is one betPawa price seen before the match (screenshot or OddsPapi),
+Each row of the CSV is one betPawa price seen before the match: "screenshot" (a price on
+the screen, often every outcome of a market) or "betslip" (a selection the owner really bet, D102),
 with team names as stored in our database. For each row:
 
 - fair probability from the sharpest price we hold: Pinnacle close, then the market
@@ -65,7 +66,8 @@ def market_1x2(conn, match_id: int) -> tuple[tuple | None, str]:
     if api:
         last = max(lab for lab, _ in api)
         probs = np.array([p for lab, p in api if lab == last])
-        return tuple(probs.mean(axis=0)), f"the_odds_api {len(probs)} books"
+        # D102: the snapshot label carries its time, so the ledger shows when the reference was taken.
+        return tuple(probs.mean(axis=0)), f"the_odds_api {last} ({len(probs)} books)"
     return None, "no price"
 
 
@@ -211,6 +213,40 @@ def main() -> None:
     print()
     for market in sorted({o["market"] for o in obs}):
         print(market_line(market, [o for o in obs if o["market"] == market]))
+    print()
+    # D102: ROI only on real bets (source "betslip"); a screenshot of a whole market (home, draw and
+    # away of one match) measures the bookmaker's margin, not a betting result.
+    bets = [o for o in obs if o.get("source") == "betslip"]
+    print(f"Tes paris réels (coupons) : {len(bets)} sélections.")
+    for market in sorted({o["market"] for o in bets}):
+        print("  " + market_line(market, [o for o in bets if o["market"] == market]))
+    print(roi_by(bets, "competition", "Paris réels par compétition"))
+    print(reference_timing(obs))
+
+
+def roi_by(obs: list[dict], key: str, title: str) -> str:
+    """Observed ROI of settled selections, grouped by `key` (stake of 1 on each)."""
+    groups: dict = defaultdict(list)
+    for o in obs:
+        if o["ret"] is not None:
+            groups[o[key] or "?"].append(o["ret"])
+    if not groups:
+        return f"{title} : aucune sélection réglée."
+    rows = [f"  {k}: {len(v)} réglées, net {sum(v):+.2f}, ROI observé {np.mean(v):+.1%}"
+            for k, v in sorted(groups.items(), key=lambda kv: -len(kv[1]))]
+    return "\n".join([f"{title} (ROI observé = gain net / mises) :", *rows])
+
+
+def reference_timing(obs: list[dict]) -> str:
+    """Where each fair price comes from. Closing prices are taken at kick-off, after the capture: a
+    betPawa price above them is the closing-line test. Snapshot prices carry their own time."""
+    count: dict = defaultdict(int)
+    for o in obs:
+        if o["fair"] is not None:
+            ref = o["ref"]
+            count["clôture (après le relevé)" if "closing" in ref and "pre_closing" not in ref
+                  else "avant clôture" if "pre_closing" in ref else "instantané The Odds API (heure dans le registre)"] += 1
+    return "Référence de la cote juste : " + ", ".join(f"{k} {v}" for k, v in count.items())
 
 
 def cluster_ci(values: list[float], groups: list, samples: int = 2000, seed: int = 0) -> tuple[float, float]:
@@ -243,14 +279,18 @@ def market_line(market: str, rows: list[dict]) -> str:
         line += f" [{lo:+.1%} ; {hi:+.1%}]"
     if settled:
         won = sum(o["ret"] > 0 for o in settled)
-        line += f"; {len(settled)} réglées ({won} gagnées), rendement {np.mean([o['ret'] for o in settled]):+.1%}"
+        gains = sum(o["ret"] for o in settled if o["ret"] > 0)
+        losses = -sum(o["ret"] for o in settled if o["ret"] < 0)
+        # D102: observed ROI for a stake of 1 on each selection, kept apart from the expected value above.
+        line += (f"; {len(settled)} réglées ({won} gagnées) : mises {len(settled)}, gains {gains:.2f}, "
+                 f"pertes {losses:.2f}, net {gains - losses:+.2f}, ROI observé {(gains - losses) / len(settled):+.1%}")
         if len({o["match_id"] for o in settled}) >= 20:
             lo, hi = cluster_ci([o["ret"] for o in settled], [o["match_id"] for o in settled])
             line += f" [{lo:+.1%} ; {hi:+.1%}]"
     return line
 
 
-LEDGER_FIELDS = ["captured_at", "match_date", "competition", "home", "away", "market", "selection", "price",
+LEDGER_FIELDS = ["captured_at", "source", "match_date", "competition", "home", "away", "market", "selection", "price",
                  "fair_odds", "fair_prob", "ref", "ev", "won", "profit"]
 
 
@@ -263,7 +303,7 @@ def write_ledger(obs: list[dict], path: str) -> None:
         w = csv.DictWriter(fh, fieldnames=LEDGER_FIELDS)
         w.writeheader()
         for o in obs:
-            w.writerow({**{k: o[k] for k in ("captured_at", "match_date", "competition", "home", "away", "market",
+            w.writerow({**{k: o[k] for k in ("captured_at", "source", "match_date", "competition", "home", "away", "market",
                                              "selection", "price", "ref")},
                         "fair_odds": f"{1 / o['fair']:.3f}" if o["fair"] else "",
                         "fair_prob": f"{o['fair']:.4f}" if o["fair"] else "",
