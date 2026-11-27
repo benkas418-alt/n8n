@@ -42,6 +42,8 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-28", ("Les tableaux « Après le premier but » et « par tranche de 15 minutes » ne comptent plus "
                    "un match dont les minutes des buts manquent comme un 0-0. Le handicap asiatique a été testé "
                    "pour mieux estimer 1UP, 2UP et premier but : il n'apporte rien, rien n'est changé.")),
+    ("2026-11-28", ("Dans l'onglet Moments du match, le site dit maintenant combien de matchs il a écartés parce "
+                   "que les minutes des buts manquaient.")),
 ]
 
 
