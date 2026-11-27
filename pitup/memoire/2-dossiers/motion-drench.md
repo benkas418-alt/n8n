@@ -37,3 +37,10 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Goût à retenir : pièces simples, intemporelles, couleurs sobres, photos propres. Les articles voyants (Foamposite violette, Shox, maillots, murs de chaussures) ne conviennent pas.
 - 15,2 s, −13,7 LUFS, charte : 0 erreur.
 - Droits : ses 8 photos viennent d'Internet ; le dire avant toute publication sponsorisée.
+
+## v4 (27 nov.) : « tout le reste est parfait »
+
+- Retour sur la v3 : (1) remonter le mot PitUp pour laisser la place aux articles ; (2) l'intro ne doit pas montrer ses plans du taxi mais de vrais plans larges de Lubumbashi, ceux des intros de la pub « Rejoignez-nous » v8 et v10, étalonnés comme le reste.
+- Logo fixe remonté de 960 à 720 px (centre), phrase à 890 px ; articles en studio plus grands (800 × 660, sous la phrase) ; grille éditoriale, collage, téléphone et grille technique replacés sous le logo.
+- Intro : papier → triptyque sur papier (Alilac Center, avenue aux taxis jaunes, tour vitrée) → bande du lac sur fond nuit avec les coordonnées (« Les boutiques de Lubumbashi »). Bandes tirées des vidéos v8/v10 (`scratchpad/inbox/rj/lb_*.jpg`, hors dépôt) : source TikTok 576 px, donc jamais en plein écran (le lac agrandi était flou) ; garder la taille de bande (1080 × 640 au plus).
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.

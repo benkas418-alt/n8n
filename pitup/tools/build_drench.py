@@ -51,6 +51,10 @@ def grade(src, dst, crop=None):   # cinema look: 55 % desaturated, S-curve, navy
 for f, c in [("c1_5.8", (60, 120, 700, 990)), ("c1_3", (330, 940, 1080, 1720)), ("c2_1.5", None), ("maillot", None), ("blanches", None), ("noires", None), ("laptop", None)]:
     grade(f"{ST}/{f}.jpg", f"{A}/img/{f}.jpg", c)
 grade(f"{ST}/c1_5.8.jpg", f"{A}/img/c1_taxi.jpg", (0, 1000, 660, 1720))   # the yellow taxi seen through the car window
+# 27 Nov. (founder): the intro needs real wide shots of Lubumbashi, not his taxi footage -> the bands of the
+# "Rejoignez-nous" intros (Alilac Center, an avenue with yellow taxis, the glass tower, the lake), same grade as the rest
+LB = f"{SP}/inbox/rj"
+for f in ["lb_alilac", "lb_avenue", "lb_tour", "lb_lac", "lb_minibus"]: grade(f"{LB}/{f}.jpg", f"{A}/img/{f}.jpg")
 
 CUT = f"{SP}/dr/cut"
 def grade_cut(src, dst, box=None):   # same cinema look on a cut-out, alpha kept
@@ -78,7 +82,7 @@ tile(f"{REF}/samba.jpg", "t_samba"); tile(f"{REF}/rolex.jpg", "t_rolex", (60, 38
 tile(f"{REF}/robes9.jpg", "t_robes", (0, 0, 736, 860)); tile(f"{APP}/p138.jpg", "a_montre"); tile(f"{APP}/p190.jpg", "a_samba")
 
 # ---- scenes: one every two beats, hard cuts. (kind, logo colour, line under the logo)
-SC = [("paper", "navy", ""), ("collage1", "navy", ""), ("night", "cream", "Les boutiques de Lubumbashi"),
+SC = [("paper", "navy", ""), ("lushi", "navy", ""), ("lac", "cream", "Les boutiques de Lubumbashi"),
       ("phone", "cream", "dans ton téléphone."), ("studio:am95", "cream", ""), ("gridp", "navy", ""),
       ("studiol:robe", "navy", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:tees", "cream", ""),
       ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:corteiz", "cream", "")]
@@ -107,7 +111,7 @@ ICON = {  # 2D line icons, 3 px stroke
  "cash": '<svg viewBox="0 0 48 48"><rect x="4" y="12" width="40" height="24" rx="3"/><circle cx="24" cy="24" r="6"/></svg>',
  "box": '<svg viewBox="0 0 48 48"><path d="M6 14l18-8 18 8v20l-18 8-18-8z"/><path d="M6 14l18 8 18-8M24 22v20"/></svg>'}
 def micro(txt, cls, style): return f'<div class="mc {cls}" style="{style}">{txt}</div>'
-PW, PHH, PR, DZ, PX, PY, BZ, NL = 340, 712, 56, 30, 370, 1185, 13, 20
+PW, PHH, PR, DZ, PX, PY, BZ, NL = 380, 796, 62, 32, 350, 990, 14, 20
 def tone(j): v = int(120 + 95 * math.sin(math.pi * j / (NL - 1))); return f"rgb({v},{v + 2},{v + 6})"
 LAY = "".join(f'<i class="ly" style="transform:translateZ({-DZ / 2 + DZ * j / (NL - 1):.2f}px);background:{tone(j)}"></i>' for j in range(NL))
 def scene(i, kind):
@@ -115,19 +119,27 @@ def scene(i, kind):
         extra = micro("PITUP", "tl dk", "") + micro("LUBUMBASHI — RDC", "tr dk", "")
         if kind == "paper2": extra += '<div class="out">boutiques</div>' + micro("COMMERCE LOCAL<br>EN LIGNE", "bl dk", "")
         return f'<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>{extra}'
+    if kind == "lushi":   # three wide bands of the city on paper, the logo between them
+        return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
+                '<img class="ph" src="assets/img/lb_alilac.jpg" style="left:0;top:90px;width:1080px;height:470px">'
+                '<img class="ph" src="assets/img/lb_avenue.jpg" style="left:0;top:960px;width:1080px;height:440px">'
+                '<img class="ph" src="assets/img/lb_tour.jpg" style="left:0;top:1430px;width:1080px;height:440px">' + micro("LUBUMBASHI — RDC", "dk", "right:64px;top:590px;text-align:right"))
+    if kind == "lac":     # the city seen from afar, full screen
+        return ('<div class="bgc" style="background:#0d1b2a"></div><img class="ph" src="assets/img/lb_lac.jpg" style="left:0;top:990px;width:1080px;height:640px">' +
+                micro("11°40′ S<br>27°28′ E", "", "left:64px;top:150px") + micro("LUBUMBASHI<br>HAUT-KATANGA · RDC", "", "right:64px;top:150px;text-align:right"))
     if kind == "collage1":
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
                 '<img class="ph" src="assets/img/c1_5.8.jpg" style="left:0;top:180px;width:560px;height:760px;">'
                 '<img class="ph" src="assets/img/c1_taxi.jpg" style="left:520px;top:980px;width:560px;height:760px;">' + micro("LUBUMBASHI", "tr dk", ""))
     if kind == "collage2":
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
-                '<img class="ph" src="assets/img/a_montre.jpg" style="left:0;top:140px;width:600px;height:640px">'
-                '<img class="ph" src="assets/img/a_samba.jpg" style="left:480px;top:1250px;width:600px;height:600px">')
+                '<img class="ph" src="assets/img/a_montre.jpg" style="left:0;top:990px;width:520px;height:620px">'
+                '<img class="ph" src="assets/img/a_samba.jpg" style="left:560px;top:1080px;width:520px;height:620px">')
     if kind == "gridp":   # editorial grid of real app listings, labels in small capitals
-        tiles = [("t_samba", "ADIDAS SAMBA", 64, 200), ("t_rolex", "MONTRES", 556, 200), ("t_tees", "T-SHIRTS", 64, 1150), ("t_robes", "ROBES", 556, 1150)]
+        tiles = [("t_samba", "ADIDAS SAMBA", 64, 930), ("t_rolex", "MONTRES", 556, 930), ("t_tees", "T-SHIRTS", 64, 1410), ("t_robes", "ROBES", 556, 1410)]
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>' +
-                "".join(f'<img class="ph" src="assets/img/{f}.jpg" style="left:{x}px;top:{y}px;width:460px;height:560px">'
-                        + micro(lab, "dk", f"left:{x}px;top:{y + 578}px") for f, lab, x, y in tiles))
+                "".join(f'<img class="ph" src="assets/img/{f}.jpg" style="left:{x}px;top:{y}px;width:460px;height:420px">'
+                        + micro(lab, "dk", f"left:{x}px;top:{y + 432}px") for f, lab, x, y in tiles))
     if kind in ("night", "grid", "grid2"):
         h = '<div class="bgc" style="background:#0d1b2a"></div>'
         if kind == "night":
@@ -135,11 +147,11 @@ def scene(i, kind):
                   micro("LUBUMBASHI<br>HAUT-KATANGA · RDC", "c2", "left:0;right:0;top:1290px;text-align:center") +
                   f'<div class="ics" style="top:1430px">{ICON["cart"]}{ICON["box"]}{ICON["cash"]}</div>' + micro("PI-TUP.COM", "c3", "left:0;right:0;top:1560px;text-align:center"))
         else:
-            h += ('<i class="ln h" style="top:860px"></i><i class="ln h" style="top:1060px"></i><i class="ln v" style="left:300px"></i><i class="ln v" style="left:780px"></i>'
-                  '<i class="cr" style="left:540px;top:960px"></i><i class="cr s" style="left:780px;top:1060px"></i>' +
-                  micro("COMMANDE&nbsp;&nbsp;✓<br>LIVRAISON&nbsp;&nbsp;✓", "c2", "left:96px;top:620px") +
-                  micro("PAIEMENT<br>À LA LIVRAISON", "c2", "left:800px;top:1100px") +
-                  f'<div class="ics" style="top:1500px">{ICON["pin"] if kind == "grid2" else ICON["box"]}</div>')
+            h += ('<i class="ln h" style="top:620px"></i><i class="ln h" style="top:820px"></i><i class="ln v" style="left:300px"></i><i class="ln v" style="left:780px"></i>'
+                  '<i class="cr" style="left:540px;top:720px"></i><i class="cr s" style="left:780px;top:820px"></i>' +
+                  micro("COMMANDE&nbsp;&nbsp;✓<br>LIVRAISON&nbsp;&nbsp;✓", "c2", "left:96px;top:380px") +
+                  micro("PAIEMENT<br>À LA LIVRAISON", "c2", "left:800px;top:860px") +
+                  f'<div class="ics" style="top:1260px">{ICON["pin"] if kind == "grid2" else ICON["box"]}</div>')
         return h
     if kind == "phone":
         return ('<div class="bgc" style="background:#0d1b2a"></div>'
@@ -171,8 +183,8 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .ph{{position:absolute;object-fit:cover}}
 .full{{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover}}
 .floor{{position:absolute;left:0;right:0;bottom:0;height:520px;background:linear-gradient(rgba(13,27,42,0),rgba(59,74,99,.5) 35%,#0d1b2a)}}
-.shadow{{position:absolute;left:310px;top:1755px;width:460px;height:60px;border-radius:50%;background:rgba(0,0,0,.6);filter:blur(22px)}}
-.prod{{position:absolute;left:50%;top:1240px;width:700px;margin-left:-350px;height:500px;object-fit:contain}}
+.shadow{{position:absolute;left:290px;top:1700px;width:500px;height:60px;border-radius:50%;background:rgba(0,0,0,.6);filter:blur(22px)}}
+.prod{{position:absolute;left:50%;top:1010px;width:800px;margin-left:-400px;height:660px;object-fit:contain}}
 .vig{{position:absolute;inset:0;background:radial-gradient(75% 60% at 50% 50%,rgba(13,27,42,0) 40%,rgba(13,27,42,.72) 100%)}}
 .mc{{position:absolute;font-weight:500;font-size:21px;letter-spacing:.14em;line-height:1.5;color:#efe9dd}}
 .mc.dk{{color:#0d1b2a}} .mc.tl{{left:64px;top:150px}} .mc.tr{{right:64px;top:150px;text-align:right}} .mc.bl{{left:64px;bottom:150px}}
@@ -180,8 +192,8 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .ics{{position:absolute;left:0;right:0;display:flex;gap:44px;justify-content:center}} .ics svg{{width:55px;height:55px;fill:none;stroke:#efe9dd;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}}
 .ln{{position:absolute;background:rgba(239,233,221,.55)}} .ln.h{{left:0;right:0;height:1px;transform-origin:0 50%}} .ln.v{{top:0;bottom:0;width:1px;transform-origin:50% 0}}
 .cr{{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid rgba(239,233,221,.8);border-radius:50%}} .cr.s{{width:21px;height:21px;margin:-10px 0 0 -10px}}
-.wm{{position:absolute;left:50%;top:960px;width:520px;margin:-118px 0 0 -260px;opacity:0;z-index:30}}
-.ul{{position:absolute;left:0;right:0;top:1130px;text-align:center;font-weight:600;font-size:55px;letter-spacing:-.02em;color:#efe9dd;opacity:0;z-index:30}} .ul.dk{{color:#0d1b2a}}
+.wm{{position:absolute;left:50%;top:720px;width:520px;margin:-118px 0 0 -260px;opacity:0;z-index:30}}
+.ul{{position:absolute;left:0;right:0;top:890px;text-align:center;font-weight:600;font-size:55px;letter-spacing:-.02em;color:#efe9dd;opacity:0;z-index:30}} .ul.dk{{color:#0d1b2a}}
 #grain{{position:absolute;inset:0;background:url(assets/grain.png);opacity:.16;mix-blend-mode:overlay;z-index:40;pointer-events:none}}
 .p3{{position:absolute;left:{PX}px;top:{PY}px;width:{PW}px;height:{PHH}px;transform-style:preserve-3d;opacity:0;z-index:7}}
 .ly{{position:absolute;inset:0;border-radius:{PR}px}}
