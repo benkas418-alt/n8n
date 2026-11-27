@@ -140,9 +140,8 @@ The cloud container is reset between sessions. Reinstall the external tools with
   A mismatch lost the trained model after every run (fixed 2026-10-30, PR #10).
 - After a cycle, check `last_prediction` and the step summary, not only the green run: the
   pipeline logs a failed step and still exits 0.
-- A new table with foreign keys to restored tables breaks `pg_restore --clean` in the daily
-  cycle (27/11, no e-mail): the Load state step now empties the schema, restores, then migrates.
-  Before merging a migration, test the restore of an older dump.
+- New FK tables broke `pg_restore --clean` (27/11, no e-mail): Load state now empties the schema,
+  restores, then migrates. Before merging a migration, test restoring an older dump.
 - Container restarts lose the local venv and Postgres: recreate the venv in the scratchpad,
   `service postgresql start`; the local model file lives in /tmp/claude-0/fi-run (run from there).
 
