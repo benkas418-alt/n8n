@@ -54,7 +54,15 @@ grade(f"{ST}/c1_5.8.jpg", f"{A}/img/c1_taxi.jpg", (0, 1000, 660, 1720))   # the 
 # 27 Nov. (founder): the intro needs real wide shots of Lubumbashi, not his taxi footage -> the bands of the
 # "Rejoignez-nous" intros (Alilac Center, an avenue with yellow taxis, the glass tower, the lake), same grade as the rest
 LB = f"{SP}/inbox/rj"
-for f in ["lb_alilac", "lb_avenue", "lb_tour", "lb_lac", "lb_minibus"]: grade(f"{LB}/{f}.jpg", f"{A}/img/{f}.jpg")
+def vivid(src, dst):   # 27 Nov. (founder): colour kept and harmonised, never washed out
+    x = np.asarray(Image.open(src).convert("RGB"), float) / 255
+    x = x * (0.5 + 0.5 * x.mean() / np.maximum(x.reshape(-1, 3).mean(0), 1e-3))      # half-way grey-world white balance
+    lo, hi = np.percentile(x, 1), np.percentile(x, 99.3); x = np.clip((x - lo) / (hi - lo), 0, 1)   # same contrast range
+    g = x @ np.array([.299, .587, .114]); x = x * (0.47 / max(g.mean(), 1e-3)) ** 0.6   # same exposure
+    g = x @ np.array([.299, .587, .114]); x = g[..., None] + (x - g[..., None]) * 1.22     # richer colour
+    x = np.clip(x, 0, 1); x = x + (1 / (1 + np.exp(-(x - .5) * 4.5)) - x) * 0.35   # gentle S-curve
+    Image.fromarray((np.clip(x, 0, 1) * 255).astype(np.uint8)).save(dst, quality=93)
+for f in ["lb_alilac", "lb_avenue", "lb_tour", "lb_lac", "lb_minibus"]: vivid(f"{LB}/{f}.jpg", f"{A}/img/{f}.jpg")
 
 CUT = f"{SP}/dr/cut"
 def grade_cut(src, dst, box=None):   # same cinema look on a cut-out, alpha kept
@@ -82,7 +90,7 @@ tile(f"{REF}/samba.jpg", "t_samba"); tile(f"{REF}/rolex.jpg", "t_rolex", (60, 38
 tile(f"{REF}/robes9.jpg", "t_robes", (0, 0, 736, 860)); tile(f"{APP}/p138.jpg", "a_montre"); tile(f"{APP}/p190.jpg", "a_samba")
 
 # ---- scenes: one every two beats, hard cuts. (kind, logo colour, line under the logo)
-SC = [("paper", "navy", ""), ("lushi", "navy", ""), ("lac", "cream", "Les boutiques de Lubumbashi"),
+SC = [("paper", "navy", ""), ("lushi", "cream", ""), ("lac", "cream", "Les boutiques de Lubumbashi"),
       ("phone", "cream", "dans ton téléphone."), ("studio:am95", "cream", ""), ("gridp", "navy", ""),
       ("studiol:robe", "navy", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:tees", "cream", ""),
       ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:corteiz", "cream", "")]
@@ -121,9 +129,11 @@ def scene(i, kind):
         return f'<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>{extra}'
     if kind == "lushi":   # three wide bands of the city on paper, the logo between them
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
-                '<img class="ph" src="assets/img/lb_alilac.jpg" style="left:0;top:90px;width:1080px;height:470px">'
-                '<img class="ph" src="assets/img/lb_avenue.jpg" style="left:0;top:960px;width:1080px;height:440px">'
-                '<img class="ph" src="assets/img/lb_tour.jpg" style="left:0;top:1430px;width:1080px;height:440px">' + micro("LUBUMBASHI — RDC", "dk", "right:64px;top:590px;text-align:right"))
+                '<img class="ph" src="assets/img/lb_alilac.jpg" style="left:0;top:0;width:1080px;height:640px">'
+                '<img class="ph" src="assets/img/lb_avenue.jpg" style="left:0;top:640px;width:1080px;height:640px">'
+                '<img class="ph" src="assets/img/lb_tour.jpg" style="left:0;top:1280px;width:1080px;height:640px">'
+                '<div class="bgc" style="top:640px;height:640px;bottom:auto;background:rgba(13,27,42,.38)"></div>'   # the logo stays readable on the busy avenue
+                + micro("LUBUMBASHI — RDC", "", "right:64px;top:150px;text-align:right;text-shadow:0 2px 12px rgba(13,27,42,.8)"))
     if kind == "lac":     # the city seen from afar, full screen
         return ('<div class="bgc" style="background:#0d1b2a"></div><img class="ph" src="assets/img/lb_lac.jpg" style="left:0;top:990px;width:1080px;height:640px">' +
                 micro("11°40′ S<br>27°28′ E", "", "left:64px;top:150px") + micro("LUBUMBASHI<br>HAUT-KATANGA · RDC", "", "right:64px;top:150px;text-align:right"))
@@ -226,7 +236,7 @@ const SC={json.dumps([[T0[i], T1[i], k, c, bool(l)] for i, (k, c, l) in enumerat
 let li=0;
 SC.forEach(([a,b,k,c,hasLine],i)=>{{ const s="#s"+i;
   tl.set(s,{{opacity:1}},a); tl.set(s,{{opacity:0}},b);
-  ["navy","blue","cream"].forEach(n=>tl.set("#w"+n,{{opacity:n===c?1:0}},a));
+  ["navy","blue","cream"].forEach(n=>tl.set("#w"+n,{{opacity:n===c?1:0,y:k==="lushi"?240:0}},a));   // on the central band of the triptych
   tl.fromTo(s,{{scale:1.035}},E({{scale:1,duration:b-a,ease:"power1.out"}}),a);              // slow settle inside each look
   tl.fromTo(s+" .ph",{{y:(j)=>j?40:-40}},E({{y:0,duration:.5,ease:"expo.out"}}),a);
   tl.fromTo(s+" .mc",{{opacity:0,y:10}},E({{opacity:1,y:0,duration:.25,stagger:.05,ease:"power2.out"}}),a+.05);

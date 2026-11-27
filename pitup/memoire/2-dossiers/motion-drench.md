@@ -44,3 +44,10 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Logo fixe remonté de 960 à 720 px (centre), phrase à 890 px ; articles en studio plus grands (800 × 660, sous la phrase) ; grille éditoriale, collage, téléphone et grille technique replacés sous le logo.
 - Intro : papier → triptyque sur papier (Alilac Center, avenue aux taxis jaunes, tour vitrée) → bande du lac sur fond nuit avec les coordonnées (« Les boutiques de Lubumbashi »). Bandes tirées des vidéos v8/v10 (`scratchpad/inbox/rj/lb_*.jpg`, hors dépôt) : source TikTok 576 px, donc jamais en plein écran (le lac agrandi était flou) ; garder la taille de bande (1080 × 640 au plus).
 - 15,2 s, −13,7 LUFS, charte : 0 erreur.
+
+## v5 (27 nov.) : intro en couleur, triptyque plein cadre
+
+- Retour sur la v4 : plans de l'intro « trop ternes », « couleur dégradée » ; il veut de la couleur, harmonisée avec le reste. Triptyque : les trois plans doivent remplir l'écran, PitUp sur le plan central, « LUBUMBASHI — RDC » en haut à droite.
+- Étalonnage `vivid()` des plans de ville : balance des blancs à mi-chemin du gris moyen, même plage de contraste (percentiles 1 à 99,3), même exposition, saturation ×1,22, légère courbe en S. Plus de désaturation (l'ancien `grade()` reste pour rien d'autre que la référence).
+- Triptyque 3 × 640 px plein cadre (Alilac Center, avenue, tour vitrée) ; voile nuit à 38 % sur la bande du milieu pour lire le logo crème ; le logo descend de 240 px dans cette scène seulement (centre de la bande du milieu).
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.
