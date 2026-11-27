@@ -14,7 +14,7 @@ etat() {
   command -v ffmpeg >/dev/null && ok "ffmpeg" || ko "ffmpeg"
   command -v npx >/dev/null && ok "npx (HyperFrames se lance par npx, rien à installer)" || ko "npx"
   echo "Compétences : $(ls "$SK" 2>/dev/null | wc -l) dans $SK"
-  for s in pitup-content-engine conversion-copywriting-engine viral-psychology-strategist earshot real-sound hyperframes gsap-timeline mockup-device-3d kinetic-typography; do
+  for s in pitup-content-engine conversion-copywriting-engine viral-psychology-strategist earshot real-sound hyperframes gsap-timeline mockup-device-3d kinetic-typography video-shotcraft; do
     [ -f "$SK/$s/SKILL.md" ] && ok "$s" || ko "$s"
   done
   echo "Disque libre : $(df -h / | awk 'NR==2{print $4}') (HyperFrames refuse de rendre sous 1 Go)"
@@ -27,7 +27,7 @@ skills() {
   for d in "$(dirname "$0")/../../skills"/*/; do [ -f "$d/SKILL.md" ] && cp -r "$d" "$SK/" ; done
   for r in Leonxlnx/earshot charlie947/motion-graphics-skills kylezantos/design-motion-principles LottieFiles/motion-design-skill \
            dickwu/apple-design-skill nextlevelbuilder/ui-ux-pro-max-skill bradautomates/claude-video \
-           muratcankoylan/agent-skills-for-context-engineering; do
+           muratcankoylan/agent-skills-for-context-engineering Vincentwei1021/video-shotcraft; do
     d="$H/.skills-src/$(basename "$r")"
     [ -d "$d" ] || git clone -q --depth 1 "https://github.com/$r.git" "$d" || { echo "  échec du clonage : $r"; continue; }
     find "$d" -name SKILL.md -not -path '*/node_modules/*' | while read -r f; do

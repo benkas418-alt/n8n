@@ -96,3 +96,13 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - Notes marketing du 21 nov. (présentes seulement sur master) : copiées dans `2-dossiers/marketing-et-motion.md`.
 - Aucune autre branche distante ne contient de fichier PitUp absent de notre branche, à part `ccr-66613461-5optll` (`pitup/tiktok-veille/`, un workflow de veille TikTok).
 
+## Dépôts envoyés le 27 nov. (étudiés, clonés dans `/home/user/ext/`)
+
+| Dépôt | Ce que c'est | Pour nous |
+|---|---|---|
+| `Vincentwei1021/video-shotcraft` (Apache-2.0) | Compétence Claude Code : 125 fiches de plans animés avec le code de démonstration (Remotion), une méthode en 6 étapes (capture des vraies pages, découpage, calage sur le rythme, sons, contrôle image par image), un outil de recherche de bruitages sur Freesound | **Utile.** Fiches à adapter en HyperFrames : `speed-ramp-freeze` (ralenti), `logo-shrink-wordmark-lockup` et `white-flash-logo-simplify-cut` (fins de logo), `radial-ripple-phone-chips`, `deck-deal-flyin`, `card-stack` (articles), `flying-words`, `lead-word-zoom-assemble` (texte), `beat-cut-moves` (coupes sur le rythme), `crash-zoom-punch`. Les fiches sont en chinois. Installée comme compétence (`installer.sh skills`). |
+| — son outil `assets/scripts/sfx-source.py` | Recherche de vrais enregistrements sur Freesound, sans clé, licence CC0 par défaut | **Utile, avec accord du fondateur.** Ex. : un vrai déclencheur d'appareil argentique (« Pentax K1000 Camera Shutter », fs:579883, CC0). `python3 -I assets/scripts/sfx-source.py search "camera shutter click" --max-duration 2`. Ses sons de modèle (`template/public/audio`) viennent de Mixkit : ne pas les utiliser (règle « aucun bruitage de banque »). |
+| `processing/p5.js` (v2.4.0) | Bibliothèque de dessin génératif sur canvas (particules, formes, bruit) | Possible pour des fonds ou des effets génératifs dans la DA. Charger depuis jsdelivr avec une version exacte ; en mode `noLoop()` et redessiner à partir du temps de la timeline GSAP, sinon le rendu HyperFrames (qui saute d'image en image) n'est pas reproductible. |
+| `danielwh2/cuelume` | 14 sons d'interface synthétisés en direct (Web Audio) pour sites web | **Pas pour les vidéos** : ce sont des sons fabriqués par code, bannis le 26 nov. Utilisable éventuellement dans l'appli PitUp elle-même (retours sonores des boutons). |
+| `elevenlabs/skills` | Compétences pour l'API ElevenLabs (voix, sons, musique, doublage) ; clé API obligatoire | **Interdit** : règle « jamais ElevenLabs ». Non installé. |
+
