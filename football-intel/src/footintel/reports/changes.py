@@ -48,6 +48,10 @@ NEWS: list[tuple[str, str]] = [
                    "davantage sur les outsiders que sur les favoris, comme ils la répartissent en réalité. Un "
                    "favori à 1,50 environ a une cote juste un peu plus basse qu'avant ; un outsider, un peu plus "
                    "haute. Testé sur 78 000 matchs.")),
+    ("2026-11-27", ("Un ticket ne parie plus contre l'équipe que l'analyse du match donne favorite. Avant, il "
+                   "pouvait prendre « Venezia ou nul » alors que la page du match penchait pour Bologna, "
+                   "seulement pour atteindre sa cote totale. Les paris sans camp (buts, les deux marquent, "
+                   "pas de nul) restent permis.")),
 ]
 
 
