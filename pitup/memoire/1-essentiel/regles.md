@@ -55,6 +55,14 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
   - le logo reste plat, ou fondu dans le fond (« presque infusé dans le fond ») ;
   - montrer beaucoup d'articles à la fois quand on parle de choix : l'abondance se voit.
 
+- **Niveau « pro »** (27 nov., « on dirait qu'un gosse l'a fait ») :
+  - un seul élément fort à l'écran ;
+  - un à trois mots, en 144 ou 233 px, remplacés sur place au rythme de la voix ;
+  - jamais de phrase sur trois lignes ;
+  - articles détourés sur fond uni, pas de mosaïque de photos aux fonds différents ;
+  - s'inspirer d'abord de ses références r2 (liste de mots qui défile, petites étiquettes) et r5 (un mot géant, crème / couleur).
+- **Voix** (27 nov.) : une seule voix, celle de la sœur ; fluidité et articulation d'abord.
+
 ## Son
 
 - **Jamais ElevenLabs.**

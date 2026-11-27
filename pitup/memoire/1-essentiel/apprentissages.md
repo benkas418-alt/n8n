@@ -6,6 +6,19 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-27
 
+- **Motion « duo » v1 : « C'est très nul visuellement parlant. On dirait que c'est un gosse qui l'a fait. C'est pas pro. Regarde ce que les autres font. »** Et : « On garde une seule voix, celle de la fille. Assure-toi de la fluidité du langage et de l'articulation (ponctuation au début et fin de phrase). »
+  Diagnostic, en comparant avec ses références r2 et r5 :
+  - mes écrans empilaient des phrases en petit (89 px sur 3 lignes) et une mosaïque de photos aux fonds mélangés ;
+  - ses références montrent un seul élément fort : un ou deux mots très grands, remplacés sur place au rythme de la voix ;
+  - elles ajoutent des détails éditoriaux discrets, des objets propres sur fond uni, et alternent crème et couleur.
+
+  Retenu :
+  - une seule voix, celle de la sœur ;
+  - le texte se génère par blocs de deux phrases bien ponctuées, pour que l'intonation soit continue (pas de phrases collées bout à bout) ;
+  - jamais de paragraphe à l'écran ;
+  - les articles se montrent détourés.
+
+  Rangé : `regles.md`, `2-dossiers/motion-magazine.md`.
 - **Motion propre v2 (profondeur) : « C'est trop peu. »** Quatre demandes :
   - Exposer toute la palette d'articles qu'il a envoyés, « que on voit qu'il y a beaucoup ».
   - Faire entendre la voix de la fille, « peut-être même avec le garçon », en mixant les deux voix.
