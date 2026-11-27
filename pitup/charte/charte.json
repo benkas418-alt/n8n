@@ -49,6 +49,8 @@
   "musiques_deja_utilisees": [
     {"titre": "Drake - What Did I Miss?", "fichier": "drake", "videos": ["film de lancement v4-v5", "présentateur v3-v6"]},
     {"titre": "Tems - Me & U", "fichier": "tems", "videos": ["commande-livraison v11-v13 (à partir de 43,97 s)", "motion acheteurs v1 (à partir de 46,07 s)"]},
+    {"titre": "Sleepy Hallow - Anxiety (ft. Doechii)", "fichier": "anxiety", "videos": ["motion drench v1-v7 (à partir de 13,58 s)"]},
+    {"titre": "Jorja Smith - Blue Lights", "fichier": "bluelights", "videos": ["motion magazine v1 (à partir de 39,87 s)"]},
     {"titre": "Sam Recks - Visa", "fichier": "visa", "videos": ["film de lancement v3"]}
   ],
   "musiques_bannies": ["amapiano", "Obsessed With You"]

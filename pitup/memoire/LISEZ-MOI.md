@@ -31,6 +31,7 @@ Ces fichiers sont à redemander au fondateur (liste dans `3-atelier/outils.md`, 
 
 ## Index des dossiers
 
+- `2-dossiers/motion-magazine.md` : motion « le magazine PitUp », pages qui tournent en 3D sous une lumière de fenêtre, 27 nov.
 - `2-dossiers/motion-drench.md` : motion design façon « drench » (logo fixe, décors qui changent sur le rythme), 27 nov.
 - `2-dossiers/motion-p5.md` : motion design dessiné avec p5.js (points-boutiques → logo), 27 nov.
 - `2-dossiers/motion-acheteurs.md` : motion design simple pour les acheteurs, d'après deux cours sur l'accroche (27 nov.).
