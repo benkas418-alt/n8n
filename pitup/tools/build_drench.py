@@ -66,18 +66,22 @@ def keep_cut(src, dst, cut_bottom=0.0):   # app product cut-out: colour kept, sl
     if cut_bottom: im = im.crop((0, 0, im.width, int(im.height * (1 - cut_bottom))))
     a = np.asarray(im, float); x = np.clip((a[..., :3] / 255 - .5) * 1.08 + .5, 0, 1)
     Image.fromarray(np.dstack([x * 255, a[..., 3]]).astype(np.uint8)).save(dst)
-PROD = {"jordan": ("p036_isnet.png", 0, "AIR JORDAN 4<br>NIGEL SYLVESTER"), "foam": ("p021_biref.png", 0.17, "NIKE AIR FORCE<br>FOAMPOSITE"),
-        "shox": ("p161_biref.png", 0, "NIKE SHOX TL"), "congo": ("p209_isnet.png", 0, "MAILLOT<br>CONGO RDC"),
-        "barca": ("p214_isnet.png", 0.06, "MAILLOT<br>FC BARCELONE")}
-for k, (f, cb, _) in PROD.items(): keep_cut(f"{APP}/{f}", f"{A}/img/cut_{k}.png", cb)
-for f in ["p007", "p031", "p143", "p003", "p122", "p214"]:   # product photos for the editorial grid and the collage
-    shutil.copy(f"{APP}/{f}.jpg", f"{A}/img/{f}.jpg")
+# 27 Nov. (founder): "le problème reste le choix des articles" -> his 8 examples mixed with the app's items of the same
+# taste: simple, timeless, desirable pieces in sober colours (Air Max 95, Samba, plain tees, little black dress, watch).
+REF = f"{APP}/ref"
+PROD = {"am95": (f"{REF}/am95gris_biref.png", 0, "NIKE AIR MAX 95"), "robe": (f"{REF}/robe_isnet.png", 0, "PETITE ROBE NOIRE"),
+        "tees": (f"{REF}/app_tees_biref.png", 0, "T-SHIRTS UNIS"), "corteiz": (f"{REF}/am95corteiz_isnet.png", 0, "AIR MAX 95<br>CORTEIZ")}
+for k, (f, cb, _) in PROD.items(): keep_cut(f, f"{A}/img/cut_{k}.png", cb)
+def tile(src, dst, box=None):
+    im = Image.open(src).convert("RGB"); im = im.crop(box) if box else im; im.save(f"{A}/img/{dst}.jpg", quality=92)
+tile(f"{REF}/samba.jpg", "t_samba"); tile(f"{REF}/rolex.jpg", "t_rolex", (60, 380, 700, 1180)); tile(f"{REF}/tees4.jpg", "t_tees", (0, 130, 736, 980))
+tile(f"{REF}/robes9.jpg", "t_robes", (0, 0, 736, 860)); tile(f"{APP}/p138.jpg", "a_montre"); tile(f"{APP}/p190.jpg", "a_samba")
 
 # ---- scenes: one every two beats, hard cuts. (kind, logo colour, line under the logo)
 SC = [("paper", "navy", ""), ("collage1", "navy", ""), ("night", "cream", "Les boutiques de Lubumbashi"),
-      ("phone", "cream", "dans ton téléphone."), ("studio:jordan", "cream", ""), ("gridp", "navy", ""),
-      ("studio:congo", "cream", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:foam", "cream", ""),
-      ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:shox", "cream", "")]
+      ("phone", "cream", "dans ton téléphone."), ("studio:am95", "cream", ""), ("gridp", "navy", ""),
+      ("studiol:robe", "navy", "Tu commandes,"), ("grid", "cream", "on te livre,"), ("studio:tees", "cream", ""),
+      ("collage2", "navy", "tu paies à la livraison."), ("grid2", "cream", "Livré où tu veux."), ("studio:corteiz", "cream", "")]
 T0 = [b(2 * i) for i in range(len(SC))]; E0 = b(2 * len(SC)); D = round(b(2 * len(SC) + 8) + 0.3, 2); n = int(D * sr)
 T1 = T0[1:] + [E0]
 
@@ -117,10 +121,10 @@ def scene(i, kind):
                 '<img class="ph" src="assets/img/c1_taxi.jpg" style="left:520px;top:980px;width:560px;height:760px;">' + micro("LUBUMBASHI", "tr dk", ""))
     if kind == "collage2":
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>'
-                '<img class="ph" src="assets/img/p214.jpg" style="left:0;top:140px;width:600px;height:640px">'
-                '<img class="ph" src="assets/img/p122.jpg" style="left:480px;top:1250px;width:600px;height:600px">')
+                '<img class="ph" src="assets/img/a_montre.jpg" style="left:0;top:140px;width:600px;height:640px">'
+                '<img class="ph" src="assets/img/a_samba.jpg" style="left:480px;top:1250px;width:600px;height:600px">')
     if kind == "gridp":   # editorial grid of real app listings, labels in small capitals
-        tiles = [("p007", "NIKE TN", 64, 200), ("p031", "NIKE DUNK", 556, 200), ("p143", "CASQUETTES", 64, 1150), ("p003", "POLOS", 556, 1150)]
+        tiles = [("t_samba", "ADIDAS SAMBA", 64, 200), ("t_rolex", "MONTRES", 556, 200), ("t_tees", "T-SHIRTS", 64, 1150), ("t_robes", "ROBES", 556, 1150)]
         return ('<div class="bgimg" style="background-image:url(assets/img/paper.jpg)"></div>' +
                 "".join(f'<img class="ph" src="assets/img/{f}.jpg" style="left:{x}px;top:{y}px;width:460px;height:560px">'
                         + micro(lab, "dk", f"left:{x}px;top:{y + 578}px") for f, lab, x, y in tiles))
@@ -142,6 +146,10 @@ def scene(i, kind):
                 f'<div class="sh3" id="H"></div><div class="p3" id="Pp">{LAY}<div class="fr" style="transform:translateZ({DZ / 2 + .5}px)"></div></div>'
                 f'<video id="Vp" class="clip scr3" src="assets/scr/app.mp4" muted playsinline data-start="{T0[i]:.3f}" data-duration="{T1[i] - T0[i]:.3f}" data-track-index="2"></video>'
                 '<div class="g3" id="Gp"><b class="isl"></b></div>')
+    if kind.startswith("studiol:"):   # light studio: a black piece stays readable on cream
+        return ('<div class="bgc" style="background:radial-gradient(60% 45% at 50% 30%,#ffffff 0%,#efe9dd 70%)"></div>'
+                '<div class="shadow" style="background:rgba(13,27,42,.35)"></div>'
+                f'<img class="prod" src="assets/img/cut_{kind[8:]}.png" alt="">' + micro(PROD[kind[8:]][2], "dk", "left:64px;bottom:150px") + micro("SUR PITUP", "dk", "right:64px;top:150px;text-align:right"))
     if kind.startswith("studio:"):   # the product floats in a dark studio under one spotlight, like the rock in "drench"
         return ('<div class="bgc" style="background:radial-gradient(60% 45% at 50% 30%,#3b4a63 0%,#0d1b2a 70%)"></div>'
                 '<div class="floor"></div><div class="shadow"></div>'

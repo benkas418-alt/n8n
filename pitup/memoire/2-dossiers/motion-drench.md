@@ -28,3 +28,12 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Détourage : `isnet-general-use` pour Jordan, Congo, Barça ; `birefnet-general-lite` pour Foamposite et Shox. Couleurs gardées (contraste +8 %), pas de désaturation : les articles doivent ressortir.
 - Scènes : papier → Lubumbashi (drapeau, taxi) → nuit « Les boutiques de Lubumbashi » → téléphone « dans ton téléphone. » → studio Jordan 4 → grille éditoriale TN / Dunk / casquettes / polos → studio maillot Congo « Tu commandes, » → grille « on te livre, » → studio Foamposite → collage Barça + Dunk « tu paies à la livraison. » → grille « Livré où tu veux. » → studio Shox TL → fin. Petites capitales : nom de l'article en bas à gauche, « SUR PITUP » en haut à droite.
 - 15,2 s, −13,7 LUFS, charte : 0 erreur.
+
+## v3 (27 nov.) : le choix des articles
+
+- Retour sur la v2 : « Le problème reste le choix des articles. » Il envoie 8 exemples (petites robes noires, Air Max 95 grises et Corteiz, Samba, t-shirts unis, Rolex Day-Date). À la question « tes photos ou celles de l'appli ? » : « Mixe mes 8 avec ceux de l'appli ».
+- Ses photos (hors dépôt, `scratchpad/appimg/ref/`) : Air Max 95 grises (détourées, `birefnet`), petite robe noire (`isnet`, studio clair crème pour qu'elle reste lisible), Air Max 95 Corteiz (`isnet`, sur son plateau) ; grille : Samba, Rolex (recadrée), t-shirts (badge « 4 PACK » coupé), planche de robes.
+- Articles de l'appli : t-shirts unis noir et blanc (p101, détourés), montre façon Datejust (p138) et Samba (p190) dans le collage.
+- Goût à retenir : pièces simples, intemporelles, couleurs sobres, photos propres. Les articles voyants (Foamposite violette, Shox, maillots, murs de chaussures) ne conviennent pas.
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.
+- Droits : ses 8 photos viennent d'Internet ; le dire avant toute publication sponsorisée.
