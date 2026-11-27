@@ -15,6 +15,8 @@ for f in ["fonts", "gsap.min.js", "icon_white.png", "logo_word_white.png", "logo
     if not os.path.exists(dst): (shutil.copytree if os.path.isdir(src) else shutil.copy)(src, dst)
 for f in ["paper.jpg", "cut_am95.png", "cut_robe.png", "cut_tees.png", "t_samba.jpg", "t_rolex.jpg", "lb_alilac.jpg", "lb_avenue.jpg"]:
     shutil.copy(f"{DR}/img/{f}", f"{A}/img/{f}")
+R2 = f"{SP}/appimg/ref2"   # his 11 product photos (27 Nov.), outside the repository
+for f in ["nb9060", "pull_rl", "mocassins_daim", "polos_zip", "cardigans", "timberland"]: shutil.copy(f"{R2}/{f}.jpg", f"{A}/img/{f}.jpg")
 BED = os.environ.get("BED", f"{SP}/audio/bluelights.wav"); OFF = float(os.environ.get("OFF", "39.87"))
 y, _ = librosa.load(BED, sr=22050)
 _, bf = librosa.beat.beat_track(y=y, sr=22050)
@@ -24,21 +26,29 @@ b = lambda k: B[k]
 
 # pages, top of the stack first: (id, html). Inner page 820 x 1120, paper texture.
 def micro(t, st): return f'<div class="mc" style="{st}">{t}</div>'
+ICO = {"back": '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>', "user": '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+       "truck": '<svg viewBox="0 0 24 24"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
+       "shield": '<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/></svg>',
+       "cash": '<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="2"/><circle cx="12" cy="12.5" r="2.5"/></svg>'}
+def fiche(img, name, cat="Vêtements &amp; Mode", pos="50% 50%"):
+    return (f'<div class="app"><div class="bar"><img src="assets/icon_white.png" class="ic" alt=""><i class="u">{ICO["user"]}</i></div>'
+            f'<div class="hd"><i>{ICO["back"]}</i><b>Produit</b></div>'
+            f'<div class="imgc"><img src="assets/img/{img}.jpg" style="object-position:{pos}" alt=""></div>'
+            f'<div class="card"><span class="chip">{cat}</span><div class="nm">{name}</div>'
+            f'<div class="ln">{ICO["truck"]}Les livraisons sont assurées par PitUp</div><div class="ln">{ICO["cash"]}Paiement à la livraison</div>'
+            f'<div class="ln">{ICO["shield"]}Achat sécurisé</div></div>'
+            '<div class="btns"><span class="b1">Ajouter au panier</span><span class="b2">Acheter maintenant</span></div></div>')
 PAGES = [
  ("cover", '<img class="mast" src="assets/logo_word_navy.png" alt="">' + micro("ÉDITION LUBUMBASHI", "left:48px;top:44px") + micro("RDC · 2026", "right:48px;top:44px;text-align:right")
   + '<img class="pic" src="assets/img/lb_alilac.jpg" style="left:48px;top:300px;width:470px;height:360px">'
   + '<img class="pic" src="assets/img/lb_avenue.jpg" style="left:302px;top:560px;width:470px;height:360px">'
   + '<div class="cl" id="cl1">Les boutiques<br>de Lubumbashi,</div><div class="cl b" id="cl2">dans ton téléphone.</div>'),
- ("am95", '<div class="tt">AIR MAX<br>95</div><div class="sh"></div><img class="cut" src="assets/img/cut_am95.png" style="top:470px;height:520px" alt="">'
-  + micro("NIKE", "left:48px;bottom:48px") + micro("SUR PITUP", "right:48px;bottom:48px;text-align:right")),
- ("samba", '<div class="tt">SAMBA</div><img class="pic" src="assets/img/t_samba.jpg" style="left:120px;top:300px;width:580px;height:700px">'
-  + micro("ADIDAS", "left:48px;bottom:48px") + micro("SUR PITUP", "right:48px;bottom:48px;text-align:right")),
- ("robe", '<div class="tt s">LA PETITE<br>ROBE NOIRE</div><div class="sh"></div><img class="cut" src="assets/img/cut_robe.png" style="top:330px;height:690px" alt="">'
-  + micro("COLLECTION", "left:48px;bottom:48px") + micro("SUR PITUP", "right:48px;bottom:48px;text-align:right")),
- ("montres", '<div class="tt">MONTRES</div><img class="pic" src="assets/img/t_rolex.jpg" style="left:120px;top:300px;width:580px;height:700px">'
-  + micro("ACCESSOIRES", "left:48px;bottom:48px") + micro("SUR PITUP", "right:48px;bottom:48px;text-align:right")),
- ("basiques", '<div class="tt">BASIQUES</div><div class="sh"></div><img class="cut" src="assets/img/cut_tees.png" style="top:380px;height:620px" alt="">'
-  + micro("T-SHIRTS UNIS", "left:48px;bottom:48px") + micro("SUR PITUP", "right:48px;bottom:48px;text-align:right")),
+ ("nb9060", fiche("nb9060", "New Balance 9060")),
+ ("pull", fiche("pull_rl", "Pull torsadé Ralph Lauren", pos="50% 40%")),
+ ("daim", fiche("mocassins_daim", "Mocassins en daim", pos="50% 60%")),
+ ("polos", fiche("polos_zip", "Polos en maille zippés")),
+ ("cardigans", fiche("cardigans", "Cardigans en maille", pos="50% 55%")),
+ ("timberland", fiche("timberland", "Timberland 6 pouces")),
  ("back", '<div class="bl" id="bl1">Tu commandes.</div><div class="bl" id="bl2">On te livre.</div><div class="bl b" id="bl3">Tu paies<br>à la livraison.</div>'
   + '<img class="bmast" src="assets/logo_word_blue.png" alt="">' + micro("PI-TUP.COM", "left:48px;bottom:48px") + micro("LUBUMBASHI — RDC", "right:48px;bottom:48px;text-align:right")),
 ]
@@ -60,8 +70,10 @@ Iin = float(json.loads(meas[meas.rindex("{"):])["input_i"])
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SP}/audio/mag_raw.wav", "-af", f"volume={-14 - Iin:.2f}dB,aresample=192000,alimiter=limit=0.8:level=0,aresample=48000",
                 "-c:a", "pcm_s16le", f"{A}/mix.wav"], check=True)
 
-PG = "".join(f'<div class="page" id="p{i}" style="z-index:{50 - i}"><div class="front">{h}<div class="shade"></div></div><div class="backside"></div></div>'
+PG = "".join(f'<div class="page" id="p{i}" style="z-index:{50 - i}"><div class="front">{h}<div class="spine"></div><div class="shade"></div></div><div class="backside"></div></div>'
              for i, (k, h) in enumerate(PAGES))
+# volume: a hard blue cover under a block of real leaves, each a little lower in depth (the edge shows with the tilt)
+VOL = '<div id="board"></div>' + "".join(f'<div class="leaf" style="transform:translate({k * 1.1:.1f}px,{k * 1.5:.1f}px) translateZ({-2.0 * k:.1f}px);background:rgb({246 - k * 2},{246 - k * 2},{246 - k * 2})"></div>' for k in range(24, 0, -1))
 doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=1080, height=1920">
 <script src="assets/gsap.min.js"></script><style>
 @font-face{{font-family:P;src:url(assets/fonts/poppins-500.woff2);font-weight:500}}
@@ -71,6 +83,9 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 #root{{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(80% 60% at 50% 40%,#3b4a63 0%,#0d1b2a 75%);font-family:P,sans-serif}}
 #cam{{position:absolute;inset:0;perspective:2400px;perspective-origin:50% 40%}}
 #book{{position:absolute;left:130px;top:360px;width:820px;height:1120px;transform-style:preserve-3d;transform-origin:50% 50%}}
+#board{{position:absolute;left:-8px;top:-8px;width:870px;height:1176px;border-radius:12px;background:#1672ab;transform:translate(14px,20px) translateZ(-54px);box-shadow:6px 8px 0 #0d2846}}
+.leaf{{position:absolute;inset:0;border-radius:2px;background:#f0f0f0;box-shadow:0 0 0 1px rgba(13,27,42,.05)}}
+.spine{{position:absolute;left:0;top:0;bottom:0;width:40px;background:linear-gradient(90deg,rgba(13,27,42,.28),rgba(13,27,42,0));pointer-events:none;z-index:2}}
 #bshadow{{position:absolute;left:110px;top:1520px;width:860px;height:90px;border-radius:50%;background:rgba(0,0,0,.6);filter:blur(30px)}}
 .page{{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:0 50%}}
 .front,.backside{{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:url(assets/img/paper.jpg) center/1080px 1920px;overflow:hidden;
@@ -86,6 +101,20 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .tt.s{{font-size:89px;line-height:.98}}
 .cut{{position:absolute;left:50%;width:740px;margin-left:-370px;object-fit:contain}}
 .sh{{position:absolute;left:190px;top:1000px;width:440px;height:46px;border-radius:50%;background:rgba(13,27,42,.3);filter:blur(16px)}}
+.app{{position:absolute;inset:0;background:#f5f8fb}}
+.bar{{position:absolute;left:0;right:0;top:0;height:96px;background:#fff;box-shadow:0 2px 10px rgba(13,27,42,.06);display:flex;align-items:center;justify-content:space-between;padding:0 40px}}
+.bar .ic{{width:52px;height:52px;padding:9px;border-radius:14px;background:#1f88c9}}
+.app svg{{width:34px;height:34px;fill:none;stroke:#0d1b2a;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}}
+.hd{{position:absolute;left:40px;right:40px;top:120px;height:60px;display:flex;align-items:center;justify-content:center}} .hd i{{position:absolute;left:0;top:13px}}
+.hd b{{font-weight:600;font-size:34px;color:#0d1b2a}}
+.imgc{{position:absolute;left:40px;right:40px;top:200px;height:450px;border-radius:28px;background:#fff;overflow:hidden}} .imgc img{{width:100%;height:100%;object-fit:cover}}
+.card{{position:absolute;left:40px;right:40px;top:672px;border-radius:28px;background:#fff;padding:30px 34px}}
+.chip{{display:inline-block;padding:8px 22px;border-radius:30px;background:#e4eef7;color:#1672ab;font-weight:500;font-size:21px}}
+.nm{{margin-top:16px;font-weight:700;font-size:55px;letter-spacing:-.03em;line-height:1.05;color:#0d1b2a}}
+.ln{{margin-top:12px;display:flex;align-items:center;gap:14px;font-weight:500;font-size:21px;color:#1672ab}} .ln svg{{width:28px;height:28px;stroke:#1f88c9}}
+.btns{{position:absolute;left:40px;right:40px;bottom:32px;display:flex;gap:20px}}
+.btns span{{flex:1;text-align:center;padding:22px 0;border-radius:20px;font-weight:600;font-size:21px}}
+.b1{{background:#e4eef7;color:#1672ab;border:2px solid #bfe3ff}} .b2{{background:#1f88c9;color:#fff}}
 .bl{{position:absolute;left:48px;font-weight:700;font-size:89px;letter-spacing:-.04em;line-height:1;color:#0d1b2a;opacity:0}}
 #bl1{{top:140px}} #bl2{{top:300px}} #bl3{{top:460px;color:#1f88c9}}
 .bmast{{position:absolute;left:48px;top:860px;width:360px}}
@@ -104,7 +133,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 </style></head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="{D}" data-width="1080" data-height="1920">
 <audio id="bgm" src="assets/mix.wav" data-start="0" data-duration="{D}" data-track-index="11"></audio>
-<div id="cam"><div id="bshadow"></div><div id="book">{PG}</div></div>
+<div id="cam"><div id="bshadow"></div><div id="book">{VOL}{PG}</div></div>
 <div id="dark"></div><div id="light"></div>
 <div id="end"><div id="et"><img src="assets/icon_white.png" alt=""></div>
  <img id="word" src="assets/logo_word_white.png" alt=""><img id="tag" src="assets/logo_tag_white.png" alt="">
