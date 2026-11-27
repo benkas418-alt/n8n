@@ -773,3 +773,35 @@ Walk-forward 2021-2025, même base, mêmes modèles ; seules les entrées `mkt_p
 | Hermès contre marché (rappel, proportionnel) | 8 907 | +0,00039 | −0,00132 ; +0,00210 |
 
 Par saison, Hermès puissance contre Hermès : 2021 −0,00025, 2022 −0,00041, 2023 +0,00049, 2024 +0,00008, 2025 −0,00001. Par ligue : de −0,00062 (Bundesliga) à +0,00039 (Liga). Seuil D9 non atteint : Hermès ne change pas.
+
+## Information arrivée entre le prix du vendredi et la clôture (27/11/2026, D116)
+
+`scripts/late_information_check.py` : 53 270 matchs de 2019-20 à 2025-26, 22 divisions de football-data.co.uk. Prix moyens des bookmakers, marge retirée par la méthode puissance (D114). Écart = log loss du prix du vendredi (ou du mardi) moins log loss du prix de clôture, en millièmes ; positif = la clôture prévoit mieux.
+
+| Championnat | Matchs | Écart | IC à 95 % | Marge à la clôture | Mouvement moyen (points de %) |
+|---|---|---|---|---|---|
+| Grèce | 1 668 | 8,11 | 3,46 ; 13,21 | 7,3 % | 5,9 |
+| Belgique | 2 085 | 7,39 | 3,82 ; 11,15 | 6,3 % | 5,3 |
+| Pays-Bas | 2 068 | 6,07 | 2,65 ; 9,36 | 5,7 % | 4,7 |
+| Écosse 2 | 1 172 | 5,78 | 1,40 ; 9,98 | 8,2 % | 4,4 |
+| Turquie | 2 447 | 5,71 | 2,34 ; 9,55 | 6,5 % | 5,4 |
+| Ligue 2 | 2 410 | 5,66 | 2,35 ; 8,69 | 7,0 % | 4,6 |
+| Écosse 4 | 1 147 | 5,39 | 0,13 ; 10,33 | 9,2 % | 5,5 |
+| Serie B | 2 651 | 5,33 | 2,64 ; 8,40 | 7,0 % | 4,7 |
+| Premier League | 2 660 | 3,94 | 1,33 ; 6,40 | 4,3 % | 3,9 |
+| Portugal | 2 142 | 3,47 | 0,36 ; 6,63 | 6,2 % | 4,6 |
+| League One | 3 711 | 3,33 | 1,06 ; 5,57 | 6,6 % | 4,1 |
+| League Two | 3 747 | 3,00 | 0,97 ; 5,05 | 6,7 % | 3,8 |
+| Liga 2 | 3 234 | 2,97 | −0,16 ; 5,92 | 7,0 % | 5,1 |
+| Écosse 1 | 1 547 | 2,66 | −1,33 ; 6,63 | 6,2 % | 4,7 |
+| National League | 3 628 | 2,48 | −0,44 ; 5,50 | 8,5 % | 5,2 |
+| Serie A | 2 659 | 2,34 | −0,36 ; 5,19 | 4,9 % | 4,1 |
+| Bundesliga | 2 142 | 2,06 | −0,82 ; 5,01 | 4,8 % | 4,0 |
+| Ligue 1 | 2 337 | 1,82 | −1,16 ; 4,75 | 5,0 % | 4,4 |
+| Liga | 2 660 | 1,78 | −0,93 ; 4,30 | 4,8 % | 4,1 |
+| Championship | 3 864 | 1,20 | −0,68 ; 3,22 | 5,4 % | 3,7 |
+| 2. Bundesliga | 2 142 | 0,16 | −2,68 ; 2,98 | 6,3 % | 4,2 |
+| Écosse 3 | 1 149 | 0,16 | −5,35 ; 5,32 | 9,1 % | 5,5 |
+| **Toutes** | **53 270** | **3,48** | | | |
+
+Lecture : entre le vendredi et le coup d'envoi, le prix gagne en moyenne 3,5 millièmes, soit 4 à 9 fois l'écart entre Hermès et le marché (D113 à D115). L'information de dernière minute pèse plus dans les championnats moins suivis. La clôture l'a déjà : un avantage n'est possible que contre un prix qui ne l'a pas encore.
