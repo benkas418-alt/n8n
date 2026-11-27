@@ -156,9 +156,9 @@ def scene(i, kind):
                   f'<div class="ics" style="top:1430px">{ICON["cart"]}{ICON["box"]}{ICON["cash"]}</div>' + micro("PI-TUP.COM", "c3", "left:0;right:0;top:1560px;text-align:center"))
         else:
             h += ('<i class="ln h" style="top:620px"></i><i class="ln h" style="top:820px"></i><i class="ln v" style="left:300px"></i><i class="ln v" style="left:780px"></i>'
-                  '<i class="cr" style="left:540px;top:720px"></i><i class="cr s" style="left:780px;top:820px"></i>' +
+                  '<i class="cr" style="left:540px;top:720px"></i><i class="cr s" style="left:780px;top:990px"></i>' +
                   micro("COMMANDE&nbsp;&nbsp;✓<br>LIVRAISON&nbsp;&nbsp;✓", "c2", "left:96px;top:380px") +
-                  micro("PAIEMENT<br>À LA LIVRAISON", "c2", "left:800px;top:860px") +
+                  micro("PAIEMENT<br>À LA LIVRAISON", "c2", "left:800px;top:1010px") +
                   f'<div class="ics" style="top:1260px">{ICON["pin"] if kind == "grid2" else ICON["box"]}</div>')
         return h
     if kind == "phone":
@@ -201,7 +201,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 .ln{{position:absolute;background:rgba(239,233,221,.55)}} .ln.h{{left:0;right:0;height:1px;transform-origin:0 50%}} .ln.v{{top:0;bottom:0;width:1px;transform-origin:50% 0}}
 .cr{{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid rgba(239,233,221,.8);border-radius:50%}} .cr.s{{width:21px;height:21px;margin:-10px 0 0 -10px}}
 .wm{{position:absolute;left:50%;top:720px;width:520px;margin:-118px 0 0 -260px;opacity:0;z-index:30}}
-.ul{{position:absolute;left:0;right:0;top:890px;text-align:center;font-weight:600;font-size:55px;letter-spacing:-.02em;color:#efe9dd;opacity:0;z-index:30}} .ul.dk{{color:#0d1b2a}}
+.ul{{position:absolute;left:0;right:0;top:880px;text-align:center;font-weight:600;font-size:68px;letter-spacing:-.02em;color:#efe9dd;opacity:0;z-index:30}} .ul.dk{{color:#0d1b2a}}
 #grain{{position:absolute;inset:0;background:url(assets/grain.png);opacity:.16;mix-blend-mode:overlay;z-index:40;pointer-events:none}}
 .p3{{position:absolute;left:{PX}px;top:{PY}px;width:{PW}px;height:{PHH}px;transform-style:preserve-3d;opacity:0;z-index:7}}
 .ly{{position:absolute;inset:0;border-radius:{PR}px}}

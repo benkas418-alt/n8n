@@ -57,3 +57,10 @@ Le logo reste fixe au centre ; derrière lui, le décor change à chaque clic du
 - Retour sur la v5 : « les plans vont s'afficher comme au tout début… deux plans, l'un du côté gauche, l'autre du côté droit, un peu décalés ».
 - Scène « lushi » : papier, Alilac Center en haut à gauche (680 × 470, y 100), avenue aux taxis jaunes en bas à droite (680 × 540, y 1060), logo navy à sa place habituelle entre les deux, « LUBUMBASHI — RDC » en haut à droite. Couleurs vives (`vivid()`) gardées. Triptyque et décalage du logo retirés.
 - 15,2 s, −13,7 LUFS, charte : 0 erreur.
+
+## v7 (27 nov.) : phrase sous le logo agrandie
+
+- Demande : « augmente légèrement la police des petits textes qui changent sous PitUp, pour que le regard soit fixé sur eux ».
+- Phrase de 55 à 68 px (55 × 1,236 ; 89 aurait été trop grand et « Les boutiques de Lubumbashi » ne tenait plus sur une ligne), à 880 px. 68 px ajouté à la charte (`tailles_phrase_sous_logo_px`) et au contrôle.
+- Effet de bord corrigé : sur la grille technique, « PAIEMENT À LA LIVRAISON » descendu à 1010 px pour ne plus toucher « Livré où tu veux. ».
+- 15,2 s, −13,7 LUFS, charte : 0 erreur.

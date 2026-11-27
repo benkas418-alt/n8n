@@ -37,7 +37,7 @@ for fam in set(re.findall(r"font-family:\s*([^;}\"]+)", css)):
     alias = {n: u for n, u in faces}
     real = [("Poppins" if "poppins" in alias.get(n, "").lower() else n) for n in names]
     if not any(r in C["polices"] + C["polices_videos_produit"] for r in real): E(f"police hors charte : {fam}")
-ok_sizes = set(C["tailles_texte_px"]) | set(C["tailles_texte_service_px"]) | set(C.get("tailles_micro_px", []))
+ok_sizes = set(C["tailles_texte_px"]) | set(C["tailles_texte_service_px"]) | set(C.get("tailles_micro_px", [])) | set(C.get("tailles_phrase_sous_logo_px", []))
 for s in sorted({int(float(x)) for x in re.findall(r"font-size:\s*([\d.]+)px", css)}):
     if s not in ok_sizes: E(f"taille de texte hors échelle : {s} px (échelle : {sorted(C['tailles_texte_px'])})")
 
