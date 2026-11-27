@@ -32,7 +32,7 @@ WHERE :t IN (m.home_team_id, m.away_team_id) AND c.type = 'league'
 """)
 
 _READ_SQL = text("""
-SELECT DISTINCT m.id FROM matches m
+SELECT DISTINCT m.id, o.home_goals + o.away_goals AS total FROM matches m
 JOIN match_external_refs r ON r.match_id = m.id
 JOIN data_sources d ON d.id = r.source_id AND d.code = 'onefootball'
 JOIN seasons se ON se.id = m.season_id JOIN match_outcomes o ON o.match_id = m.id
@@ -61,8 +61,15 @@ def team_periods(engine: Engine, team_id: int, season: int, before) -> dict:
     with engine.connect() as conn:
         halves = pd.read_sql(_HALVES_SQL, conn, params={"t": team_id, "since": season - HALF_SEASONS,
                                                         "before": before})
-        ids = [r[0] for r in conn.execute(_READ_SQL, {"t": team_id, "season": season, "before": before})]
+        totals = {r[0]: r[1] for r in conn.execute(_READ_SQL, {"t": team_id, "season": season, "before": before})}
+        ids = list(totals)
         goals = _goal_events(pd.read_sql(_GOALS_SQL, conn, params={"ids": ids})) if ids else pd.DataFrame()
+    # Only matches whose goal minutes add up to the final score: a match the source did not
+    # describe is never read as a 0-0.
+    if ids:
+        n = goals.groupby("match_id").size() if len(goals) else pd.Series(dtype=int)
+        ids = [m for m in ids if int(n.get(m, 0)) == totals[m]]
+        goals = goals[goals.match_id.isin(ids)] if len(goals) else goals
     out: dict = {"halves_all": _halves(halves), "halves_season": _halves(halves[halves.season == season]),
                  "since": season - HALF_SEASONS, "windows": None, "note": PERSISTENCE_NOTE}
     if ids:
@@ -99,6 +106,8 @@ def _flows(df: pd.DataFrame) -> pd.DataFrame:
     for mid, m in df.drop_duplicates("match_id").set_index("match_id").iterrows():
         g = goals[goals.match_id == mid].sort_values("t") if len(goals) else goals
         seq = [1 if c == m.home_team_id else -1 for c in g.credited] if len(g) else []
+        if len(seq) != m.home_goals + m.away_goals:
+            continue  # goal minutes missing or incomplete: never read them as a 0-0
         run, lead_h, lead_a = 0, 0, 0
         for s in seq:
             run += s
@@ -129,6 +138,8 @@ def first_goal_effect(engine: Engine, team_id: int, season: int, before, competi
     if df.empty:
         return None
     flows = _flows(df)
+    if flows.empty:
+        return None
     mine = flows[flows.team == team_id]
     if mine.empty:
         return None
