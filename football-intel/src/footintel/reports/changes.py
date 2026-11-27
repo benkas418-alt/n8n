@@ -39,6 +39,9 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-28", ("Le calcul du 27/11 a échoué à cause d'une nouvelle table ajoutée la veille : pas d'e-mail ce "
                    "jour-là et le site est resté sur les données du 26/11. C'est corrigé et testé ; tes données "
                    "n'ont rien perdu.")),
+    ("2026-11-28", ("Les tableaux « Après le premier but » et « par tranche de 15 minutes » ne comptent plus "
+                   "un match dont les minutes des buts manquent comme un 0-0. Le handicap asiatique a été testé "
+                   "pour mieux estimer 1UP, 2UP et premier but : il n'apporte rien, rien n'est changé.")),
 ]
 
 
