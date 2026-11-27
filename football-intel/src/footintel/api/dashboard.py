@@ -260,6 +260,28 @@ LIGHTGBM_SOURCE = f"""(
                     WHERE sv.name = 'lightgbm' AND sx.match_id = hp.match_id AND sx.p_over_2_5 IS NOT NULL))"""
 
 
+def _lgbm_goals(ids: list[int]) -> dict[int, dict]:
+    """LightGBM's latest goal markets for these matches (D109)."""
+    if not ids:
+        return {}
+    return {r["match_id"]: r for r in _rows("""
+        SELECT DISTINCT ON (sp.match_id) sp.match_id, sp.p_over_1_5, sp.p_over_2_5, sp.p_over_3_5, sp.p_btts,
+               sp.exp_home_goals, sp.exp_away_goals
+        FROM side_predictions sp JOIN model_versions mv ON mv.id = sp.model_version_id AND mv.name = 'lightgbm'
+        WHERE sp.match_id = ANY(:ids) AND sp.p_over_2_5 IS NOT NULL
+        ORDER BY sp.match_id, sp.predicted_at DESC""", ids=ids)}
+
+
+def _hermes_goals(rows: list[dict], m1x2: dict[int, tuple], overs: dict[int, float]) -> None:
+    """Hermès 1.1 (D109): goal markets from the bookmakers, else LightGBM, else Hermès.
+    Sets `goals_source` on each row; the winner stays Hermès's."""
+    from footintel.analysis.goal_blend import blend_goals
+
+    lg = _lgbm_goals([r["id"] for r in rows])
+    for r in rows:
+        r["goals_source"] = blend_goals(r, m1x2.get(r["id"]), overs.get(r["id"]), lg.get(r["id"]))
+
+
 def _source(model: str) -> str:
     """The table the pages read predictions from: Hermès (default) or LightGBM."""
     return LIGHTGBM_SOURCE if model == "lightgbm" else "predictions"
@@ -310,6 +332,9 @@ def home(model: str = "hermes") -> dict:
     # Bookmaker average from The Odds API when the model's own odds (football-data.co.uk) are missing.
     prices, _ = _odds_api_prices([m["id"] for m in matches])
     overs = _market_over_2_5([m["id"] for m in matches])
+    if model != "lightgbm":
+        _hermes_goals(matches, {m["id"]: (m["mkt_home"], m["mkt_draw"], m["mkt_away"]) for m in matches
+                                if m["mkt_home"] is not None}, overs)
     for m in matches:
         mk = [m.pop("mkt_home"), m.pop("mkt_draw"), m.pop("mkt_away")]
         m["market"] = [float(x) for x in mk] if all(x is not None for x in mk) else None
@@ -398,6 +423,16 @@ def match(match_id: int, model: str = "hermes") -> dict:
     hermes = _one(pred_sql.format(src="predictions"), m=match_id)
     pred = _one(pred_sql.format(src=_source(model)), m=match_id) if model == "lightgbm" else hermes
     out = {"match": m, "prediction": None, "view": model}
+    goals_source = "lightgbm" if model == "lightgbm" else "hermes"
+    if pred and model != "lightgbm":
+        pred = dict(pred)
+        snap0 = pred["feature_snapshot"] or {}
+        mk = (snap0.get("mkt_p_home"), snap0.get("mkt_p_draw"), snap0.get("mkt_p_away"))
+        row = {**pred, "id": match_id}  # the prediction row has its own id
+        _hermes_goals([row], {match_id: mk} if mk[0] is not None else {}, _market_over_2_5([match_id]))
+        goals_source = row["goals_source"]
+        pred.update({k: row[k] for k in ("p_over_1_5", "p_over_2_5", "p_over_3_5", "p_btts",
+                                         "exp_home_goals", "exp_away_goals")})
     if pred:
         grid = _score_grid(pred["exp_home_goals"], pred["exp_away_goals"]) if pred["exp_home_goals"] else None
         top = []
@@ -412,7 +447,7 @@ def match(match_id: int, model: str = "hermes") -> dict:
             "p_over_3_5": pred["p_over_3_5"], "p_btts": pred["p_btts"],
             "exp_home_goals": pred["exp_home_goals"], "exp_away_goals": pred["exp_away_goals"],
             "score_grid": grid, "top_scores": top, "data_quality": pred["data_quality"],
-            "sufficient_data": pred["sufficient_data"],
+            "sufficient_data": pred["sufficient_data"], "goals_source": goals_source,
             "market": [snap.get("mkt_p_home"), snap.get("mkt_p_draw"), snap.get("mkt_p_away")],
             "factors": {k: snap.get(k) for k in ("elo_home", "elo_away", "elo_diff", "form5_ppg_h",
                                                    "form5_ppg_a", "rest_days_h", "rest_days_a",
@@ -649,6 +684,8 @@ def value_board(days: int = 7, model: str = "hermes") -> dict:
                p.p_over_3_5, p.p_btts, p.exp_home_goals, p.exp_away_goals, p.predicted_at,
                p.sufficient_data, (p.feature_snapshot->>'mkt_p_home') IS NOT NULL AS has_odds,
                (p.feature_snapshot->>'elo_home')::float AS elo_home, (p.feature_snapshot->>'elo_away')::float AS elo_away,
+               (p.feature_snapshot->>'mkt_p_home')::float AS mkt_home, (p.feature_snapshot->>'mkt_p_draw')::float AS mkt_draw,
+               (p.feature_snapshot->>'mkt_p_away')::float AS mkt_away,
                mv.name || ' v' || mv.version AS model, mv.name AS source_model
         FROM matches m JOIN competitions c ON c.id = m.competition_id
         JOIN teams th ON th.id = m.home_team_id JOIN teams ta ON ta.id = m.away_team_id
@@ -660,6 +697,9 @@ def value_board(days: int = 7, model: str = "hermes") -> dict:
         ORDER BY m.kickoff_utc NULLS LAST, m.kickoff_date""", d=days)
     prices, captured = _odds_api_prices([r["id"] for r in rows])
     overs = _market_over_2_5([r["id"] for r in rows])
+    if model != "lightgbm":
+        _hermes_goals(rows, {r["id"]: (r["mkt_home"], r["mkt_draw"], r["mkt_away"]) for r in rows
+                             if r["mkt_home"] is not None}, overs)
     matches = []
     for r in rows:
         market = market_consensus(prices.get(r["id"], []))
@@ -669,6 +709,7 @@ def value_board(days: int = 7, model: str = "hermes") -> dict:
                                     r["exp_home_goals"] or 1.4, r["exp_away_goals"] or 1.1)
         matches.append({k: r[k] for k in ("id", "kickoff_date", "kickoff_utc", "competition", "competition_name",
                                           "home", "away", "predicted_at", "has_odds", "model", "source_model")}
+                       | {"goals_source": r.get("goals_source", "lightgbm" if model == "lightgbm" else "hermes")}
                        | {"markets": market_probabilities(r), "market": market,
                           "elo": [round(r["elo_home"]), round(r["elo_away"])] if r["elo_home"] and r["elo_away"] else None})
     return {"generated_for_days": days, "view": model, "reliability": RELIABILITY, "matches": matches}
