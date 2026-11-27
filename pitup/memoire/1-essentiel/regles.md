@@ -50,6 +50,11 @@ Une règle ne se supprime que si le fondateur dit le contraire ; noter alors la 
 - **Logo PitUp et éléments graphiques en 2D** (17 nov.) : logo, cartes, pastilles à plat, couleur pleine #1f88c9 ou blanc, sans dégradé ni ombre portée. Seuls le téléphone et les produits ont du relief.
 - **Articles détourés** (17 nov.) : produits sans fond, posés sur le fond blanc (ombre douce seulement). Outil : rembg (`isnet-general-use` ou `birefnet-general-lite`, une image par processus, sinon manque de mémoire).
 
+- **Pas de « rendu IA »** (27 nov.) :
+  - pas de fond sombre avec halo, faisceau de lumière ou logo en relief ;
+  - le logo reste plat, ou fondu dans le fond (« presque infusé dans le fond ») ;
+  - montrer beaucoup d'articles à la fois quand on parle de choix : l'abondance se voit.
+
 ## Son
 
 - **Jamais ElevenLabs.**

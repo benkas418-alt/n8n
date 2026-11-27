@@ -6,6 +6,18 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-27
 
+- **Motion propre v2 (profondeur) : « C'est trop peu. »** Quatre demandes :
+  - Exposer toute la palette d'articles qu'il a envoyés, « que on voit qu'il y a beaucoup ».
+  - Faire entendre la voix de la fille, « peut-être même avec le garçon », en mixant les deux voix.
+  - Ni fond sombre ni logo « comme en 3D » : « je préfère qu'il soit plat ou directement presque infusé dans le fond… pour que ça n'ait pas le rendu typique IA ».
+  - Puiser dans ses références : effets de texte, animations, idées de hook visuel, copywriting qui fait rester, et leurs bruitages pour des passages précis.
+  Retenu :
+  - l'abondance se montre (beaucoup d'articles à l'écran), elle ne se dit pas ;
+  - fond sombre, halo, faisceau et logo en relief = « rendu IA » ;
+  - le logo reste plat et fait partie du fond ;
+  - une vidéo PitUp a une voix (la sœur, avec le garçon en dialogue) ;
+  - les bruitages pris dans ses propres références sont admis pour des moments précis.
+  Rangé : `regles.md`, `2-dossiers/motion-magazine.md`.
 - **Dépôts d'outils.** Il envoie 4 dépôts sans consigne, puis « Installé le 2 premier » (dicté). Ambigu (sa liste ou mon tableau) : j'ai installé les deux lectures (compétences ElevenLabs + cuelume, et p5.js ; video-shotcraft l'était déjà). Retenu : quand il envoie des dépôts, les étudier puis proposer ; quand sa réponse est ambiguë et que l'action est sans risque, faire les deux et le dire. Rangé : `3-atelier/outils.md`.
 - **Précision.** « Non, juste p5.js et video-shotcraft. » Retenu : sur quatre dépôts envoyés, il ne garde que ceux que j'avais jugés utiles pour les vidéos ; ElevenLabs et cuelume désinstallés. Mieux valait poser une seule question que tout installer. Rangé : `3-atelier/outils.md`, `installer.sh`.
 - **Motion propre v1 : « Certes mais c'est très plat. »** Il envoie 9 vidéos de référence. Retenu : propre ne veut pas dire plat ; il faut de la profondeur (à analyser dans ses références). Rangé : `2-dossiers/motion-magazine.md`.

@@ -42,3 +42,32 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
 - Pièges techniques (notés dans `3-atelier/outils.md`) :
   - une opacité < 1 sur un conteneur `preserve-3d` aplatit toute la scène : mettre l'opacité sur chaque fiche ou photo ;
   - un dessin image par image piloté par un « clock » GSAP s'exécute avant les autres tweens du même instant : il affichait l'état de l'image précédente. Calculer angle, profondeur et opacité directement à partir du temps.
+- Retour sur la v2 : « C'est trop peu » (voir `1-essentiel/apprentissages.md`, 27 nov.).
+
+## Motion « duo » (27 nov., en cours)
+
+- Ce que ses références apportent :
+  - r9 (DataSave, en français) : accroche par une question sur un vrai problème (« Et si tes forfaits Internet ne se perdaient plus… »), puis « Eh bien, ton rêve vient d'être réalisé… Découvre DataSave ».
+  - r4 : « Still looking for an editor? » puis une barre de recherche qui tape la question.
+  - r1 et r2 : texte qui arrive avec la voix ou au curseur.
+  - r5 : un mot à la fois, fond clair et fond foncé en alternance, mot clé plus gros en couleur.
+- Texte (acheteurs ; F = sœur, G = garçon) :
+  - F : « Tu fais encore le tour de toute la ville pour trouver tes habits ? »
+  - G : « Ça, c'est fini. Tout est sur PitUp. »
+  - F : « Des baskets, des pulls, des mocassins, des montres… »
+  - G : « Les boutiques de Lubumbashi, direct dans ton téléphone. »
+  - F : « Tu choisis, tu commandes… »
+  - G : « On te livre. »
+  - F : « Et tu paies à la livraison. »
+  - G : « Allez, télécharge l'appli ! »
+- Image :
+  - fond clair, grand logo PitUp plat fondu dans le fond (#e4eef7 sur #f5f8fb, ou #3aa2df sur le bleu), qui dérive lentement ;
+  - coupes franches vers le bleu PitUp pour les répliques du garçon ;
+  - un mur de ses 19 articles en 4 colonnes qui défilent en sens contraire ; à chaque catégorie dite (baskets, pulls, mocassins, montres), ses pièces ressortent et le mot s'affiche dans une pastille bleue ;
+  - la fiche article PitUp monte sur « téléphone » ; sur « Tu choisis », la photo change vite ; sur « tu commandes », le bouton « Acheter maintenant » s'enfonce.
+- Outils : `pitup/tools/build_duo.py`, `pitup/tools/pick_duo.py` (choix des prises : texte exact, ton, ressemblance, haché).
+- Voix :
+  - sœur : recette du 14 nov. (`vox_clone_texts.py`, référence = 21,3 premières secondes de sa vidéo TikTok, `scratchpad/inbox/soeur/src.wav`) ;
+  - garçon : recette v3 du présentateur (`vox_jobs.py`, amorce F + `ref2.wav`).
+- Musique : Dave & Tems « Raindance » (nouvelle).
+- Mémoire : VoxCPM (environ 8 Go) et Whisper medium (3 Go) en même temps font tuer le processus. Les lancer l'un après l'autre.
