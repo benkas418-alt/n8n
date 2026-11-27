@@ -16,3 +16,7 @@ Demande : « Fais aussi un motion design avec les outils de p5.js. »
 - Ne pas dessiner dans un `onUpdate` de GSAP : un `seek` qui supprime les événements ne l'appelle pas (canvas vide). Dessiner dans un **modifier** d'une interpolation `clock.t` de 0 à la durée : il tourne à chaque rendu.
 - `p5.disableFriendlyErrors = true` avant `new p5(...)` ; la page doit avoir `<meta charset="UTF-8">` (sinon p5 2.x plante sur une expression régulière).
 - Aperçu Playwright : `page.goto` n'est jamais résolu sur ces pages (chargement sans fin) ; lancer `goto` sans l'attendre, patienter 3 s, puis `seek` et capture avec un délai maximal (`scratchpad/app/t4.cjs`). Servir le dossier en HTTP (`python3 -m http.server`), pas en `file://`.
+
+## Retour du fondateur (27 nov.)
+
+- **v1 refusée** : « C'est nul ce que tu as fait. » Trop plat (fonds unis, texte centré), sans matière, lumière, profondeur ni détail éditorial ; loin de ses références « drench » et « I make things move ». Musiques proposées pour la suite : Sleepy Hallow « Anxiety » (ft. Doechii), Doechii « Anxiety », « LINKEDIN », Jorja Smith « Blue Lights » (COLORS), Sam Recks « Visa », Michael Olise « Raindance » (Dave & Tems), THIZZY52 « Balotelli », « Olise » (remix). Fichiers hors dépôt : `scratchpad/inbox/mus27/`.

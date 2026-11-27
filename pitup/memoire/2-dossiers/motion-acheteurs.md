@@ -13,3 +13,7 @@ Demande : « Travaillons sur un motion design vidéo simple », avec deux vidéo
 - Texte calé sur les temps, 1 à 3 mots, taille 144 px (deux lignes plutôt que plus petit) : « Tu cherches / des baskets ? / à Lubumbashi ? (tapé) » → fond bleu « Sans faire / le tour / des boutiques. » → téléphone 3D avec l'appli (Shopping › Vêtements & Mode, prix masqués) « Trouve-les / sur PitUp / Tu commandes. / On te livre. » → fond bleu « Tu paies / à la livraison. » (surligné) → fin : logo, PitUp, slogan, pi-tup.com, « Disponible sur », badges.
 - Petite icône PitUp en haut dès la première image (marque visible dans les 3 premières secondes).
 - Sons : vrai déclic photo sur un changement de scène sur deux, vrai clavier sur « à Lubumbashi ? ». −14 LUFS.
+
+## Retour du fondateur (27 nov.)
+
+- **v1 refusée** : « C'est nul ce que tu as fait. » Trop plat (fonds unis, texte centré), sans matière, lumière, profondeur ni détail éditorial ; loin de ses références « drench » et « I make things move ». Musiques proposées pour la suite : Sleepy Hallow « Anxiety » (ft. Doechii), Doechii « Anxiety », « LINKEDIN », Jorja Smith « Blue Lights » (COLORS), Sam Recks « Visa », Michael Olise « Raindance » (Dave & Tems), THIZZY52 « Balotelli », « Olise » (remix). Fichiers hors dépôt : `scratchpad/inbox/mus27/`.
