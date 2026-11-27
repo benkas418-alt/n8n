@@ -43,8 +43,11 @@ with engine.connect() as c:
 g = _goal_events(goals).sort_values("t")
 home_of = dict(zip(read.match_id, read.home_team_id))
 actual = {}
+totals = dict(zip(preds.match_id, preds.home_goals + preds.away_goals))
 for mid in read.match_id:
     seq = [1 if c == home_of[mid] else -1 for c in g.loc[g.match_id == mid, "credited"]]
+    if mid not in totals or len(seq) != totals[mid]:
+        continue  # goal minutes missing or incomplete: never read them as a 0-0
     run = np.cumsum(seq) if seq else np.array([0])
     first = "none" if not seq else ("home" if seq[0] == 1 else "away")
     end = run[-1]

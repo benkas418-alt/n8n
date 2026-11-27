@@ -1602,3 +1602,19 @@ def test_export_skips_a_broken_page_and_keeps_the_others():
     data, failed = sx.collect(Client())
     assert "/home" in data and "/valeur" not in data
     assert any(f.startswith("/valeur -> TypeError") for f in failed)
+
+
+def test_first_goal_flows_skip_matches_without_goal_minutes():
+    """A match whose goal minutes are missing must not count as a 0-0 (27/11 audit)."""
+    import pandas as pd
+
+    from footintel.analysis.periods import _flows
+
+    df = pd.DataFrame([
+        {"match_id": 1, "home_team_id": 10, "away_team_id": 20, "competition": "ENG-PL", "home_goals": 1,
+         "away_goals": 0, "team_id": 10, "minute": 30, "extra": 0, "detail": "Goal - A. Player"},
+        {"match_id": 2, "home_team_id": 10, "away_team_id": 30, "competition": "ENG-PL", "home_goals": 2,
+         "away_goals": 1, "team_id": None, "minute": None, "extra": 0, "detail": None},
+    ])
+    flows = _flows(df)
+    assert set(flows.match_id) == {1}
