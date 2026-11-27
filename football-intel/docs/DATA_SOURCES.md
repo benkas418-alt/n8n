@@ -136,6 +136,70 @@ et les résultats de la C1.
 | ClubElo | `Fixtures API deactivated` ; classement du jour HTTP 502 ; le 2026-10-28, coupure HTTPS et vérification anti-robot sur le site. | Non joignable depuis le conteneur. L'historique (copie MIT de `xgabora/Club-Football-Match-Data`, réel jusqu'au 2025-06-01) a servi au test D48. À retester depuis le VPS. |
 | openfootball football.json | C1 2024-25 seulement, finale sans score. | Couverture trouée ; le dépôt `champions-league` est utilisé à la place. |
 
+## Audit « informations absentes des cotes » (27/11/2026, D116)
+
+But : trouver une information qui améliore les prédictions au-delà des cotes, pas ajouter des données.
+Vérifié le 27/11/2026 sur les pages des fournisseurs ; les offres gratuites changent souvent.
+
+### Ce que nous avons déjà testé
+
+| Information | Source | Résultat |
+|---|---|---|
+| Tirs, tirs cadrés (5 derniers matchs) | football-data.co.uk (22 divisions depuis 2017-18, 5 grands championnats depuis 2005) | Déjà dans Hermès |
+| xG | Understat (fichiers republiés) | Aucun gain (D55) |
+| Rotation, cadres absents (en nombre) | Transfermarkt CC0 | Aucun gain contre la clôture ; +0,19 millième contre le prix du vendredi, non prouvé (D78) |
+| Compositions, événements, possession | OneFootball (D50) | Saison en cours seulement (300 matchs dans la copie locale) : aucune saison indépendante pour un test avant 2028 |
+
+### Sources candidates
+
+| Source | Coût | Contenu utile | Historique | Conditions | Verdict |
+|---|---|---|---|---|---|
+| Transfermarkt CC0 (`dcaribou/transfermarkt-datasets`) | Gratuit | Compositions (titulaires, remplaçants), valeur marchande datée des joueurs, événements | 2012-13 à juillet 2026 ; **mises à jour arrêtées** depuis juillet 2026 | CC0, domaine public | **Premier test** : poids des absents selon leur valeur. Pas utilisable en direct. |
+| API-Football, offre gratuite | Gratuit, inscription sans carte | Compositions, événements, statistiques, blessures et suspensions, notes des joueurs | Saisons 2022, 2023 et 2024 seulement ; la saison en cours est refusée | Clé personnelle | **Test historique** sur 3 saisons. En direct : 19 $ par mois. |
+| SportMonks, offre gratuite | Gratuit, inscription sans carte | Compositions officielles, événements, absents (blessés, suspendus) | Historique inclus | Clé personnelle | **Écosse (Premiership) et Danemark seulement**, utilisable en direct. Pour la priorité 3. |
+| football-data.org | 29 € par mois pour les compositions | Compositions, buteurs, cartons | 10 saisons (offre payante) | Clé personnelle | Écartée : payante. |
+| Fantasy Premier League (API publique) | Gratuit, sans clé | Blessures et doutes par joueur, avec l'heure de la nouvelle ; xG par joueur | Saison en cours seulement | Usage privé permis ; **créer une base de données demande l'accord écrit de la Premier League** | Écartée pour le stockage ; consultation manuelle seulement. |
+| StatsBomb open data | Gratuit | Événements complets, xG | Saisons choisies (Bundesliga 2015-16 et 2023-24, Liga de Barcelone) | Non commercial, citation | Écartée : pas de saisons complètes récentes. |
+| OddsPapi (D68) | Gratuit, 250 requêtes par mois ; historique gratuit | Cotes betPawa (Cameroun) et Pinnacle, avec l'heure | Historique | Clé personnelle | **Clé du test « betPawa tarde-t-il ? »** (voir plus bas). Clé pas encore créée. |
+| Understat, FBref, Sofascore, FotMob, ESPN | — | xG, compositions | — | Robots interdits ou accès bloqué (voir « Écartées ») | Toujours écartées. |
+
+### Combien d'information arrive avant le coup d'envoi
+
+`scripts/late_information_check.py` compare, pour chaque match de 2019-20 à 2025-26 (53 270 matchs,
+22 divisions), le prix du vendredi (ou du mardi) au prix de clôture. Le prix de clôture est meilleur de
+3,5 millièmes de log loss en moyenne : c'est l'information arrivée entre les deux (compositions,
+blessures, argent des parieurs informés). Cet écart est 4 à 9 fois plus grand que l'écart entre Hermès
+et le marché (0,4 à 0,9 millième, D113 à D115). Il est plus fort en Grèce (8,1), Belgique
+(7,4), Pays-Bas (6,1) et Turquie (5,7) que dans les 4 championnats cibles (Premier League 3,9,
+Serie A 2,3, Bundesliga 2,1, Liga 1,8). Détail dans RESULTS.md.
+
+Lecture : l'information de dernière minute existe et elle compte. Le marché de clôture l'a déjà.
+Un avantage n'est donc possible que contre un prix qui ne l'a pas encore, par exemple un prix
+betPawa qui bouge en retard.
+
+### Règle anti-fuite
+
+- Les compositions officielles sont publiées environ une heure avant le coup d'envoi. Un indicateur
+  construit avec elles se compare au prix de clôture (pris après). Contre le prix du vendredi, il
+  mesure la taille de l'information, pas un avantage jouable.
+- Les valeurs des joueurs : seulement la dernière estimation datée avant le match.
+- Les blessures d'API-Football n'ont pas d'heure de publication : elles peuvent avoir été complétées
+  après le match. On les teste à part et on ne les compare qu'au prix de clôture.
+- Une source future enregistre l'heure de chaque relevé (colonne `collected_at`).
+
+### Ordre recommandé
+
+1. **Valeur des absents** (Transfermarkt CC0, déjà autorisé, aucune inscription) : pour chaque équipe,
+   la valeur marchande des cadres absents du onze. Test saison par saison 2013-2026 contre Hermès, le
+   prix du vendredi et la clôture. Règle D9 fixée avant.
+2. **betPawa tarde-t-il ?** (OddsPapi, clé gratuite à créer par le propriétaire) : prix betPawa avant
+   et après les compositions, contre la clôture de Pinnacle. C'est la seule question qui touche
+   directement l'argent du propriétaire.
+3. **Blessures et événements 2022-2024** (API-Football gratuit, clé à créer) : seulement si l'étape 1
+   montre un signal.
+4. **Compétitions moins couvertes** : Hermès contre le marché hors des championnats cibles (données
+   déjà en base), puis SportMonks pour l'Écosse et le Danemark.
+
 ## Mode dégradé
 
 Sans clé API, le système fonctionne sur football-data.co.uk et openfootball, plus les données
