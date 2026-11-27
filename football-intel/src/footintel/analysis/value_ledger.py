@@ -65,8 +65,11 @@ def ev(price: float, prob: float | None) -> float | None:
 def placement_reference(snapshots: list[tuple[datetime, float]], captured: datetime) -> tuple[datetime, float] | None:
     """The last (time, fair probability) known at the capture. Later snapshots are never used:
     a price seen after the bet was not known when it was placed."""
-    before = [s for s in snapshots if s[0] <= captured]
-    return max(before, key=lambda s: s[0]) if before else None
+    def utc(t: datetime) -> datetime:  # a naive time here is UTC (database and snapshot labels)
+        return t.replace(tzinfo=UTC) if t.tzinfo is None else t
+
+    before = [s for s in snapshots if utc(s[0]) <= utc(captured)]
+    return max(before, key=lambda s: utc(s[0])) if before else None
 
 
 def cluster_ci(values: list[float], groups: list, samples: int = 2000, seed: int = 0) -> tuple[float, float]:

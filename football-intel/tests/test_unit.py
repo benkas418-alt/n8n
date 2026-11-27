@@ -1569,3 +1569,36 @@ def test_goal_blend_picks_bookmakers_then_lightgbm_then_hermes():
     assert blend_goals(r, None, .60, lgbm) == "hermes" and r == hermes  # no 1X2 odds: Hermès
     r = dict(hermes)
     assert blend_goals(r, odds, None, None) == "hermes" and r == hermes
+
+
+def test_placement_reference_mixes_naive_and_aware_times():
+    """27/11: Odds API labels without "Z" are naive; a capture time is aware. Both are UTC."""
+    from datetime import UTC, datetime
+
+    from footintel.analysis.value_ledger import placement_reference
+
+    snaps = [(datetime(2026, 11, 24, 8, 0), "early"),  # noqa: DTZ001 - naive on purpose
+             (datetime(2026, 11, 24, 12, 0, tzinfo=UTC), "late")]
+    assert placement_reference(snaps, datetime(2026, 11, 24, 10, 0, tzinfo=UTC))[1] == "early"
+    assert placement_reference(snaps, datetime(2026, 11, 24, 13, 0))[1] == "late"  # noqa: DTZ001
+
+
+def test_export_skips_a_broken_page_and_keeps_the_others():
+    from footintel.export import supabase as sx
+
+    class Client:
+        def get(self, url):
+            if url.endswith("/valeur"):
+                raise TypeError("boom")
+
+            class R:
+                status_code = 200
+
+                @staticmethod
+                def json():
+                    return {"matches": []} if url.endswith("/home") else []
+            return R()
+
+    data, failed = sx.collect(Client())
+    assert "/home" in data and "/valeur" not in data
+    assert any(f.startswith("/valeur -> TypeError") for f in failed)
