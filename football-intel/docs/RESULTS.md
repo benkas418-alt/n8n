@@ -1,5 +1,50 @@
 # Résultats du backtest réel
 
+## Évaluation complète sur échantillons identiques (2026-11-27, D104)
+
+Saisons 2021-2025, chaque saison prédite par un modèle entraîné sur les saisons d'avant.
+Segments de `evaluation/backtest.summarize` : `with_odds` = les mêmes matchs pour le modèle et
+le marché ; `without_odds` = les matchs sans cotes, où le marché ne peut pas être comparé.
+
+| Modèle | Matchs | Bon résultat | Log loss | Brier | ECE |
+|---|---|---|---|---|---|
+| marché (`market_implied`), avec cotes | 8 907 | 53,8 % | 0,9707 | 0,5774 | 0,0135 |
+| `routed_competition`, avec cotes | 8 907 | 53,6 % | 0,9711 | 0,5774 | 0,0119 |
+| `routed_competition`, sans cotes | 1 939 | 54,7 % | 0,9575 | 0,5675 | 0,0182 |
+
+Écart apparié modèle − marché sur les 8 907 matchs : +0,0004 (IC −0,0013 ; +0,0021) : égalité.
+Les 0,9687 sur 10 846 matchs des tables D98 et D99 mélangent les deux segments.
+
+Matrice de confusion sur les 8 907 matchs (lignes = résultat réel, colonnes = favori prévu) :
+
+| | modèle : dom. | nul | ext. | marché : dom. | nul | ext. |
+|---|---|---|---|---|---|---|
+| victoire dom. (3 877) | 3 161 | 32 | 684 | 3 176 | 5 | 696 |
+| nul (2 261) | 1 422 | 23 | 816 | 1 445 | 3 | 813 |
+| victoire ext. (2 769) | 1 148 | 26 | 1 595 | 1 160 | 0 | 1 609 |
+
+Le nul n'est presque jamais le favori, pour le modèle comme pour le marché : c'est normal pour
+un choix « le plus probable », pas une erreur de probabilité (le nul est bien prévu en
+moyenne, 24,6 % contre 25,4 % ; voir l'audit plus bas). Calibration par tranche, compétition
+et forme : section « Audit du modèle actif contre le marché ».
+
+## Valeur des cotes betPawa RD Congo, par marché (2026-11-27, D103-D104)
+
+Registre : `scripts/betpawa_value.py` et page « Valeur de mes paris ». État au 27/11, base
+locale (les cotes de clôture des coupes d'Europe et leurs résultats n'y sont pas encore ;
+le cycle du matin les a) :
+
+- Victoire simple : 47 sélections, 17 matchs, écart à la clôture −3,8 % (échantillon trop faible).
+- 1UP : 55 sélections, 41 matchs, écart à la clôture −5,2 % sur 19 matchs (trop faible) ;
+  valeur au moment du pari −2,8 % (IC −5,1 % ; −0,2 %) sur 23 matchs (indicatif).
+- 2UP : 36 sélections, 25 matchs, écart à la clôture +1,9 % sur 11 matchs (trop faible) :
+  hypothèse à vérifier, pas un avantage.
+- Coupons : 6, mises 14 000 FC, retours 93 663,23 FC, ROI +569 % (IC −4 % ; +1 401 %).
+
+Règle de décision : un marché n'est déclaré favorable qu'avec l'intervalle de l'écart à la
+clôture au-dessus de 0 sur au moins 20 matchs de plusieurs compétitions, et un rendement réel
+des coupons cohérent. Aucun marché ne la remplit.
+
 ## Audit du modèle actif contre le marché (2026-11-27)
 
 Test saison par saison 2021-2025, cinq grands championnats, 8 907 matchs avec cotes ; chaque
