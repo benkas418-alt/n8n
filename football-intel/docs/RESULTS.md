@@ -805,3 +805,24 @@ Par saison, Hermès puissance contre Hermès : 2021 −0,00025, 2022 −0,00041,
 | **Toutes** | **53 270** | **3,48** | | | |
 
 Lecture : entre le vendredi et le coup d'envoi, le prix gagne en moyenne 3,5 millièmes, soit 4 à 9 fois l'écart entre Hermès et le marché (D113 à D115). L'information de dernière minute pèse plus dans les championnats moins suivis. La clôture l'a déjà : un avantage n'est possible que contre un prix qui ne l'a pas encore.
+
+## Valeur des absents contre le marché (27/11/2026, D117)
+
+`scripts/absence_value_experiment.py` : compositions et valeurs marchandes Transfermarkt (CC0, arrêté en juillet 2026), valeur de chaque joueur à la dernière estimation datée avant le match. 25 241 matchs reliés (même score dans 99,99 % des cas), 22 534 avec les valeurs des deux équipes. Prix des bookmakers, marge retirée par la méthode puissance.
+
+Points pris au-dessus de ce que prévoit le marché, par équipe et par match, selon la valeur du onze du jour comparée au onze habituel :
+
+| Onze du jour | Équipes | Contre le prix du vendredi | Équipes | Contre la clôture |
+|---|---|---|---|---|
+| 40 % de valeur en moins ou pire | 971 | −0,099 | 594 | −0,050 |
+| 22 à 40 % en moins | 5 076 | −0,020 | 2 918 | +0,003 |
+| 10 à 22 % en moins | 10 669 | −0,031 | 5 913 | −0,021 |
+| Habituel (à 10 % près) | 22 831 | +0,017 | 12 263 | +0,006 |
+| Plus fort que d'habitude | 5 519 | +0,009 | 3 054 | −0,004 |
+
+Test saison par saison (chaque saison jugée avec un ajustement appris sur les saisons d'avant) :
+
+- Contre le prix du vendredi (22 533 matchs, 2015-2025 jugées) : +0,441 millième par match (IC +0,010 ; +0,827), 7 saisons sur 11 meilleures que le marché.
+- Contre la clôture (12 371 matchs, 2020-2025 jugées) : −0,463 millième (IC −0,890 ; +0,008), 1 saison sur 6.
+
+Lecture : la force réelle du onze est une information vraie, mais elle arrive avec les compositions, et la clôture l'intègre déjà. Elle explique environ un huitième du mouvement des prix entre le vendredi et la clôture dans ces championnats (D116).
