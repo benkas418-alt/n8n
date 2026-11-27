@@ -549,6 +549,15 @@ def lecture() -> dict:
     return latest(get_settings().artifacts_dir, local_today()) or {"date": None, "groups": []}
 
 
+@router.get("/valeur")
+def valeur() -> dict:
+    """D104: the owner's coupons (real money), the quality of the prices he took and of the prices
+    he recorded, history and data alerts. Built from the files in reference/, never invented."""
+    from footintel.analysis.betpawa_value import build_report
+
+    return build_report(get_engine())
+
+
 @router.get("/bilan")
 def bilan() -> dict:
     """Bilan (D76): the archived tickets of the last 7 days settled, and the model's and the

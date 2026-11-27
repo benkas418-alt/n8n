@@ -1492,8 +1492,80 @@ async function bilan() {
       ${list}</section>`;
 }
 
+/* ---------------- Valeur de mes paris (D104) ----------------
+   The owner's real coupons (money, counted per coupon), the quality of the prices he took and
+   of the prices he recorded, and the data alerts. Every figure comes from /valeur; a measure the
+   data cannot give is written "indisponible", and a small sample says so in words. */
+const fc = (x, sign = false) => `${sign && x > 0 ? "+" : ""}${Math.round(x).toLocaleString("fr-FR")} FC`;
+const sgn = (x) => (x == null ? "indisponible" : `${x > 0 ? "+" : ""}${(100 * x).toFixed(1).replace(".", ",")} %`);
+function valueStat(st, label) {
+  if (!st || st.mean == null) return `<span class="muted small">${label} : indisponible</span>`;
+  const ci = st.ci ? ` (entre ${sgn(st.ci[0])} et ${sgn(st.ci[1])})` : "";
+  const warn = st.warning ? `<br><span class="muted small">${esc(st.warning)}</span>` : "";
+  return `<span class="small">${label} : <b>${sgn(st.mean)}</b>${ci} sur ${st.n} cote${st.n > 1 ? "s" : ""}</span>${warn}`;
+}
+function valueRows(stats, played) {
+  const names = { "1X2": "Victoire simple", "1UP": "1UP", "2UP": "2UP", "DC": "Double chance", "DC1UP": "DC 1UP", "DC2UP": "DC 2UP",
+    "BTTS": "Les deux marquent", "OU1.5": "Plus/moins de 1,5", "OU2.5": "Plus/moins de 2,5", "OU3.5": "Plus/moins de 3,5", "FG": "Premier but" };
+  const keys = Object.keys(stats || {});
+  if (!keys.length) return `<p class="muted">Aucune donnée.</p>`;
+  return `<ul class="legs-plain results">${keys.sort((a, b) => stats[b].selections - stats[a].selections).map((k) => {
+    const s = stats[k];
+    const res = played && (s.won || s.lost) ? ` · ${s.won} gagnée${s.won > 1 ? "s" : ""}, ${s.lost} perdue${s.lost > 1 ? "s" : ""}` : "";
+    return `<li><span class="t">${s.selections}</span><span><b>${esc(names[k] || k)}</b>
+      <span class="muted small">${s.matches} match${s.matches > 1 ? "s" : ""}, ${s.competitions} compétition${s.competitions > 1 ? "s" : ""}${s.coupons ? `, ${s.coupons} coupon${s.coupons > 1 ? "s" : ""}` : ""}${res}</span>
+      <br>${valueStat(s.clv, "Écart à la cote de clôture")}<br>${valueStat(s.ev_place, "Valeur au moment du pari")}</span><span></span></li>`;
+  }).join("")}</ul>`;
+}
+async function valeur() {
+  const d = await get("/valeur");
+  const m = d.money;
+  const money = m.stakes
+    ? `<div class="grid kpis">
+        <div class="card"><div class="kpi-label">Misé</div><div class="kpi-value">${fc(m.stakes)}</div><div class="kpi-note">${m.coupons} coupon${m.coupons > 1 ? "s" : ""} : ${m.won} gagné${m.won > 1 ? "s" : ""}, ${m.lost} perdu${m.lost > 1 ? "s" : ""}${m.refunded ? `, ${m.refunded} remboursé${m.refunded > 1 ? "s" : ""}` : ""}${m.open ? `, ${m.open} en cours` : ""}</div></div>
+        <div class="card"><div class="kpi-label">Encaissé</div><div class="kpi-value">${fc(m.returned)}</div><div class="kpi-note">Bonus gagnant compris</div></div>
+        <div class="card"><div class="kpi-label">Gain net</div><div class="kpi-value">${fc(m.net, true)}</div><div class="kpi-note">ROI ${sgn(m.roi)}${m.roi_ci ? `, entre ${sgn(m.roi_ci[0])} et ${sgn(m.roi_ci[1])}` : ""}</div></div>
+      </div>
+      ${m.coupons < 30 ? `<div class="finding warn"><p><b>${m.coupons} coupon${m.coupons > 1 ? "s" : ""} seulement :</b> ce résultat dépend surtout de la chance. Il ne dira si ta méthode gagne qu'à partir d'environ 30 coupons.</p></div>` : ""}`
+    : `<div class="empty"><p class="muted">Aucun coupon réglé enregistré.</p></div>`;
+  const hist = (d.history || []).length
+    ? `<div class="card"><h3>Gain cumulé, coupon par coupon</h3><div class="chart-box" data-noswipe><canvas id="valeur-cum"></canvas></div>
+        <ul class="legs-plain results">${d.history.map((h) => `<li><span class="t">${esc(h.date.slice(8, 10))}/${esc(h.date.slice(5, 7))}</span>
+          <span>Coupon ${esc(h.coupon)} · mise ${fc(h.stake)}<br><span class="muted small">cumul ${fc(h.cumulative, true)}</span></span>
+          <span class="state ${h.net > 0 ? "won" : h.net < 0 ? "lost" : "open"}">${fc(h.net, true)}</span></li>`).join("")}</ul></div>`
+    : "";
+  const alerts = (d.alerts || []).length
+    ? `<div class="card"><h3>Données manquantes</h3><ul class="legs-plain">${d.alerts.map((a) => `<li><span class="t">!</span><span class="small">${esc(a)}</span><span></span></li>`).join("")}</ul></div>`
+    : `<p class="muted small">Aucune donnée manquante.</p>`;
+  const html = `<div class="page-head"><div><h1>Valeur de mes paris</h1>
+      <p>Ce que tes coupons ont rapporté, et si betPawa paie au-dessus de la cote juste.</p></div></div>
+    <section class="today-block"><h2>Tes coupons (argent réel)</h2>${money}${hist}</section>
+    <section class="today-block"><h2>Les cotes que tu as prises</h2>
+      <p class="lead">Chaque sélection de tes coupons. L'argent est compté plus haut, coupon par coupon.</p>
+      <div class="card">${valueRows(d.played, true)}</div></section>
+    <section class="today-block"><h2>Toutes les cotes relevées</h2>
+      <p class="lead">${d.counts.prices} cotes, ${d.counts.selections} sélections différentes (la dernière cote de chacune).</p>
+      <div class="card">${valueRows(d.observed, false)}</div>
+      <details class="res-group"><summary><b>Par compétition</b></summary><div class="card">${valueRows(d.competitions, true)}</div></details>
+      <details class="res-group"><summary><b>Par niveau de cote</b></summary><div class="card">${valueRows(d.bands, false)}</div></details></section>
+    <section class="today-block"><h2>Comment lire</h2><div class="card">
+      <p><b>Écart à la cote de clôture :</b> betPawa payait-il plus que le marché juste avant le match ? Au-dessus de 0, oui.</p>
+      <p><b>Valeur au moment du pari :</b> le même calcul avec seulement les prix connus quand tu as joué.</p>
+      <p><b>ROI :</b> gain net divisé par les mises. Une bonne cote ne garantit pas un gain, et un gain ne prouve pas une bonne cote.</p>
+      <p class="muted small">${esc(d.reference)}</p></div></section>
+    <section class="today-block"><h2>Alertes</h2>${alerts}</section>`;
+  if ((d.history || []).length > 1) {
+    setTimeout(() => {
+      if (!document.getElementById("valeur-cum")) return;
+      chart("valeur-cum", { type: "line", data: { labels: d.history.map((h) => `${h.date.slice(8, 10)}/${h.date.slice(5, 7)}`), datasets: [{ data: d.history.map((h) => Math.round(h.cumulative)), borderColor: C.accent, tension: 0.2, pointRadius: 3 }] },
+        options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: (v) => `${v.toLocaleString("fr-FR")} FC` } } } } });
+    }, 0);
+  }
+  return html;
+}
+
 /* ---------------- Router ---------------- */
-const PAGES = { "": today, hier: hierPage, matchs: home, tickets: ticketsPage, bilan, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
+const PAGES = { "": today, hier: hierPage, matchs: home, tickets: ticketsPage, bilan, valeur, tendances: overview, competitions, teams, match: matchPage, performance, picks, admin,
   ...(window.fiPages || {}) };
 // D91: each navigation gets a number; a slow page that finishes after the user moved on is
 // dropped, so it cannot paint over the tab now on screen (quick taps or swipes).
@@ -1506,7 +1578,7 @@ async function route() {
   const navPage = page === "match" ? "matchs" : page === "tickets" ? "" : page;
   document.querySelectorAll("nav a[data-page]").forEach((a) => a.classList.toggle("active", a.dataset.page === navPage));
   const CRUMB = { "": "Aujourd'hui", hier: "Hier", matchs: "Matchs", tickets: "Tous les choix", bilan: "Bilan", match: "Matchs", picks: "Mes pronostics", competitions: "Compétitions", teams: "Équipes",
-    performance: "Fiabilité du modèle", tendances: "Tendances", admin: "Administration", ...(window.fiCrumbs || {}) };
+    performance: "Fiabilité du modèle", valeur: "Valeur de mes paris", tendances: "Tendances", admin: "Administration", ...(window.fiCrumbs || {}) };
   document.getElementById("crumb").textContent = CRUMB[page] || "Football Intel";
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("menu-btn").setAttribute("aria-expanded", "false");
