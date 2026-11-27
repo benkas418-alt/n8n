@@ -9,7 +9,7 @@ import numpy as np
 
 def norm(s):
     s = unicodedata.normalize("NFD", s.lower()); s = "".join(c for c in s if unicodedata.category(c) != "Mn")
-    s = s.replace("pit-ap", "pitup").replace("pitapp", "pitup").replace("pit up", "pitup").replace("pitap", "pitup")
+    s = s.replace("pit-ap", "pitup").replace("pitapp", "pitup").replace("pit up", "pitup").replace("pitap", "pitup").replace("moccasin", "mocassin")
     return re.findall(r"[a-z0-9]+", s)
 
 def wer(a, b):

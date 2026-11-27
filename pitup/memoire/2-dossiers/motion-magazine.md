@@ -44,7 +44,7 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
   - un dessin image par image piloté par un « clock » GSAP s'exécute avant les autres tweens du même instant : il affichait l'état de l'image précédente. Calculer angle, profondeur et opacité directement à partir du temps.
 - Retour sur la v2 : « C'est trop peu » (voir `1-essentiel/apprentissages.md`, 27 nov.).
 
-## Motion « duo » (27 nov., en cours)
+## Motion « duo » v1 (27 nov.)
 
 - Ce que ses références apportent :
   - r9 (DataSave, en français) : accroche par une question sur un vrai problème (« Et si tes forfaits Internet ne se perdaient plus… »), puis « Eh bien, ton rêve vient d'être réalisé… Découvre DataSave ».
@@ -71,3 +71,10 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
   - garçon : recette v3 du présentateur (`vox_jobs.py`, amorce F + `ref2.wav`).
 - Musique : Dave & Tems « Raindance » (nouvelle).
 - Mémoire : VoxCPM (environ 8 Go) et Whisper medium (3 Go) en même temps font tuer le processus. Les lancer l'un après l'autre.
+- Livré : `PitUp-Motion-duo-v1.mp4`, 20,8 s, charte 0 erreur, −13,9 LUFS. Musique : instrumental de « Raindance » (voix retirées par demucs) à partir de 36,873 s (temps du morceau), −17 dB sous les voix, remontée sur la fin.
+- Prises retenues : sœur fs0_2, fs1_6, fs2_2, fs3_2 (204 à 227 Hz) ; garçon g_0_2, g_1_2, g_2_1, g_3_2. Contrôle : Whisper sur le mélange final entend tout le dialogue.
+- Bruitages tirés de ses références : pas encore ajoutés (seul le déclic 1432 sur une coupe sur deux). À faire si la v1 lui plaît.
+- Pièges :
+  - `pitup/tools/av.py` masque la bibliothèque `av` de faster-whisper : lancer les scripts de `pitup/tools/` avec `python -I` ;
+  - les chemins de `place.json` sont relatifs au scratchpad : `build_duo.py` les complète et refuse une voix vide (une v1 sans voix a failli partir) ;
+  - le volume se mesure avec ebur128 (même mesure que la charte), cible −13,6 LUFS avant rendu.

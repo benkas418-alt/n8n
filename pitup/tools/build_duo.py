@@ -56,7 +56,9 @@ def load(f, ch=1):
     return np.frombuffer(subprocess.run(["ffmpeg", "-v", "error", "-i", f, "-ac", str(ch), "-ar", str(sr), "-f", "f32le", "-"], capture_output=True).stdout, np.float32)
 vo = np.zeros(n, np.float32)
 for L in LINES:
-    v = load(L["file"]); v = v / (np.sqrt(np.mean(v[np.abs(v) > 0.02] ** 2)) + 1e-9) * 0.12   # same level for every line
+    f = L["file"] if os.path.isabs(L["file"]) else f"{SP}/{L['file']}"
+    v = load(f); assert len(v) > sr * 0.3 and np.abs(v).max() > 0.05, f"voice missing or silent: {f}"
+    v = v / (np.sqrt(np.mean(v[np.abs(v) > 0.02] ** 2)) + 1e-9) * 0.12   # same level for every line
     i = int(L["t0"] * sr); vo[i:i + len(v)] += v[:n - i]
 BED = os.environ.get("BED", f"{SP}/audio/raindance_inst.wav"); OFF = float(os.environ.get("OFF", "0"))
 mus = load(BED, 2).reshape(-1, 2)
@@ -69,10 +71,19 @@ fx = np.zeros(n, np.float32); SH = load(f"{SP}/sfx/mk/1432.mp3")
 for x in [SC[1], SC[5], SC[7]]: i = int((x - 0.30) * sr); s = SH[:n - i]; fx[i:i + len(s)] += 0.32 * s
 mix = mus + (vo + fx)[:, None]
 sf.write(f"{SP}/audio/duo_raw.wav", mix, sr, subtype="FLOAT")
-meas = subprocess.run(["ffmpeg", "-i", f"{SP}/audio/duo_raw.wav", "-af", "loudnorm=I=-14:TP=-1.5:print_format=json", "-f", "null", "-"], capture_output=True, text=True).stderr
-Iin = float(json.loads(meas[meas.rindex("{"):])["input_i"])
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SP}/audio/duo_raw.wav", "-af", f"volume={-14 - Iin:.2f}dB,aresample=192000,alimiter=limit=0.8:level=0,aresample=48000",
-                "-c:a", "pcm_s16le", f"{A}/mix.wav"], check=True)
+import re
+def lufs(f):                                       # same meter as charte_lint.py (ebur128 integrated loudness)
+    o = subprocess.run(["ffmpeg", "-hide_banner", "-i", f, "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
+    return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", o)[-1])
+TGT = -13.6                                        # the render's AAC encode lands about 0.5 dB lower
+g = TGT - lufs(f"{SP}/audio/duo_raw.wav")
+for _ in range(4):                                 # the limiter eats the voice peaks: adjust the gain until -14 LUFS
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SP}/audio/duo_raw.wav", "-af", f"volume={g:.2f}dB,aresample=192000,alimiter=limit=0.8:level=0,aresample=48000",
+                    "-c:a", "pcm_s16le", f"{A}/mix.wav"], check=True)
+    out = lufs(f"{A}/mix.wav")
+    if abs(out - TGT) < 0.3: break
+    g += TGT - out
+print("mix", round(out, 2), "LUFS")
 
 # ---- words: one span per voice word, appearing when it is said
 KEY = {"ville": 1, "fini.": 1, "Lubumbashi,": 1, "téléphone.": 1, "commandes…": 1, "livre.": 1, "livraison.": 1}
@@ -172,7 +183,7 @@ tl.fromTo("#mk1",{{x:0,y:0}},E({{x:-120,y:-160,duration:D,ease:"none"}}),0);
 tl.fromTo("#mk2",{{x:0,y:0}},E({{x:140,y:-120,duration:D,ease:"none"}}),0);
 // scene 0: "Tu fais encore le tour de toute la ville…" city photos dealt one by one
 {";".join(f'tl.fromTo("#ph{j}",{{opacity:0,y:60,scale:.92}},E({{opacity:1,y:0,scale:1,duration:.3,ease:"power3.out"}}),{t:.3f})'
-          for j, t in enumerate([wt(0, 3), find(0, "toute"), find(0, "ville"), find(0, "trouver")]))};
+          for j, t in enumerate([0.0, find(0, "tour"), find(0, "ville"), find(0, "trouver")]))};
 tl.set(".ph",{{opacity:0}},SC[1]);
 // scene 1: hard cut to PitUp blue, "Ça, c'est fini. Tout est sur PitUp."
 const blueOn=(a,b)=>{{ tl.set("#blue",{{opacity:1}},a); tl.set("#mk2",{{opacity:.55}},a); tl.set("#ww",{{opacity:1}},a); tl.set("#wl",{{opacity:0}},a);
