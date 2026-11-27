@@ -841,3 +841,17 @@ Lecture : la force réelle du onze est une information vraie, mais elle arrive a
 | Part du mouvement de Pinnacle faite par betPawa au coup d'envoi | 89 % (médiane) |
 
 Règle fixée avant (30 matchs ou plus, moyenne au-dessus de 0, intervalle au-dessus de 0) : pas de fenêtre. betPawa suit Pinnacle en quelques minutes. Les +6,1 % mesurent ce que vaut une nouvelle connue avant le marché ; on ne sait quelle issue jouer qu'après le mouvement.
+
+## Hermès hors des championnats cibles (27/11/2026, D120)
+
+`scripts/other_leagues_check.py` : saison par saison 2021-2025, jugé sur 17 championnats hors cibles, 29 826 matchs avec Hermès, le prix du vendredi et la clôture (méthode puissance). Écart de log loss 1X2, négatif = Hermès meilleur.
+
+| Comparaison | Écart | IC à 95 % |
+|---|---|---|
+| Hermès contre le vendredi | −0,00056 | −0,00143 ; +0,00032 |
+| Hermès contre la clôture | +0,00423 | +0,00319 ; +0,00531 |
+| Vendredi contre la clôture | +0,00479 | +0,00381 ; +0,00579 |
+
+Pistes par championnat contre le vendredi (intervalle à 99 % sous 0, les deux moitiés) : Portugal −0,00681 [−0,01163 ; −0,00171], Turquie −0,00665 [−0,01091 ; −0,00162]. Contre la clôture, aucun championnat n'a un écart sous 0 avec son intervalle.
+
+Vérification sur 2016-2020 (`scripts/leads_por_tur_check.py`) : Portugal −0,00275 [−0,00670 ; +0,00124], 365 paris d'Hermès, valeur contre la clôture de Pinnacle −8,59 % [−9,86 ; −7,39] ; Turquie +0,00024 [−0,00359 ; +0,00399], 278 paris, −4,89 % [−5,89 ; −3,84]. Non confirmées. 2026-27 (81 matchs chacun, pour information) : Portugal +0,018, Turquie −0,020.
