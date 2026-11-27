@@ -1577,9 +1577,10 @@ def test_placement_reference_mixes_naive_and_aware_times():
 
     from footintel.analysis.value_ledger import placement_reference
 
-    snaps = [(datetime(2026, 11, 24, 8, 0), "early"), (datetime(2026, 11, 24, 12, 0, tzinfo=UTC), "late")]
+    snaps = [(datetime(2026, 11, 24, 8, 0), "early"),  # noqa: DTZ001 - naive on purpose
+             (datetime(2026, 11, 24, 12, 0, tzinfo=UTC), "late")]
     assert placement_reference(snaps, datetime(2026, 11, 24, 10, 0, tzinfo=UTC))[1] == "early"
-    assert placement_reference(snaps, datetime(2026, 11, 24, 13, 0))[1] == "late"
+    assert placement_reference(snaps, datetime(2026, 11, 24, 13, 0))[1] == "late"  # noqa: DTZ001
 
 
 def test_export_skips_a_broken_page_and_keeps_the_others():
