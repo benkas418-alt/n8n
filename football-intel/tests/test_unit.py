@@ -1618,3 +1618,12 @@ def test_first_goal_flows_skip_matches_without_goal_minutes():
     ])
     flows = _flows(df)
     assert set(flows.match_id) == {1}
+    assert flows.attrs["coverage"] == {"complete": 1, "incomplete": 0, "absent": 1}
+
+
+def test_minute_coverage_separates_complete_incomplete_and_absent():
+    from footintel.analysis.periods import minute_coverage
+
+    totals = {1: 2, 2: 3, 3: 1, 4: 0}
+    found = {1: 2, 2: 1, 4: 0}  # match 3 has no minute at all; a 0-0 without minutes is complete
+    assert minute_coverage(found, totals) == {"complete": 2, "incomplete": 1, "absent": 1}

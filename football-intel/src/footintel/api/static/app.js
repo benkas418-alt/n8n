@@ -712,6 +712,12 @@ function modelsCard(m, M, pr) {
     <p class="meta">En gras : le résultat le plus probable pour chacun. Seul ${esc(M.active?.label || "Hermès 1.1")} sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
 }
 
+/* D111: matches left out because their goal minutes are missing (never read as a 0-0). */
+const skipped = (c) => {
+  const n = c ? (c.incomplete || 0) + (c.absent || 0) : 0;
+  return n ? ` ${n} match${n > 1 ? "s" : ""} écarté${n > 1 ? "s" : ""} : minutes des buts manquantes ou incomplètes.` : "";
+};
+
 /* When a team scores and concedes, and what follows the first goal. */
 function tabMoments(m, x, H, A) {
   const fmt = (v, d = 2) => (v == null ? "—" : Number(v).toFixed(d));
@@ -731,14 +737,14 @@ function tabMoments(m, x, H, A) {
       ${w ? `<table class="tight"><thead><tr><th>Minutes</th><th class="num">Marqués</th><th class="num">Encaissés</th></tr></thead><tbody>
         ${w.rows.map((r) => `<tr><td>${esc(r.window)}</td><td class="num"><span class="bar" style="width:${Math.round(60 * r.for / max)}px"></span> ${r.for}</td><td class="num">${r.against}</td></tr>`).join("")}
         <tr><td><b>30-60</b></td><td class="num"><b>${w.w30_60.for}</b></td><td class="num"><b>${w.w30_60.against}</b></td></tr></tbody></table>
-        <p class="meta">${w.matches} matchs lus (minutes des buts OneFootball, quatre grands championnats).</p>`
+        <p class="meta">${w.matches} matchs lus (minutes des buts OneFootball, quatre grands championnats).${skipped(w.coverage)}</p>`
         : `<p class="muted small">Minutes des buts inconnues : elles ne couvrent que les quatre grands championnats.</p>`}
       <h3>Après le premier but (victoire / nul / défaite)</h3>
       ${F ? `<table class="tight"><thead><tr><th></th><th class="num">${esc(T.name)}</th><th class="num">Moyenne du championnat</th></tr></thead><tbody>
         <tr><td>Ouvre le score</td><td class="num">${after(F.team.scored_first)}</td><td class="num">${after(F.league.scored_first)}</td></tr>
         <tr><td>Encaisse le premier but</td><td class="num">${after(F.team.conceded_first)}</td><td class="num">${after(F.league.conceded_first)}</td></tr>
         <tr><td>Mène de 2 buts à un moment</td><td class="num">${after(F.team.led_by_two)}</td><td class="num">${after(F.league.led_by_two)}</td></tr></tbody></table>
-        <p class="meta">${F.matches} matchs de l'équipe, ${F.league_matches} matchs du championnat cette saison. La défense alignée quand l'équipe encaisse le premier but est dans l'onglet Joueurs.</p>`
+        <p class="meta">${F.matches} matchs de l'équipe, ${F.league_matches} matchs du championnat cette saison.${skipped(F.league_coverage)} La défense alignée quand l'équipe encaisse le premier but est dans l'onglet Joueurs.</p>`
         : `<p class="muted small">Ordre des buts inconnu pour cette équipe.</p>`}</div>`;
   };
   return `<div class="card read" style="margin-top:var(--space-4)"><p class="question">${esc((H.periods || {}).note || "")}</p></div>

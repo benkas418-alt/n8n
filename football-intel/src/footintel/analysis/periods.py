@@ -46,6 +46,17 @@ WHERE e.type = 'goal' AND e.match_id = ANY(:ids)
 """)
 
 
+def minute_coverage(found: dict, totals: dict) -> dict:
+    """Goal minutes of each match against its final score: complete (every goal has its minute),
+    incomplete (some minutes missing) or absent (no minute at all for a match with goals).
+    A 0-0 with no minute is complete."""
+    out = {"complete": 0, "incomplete": 0, "absent": 0}
+    for m, total in totals.items():
+        n = found.get(m, 0)
+        out["complete" if n == total else "absent" if n == 0 else "incomplete"] += 1
+    return out
+
+
 def _halves(rows: pd.DataFrame) -> dict | None:
     if rows.empty:
         return None
@@ -66,8 +77,10 @@ def team_periods(engine: Engine, team_id: int, season: int, before) -> dict:
         goals = _goal_events(pd.read_sql(_GOALS_SQL, conn, params={"ids": ids})) if ids else pd.DataFrame()
     # Only matches whose goal minutes add up to the final score: a match the source did not
     # describe is never read as a 0-0.
+    coverage = {"complete": 0, "incomplete": 0, "absent": 0}
     if ids:
         n = goals.groupby("match_id").size() if len(goals) else pd.Series(dtype=int)
+        coverage = minute_coverage({m: int(n.get(m, 0)) for m in ids}, totals)
         ids = [m for m in ids if int(n.get(m, 0)) == totals[m]]
         goals = goals[goals.match_id.isin(ids)] if len(goals) else goals
     out: dict = {"halves_all": _halves(halves), "halves_season": _halves(halves[halves.season == season]),
@@ -80,7 +93,7 @@ def team_periods(engine: Engine, team_id: int, season: int, before) -> dict:
                             "for": int((inside.credited == team_id).sum()) if len(inside) else 0,
                             "against": int((inside.credited != team_id).sum()) if len(inside) else 0})
         mid = goals[(goals.t >= 30) & (goals.t < 61)] if len(goals) else goals
-        out["windows"] = {"matches": len(ids), "rows": windows,
+        out["windows"] = {"matches": len(ids), "coverage": coverage, "rows": windows,
                           "w30_60": {"for": int((mid.credited == team_id).sum()) if len(mid) else 0,
                                      "against": int((mid.credited != team_id).sum()) if len(mid) else 0}}
     return out
@@ -100,12 +113,15 @@ WHERE se.start_year = :season AND m.kickoff_date < :before AND c.code = ANY(:com
 
 
 def _flows(df: pd.DataFrame) -> pd.DataFrame:
-    """One row per (match, team): who scored first, biggest lead, final result."""
+    """One row per (match, team): who scored first, biggest lead, final result.
+    `attrs["coverage"]` counts complete, incomplete and absent goal minutes."""
     rows = []
+    found, totals = {}, {}
     goals = _goal_events(df.dropna(subset=["team_id"]).copy()) if df.team_id.notna().any() else df.iloc[0:0]
     for mid, m in df.drop_duplicates("match_id").set_index("match_id").iterrows():
         g = goals[goals.match_id == mid].sort_values("t") if len(goals) else goals
         seq = [1 if c == m.home_team_id else -1 for c in g.credited] if len(g) else []
+        found[mid], totals[mid] = len(seq), int(m.home_goals + m.away_goals)
         if len(seq) != m.home_goals + m.away_goals:
             continue  # goal minutes missing or incomplete: never read them as a 0-0
         run, lead_h, lead_a = 0, 0, 0
@@ -118,7 +134,9 @@ def _flows(df: pd.DataFrame) -> pd.DataFrame:
             rows.append({"match_id": mid, "team": team, "competition": m.competition,
                          "first": "none" if first == 0 else ("for" if first == sign else "against"),
                          "lead2": lead >= 2, "result": "W" if gf > ga else ("D" if gf == ga else "L")})
-    return pd.DataFrame(rows)
+    out = pd.DataFrame(rows)
+    out.attrs["coverage"] = minute_coverage(found, totals)
+    return out
 
 
 def _after(rows: pd.DataFrame) -> dict | None:
@@ -148,4 +166,4 @@ def first_goal_effect(engine: Engine, team_id: int, season: int, before, competi
         return {"scored_first": _after(f[f["first"] == "for"]), "conceded_first": _after(f[f["first"] == "against"]),
                 "led_by_two": _after(f[f.lead2])}
     return {"matches": int(len(mine)), "team": block(mine), "league": block(flows),
-            "league_matches": int(flows.match_id.nunique())}
+            "league_matches": int(flows.match_id.nunique()), "league_coverage": flows.attrs.get("coverage")}
