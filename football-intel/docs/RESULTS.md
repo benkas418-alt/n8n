@@ -1,5 +1,25 @@
 # Résultats du backtest réel
 
+## Audit du modèle actif contre le marché (2026-11-27)
+
+Test saison par saison 2021-2025, cinq grands championnats, 8 907 matchs avec cotes ; chaque
+saison jugée avec un modèle entraîné sur les saisons d'avant (`routed_competition` contre
+`market_implied`). Chiffres « annoncé / réel ».
+
+- Favoris : le modèle les surestime un peu. Favori à 55-65 % : 59,7 / 57,8 ; à 75 % ou plus :
+  80,5 / 78,1. Le marché les sous-estime un peu (69,5 / 73,7 entre 65 et 75 %).
+- Nuls : bons en moyenne (24,6 / 25,4), mais sous-estimés dans les matchs déséquilibrés
+  (nul annoncé sous 22 % : 16,5 / 19,1). Le marché : 17,8 / 17,3.
+- Forme : le modèle réagit trop à la forme. Équipe qui reçoit avec au moins 1 point par match
+  de mieux sur 5 matchs : victoire 63,6 / 61,5 ; marché 61,4.
+- Compétitions : aucun écart net au marché (Liga et Bundesliga −0,0015, Serie A +0,0003,
+  Premier League +0,0020, Ligue 1 +0,0026 de log loss, chacun dans le bruit).
+- Indépendance : log loss 0,9711 contre 0,9707 pour le marché ; égal saison par saison.
+- Correction testée : mélange moitié modèle, moitié marché, poids appris sur les saisons
+  d'avant (0,45 à 0,5) : log loss 0,9701 (−0,0011 contre le modèle, IC −0,0020 ; −0,0002 ;
+  −0,0007 contre le marché, IC −0,0015 ; +0,0001), meilleur 5 saisons sur 5. Favori à 55-65 % :
+  59,5 / 59,4. Sous le seuil de promotion fixé (0,002) ; même idée que le candidat de D54.
+
 ## Sélections nationales : modèle Elo (2026-11-16, D82)
 
 Données : 49 941 matchs de sélections (martj42, CC0). Chaque année est jugée avec un modèle appris
