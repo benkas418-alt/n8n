@@ -777,3 +777,61 @@ def test_day_results_lists_every_result_of_the_last_day_played(db):
     assert {(m["competition"], m["score"], m["model"]) for m in out["matches"]} == {
         ("ENG-PL", "2-0", None), ("GER-BL", "1-1", None)}
     assert day_results(db, date(2026, 11, 30)) == {"date": None, "matches": []}
+
+
+def test_side_model_predicts_apart_and_never_becomes_the_ticket_model(db, settings, monkeypatch):
+    """D105: LightGBM predicts next to the active model, in its own table, and stays out of
+    promotion and rollback."""
+    from footintel.api import app as api_module
+    from footintel.api import dashboard
+    from footintel.db.models import SidePrediction
+    from footintel.predictions.service import predict_side
+
+    _load_synthetic_history(db, settings)
+    feats = build_features(load_matches(db))
+    v1 = registry.train_version(db, settings, feats, "logreg_market_goals")
+    assert registry.promote(db, feats, v1, [2021, 2022], LOW_BAR).promoted
+    now = datetime.now(UTC).replace(microsecond=0)
+    kickoff = now + timedelta(days=2)
+    fixture = MatchRecord(
+        "football_data_uk", "E0|2023|Synthetic FC 1|Synthetic FC 2", "ENG-PL", 2023,
+        kickoff.date(), kickoff, "Synthetic FC 1", "Synthetic FC 2", "scheduled",
+        odds=[OddsRecord("market_avg", "1X2", s, p, "fixtures@test", now - timedelta(hours=1))
+              for s, p in zip("HDA", (2.1, 3.4, 3.6), strict=True)])
+    tasks.sync_fixtures(db, settings, connector=FakeConnector({}, [fixture]))
+    assert predict_upcoming(db, settings, now=now).created == 1
+    first = predict_side(db, settings, now=now)["lgbm_market"]
+    again = predict_side(db, settings, now=now + timedelta(minutes=5))["lgbm_market"]
+    assert first["created"] == 1 and again["unchanged"] == 1 and again["version"] == first["version"]
+    assert _count(db, Prediction) == 1 and _count(db, SidePrediction) == 1
+    with session_scope(db) as s:
+        side = s.scalars(select(SidePrediction)).one()
+        assert abs(side.p_home + side.p_draw + side.p_away - 1) < 1e-9
+        match_id = side.match_id
+    assert registry.active_version(db).id == v1
+
+    monkeypatch.setattr(dashboard, "get_engine", lambda: db)
+    dashboard.side_record.cache_clear()
+    client = TestClient(api_module.app)
+    models = client.get(f"/api/dash/match/{match_id}").json()["models"]
+    assert models["active"]["label"] == "Modèle actuel" and models["side"][0]["label"] == "LightGBM"
+    assert models["record"][0]["matches"] == 0
+
+    # A week later the side model is refitted; the old fit leaves the side status.
+    later = predict_side(db, settings, now=now + timedelta(days=8, minutes=1))["lgbm_market"]
+    assert later["version"] == first["version"] + 1
+    with session_scope(db) as s:
+        st = sorted(s.scalars(select(ModelVersion.status).where(ModelVersion.name == "lgbm_market")).all())
+    assert st == ["side", "side_retired"]
+
+    # The match is played: the record counts it for both models.
+    fixture.status, fixture.outcome = "finished", OutcomeRecord(2, 1, "H")
+    tasks.sync_fixtures(db, settings, connector=FakeConnector({}, [fixture]))
+    dashboard.side_record.cache_clear()
+    rec = client.get(f"/api/dash/match/{match_id}").json()["models"]["record"][0]
+    assert rec["matches"] == 1 and rec["market_matches"] == 1
+    assert "aucune conclusion" in rec["note"]
+    # Rollback finds no retired version: a side model can never become the active one.
+    with pytest.raises(ValueError, match="No retired version"):
+        registry.rollback(db)
+    assert registry.active_version(db).id == v1

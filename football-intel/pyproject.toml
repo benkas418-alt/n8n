@@ -12,6 +12,7 @@ dependencies = [
     "scipy>=1.13",
     "scikit-learn>=1.5",
     "xgboost>=2.1",
+    "lightgbm>=4.5",  # D105: second model shown next to the active one
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "pydantic>=2.8",
