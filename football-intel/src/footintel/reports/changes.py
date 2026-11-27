@@ -17,6 +17,7 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-25", ("Le courriel des tickets explique chaque match : le style des deux équipes, leur forme, "
                    "et pourquoi le modèle a choisi ce pari plutôt que la victoire simple. Ce bilan compare "
                    "aussi chaque semaine à la précédente et dit pourquoi un pari a perdu.")),
+    ("2026-11-27", ("Test d'un réseau de neurones (apprentissage profond) sur 5 saisons : il fait moins bien que le modèle actuel et que les bookmakers. Il n'est pas mis en service. Tes 45 cotes betPawa du 24 au 26/11 sont enregistrées.")),
 ]
 
 

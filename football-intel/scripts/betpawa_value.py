@@ -32,6 +32,7 @@ from footintel.db.session import get_engine  # noqa: E402
 from footintel.evaluation.metrics import bootstrap_mean_ci  # noqa: E402
 
 MARKETS = {"1X2": {"H", "D", "A"}, "DC": {"1X", "12", "X2"}, "BTTS": {"Y", "N"}, "OU2.5": {"O", "U"},
+           "OU1.5": {"O", "U"}, "OU3.5": {"O", "U"},
            "1UP": {"1", "2"}, "2UP": {"1", "2"}, "FG": {"1", "2", "0"},
            "DC1UP": {"1X", "X2", "12"}, "DC2UP": {"1X", "X2", "12"}}
 # Sharpest first: (bookmaker, snapshot label or None for the latest The Odds API snapshot).
@@ -91,6 +92,13 @@ def fair_prob(market: str, sel: str, p: tuple, p_over: float | None,
         return {"1X": h + d, "12": h + a, "X2": d + a}[sel]
     if market == "OU2.5":
         return None if p_over is None else (p_over if sel == "O" else 1 - p_over)
+    if market in ("OU1.5", "OU3.5"):
+        # Other goal lines from the goal rates fitted on the 1X2 and the over 2.5.
+        from scipy.stats import poisson
+
+        lh, la = _fit_lambdas(h, a, (eh, ea), p_over)
+        over = 1 - poisson.cdf(int(float(market[2:])), lh + la)
+        return over if sel == "O" else 1 - over
     if market == "BTTS":
         lh, la = _fit_lambdas(h, a, (eh, ea), p_over)
         yes = (1 - np.exp(-lh)) * (1 - np.exp(-la))
@@ -110,8 +118,8 @@ def settle(market: str, sel: str, hg: int, ag: int, goals: list[str] | None) -> 
     if market == "DC":
         r = "H" if hg > ag else "D" if hg == ag else "A"
         return int(r in {"1X": "HD", "12": "HA", "X2": "DA"}[sel])
-    if market == "OU2.5":
-        return int((hg + ag > 2.5) == (sel == "O"))
+    if market.startswith("OU"):
+        return int((hg + ag > float(market[2:])) == (sel == "O"))
     if market == "BTTS":
         return int((hg > 0 and ag > 0) == (sel == "Y"))
     if goals is None or len(goals) != hg + ag:
