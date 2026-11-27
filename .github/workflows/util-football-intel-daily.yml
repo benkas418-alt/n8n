@@ -203,6 +203,16 @@ jobs:
           { echo '### betPawa price journal'; echo '```'
             python scripts/betpawa_value.py 2>&1 | tail -n 60; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
+      # D101: the ledger, one row per selection (price, fair price, result, profit), kept 90 days.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: betpawa-ledger
+          path: football-intel/reports/betpawa_ledger.csv
+          if-no-files-found: ignore
+          retention-days: 90
+
       # The export still runs, so the site keeps its other data; the run is then marked red.
       - name: Report failed predictions
         if: steps.predict.outputs.failed == 'true'
