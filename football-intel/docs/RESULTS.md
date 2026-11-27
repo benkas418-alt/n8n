@@ -658,7 +658,7 @@ Comparaisons appariées (IC 95 % bootstrap) :
 `logreg_core` 0.9820, RF 0.9826, XGBoost 0.9831. RF et XGBoost n'apportaient rien de plus
 que la régression logistique.
 
-## LightGBM pour tous les marchés contre Hermès (28/11/2026, D107)
+## LightGBM pour tous les marchés contre Hermès (27/11/2026, D107)
 
 Test saison par saison 2021-2025, mêmes 10 846 matchs, écart de log loss apparié (LightGBM moins Hermès ; négatif = LightGBM meilleur).
 
@@ -672,7 +672,7 @@ Test saison par saison 2021-2025, mêmes 10 846 matchs, écart de log loss appar
 
 Bon côté de plus de 2,5 buts avec cotes : LightGBM 58,0 %, Hermès 56,7 %. BTTS : 55,1 % contre 54,7 %.
 
-## Avant Hermès 1.1 : LightGBM contre les bookmakers, et Hermès 1.1 contre Hermès 1.0 (28/11/2026, D108)
+## Avant Hermès 1.1 : LightGBM contre les bookmakers, et Hermès 1.1 contre Hermès 1.0 (27/11/2026, D108)
 
 | Plus de 2,5 buts, 2021-2025, 8 907 matchs avec cotes | Écart avec les bookmakers (avant le match) | Bon côté |
 |---|---|---|
@@ -682,7 +682,7 @@ Bon côté de plus de 2,5 buts avec cotes : LightGBM 58,0 %, Hermès 56,7 %. BTT
 
 Saison 2026-27 (452 matchs, hors échantillon) : bon côté sur plus de 2,5 buts, bookmakers 62,2 %, Hermès 1.1 60,4 %, Hermès 1.0 57,1 %. 1UP, 2UP et premier but (348 matchs) : Hermès 1.1 = Hermès 1.0.
 
-## Preuves consolidées : handicap asiatique, 1UP/2UP/premier but, où Hermès perd (28/11/2026, D111)
+## Preuves consolidées : handicap asiatique, 1UP/2UP/premier but, où Hermès perd (27/11/2026, D111)
 
 Mêmes matchs pour chaque comparaison (écarts appariés match par match). Cotes moyennes publiées avant le match (colonnes `Avg` de football-data.co.uk, pas la clôture). Matchs à minutes de buts incomplètes ou absentes écartés.
 
@@ -720,7 +720,7 @@ Chaque tranche contient sa valeur annoncée dans l'intervalle. Réserve : une se
 - Quand Hermès donne 3 à 8 points de plus que le marché à la victoire à domicile (2 296 matchs) : Hermès 65,6 %, marché 60,9 %, réel 63,2 %. La réalité tombe entre les deux. Quand Hermès donne 3 à 8 points de moins (551 matchs) : Hermès 29,2 %, marché 33,1 %, réel 29,8 %. Hermès a raison et le marché surestime le favori à domicile.
 - Plus de 2,5 buts : Hermès perd dans les cinq championnats (+0,0076 à +0,0130, IC tous au-dessus de 0), annonce 54,2 % contre 52,9 % pour les bookmakers et 53,1 % de réel. C'est déjà corrigé par Hermès 1.1 (D109) quand le prix des bookmakers existe.
 
-## Les deux pistes de D111 sur des saisons indépendantes (28/11/2026, D112)
+## Les deux pistes de D111 sur des saisons indépendantes (27/11/2026, D112)
 
 Règles fixées avant de regarder. Saisons 2016-2020, jamais utilisées pour D111, puis 2026-27.
 
@@ -731,7 +731,7 @@ Règles fixées avant de regarder. Saisons 2016-2020, jamais utilisées pour D11
 
 Hermès donne toujours environ 1 point de plus que le marché à la victoire à domicile, mais rien ne montre que le marché ait raison ou tort sur ce point.
 
-## Calibration du vainqueur par tranches, Hermès et marché (28/11/2026, D113)
+## Calibration du vainqueur par tranches, Hermès et marché (27/11/2026, D113)
 
 17 936 matchs avec cotes, saisons 2016 à 2025, prédictions saison par saison (`scripts/calibration_1x2.py`). Chaque issue de chaque match compte (domicile, nul, extérieur). Intervalle de Wilson à 95 %.
 
@@ -749,7 +749,7 @@ Hermès donne toujours environ 1 point de plus que le marché à la victoire à 
 
 Plus grand écart : Hermès 2,4 points, marché 4,4 points. Le marché sans marge sous-estime les favoris à 60-70 % (annoncé 64,7 %, réel 69,1 %) et surestime les outsiders à 10-20 %. C'est le biais connu favori-outsider, accentué par notre façon de retirer la marge : la même proportion sur chaque issue. Hermès surestime un peu ses favoris à 60-70 % (64,7 % contre 62,3 %).
 
-## Retrait de la marge : proportionnel, puissance, Shin (28/11/2026, D114)
+## Retrait de la marge : proportionnel, puissance, Shin (27/11/2026, D114)
 
 76 557 matchs 2016-2025, 2 075 matchs 2026-27, prix moyens avant le match (`scripts/margin_methods_check.py`).
 
@@ -760,3 +760,16 @@ Plus grand écart : Hermès 2,4 points, marché 4,4 points. Le marché sans marg
 | Shin | −0,00063 (IC −0,00078 ; −0,00049) | −0,00144 | 64,4 % / 65,7 % | 16,0 % / 15,2 % |
 
 Plus de 2,5 buts : puissance −0,00016 (IC −0,00028 ; −0,00005), 2026-27 −0,00090.
+
+## Hermès avec des entrées de marché « puissance » (27/11/2026, D115)
+
+Walk-forward 2021-2025, même base, mêmes modèles ; seules les entrées `mkt_p_*` changent (`scripts/power_inputs_check.py`). Règle D9 fixée avant le calcul.
+
+| Comparaison (log loss 1X2, apparié) | Matchs | Écart moyen | IC à 95 % |
+|---|---|---|---|
+| Hermès puissance contre Hermès | 10 846 | −0,00002 | −0,00021 ; +0,00016 |
+| Marché puissance contre marché proportionnel | 8 907 | −0,00058 | −0,00114 ; −0,00004 |
+| Hermès puissance contre marché puissance | 8 907 | +0,00094 | −0,00050 ; +0,00237 |
+| Hermès contre marché (rappel, proportionnel) | 8 907 | +0,00039 | −0,00132 ; +0,00210 |
+
+Par saison, Hermès puissance contre Hermès : 2021 −0,00025, 2022 −0,00041, 2023 +0,00049, 2024 +0,00008, 2025 −0,00001. Par ligue : de −0,00062 (Bundesliga) à +0,00039 (Liga). Seuil D9 non atteint : Hermès ne change pas.
