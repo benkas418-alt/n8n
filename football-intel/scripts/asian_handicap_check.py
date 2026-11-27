@@ -1,10 +1,14 @@
 """D110: does the Asian handicap price improve goal rates (margin, 1UP, 2UP, first goal)?
 A: rates fitted to fair 1X2 + over 2.5 (current method). B: same + fair Asian handicap.
 Run from football-intel/: python scripts/asian_handicap_check.py [path to raw football_data_uk]"""
-import sys, numpy as np, pandas as pd
+import sys
+
+import numpy as np
+import pandas as pd
 from scipy.optimize import least_squares
 from scipy.stats import poisson
 from sqlalchemy import text
+
 sys.path.insert(0, "src")
 
 
@@ -18,9 +22,9 @@ def boot(d, n=2000, seed=0):
     return np.percentile([d[rng.integers(0, len(d), len(d))].mean() for _ in range(n)], [2.5, 97.5])
 
 
-from footintel.db.session import get_engine
-from footintel.analysis.value import path_markets
 from footintel.analysis.matchup import _goal_events
+from footintel.analysis.value import path_markets
+from footintel.db.session import get_engine
 
 G = np.arange(11); D = G[:, None] - G[None, :]; T = G[:, None] + G[None, :]
 RAW = sys.argv[1] if len(sys.argv) > 1 else "data/raw/football_data_uk"  # DATA_DIR/raw/football_data_uk
@@ -98,6 +102,9 @@ la = -np.log(np.clip(PA[np.arange(len(R)), cat], 1e-12, 1)); lb = -np.log(np.cli
 d = lb - la
 print("\n1) Écart de buts (gagne de 2+, de 1, nul, perd de 1, de 2+), tous les matchs")
 print(f"   n={len(R)} écart B-A {d.mean():+.4f} IC {np.round(boot(d),4)}  (négatif = handicap utile)")
+OH = np.eye(5)[cat]
+ba, bb = ((PA - OH) ** 2).sum(1), ((PB - OH) ** 2).sum(1)
+print(f"   log loss A {la.mean():.4f} B {lb.mean():.4f} ; Brier A {ba.mean():.4f} B {bb.mean():.4f} écart {(bb - ba).mean():+.4f} IC {np.round(boot(bb - ba), 4)}")
 for s in sorted(R.season.unique()):
     m = (R.season == s).to_numpy(); print(f"   saison {s}: n={m.sum()} écart {d[m].mean():+.4f}")
 # "Wins by 2 or more" as a plain yes/no, the core of 2UP
@@ -129,4 +136,7 @@ for k in ("first_home", "first_away", "up1_home", "up1_away", "up2_home", "up2_a
     y = np.array([act[m][k] for m in Q.match_id], float)
     pa = np.array([path_markets(h, a)[k] for h, a in zip(Q.ah_, Q.aa_)]); pb = np.array([path_markets(h, a)[k] for h, a in zip(Q.bh, Q.ba)])
     dd = ll(pb, y) - ll(pa, y)
-    print(f"   {k:10s} écart B-A {dd.mean():+.4f} IC {np.round(boot(dd),4)}  moyenne annoncée A {pa.mean():.3f} B {pb.mean():.3f} réel {y.mean():.3f}")
+    db = (pb - y) ** 2 - (pa - y) ** 2
+    print(f"   {k:10s} n={len(y)} log loss A {ll(pa, y).mean():.4f} B {ll(pb, y).mean():.4f} écart {dd.mean():+.4f} IC {np.round(boot(dd),4)}"
+          f" ; Brier A {((pa - y) ** 2).mean():.4f} B {((pb - y) ** 2).mean():.4f} écart {db.mean():+.4f} IC {np.round(boot(db), 4)}"
+          f" ; annoncé A {pa.mean():.3f} réel {y.mean():.3f}")

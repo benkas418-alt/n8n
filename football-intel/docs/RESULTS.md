@@ -681,3 +681,41 @@ Bon côté de plus de 2,5 buts avec cotes : LightGBM 58,0 %, Hermès 56,7 %. BTT
 | Hermès 1.0 | +0,0101 (IC +0,0078 ; +0,0124) | 56,7 % |
 
 Saison 2026-27 (452 matchs, hors échantillon) : bon côté sur plus de 2,5 buts, bookmakers 62,2 %, Hermès 1.1 60,4 %, Hermès 1.0 57,1 %. 1UP, 2UP et premier but (348 matchs) : Hermès 1.1 = Hermès 1.0.
+
+## Preuves consolidées : handicap asiatique, 1UP/2UP/premier but, où Hermès perd (28/11/2026, D111)
+
+Mêmes matchs pour chaque comparaison (écarts appariés match par match). Cotes moyennes publiées avant le match (colonnes `Avg` de football-data.co.uk, pas la clôture). Matchs à minutes de buts incomplètes ou absentes écartés.
+
+**Handicap asiatique** (`scripts/asian_handicap_check.py`, 7 676 matchs, 2021 à 2026-27). A = taux de buts ajustés au 1X2 et au plus/moins 2,5 ; B = A + handicap.
+
+| Marché | n | Log loss A | Log loss B | Brier A | Brier B | Écart B − A (log loss, IC 95 %) |
+|---|---|---|---|---|---|---|
+| Écart de buts (5 issues) | 7 676 | 1,4655 | 1,4656 | 0,7443 | 0,7444 | +0,0001 (−0,0002 ; +0,0005) |
+| Premier but domicile | 301 | 0,6577 | 0,6575 | 0,2331 | 0,2331 | −0,0001 (−0,0008 ; +0,0006) |
+| Premier but extérieur | 301 | 0,6439 | 0,6438 | 0,2266 | 0,2266 | −0,0001 (−0,0008 ; +0,0006) |
+| 1UP domicile | 301 | 0,6049 | 0,6044 | 0,2101 | 0,2100 | −0,0005 (−0,0011 ; +0,0002) |
+| 1UP extérieur | 301 | 0,6542 | 0,6541 | 0,2311 | 0,2311 | −0,0000 (−0,0008 ; +0,0009) |
+| 2UP domicile | 301 | 0,6019 | 0,6010 | 0,2079 | 0,2076 | −0,0009 (−0,0015 ; −0,0002) |
+| 2UP extérieur | 301 | 0,5696 | 0,5692 | 0,1935 | 0,1934 | −0,0003 (−0,0010 ; +0,0004) |
+
+Un seul écart sur sept sous zéro (2UP domicile, −0,0009, sous le seuil D9 de 0,002) : bruit probable avec sept tests. Le handicap n'est pas retenu pour ces marchés et ces cinq championnats ; il n'est pas testé ailleurs.
+
+**Calibration 1UP, 2UP, premier but (méthode A, saison 2026-27, 301 matchs complets, six marchés ensemble)**
+
+| Tranche annoncée | n | Annoncé | Réel | Intervalle de Wilson 95 % |
+|---|---|---|---|---|
+| < 30 % | 284 | 22,0 % | 20,8 % | 16-26 % |
+| 30-40 % | 340 | 35,2 % | 34,1 % | 29-39 % |
+| 40-50 % | 417 | 45,0 % | 44,1 % | 39-49 % |
+| 50-60 % | 349 | 54,7 % | 52,4 % | 47-58 % |
+| 60-70 % | 243 | 64,4 % | 65,4 % | 59-71 % |
+| > 70 % | 173 | 77,3 % | 80,3 % | 74-86 % |
+
+Chaque tranche contient sa valeur annoncée dans l'intervalle. Réserve : une seule saison, et un match compte dans six marchés liés entre eux, donc les intervalles sont trop étroits. À refaire à 1 000 matchs complets.
+
+**Où Hermès perd face au marché** (`scripts/where_hermes_loses.py`, 8 907 matchs avec cotes, 2021-2025)
+
+- 1X2 : log loss 0,9711 contre 0,9707 (+0,0004, IC −0,0013 ; +0,0021) ; Brier 0,5774 des deux côtés. Aucun championnat, aucune saison, aucune force du favori, aucun écart d'avis où l'écart est significatif.
+- Biais : Hermès annonce la victoire à domicile à 45,0 % en moyenne (marché 43,9 %, réel 43,5 %) et la victoire à l'extérieur à 30,4 % (marché 31,3 %, réel 31,1 %). Hermès surestime un peu l'avantage du terrain.
+- Quand Hermès donne 3 à 8 points de plus que le marché à la victoire à domicile (2 296 matchs) : Hermès 65,6 %, marché 60,9 %, réel 63,2 %. La réalité tombe entre les deux. Quand Hermès donne 3 à 8 points de moins (551 matchs) : Hermès 29,2 %, marché 33,1 %, réel 29,8 %. Hermès a raison et le marché surestime le favori à domicile.
+- Plus de 2,5 buts : Hermès perd dans les cinq championnats (+0,0076 à +0,0130, IC tous au-dessus de 0), annonce 54,2 % contre 52,9 % pour les bookmakers et 53,1 % de réel. C'est déjà corrigé par Hermès 1.1 (D109) quand le prix des bookmakers existe.
