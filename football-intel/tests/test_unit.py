@@ -1025,29 +1025,6 @@ def test_tickets_leave_out_dc2up_and_name_both_teams():
                for v in labels.values())
 
 
-def test_tickets_never_back_the_side_the_analysis_does_not_favour():
-    from footintel.analysis.tickets import against_analysis, day_tickets
-
-    # D119, Venezia - Bologna (27/11): the page favoured Bologna, a short ticket took
-    # "Venezia or draw" to reach its odds.
-    m = {"p1": 0.3035, "p2": 0.408, "view_p1": 0.302, "view_p2": 0.385}
-    assert against_analysis("1X", m) and against_analysis("FG_1", m) and against_analysis("DC1UP_1X", m)
-    assert not against_analysis("X2", m) and not against_analysis("1UP_2", m)
-    assert not against_analysis("-3.5", m) and not against_analysis("12", m)
-    # When the market and the page disagree on the favourite, neither side is backed.
-    split = {"p1": 0.36, "p2": 0.34, "view_p1": 0.33, "view_p2": 0.35}
-    assert against_analysis("1", split) and against_analysis("2UP_2", split)
-    matches = [{"id": i, "kickoff_date": "2026-10-31", "kickoff_utc": f"2026-10-31T{12 + i % 8:02d}:00:00Z",
-                "competition": "ENG-PL", "home": f"H{i}", "away": f"A{i}", "p1": 0.30, "p2": 0.41,
-                "p_over": 0.5} for i in range(16)]
-    day = day_tickets(matches, {}, date(2026, 10, 31))[0]
-    legs = [x for t in day["tickets"] for x in t["legs"]]
-    assert legs and not any(x["against"] for x in legs)
-    assert not any(x["key"] in {"1", "1X", "1UP_1", "2UP_1", "FG_1", "DC1UP_1X"} for x in legs)
-    # The match still shows every choice.
-    assert any(x["key"] == "1X" for x in day["matches"][0]["alternatives"])
-
-
 def test_double_chance_early_payout_bounds_and_settled_cases():
     from footintel.analysis.tickets import dc_up, probabilities
 

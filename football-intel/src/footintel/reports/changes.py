@@ -52,6 +52,9 @@ NEWS: list[tuple[str, str]] = [
                    "pouvait prendre « Venezia ou nul » alors que la page du match penchait pour Bologna, "
                    "seulement pour atteindre sa cote totale. Les paris sans camp (buts, les deux marquent, "
                    "pas de nul) restent permis.")),
+    ("2026-11-27", ("À ta demande, les tickets choisissent de nouveau comme avant : un ticket peut prendre le "
+                   "camp que la page du match ne donne pas favori (par exemple « Venezia ou nul ») quand ce "
+                   "choix l'aide à atteindre sa cote.")),
 ]
 
 

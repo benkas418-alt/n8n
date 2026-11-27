@@ -176,24 +176,6 @@ def is_followed(m: dict) -> bool:
 
 # Markets kept out of the tickets at the owner's request (D95). Bilan still settles old tickets.
 NOT_IN_TICKETS = ("DC2UP",)
-# D119: selections that back one side. A ticket never backs the side that the match analysis
-# shows as the less likely winner (Venezia - Bologna, 27/11: "Venezia or draw" was picked only
-# to reach the ticket's odds while the page said Bologna).
-BACKS_HOME = {"1", "1X", "1UP_1", "2UP_1", "FG_1", "DC1UP_1X", "DC2UP_1X"}
-BACKS_AWAY = {"2", "X2", "1UP_2", "2UP_2", "FG_2", "DC1UP_X2", "DC2UP_X2"}
-
-
-def against_analysis(key: str, m: dict) -> bool:
-    """True when the selection backs the side that is not the favourite, in the ticket's
-    probabilities or in the probabilities shown on the match page (view_p1, view_p2)."""
-    pairs = [(m["p1"], m["p2"])]
-    if m.get("view_p1") is not None and m.get("view_p2") is not None:
-        pairs.append((m["view_p1"], m["view_p2"]))
-    if key in BACKS_HOME:
-        return any(h < a for h, a in pairs)
-    if key in BACKS_AWAY:
-        return any(a < h for h, a in pairs)
-    return False
 
 
 def match_legs(m: dict, journal: dict) -> list[dict]:
@@ -208,7 +190,7 @@ def match_legs(m: dict, journal: dict) -> list[dict]:
         price = known or round(1 / p * (1 - margin(key, p)), 2)
         legs.append({"key": key, "label": label(key, m["home"], m["away"]), "prob": round(p, 4),
                      "fair": round(1 / p, 2), "price": price, "known": known is not None,
-                     "ev": round(price * p - 1, 4), "against": against_analysis(key, m)})
+                     "ev": round(price * p - 1, 4)})
     return sorted(legs, key=lambda x: -x["prob"] * (1 + min(x["ev"], 0)))
 
 
@@ -301,7 +283,7 @@ def day_tickets(matches: list[dict], journal: dict, today: date, n_days: int = 2
             rows.append(base | {"alternatives": legs})
         pool_all = [{k: v for k, v in r.items() if k not in ("alternatives", "scenarios")} | x for r in rows for x in r["alternatives"]]
         # Tickets use the owner's teams only; a size needs that many of their matches.
-        pool_mine = [x for x in pool_all if x["followed"] and x["ticket_ok"] and not x["against"]]
+        pool_mine = [x for x in pool_all if x["followed"] and x["ticket_ok"]]
         n_mine = len({x["match_id"] for x in pool_mine})
         tickets, missing = [], []
         for tag, name, lo, hi, min_odds in SIZES:
