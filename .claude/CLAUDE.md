@@ -11,8 +11,8 @@ a tool or a lesson must survive the session. Keep it under 150 lines.
   short sentences, few numbers. No jargon (log loss, ECE, PSI, IC, millième, calibration, edge).
   Say what happened, what it means for his bets, and what to do. One example beats a table.
 - **football-intel/**: football prediction platform (Python, FastAPI, PostgreSQL).
-  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D107), `docs/RESULTS.md`,
-  `docs/DATA_SOURCES.md`. Active model `routed_competition`, shown as **Hermès 1.0** (D106); it equals the market and
+  Source of truth: `football-intel/docs/DECISIONS.md` (D1–D109), `docs/RESULTS.md`,
+  `docs/DATA_SOURCES.md`. Active model `routed_competition`, shown as **Hermès 1.1** (D106, D109: goal markets from bookmakers, else LightGBM with odds, else Hermès); it equals the market and
   has no measured edge (CLV −2.5 % at average price, D54). LightGBM (`lightgbm`, every market) predicts next
   to it in `side_predictions` (D105, D107). Site switch Hermès / LightGBM (D107): pages and tickets
   follow the choice; the e-mail stays on Hermès. LightGBM beats Hermès on goal markets with odds
@@ -140,6 +140,8 @@ The cloud container is reset between sessions. Reinstall the external tools with
   A mismatch lost the trained model after every run (fixed 2026-10-30, PR #10).
 - After a cycle, check `last_prediction` and the step summary, not only the green run: the
   pipeline logs a failed step and still exits 0.
+- New FK tables broke `pg_restore --clean` (27/11, no e-mail): Load state now empties the schema,
+  restores, then migrates. Before merging a migration, test restoring an older dump.
 - Container restarts lose the local venv and Postgres: recreate the venv in the scratchpad,
   `service postgresql start`; the local model file lives in /tmp/claude-0/fi-run (run from there).
 

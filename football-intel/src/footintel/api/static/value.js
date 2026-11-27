@@ -322,7 +322,7 @@ document.addEventListener("click", (e) => {
   const ids = new Set(state.data.matches.map((m) => m.id));
   state.coupon = (saved.coupon || []).filter((c) => ids.has(c.match));
   const last = state.data.matches.map((m) => m.predicted_at).sort().pop();
-  document.getElementById("stamp").textContent = `${VIEW === "lightgbm" ? "Avis de LightGBM · " : "Avis d'Hermès 1.0 · "}${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
+  document.getElementById("stamp").textContent = `${VIEW === "lightgbm" ? "Avis de LightGBM · " : "Avis d'Hermès 1.1 · "}${state.data.matches.length} matchs sur ${state.data.generated_for_days} jours`
     + (last ? ` · mis à jour le ${new Date(last).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}` : "")
     + (last && now - new Date(last).getTime() > 30 * 36e5 ? " · pas à jour" : "");
   render();

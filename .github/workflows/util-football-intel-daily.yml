@@ -117,8 +117,10 @@ jobs:
           mkdir -p state
           if [ -f state.tar.enc ]; then
             openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:STATE_KEY -in state.tar.enc | tar -xf - -C state
-            footintel db upgrade
-            pg_restore --no-owner --clean --if-exists -h localhost -U footintel -d footintel state/db.dump
+            # Restore into an empty schema, then migrate. A table that is newer than the backup
+            # (side_predictions, D105) has foreign keys that block "pg_restore --clean" (27/11 failure).
+            psql -h localhost -U footintel -d footintel -q -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+            pg_restore --no-owner -h localhost -U footintel -d footintel state/db.dump
             footintel db upgrade
             echo "fresh=false" >> "$GITHUB_OUTPUT"
           else

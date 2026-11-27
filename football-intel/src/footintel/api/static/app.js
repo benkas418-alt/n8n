@@ -88,7 +88,10 @@ const pct = (v, d = 1) => (v == null ? "n/d" : `${(100 * v).toFixed(d)} %`);
 const num = (v, d = 2) => (v == null ? "n/d" : Number(v).toFixed(d));
 /* Public model names (D106). The weekly refits keep the public number; the owner decides
    when Hermès gets a new number. Accepts "routed_competition v3" or a name and a version. */
-const MODEL_NAMES = { routed_competition: "Hermès 1.0", lightgbm: "LightGBM", lgbm_market: "LightGBM (1N2 seul)", national_elo: "Modèle des sélections" };
+/* D109: who gave the goal figures of a match in Hermès 1.1. */
+const GOALS_SRC = { bookmakers: "les bookmakers (sans leur marge)", lightgbm: "LightGBM", hermes: "Hermès" };
+const goalsNote = (pr) => (pr && GOALS_SRC[pr.goals_source] ? `Buts : avis de ${GOALS_SRC[pr.goals_source]}.` : "");
+const MODEL_NAMES = { routed_competition: "Hermès 1.1", lightgbm: "LightGBM", lgbm_market: "LightGBM (1N2 seul)", national_elo: "Modèle des sélections" };
 function modelName(name, version) {
   if (name == null) return "aucun";
   const m = String(name).match(/^(\S+) v(\d+)$/);
@@ -135,9 +138,9 @@ const season = (y) => `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
 const badge = (status) => `<span class="badge ${esc(status)}">${esc(STATUS[status] || status)}</span>`;
 const na = (title, why) => `<div class="unavailable"><strong>${esc(title)}</strong> — non collecté.<br><span class="small">${esc(why)}</span></div>`;
 
-/* D107: the model the owner views the site with. Hermès 1.0 by default; LightGBM on request.
+/* D107: the model the owner views the site with. Hermès 1.1 by default; LightGBM on request.
    Only the pages below change; history pages (Hier, Bilan) and the e-mail stay on Hermès. */
-const VIEWS = { hermes: "Hermès 1.0", lightgbm: "LightGBM" };
+const VIEWS = { hermes: "Hermès 1.1", lightgbm: "LightGBM" };
 const PER_MODEL = /^\/(home|tickets|value-board|match\/\d+)(\?|$)/;
 const VIEW_PAGES = new Set(["", "matchs", "tickets", "match"]);
 function viewModel() { try { return localStorage.getItem("fi_model") === "lightgbm" ? "lightgbm" : "hermes"; } catch { return "hermes"; } }
@@ -667,7 +670,7 @@ function tabSummary(m, d, x, pr) {
         <div class="ess-block"><h2>Qui marque en premier</h2>${fg ? strip([fg.home, fg.none, fg.away], null, true) : `<p class="muted">Estimation indisponible.</p>`}</div>
         <div class="ess-facts">
           <div><span class="kpi-label">Score le plus probable</span><span class="kpi-value">${top ? top.score : "—"}</span><span class="kpi-note">${top ? pct(top.p) : ""}</span></div>
-          <div><span class="kpi-label">Buts attendus</span><span class="kpi-value">${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span><span class="kpi-note">${pr.sufficient_data ? "" : "historique court : prudence"}</span></div>
+          <div><span class="kpi-label">Buts attendus</span><span class="kpi-value">${num(pr.exp_home_goals, 1)} – ${num(pr.exp_away_goals, 1)}</span><span class="kpi-note">${esc(goalsNote(pr))}${pr.sufficient_data ? "" : " Historique court : prudence."}</span></div>
         </div></section></div>
     ${modelsCard(m, d.models, pr)}
     <div class="grid two" style="margin-top:var(--space-4)">
@@ -703,10 +706,10 @@ function modelsCard(m, M, pr) {
   const R = (M.record || []).find((r) => r.name === side.name);
   const rec = !R || !R.matches
     ? `<p class="meta">${esc(side.label)} vient d'être ajouté : son bilan apparaîtra après les premiers matchs joués.</p>`
-    : `<p class="meta">Sur les ${R.matches} matchs joués où les deux modèles avaient donné leur avis : ${esc(M.active?.label || "Hermès 1.0")} ${R.active} bons résultats, ${esc(R.label)} ${R.side}${R.market_matches ? `, bookmakers ${R.market} sur ${R.market_matches}` : ""}. Ils étaient d'accord ${R.agree} fois.${R.note ? ` ${esc(R.note)}.` : ""}</p>`;
+    : `<p class="meta">Sur les ${R.matches} matchs joués où les deux modèles avaient donné leur avis : ${esc(M.active?.label || "Hermès 1.1")} ${R.active} bons résultats, ${esc(R.label)} ${R.side}${R.market_matches ? `, bookmakers ${R.market} sur ${R.market_matches}` : ""}. Ils étaient d'accord ${R.agree} fois.${R.note ? ` ${esc(R.note)}.` : ""}</p>`;
   return `<div class="card" style="margin-top:var(--space-4)"><h2>Ce que disent les modèles</h2>
     <p class="question">${say}</p>${table}${rec}
-    <p class="meta">En gras : le résultat le plus probable pour chacun. Seul ${esc(M.active?.label || "Hermès 1.0")} sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
+    <p class="meta">En gras : le résultat le plus probable pour chacun. Seul ${esc(M.active?.label || "Hermès 1.1")} sert aux tickets ; ${esc(side.label)} reste en observation tant qu'il n'a pas fait mieux sur des centaines de matchs.</p></div>`;
 }
 
 /* When a team scores and concedes, and what follows the first goal. */
@@ -749,7 +752,7 @@ function tabMarkets(m, d) {
   const mk = d.markets;
   if (!mk || !mk.length) return `<div class="unavailable"><strong>Marchés indisponibles</strong><br><span class="small">Aucune prédiction enregistrée pour ce match.</span></div>`;
   const groups = [...new Set(mk.map((x) => x.note))];
-  return `<p class="question">Cote juste = 1 / probabilité. Une cote du bookmaker au-dessus de la cote juste n'est intéressante que si la probabilité est fiable : voir la note de chaque groupe.</p>
+  return `<p class="question">Cote juste = 1 / probabilité. Une cote du bookmaker au-dessus de la cote juste n'est intéressante que si la probabilité est fiable : voir la note de chaque groupe.${d.prediction?.goals_source ? ` Vainqueur : ${esc(modelName(d.prediction.model))}. ${esc(goalsNote(d.prediction))}` : ""}</p>
     <div class="grid two">${groups.map((g) => `<div class="card"><h2>${esc(MARKET_GROUPS[g] || g)}</h2>
       <p class="meta">${esc((d.market_notes || {})[g] || "")}</p>
       <table><thead><tr><th>Marché</th><th class="num">Probabilité</th><th class="num">Cote juste</th></tr></thead><tbody>
@@ -1656,8 +1659,8 @@ window.addEventListener("hashchange", route);
 function viewBanner(page) {
   if (viewModel() !== "lightgbm") return "";
   return VIEW_PAGES.has(page)
-    ? `<div class="view-banner" role="status"><b>Vue LightGBM.</b> Les probabilités, les avis et les tickets de cette page viennent de LightGBM. Ton e-mail du matin reste sur Hermès 1.0.</div>`
-    : `<div class="view-banner" role="status">Cette page reste sur Hermès 1.0 : LightGBM n'a pas encore d'historique.</div>`;
+    ? `<div class="view-banner" role="status"><b>Vue LightGBM.</b> Les probabilités, les avis et les tickets de cette page viennent de LightGBM. Ton e-mail du matin reste sur Hermès 1.1.</div>`
+    : `<div class="view-banner" role="status">Cette page reste sur Hermès : LightGBM n'a pas encore d'historique.</div>`;
 }
 (function modelSwitch() {
   const bar = document.querySelector(".topbar");
@@ -1667,7 +1670,7 @@ function viewBanner(page) {
   box.setAttribute("role", "group");
   box.setAttribute("aria-label", "Modèle affiché");
   box.innerHTML = Object.entries(VIEWS).map(([k, label]) =>
-    `<button type="button" class="seg-btn" data-view="${k}" aria-pressed="false">${label.replace(" 1.0", "")}</button>`).join("");
+    `<button type="button" class="seg-btn" data-view="${k}" aria-pressed="false">${label.replace(/ 1\.\d$/, "")}</button>`).join("");
   const paint = () => box.querySelectorAll("button").forEach((b) => {
     const on = b.dataset.view === viewModel();
     b.classList.toggle("on", on);

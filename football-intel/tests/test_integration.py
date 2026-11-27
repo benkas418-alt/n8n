@@ -822,6 +822,10 @@ def test_side_model_predicts_apart_and_never_becomes_the_ticket_model(db, settin
     for path in ("/api/dash/home", "/api/dash/value-board", "/api/dash/tickets", f"/api/dash/match/{match_id}"):
         assert client.get(path).json()["view"] == "hermes"
         assert client.get(path, params={"model": "lightgbm"}).json()["view"] == "lightgbm"
+    # D109: the Hermès view takes LightGBM's goals (1X2 odds, no bookmaker over 2.5 yet).
+    hv = client.get(f"/api/dash/match/{match_id}").json()["prediction"]
+    assert hv["goals_source"] == "lightgbm" and hv["p_over_2_5"] == pytest.approx(side_over)
+    assert {m["goals_source"] for m in client.get("/api/dash/value-board").json()["matches"]} == {"lightgbm"}
     lg = client.get(f"/api/dash/match/{match_id}", params={"model": "lightgbm"}).json()
     assert lg["prediction"]["model"].startswith("lightgbm") and lg["models"]["active"]["name"] == "logreg_market_goals"
     assert lg["prediction"]["p_over_2_5"] == pytest.approx(side_over)

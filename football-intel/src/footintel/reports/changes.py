@@ -32,6 +32,13 @@ NEWS: list[tuple[str, str]] = [
                    "les matchs, les tickets et Vérifier une cote suivent l'avis de LightGBM. Ton e-mail du matin "
                    "reste sur Hermès. Sur 5 saisons, LightGBM voit un peu mieux les buts (plus de 2,5 buts, "
                    "les deux équipes marquent) quand il y a des cotes ; pour le vainqueur, les deux font jeu égal.")),
+    ("2026-11-28", ("Hermès passe en 1.1 : le vainqueur reste celui d'Hermès ; pour les buts (plus/moins, les "
+                   "deux équipes marquent), le site prend l'avis des bookmakers sans leur marge quand il existe, "
+                   "sinon celui de LightGBM si le match a des cotes, sinon Hermès. La page du match dit qui a "
+                   "donné les buts.")),
+    ("2026-11-28", ("Le calcul du 27/11 a échoué à cause d'une nouvelle table ajoutée la veille : pas d'e-mail ce "
+                   "jour-là et le site est resté sur les données du 26/11. C'est corrigé et testé ; tes données "
+                   "n'ont rien perdu.")),
 ]
 
 

@@ -1545,3 +1545,27 @@ def test_side_record_counts_the_same_matches_for_every_model():
     assert (r["matches"], r["side"], r["active"], r["agree"]) == (3, 3, 1, 1)
     assert (r["market"], r["market_matches"]) == (1, 2)
     assert "aucune conclusion" in r["note"]
+
+
+
+# ---- D109: Hermès 1.1, goal markets from the best source ----
+
+def test_goal_blend_picks_bookmakers_then_lightgbm_then_hermes():
+    from footintel.analysis.goal_blend import blend_goals
+
+    hermes = {"p_home": .45, "p_draw": .27, "p_away": .28, "p_over_1_5": .70, "p_over_2_5": .48,
+              "p_over_3_5": .25, "p_btts": .50, "exp_home_goals": 1.4, "exp_away_goals": 1.1}
+    lgbm = {"p_over_1_5": .75, "p_over_2_5": .55, "p_over_3_5": .30, "p_btts": .54,
+            "exp_home_goals": 1.6, "exp_away_goals": 1.2}
+    odds = (.46, .27, .27)
+
+    r = dict(hermes)
+    assert blend_goals(r, odds, .60, lgbm) == "bookmakers"
+    assert r["p_over_2_5"] == .60 and r["p_over_1_5"] > r["p_over_2_5"] > r["p_over_3_5"]
+    assert r["p_home"] == .45  # the winner stays Hermès's
+    r = dict(hermes)
+    assert blend_goals(r, odds, None, lgbm) == "lightgbm" and r["p_btts"] == .54
+    r = dict(hermes)
+    assert blend_goals(r, None, .60, lgbm) == "hermes" and r == hermes  # no 1X2 odds: Hermès
+    r = dict(hermes)
+    assert blend_goals(r, odds, None, None) == "hermes" and r == hermes
