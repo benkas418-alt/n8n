@@ -657,3 +657,17 @@ Comparaisons appariées (IC 95 % bootstrap) :
 7 230 matchs. `logreg_market` 0.9683, marché 0.9678, naïf 1.0741, Elo-Poisson 0.9879,
 `logreg_core` 0.9820, RF 0.9826, XGBoost 0.9831. RF et XGBoost n'apportaient rien de plus
 que la régression logistique.
+
+## LightGBM pour tous les marchés contre Hermès (28/11/2026, D107)
+
+Test saison par saison 2021-2025, mêmes 10 846 matchs, écart de log loss apparié (LightGBM moins Hermès ; négatif = LightGBM meilleur).
+
+| Marché | Tous | Avec cotes (8 907) | Sans cotes (1 939) |
+|---|---|---|---|
+| 1X2 | +0,0006 (IC −0,0010 ; +0,0022) | — | — |
+| Plus de 2,5 buts | −0,0051 (−0,0069 ; −0,0035) | −0,0069 (−0,0089 ; −0,0049) | +0,0030 (−0,0002 ; +0,0062) |
+| BTTS | −0,0019 (−0,0032 ; −0,0006) | −0,0022 (−0,0036 ; −0,0009) | −0,0005 (−0,0032 ; +0,0023) |
+| Plus de 1,5 buts | −0,0034 (−0,0048 ; −0,0020) | −0,0042 (−0,0060 ; −0,0026) | +0,0001 |
+| Plus de 3,5 buts | −0,0043 (−0,0061 ; −0,0026) | −0,0060 (−0,0079 ; −0,0041) | +0,0035 |
+
+Bon côté de plus de 2,5 buts avec cotes : LightGBM 58,0 %, Hermès 56,7 %. BTTS : 55,1 % contre 54,7 %.

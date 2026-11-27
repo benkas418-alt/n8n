@@ -16,6 +16,7 @@ from footintel.models.baseline import (
 from footintel.models.ml import (
     CORE_FEATURES,
     WITH_MARKET_FEATURES,
+    LightGBMGoals,
     lightgbm,
     logistic,
     neural_net,
@@ -242,6 +243,10 @@ MODEL_FACTORIES: dict[str, Callable[[], ProbModel]] = {
     # D99 test, D105: LightGBM, without and with the bookmakers' odds as inputs.
     "lgbm_core": lambda: lightgbm(CORE_FEATURES, "lgbm_core"),
     "lgbm_market": lambda: lightgbm(WITH_MARKET_FEATURES, "lgbm_market"),
+    # D107: LightGBM for every market: 1X2 from the classifier, goals from two Poisson regressors.
+    "lgbm_goals": lambda: LightGBMGoals("lgbm_goals", WITH_MARKET_FEATURES),
+    "lightgbm": lambda: Composite("lightgbm", lightgbm(WITH_MARKET_FEATURES, "lgbm_market"),
+                                  LightGBMGoals("lgbm_goals", WITH_MARKET_FEATURES)),
 }
 
 # Reference models are compared against, never deployed for predictions.
@@ -250,7 +255,7 @@ REFERENCE_MODELS = {"naive_frequency", "market_implied"}
 # D105: models that predict next to the active one, shown on the match page. Their
 # predictions go to `side_predictions`, never to `predictions`, so tickets, reports and
 # evaluations keep using the active model only. Name -> label shown to the owner.
-SIDE_MODELS = {"lgbm_market": "LightGBM"}
+SIDE_MODELS = {"lightgbm": "LightGBM"}  # D107: every market, not only 1X2 (was lgbm_market)
 
 # D106: names the owner sees. The weekly refits keep the public number of Hermès;
 # the owner decides when it changes. Same list in static/app.js (MODEL_NAMES).

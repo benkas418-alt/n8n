@@ -173,7 +173,7 @@ def _side_version(engine: Engine, settings: Settings, name: str, feats: pd.DataF
 
 def predict_side(engine: Engine, settings: Settings, horizon_days: int = PREDICT_DAYS,
                  now: datetime | None = None) -> dict:
-    """1X2 of each side model (D105) for the same matches as the active model."""
+    """Each side model (D105, D107) on the same matches as the active model."""
     now = now or datetime.now(UTC)
     feats = build_features(load_matches(engine, as_of=now))
     upcoming = _upcoming(feats, now, horizon_days)
@@ -198,8 +198,9 @@ def predict_side(engine: Engine, settings: Settings, horizon_days: int = PREDICT
                 if latest is not None and latest.feature_snapshot == snapshot:
                     unchanged += 1
                     continue
+                goals = {c: _clean(p[c]) if c in p else None for c in GOAL_COLS}
                 s.add(SidePrediction(match_id=int(row["match_id"]), model_version_id=mv.id, predicted_at=now,
-                                     feature_snapshot=snapshot, **{c: float(p[c]) for c in PROB_COLS}))
+                                     feature_snapshot=snapshot, **{c: float(p[c]) for c in PROB_COLS}, **goals))
                 created += 1
         out[name] = {"version": mv.version, "created": created, "unchanged": unchanged}
         log.info("Side model %s v%d: %d new, %d unchanged", name, mv.version, created, unchanged)

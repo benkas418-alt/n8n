@@ -28,6 +28,10 @@ NEWS: list[tuple[str, str]] = [
                    "matchs. Seul le modèle actuel fait tes tickets.")),
     ("2026-11-28", ("Le modèle des tickets s'appelle maintenant Hermès 1.0 sur tout le site. Les "
                    "entraînements de chaque semaine gardent ce numéro : c'est toi qui décides quand il change.")),
+    ("2026-11-28", ("Nouveau bouton « Hermès / LightGBM » en haut du site. Sur LightGBM, la page Aujourd'hui, "
+                   "les matchs, les tickets et Vérifier une cote suivent l'avis de LightGBM. Ton e-mail du matin "
+                   "reste sur Hermès. Sur 5 saisons, LightGBM voit un peu mieux les buts (plus de 2,5 buts, "
+                   "les deux équipes marquent) quand il y a des cotes ; pour le vainqueur, les deux font jeu égal.")),
 ]
 
 

@@ -800,14 +800,15 @@ def test_side_model_predicts_apart_and_never_becomes_the_ticket_model(db, settin
               for s, p in zip("HDA", (2.1, 3.4, 3.6), strict=True)])
     tasks.sync_fixtures(db, settings, connector=FakeConnector({}, [fixture]))
     assert predict_upcoming(db, settings, now=now).created == 1
-    first = predict_side(db, settings, now=now)["lgbm_market"]
-    again = predict_side(db, settings, now=now + timedelta(minutes=5))["lgbm_market"]
+    first = predict_side(db, settings, now=now)["lightgbm"]
+    again = predict_side(db, settings, now=now + timedelta(minutes=5))["lightgbm"]
     assert first["created"] == 1 and again["unchanged"] == 1 and again["version"] == first["version"]
     assert _count(db, Prediction) == 1 and _count(db, SidePrediction) == 1
     with session_scope(db) as s:
         side = s.scalars(select(SidePrediction)).one()
         assert abs(side.p_home + side.p_draw + side.p_away - 1) < 1e-9
-        match_id = side.match_id
+        assert 0 < side.p_over_2_5 < 1 and 0 < side.p_btts < 1 and side.exp_home_goals > 0
+        match_id, side_over = side.match_id, side.p_over_2_5
     assert registry.active_version(db).id == v1
 
     monkeypatch.setattr(dashboard, "get_engine", lambda: db)
@@ -817,11 +818,21 @@ def test_side_model_predicts_apart_and_never_becomes_the_ticket_model(db, settin
     assert models["active"]["label"] == "logreg_market_goals" and models["side"][0]["label"] == "LightGBM"
     assert models["record"][0]["matches"] == 0
 
+    # D107: the same pages seen with LightGBM; the default stays on the active model.
+    for path in ("/api/dash/home", "/api/dash/value-board", "/api/dash/tickets", f"/api/dash/match/{match_id}"):
+        assert client.get(path).json()["view"] == "hermes"
+        assert client.get(path, params={"model": "lightgbm"}).json()["view"] == "lightgbm"
+    lg = client.get(f"/api/dash/match/{match_id}", params={"model": "lightgbm"}).json()
+    assert lg["prediction"]["model"].startswith("lightgbm") and lg["models"]["active"]["name"] == "logreg_market_goals"
+    assert lg["prediction"]["p_over_2_5"] == pytest.approx(side_over)
+    board = client.get("/api/dash/value-board", params={"model": "lightgbm"}).json()["matches"]
+    assert board and board[0]["source_model"] == "lightgbm"
+
     # A week later the side model is refitted; the old fit leaves the side status.
-    later = predict_side(db, settings, now=now + timedelta(days=8, minutes=1))["lgbm_market"]
+    later = predict_side(db, settings, now=now + timedelta(days=8, minutes=1))["lightgbm"]
     assert later["version"] == first["version"] + 1
     with session_scope(db) as s:
-        st = sorted(s.scalars(select(ModelVersion.status).where(ModelVersion.name == "lgbm_market")).all())
+        st = sorted(s.scalars(select(ModelVersion.status).where(ModelVersion.name == "lightgbm")).all())
     assert st == ["side", "side_retired"]
 
     # The match is played: the record counts it for both models.
