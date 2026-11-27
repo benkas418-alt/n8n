@@ -28,3 +28,17 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
 - `pitup/tools/build_clean.py` → projet `hf/videos/pitup-clean`, 19,2 s, même musique (« Blue Lights » dès 39,87 s, même contenu). Livré par `livrer.sh` (charte : 0 erreur ; −13,9 LUFS).
 - Déroulé : fond clair DA ; icône + logo PitUp au centre, puis le logo remonte, petit, en haut ; « Les boutiques / de Lubumbashi, » avec l'Alilac Center et l'avenue en cartes arrondies qui glissent des côtés ; « dans ton téléphone. » ; carrousel des six fiches article PitUp (entrée par la droite avec rotation 3D de 28°, sortie à gauche ; dans la fiche, photo qui se pose, nom révélé par masque, lignes puis boutons en cascade) ; promesse « Tu / commandes. » / « On te livre. » / « Tu paies » / « à la livraison. » (surligné) avec trois icônes au trait (panier, camion, billet) qui arrivent une par temps ; fin bleue.
 - Mots longs passés sur deux lignes pour rester en 144 px (« de / Lubumbashi, », « Tu / commandes. »).
+- Retour : « Certes mais c'est très plat » (+ 9 vidéos de référence, `scratchpad/inbox/ref28/`, hors dépôt).
+
+## Motion propre v2 « profondeur » (27 nov.)
+
+- Ce que les 9 références ont en commun (et que la v1 n'avait pas) : un faisceau de lumière et des halos, des cartes d'interface qui flottent en 3D, une caméra qui avance, des mises au point (flou → net), des reflets sur un sol brillant, un fond sombre qui fait ressortir les cartes claires.
+- `pitup/tools/build_depth.py` → projet `hf/videos/pitup-depth`, 19,2 s. Il réutilise `ICO`, `fiche()`, `PROD` et le CSS de la fiche de `build_clean.py`. Même musique (« Blue Lights » dès 39,87 s) : à signaler. Livré par `livrer.sh` : charte 0 erreur, −13,9 LUFS, crête −2,6 dB.
+- Déroulé :
+  - fond bleu nuit #0d1b2a avec halo bleu et sol en perspective ; un faisceau crème balaie l'écran et révèle « PitUp » par une mise au point ;
+  - l'icône PitUp reste en haut ; trois photos de Lubumbashi (Alilac, avenue, tour) flottent à trois profondeurs et la caméra avance entre elles pendant « Les boutiques / de Lubumbashi, / dans ton téléphone. » ;
+  - les six fiches article PitUp sur un carrousel circulaire 3D (rayon 760 px) qui arrive du fond puis tourne d'une fiche tous les deux temps ; fiche de face nette, les autres floues, plus sombres et en biais ; reflet sous chaque fiche ;
+  - promesse mot par mot avec mise au point (flou 22 px → net) ; fin bleue avec badges.
+- Pièges techniques (notés dans `3-atelier/outils.md`) :
+  - une opacité < 1 sur un conteneur `preserve-3d` aplatit toute la scène : mettre l'opacité sur chaque fiche ou photo ;
+  - un dessin image par image piloté par un « clock » GSAP s'exécute avant les autres tweens du même instant : il affichait l'état de l'image précédente. Calculer angle, profondeur et opacité directement à partir du temps.

@@ -113,3 +113,10 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - **Toujours livrer avec** `bash pitup/tools/livrer.sh <projet> <Nom.mp4> --script ... --musique ...` : rendu, contrôle, puis copie dans `scratchpad/livrables/` seulement si la charte est respectée.
 - Quand le fondateur fixe une nouvelle règle mesurable, l'ajouter aussi à `charte.json`.
 
+
+## Scènes 3D en HTML (motion propre v2, 27 nov.)
+
+- Python pour les scripts `build_*.py` : `librosa` et `soundfile` ne sont plus dans le Python système. Utiliser `/home/user/voxcpm/.venv/bin/python` (module `voix` de `installer.sh`).
+- Profondeur CSS : `perspective` sur la scène, `transform-style: preserve-3d` sur les groupes, cartes placées par `rotateY(…) translateZ(…)`. Reflet : `-webkit-box-reflect: below 18px linear-gradient(transparent 72%, rgba(255,255,255,.22))`.
+- Une opacité < 1 (ou un `filter`) sur un groupe `preserve-3d` l'aplatit. Mettre l'opacité et le flou sur les éléments feuilles.
+- Un dessin image par image avec le « clock » GSAP (`modifiers`) passe avant les autres tweens du même instant. Calculer l'état directement à partir du temps (`gsap.parseEase(...)` sur une progression bornée), sans dépendre d'un autre tween.
