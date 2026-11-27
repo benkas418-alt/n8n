@@ -42,6 +42,18 @@ def _notify(settings: Settings, title: str, report_paths) -> None:
     send(settings, f"{title}\n\n{summary_from_markdown(md)}")
 
 
+def _owner_coupons() -> list[dict]:
+    """D103: the owner's real coupons, kept in the repository (reference/betpawa_coupons.csv)."""
+    import csv
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[2] / "reference" / "betpawa_coupons.csv"
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as fh:
+        return list(csv.DictReader(fh))
+
+
 def _email_weekly(engine: Engine, settings: Settings, report_paths, retrained: bool) -> bool:
     """D80: the e-mail body is the week in plain words; the technical report is attached."""
     from footintel.analysis.bilan import forecast_results, ticket_results
@@ -54,7 +66,7 @@ def _email_weekly(engine: Engine, settings: Settings, report_paths, retrained: b
     today = local_today()
     subject, body = plain_week(ticket_results(engine, settings.artifacts_dir, days=14, today=today),
                                forecast_results(engine, days=28, today=today), today, retrained,
-                               load_scenarios(settings.artifacts_dir))
+                               load_scenarios(settings.artifacts_dir), _owner_coupons())
     return email_weekly(settings, report_paths, body, subject)
 
 

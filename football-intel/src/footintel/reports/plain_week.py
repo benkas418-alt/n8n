@@ -238,8 +238,29 @@ def _model_section(today: date, retrained: bool, scenario: dict | None) -> list[
     return lines + [""]
 
 
+def _coupons_section(coupons: list[dict], start: date, today: date) -> list[str]:
+    """D103: the owner's real coupons of the week, counted per coupon (never per selection)."""
+    from footintel.analysis.value_ledger import coupon_money
+
+    week = [c for c in coupons if _in(c["placed_at"][:10], start, today)]
+    if not week:
+        return []
+    m = coupon_money(week)
+    lines = ["0. TES VRAIS COUPONS BETPAWA (l'argent réel)",
+             f"{m['coupons']} coupon(s) : {m['won']} gagné(s), {m['lost']} perdu(s), {m['open']} en cours."]
+    if m["stakes"]:
+        def fc(x: float, sign: str = "") -> str:
+            return format(x, f"{sign},.0f").replace(",", " ") + " FC"
+
+        lines.append(f"Mises {fc(m['stakes'])}, retours {fc(m['returned'])}, gain net {fc(m['net'], '+')} "
+                     f"(ROI {m['roi']:+.0%}).")
+        lines.append("Sur si peu de coupons, ce résultat dépend surtout de la chance : il ne dit pas encore si ta "
+                     "méthode gagne à long terme.")
+    return lines + [""]
+
+
 def plain_week(tickets: list[dict], matches: list[dict], today: date, retrained: bool = False,
-               scenario: dict | None = None) -> tuple[str, str]:
+               scenario: dict | None = None, coupons: list[dict] | None = None) -> tuple[str, str]:
     """(subject, body). `tickets`: bilan.ticket_results over 14 days; `matches`:
     bilan.forecast_results over 28 days; `scenario`: the scenario weights file, if any."""
     start = today - timedelta(days=6)
@@ -249,6 +270,7 @@ def plain_week(tickets: list[dict], matches: list[dict], today: date, retrained:
     prev_m = [m for m in matches if _in(m["date"], start - timedelta(days=7), start - timedelta(days=1))]
 
     lines = [f"Ta semaine en clair — du {start:%d/%m} au {today:%d/%m}", ""]
+    lines += _coupons_section(coupons or [], start, today)
     tk, stats = _tickets_section(week_t, prev_t)
     lines += tk + _teams_section(week_m, prev_m) + _books_section(matches, today) + _honest_section(matches) \
         + _model_section(today, retrained, scenario)

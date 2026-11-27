@@ -78,9 +78,16 @@ def _rows_metrics(frame: pd.DataFrame) -> dict[str, float]:
 
 
 def summarize(preds: pd.DataFrame) -> pd.DataFrame:
+    # D103: "with_odds" holds exactly the matches the market reference priced, for every model, so
+    # a model and the market are compared on the same matches; "without_odds" holds the others.
+    priced = set(preds.loc[(preds["model"] == "market_implied"), :].dropna(subset=PROB_COLS)["match_id"]) \
+        if "market_implied" in set(preds["model"]) else None
     rows = []
     for model, frame in preds.groupby("model"):
         segments = [("all", frame)]
+        if priced is not None:
+            inside = frame["match_id"].isin(priced)
+            segments += [("with_odds", frame[inside]), ("without_odds", frame[~inside])]
         segments += [(f"competition:{c}", f) for c, f in frame.groupby("competition")]
         segments += [(f"season:{s}", f) for s, f in frame.groupby("season")]
         for seg, f in segments:
