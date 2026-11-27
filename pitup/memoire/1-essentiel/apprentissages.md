@@ -6,6 +6,17 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 
 ## 2026-11-27
 
+- **Motion « solo » v1 : « Travaille encore un peu mieux le texte de la fille. Niveau effets sonores ??? »**
+  Retenu :
+  - le visuel passe (pas de critique) ; le texte doit mieux accrocher ;
+  - un motion sans bruitages (seulement le déclic) lui paraît incomplet.
+  Réponse :
+  - accroche par une douleur concrète de Lubumbashi (soleil, embouteillages, boutique après boutique) ;
+  - promesse « les boutiques viennent à toi » ;
+  - énumération serrée ;
+  - appel à l'action avec un bénéfice ;
+  - bruitages tirés de ses références r2 et r5, chacun sur un moment précis.
+  Rangé : `2-dossiers/motion-magazine.md`, `3-atelier/outils.md`.
 - **Motion « duo » v1 : « C'est très nul visuellement parlant. On dirait que c'est un gosse qui l'a fait. C'est pas pro. Regarde ce que les autres font. »** Et : « On garde une seule voix, celle de la fille. Assure-toi de la fluidité du langage et de l'articulation (ponctuation au début et fin de phrase). »
   Diagnostic, en comparant avec ses références r2 et r5 :
   - mes écrans empilaient des phrases en petit (89 px sur 3 lignes) et une mosaïque de photos aux fonds mélangés ;
