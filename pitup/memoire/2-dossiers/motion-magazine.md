@@ -21,3 +21,10 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
 - Articles : New Balance 9060, pull torsadé Ralph Lauren, mocassins en daim, polos en maille zippés, cardigans en maille, Timberland 6 pouces. Restent en réserve : mocassins en cuir, New Balance 1906R, pulls Ralph Lauren à losanges, polos col ouvert.
 - Volume : couverture rigide bleue (#1672ab, ombre #0d2846) sous un bloc de 24 feuilles grises décalées (1,1 × 1,5 px et −2 px en profondeur chacune) : la tranche se voit grâce à l'inclinaison ; ombre de reliure à gauche de chaque page.
 - 19,9 s, −14,0 LUFS, charte : 0 erreur.
+
+## Version « motion propre » v1 (27 nov.)
+
+- Demande : « au lieu de faire sortir ça en journal, tu peux le faire sortir en motion, animation de texte durant des apparitions… un truc très propre ».
+- `pitup/tools/build_clean.py` → projet `hf/videos/pitup-clean`, 19,2 s, même musique (« Blue Lights » dès 39,87 s, même contenu). Livré par `livrer.sh` (charte : 0 erreur ; −13,9 LUFS).
+- Déroulé : fond clair DA ; icône + logo PitUp au centre, puis le logo remonte, petit, en haut ; « Les boutiques / de Lubumbashi, » avec l'Alilac Center et l'avenue en cartes arrondies qui glissent des côtés ; « dans ton téléphone. » ; carrousel des six fiches article PitUp (entrée par la droite avec rotation 3D de 28°, sortie à gauche ; dans la fiche, photo qui se pose, nom révélé par masque, lignes puis boutons en cascade) ; promesse « Tu / commandes. » / « On te livre. » / « Tu paies » / « à la livraison. » (surligné) avec trois icônes au trait (panier, camion, billet) qui arrivent une par temps ; fin bleue.
+- Mots longs passés sur deux lignes pour rester en 144 px (« de / Lubumbashi, », « Tu / commandes. »).
