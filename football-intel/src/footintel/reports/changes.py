@@ -26,6 +26,8 @@ NEWS: list[tuple[str, str]] = [
     ("2026-11-28", ("Sur la page d'un match, l'encadré « Ce que disent les modèles » montre côte à côte le modèle "
                    "actuel, LightGBM et les bookmakers, et combien de fois chacun a vu juste sur les mêmes "
                    "matchs. Seul le modèle actuel fait tes tickets.")),
+    ("2026-11-28", ("Le modèle des tickets s'appelle maintenant Hermès 1.0 sur tout le site. Les "
+                   "entraînements de chaque semaine gardent ce numéro : c'est toi qui décides quand il change.")),
 ]
 
 

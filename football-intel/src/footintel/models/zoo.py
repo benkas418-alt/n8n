@@ -7,9 +7,21 @@ import pandas as pd
 
 from footintel.analysis.stories import CONFIRMED_FOR_MODEL, scenario_columns
 from footintel.models.base import GOAL_COLS, PROB_COLS, ProbModel
-from footintel.models.baseline import EloPoisson, MarketImplied, NaiveFrequency, PoissonFeatures
-from footintel.models.ml import (CORE_FEATURES, WITH_MARKET_FEATURES, lightgbm, logistic, neural_net,
-                                random_forest, xgboost)
+from footintel.models.baseline import (
+    EloPoisson,
+    MarketImplied,
+    NaiveFrequency,
+    PoissonFeatures,
+)
+from footintel.models.ml import (
+    CORE_FEATURES,
+    WITH_MARKET_FEATURES,
+    lightgbm,
+    logistic,
+    neural_net,
+    random_forest,
+    xgboost,
+)
 
 MARKET_PROBS = ["mkt_p_home", "mkt_p_draw", "mkt_p_away"]
 
@@ -239,6 +251,10 @@ REFERENCE_MODELS = {"naive_frequency", "market_implied"}
 # predictions go to `side_predictions`, never to `predictions`, so tickets, reports and
 # evaluations keep using the active model only. Name -> label shown to the owner.
 SIDE_MODELS = {"lgbm_market": "LightGBM"}
+
+# D106: names the owner sees. The weekly refits keep the public number of Hermès;
+# the owner decides when it changes. Same list in static/app.js (MODEL_NAMES).
+PUBLIC_NAMES = {"routed_competition": "Hermès 1.0", **SIDE_MODELS}
 
 
 def build(name: str) -> ProbModel:

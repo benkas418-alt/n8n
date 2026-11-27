@@ -410,7 +410,7 @@ def side_models_for(match_id: int, pred) -> dict:
     """D105: the active model, each side model and the market on this match, plus their
     record on the same played matches."""
     from footintel.analysis.side_models import PRE_MATCH
-    from footintel.models.zoo import SIDE_MODELS
+    from footintel.models.zoo import PUBLIC_NAMES, SIDE_MODELS
 
     rows = _rows(f"""SELECT DISTINCT ON (mv.name) mv.name, mv.version, sp.p_home, sp.p_draw, sp.p_away,
                             sp.predicted_at
@@ -423,7 +423,8 @@ def side_models_for(match_id: int, pred) -> dict:
              "predicted_at": r["predicted_at"]} for r in rows if r["name"] in SIDE_MODELS]
     active = None
     if pred:
-        active = {"name": pred["model"], "label": "Modèle actuel", "version": pred["version"],
+        active = {"name": pred["model"], "label": PUBLIC_NAMES.get(pred["model"], pred["model"]),
+                  "version": pred["version"],
                   "p": [pred["p_home"], pred["p_draw"], pred["p_away"]], "predicted_at": pred["predicted_at"]}
     return {"active": active, "side": side, "record": side_record(datetime.now(UTC).date().isoformat())}
 

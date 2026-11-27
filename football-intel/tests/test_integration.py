@@ -814,7 +814,7 @@ def test_side_model_predicts_apart_and_never_becomes_the_ticket_model(db, settin
     dashboard.side_record.cache_clear()
     client = TestClient(api_module.app)
     models = client.get(f"/api/dash/match/{match_id}").json()["models"]
-    assert models["active"]["label"] == "Modèle actuel" and models["side"][0]["label"] == "LightGBM"
+    assert models["active"]["label"] == "logreg_market_goals" and models["side"][0]["label"] == "LightGBM"
     assert models["record"][0]["matches"] == 0
 
     # A week later the side model is refitted; the old fit leaves the side status.
