@@ -482,7 +482,7 @@ class Prediction(Base):
 
 
 class SidePrediction(Base):
-    """1X2 of a side model (D105), next to the active model. Kept apart from `predictions`
+    """Prediction of a side model (D105, D107), next to the active model. Kept apart from `predictions`
     so tickets, reports and evaluations never pick it up by mistake."""
     __tablename__ = "side_predictions"
     __table_args__ = (
@@ -497,6 +497,13 @@ class SidePrediction(Base):
     p_home: Mapped[float] = mapped_column(Float)
     p_draw: Mapped[float] = mapped_column(Float)
     p_away: Mapped[float] = mapped_column(Float)
+    # D107: goal markets, when the side model predicts goals (LightGBM does).
+    p_over_1_5: Mapped[float | None] = mapped_column(Float)
+    p_over_2_5: Mapped[float | None] = mapped_column(Float)
+    p_over_3_5: Mapped[float | None] = mapped_column(Float)
+    p_btts: Mapped[float | None] = mapped_column(Float)
+    exp_home_goals: Mapped[float | None] = mapped_column(Float)
+    exp_away_goals: Mapped[float | None] = mapped_column(Float)
     # Same frozen inputs as the active prediction, to skip a run when nothing changed.
     feature_snapshot: Mapped[dict] = mapped_column(JSON)
 
