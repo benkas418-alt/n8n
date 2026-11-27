@@ -78,3 +78,24 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
   - `pitup/tools/av.py` masque la bibliothèque `av` de faster-whisper : lancer les scripts de `pitup/tools/` avec `python -I` ;
   - les chemins de `place.json` sont relatifs au scratchpad : `build_duo.py` les complète et refuse une voix vide (une v1 sans voix a failli partir) ;
   - le volume se mesure avec ebur128 (même mesure que la charte), cible −13,6 LUFS avant rendu.
+- Retour sur la v1 : « très nul visuellement… pas pro » ; ne garder que la voix de la fille. Voir « Motion solo ».
+
+## Motion « solo » v1 (27 nov.)
+
+- `pitup/tools/build_solo.py` → `hf/videos/pitup-solo`, 19,9 s, charte 0 erreur, −13,8 LUFS. Livré : `PitUp-Motion-solo-v1.mp4`.
+- Voix : la sœur seule, en 4 blocs de deux phrases (et non phrase par phrase) pour une intonation continue. Style : « voix claire et naturelle, débit fluide et posé, bien articulée, avec le sourire ». 4 prises par bloc, choisies avec `pick_duo.py`.
+  - Prises retenues : b0_2, b1_1, b2_2, b3_1.
+  - Contrôle de la question : la hauteur de « habits » monte de 172 à 250 Hz.
+  - Texte : « Tu fais encore le tour de toute la ville pour trouver tes habits ? Ça, c'est fini. » / « Sur PitUp, les boutiques de Lubumbashi sont dans ton téléphone : des baskets, des pulls, des mocassins, des montres… » / « Tu choisis, tu commandes, et on te livre. Et tu paies à la livraison. » / « Allez, télécharge l'appli ! »
+- Image (d'après r2 et r5) :
+  - fond crème (dégradé radial blanc → #efe9dd) en alternance avec le bleu PitUp à anneaux fins ;
+  - petites étiquettes dans les quatre coins (icône + PITUP, LUBUMBASHI — RDC, BOUTIQUES LOCALES / LIVRAISON, PI-TUP.COM) ;
+  - 1 à 3 mots en 144 px (233 pour « fini. »), qui montent d'un masque quand ils sont dits ; le groupe suivant pousse le précédent ;
+  - les premiers mots sont tapés avec un curseur bleu ;
+  - une petite photo s'ouvre dans le texte (« ville », « habits ») ;
+  - « Sur » puis le logo plat bleu ;
+  - articles détourés (rembg isnet, `scratchpad/appimg/cut2/`) qui suivent la voix, avec une liste de catégories qui tourne comme la roue de mots de r2 ; puis tous ses articles défilent vite jusqu'à la coupe ;
+  - trait bleu sous « livraison. ».
+- Son : musique à −20 dB sous la voix. Déclic 1432 sur les coupes qui tombent dans un silence (la première coupe tombait sur « habits »).
+- Détourages écartés : polos zippés (le blanc se perd), Timberland (boîte restée). Les Air Max grises gardent une ombre grise.
+- Mémoire : rembg (birefnet), VoxCPM et Whisper ne tiennent pas ensemble. Lancer un seul gros modèle à la fois ; rembg isnet en 1100 px passe seul.

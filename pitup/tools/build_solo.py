@@ -56,7 +56,7 @@ for L in PL:
 BED = os.environ.get("BED", f"{SP}/audio/raindance_inst.wav"); OFF = float(os.environ.get("OFF", "36.873"))
 mus = load(BED, 2).reshape(-1, 2)[int(OFF * sr):][:n]; mus = np.pad(mus, ((0, n - len(mus)), (0, 0)))
 tt = np.arange(n) / sr; vend = W[-1][-1][2]
-gain = np.where(tt < vend + 0.2, 10 ** (-17 / 20), 10 ** (-9 / 20))
+gain = np.where(tt < vend + 0.2, 10 ** (-20 / 20), 10 ** (-9 / 20))   # -20 dB under the voice (recipe of 14 Nov.)
 gain = np.convolve(gain, np.ones(int(0.25 * sr)) / int(0.25 * sr), "same")
 mus = mus / (np.sqrt(np.mean(mus ** 2)) + 1e-9) * 0.12 * gain[:, None] * np.clip((D - tt) / 1.0, 0, 1)[:, None]
 
@@ -68,7 +68,7 @@ CREAM4 = w(2, 7) - 0.10                            # "Et tu paies à la livraiso
 END = w(3, 0) - 0.10
 CUTS = [BLUE1, CREAM2, BLUE3, CREAM4, END]
 fx = np.zeros(n, np.float32); SH = load(f"{SP}/sfx/mk/1432.mp3")
-for x in CUTS[::2]: i = int((x - 0.30) * sr); s = SH[:n - i]; fx[i:i + len(s)] += 0.30 * s
+for x in CUTS[1::2]: i = int((x - 0.30) * sr)   # these cuts fall in pauses; the first one would cover "habits"; s = SH[:n - i]; fx[i:i + len(s)] += 0.30 * s
 sf.write(f"{SP}/audio/solo_raw.wav", mus + (vo + fx)[:, None], sr, subtype="FLOAT")
 def lufs(f):
     o = subprocess.run(["ffmpeg", "-hide_banner", "-i", f, "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
@@ -94,9 +94,9 @@ def chunk_end(j):
     b, a, z, *_ = CH[j]
     if j + 1 < len(CH):
         nb, na, *_ = CH[j + 1]
-        return min(w(nb, na) - 0.12, we(b, z) + 1.4)
+        return min(w(nb, na) + 0.02, we(b, z) + 1.4)   # the next words push these out: no empty frame
     return END
-SPECIAL_END = {6: CREAM2, 10: w(1, 11) - 0.35, 13: CREAM4, 15: END}
+SPECIAL_END = {6: CREAM2, 10: w(1, 10) + 0.02, 13: CREAM4, 15: END}
 html_chunks = []; js = []
 for j, (b, a, z, size, cls) in enumerate(CH):
     ws = W[b][a:z + 1]
@@ -113,19 +113,22 @@ for j, (b, a, z, size, cls) in enumerate(CH):
 
 # ---- products: the category the voice names, then all of his pieces in a fast flicker
 CAT = [("baskets", ["am95gris", "samba", "nb9060", "am95corteiz", "nb1906"]),
-       ("pulls", ["pull_rl", "cardigans", "pulls_rl", "polos_zip"]),
+       ("pulls", ["pull_rl", "cardigans", "pulls_rl", "polos_col"]),
        ("mocassins", ["mocassins_daim", "mocassins_cuir"]),
        ("montres", ["rolex"])]
 CATW = [w(1, 11), w(1, 13), w(1, 15), w(1, 17)]
-ALL = ["timberland", "robe", "pulls_rl2", "am95galets", "tees4", "polos_col", "robes9", "nb9060", "pull_rl", "samba", "rolex", "mocassins_daim"]
+ALL = ["robe", "am95galets", "tees4", "pulls_rl2", "robes9", "nb9060", "cardigans", "samba", "rolex", "am95gris", "pull_rl", "mocassins_daim"]
 CUTI = []; seq = []
 for ci, (c, ps) in enumerate(CAT):
-    a = CATW[ci]; nx = CATW[ci + 1] if ci + 1 < len(CAT) else we(1, 17)
+    a = CATW[ci] if ci else w(1, 10); nx = CATW[ci + 1] if ci + 1 < len(CAT) else we(1, 17)   # first pair on "des"
     step = min(0.16, (nx - a) / len(ps))
-    for k, p in enumerate(ps): seq.append((p, a + k * step))
-fl0 = we(1, 17) - 0.05
-for k, p in enumerate(ALL): seq.append((p, fl0 + k * 0.085))
-FLEND = fl0 + len(ALL) * 0.085
+    for k, p in enumerate(ps):
+        if ci == len(CAT) - 1 and k: break
+        seq.append((p, a + k * step))
+fl0 = w(1, 17) + 0.35                              # the watch shows first, then all of his pieces flicker until the cut
+fst = min(0.09, (BLUE3 - 0.04 - fl0) / len(ALL))
+for k, p in enumerate(ALL): seq.append((p, fl0 + k * fst))
+FLEND = fl0 + len(ALL) * fst
 seq.append((None, FLEND))
 for k, (p, a) in enumerate(seq[:-1]):
     CUTI.append(f'<img class="cut" id="cu{k}" src="assets/cut/{p}.png" data-a="{a:.3f}" data-e="{seq[k + 1][1]:.3f}" alt="">')
@@ -208,7 +211,8 @@ tl.fromTo(".lab.c",{{opacity:0}},E({{opacity:1,duration:.5}}),0);
 document.querySelectorAll(".ch").forEach(ch=>{{ const a=+ch.dataset.a, e=+ch.dataset.e;
   tl.set(ch,{{opacity:1}},a-.05); tl.set(ch,{{opacity:0}},e);
   const ins=[...ch.querySelectorAll(".in")];
-  if(!ch.classList.contains("typed")) ins.forEach(el=>tl.fromTo(el,{{yPercent:110}},E({{yPercent:0,duration:.42,ease:"expo.out"}}),+el.dataset.t-.06));
+  if(!ch.classList.contains("typed")) ins.forEach(el=>{{ tl.set(el,{{yPercent:110}},0);   // hidden until it is said
+    tl.fromTo(el,{{yPercent:110}},E({{yPercent:0,duration:.42,ease:"expo.out"}}),+el.dataset.t-.06); }});
   tl.to(ins,{{yPercent:-110,duration:.22,ease:"power3.in",stagger:.02}},e-.24);
   ch.querySelectorAll(".chip").forEach(c=>{{ const t0=+c.nextElementSibling.firstElementChild.dataset.t;
     tl.fromTo(c,{{width:0}},E({{width:"1.25em",duration:.45,ease:"expo.out"}}),t0-.1); }});
@@ -234,10 +238,10 @@ tl.fromTo("#logo",{{opacity:0,y:40}},E({{opacity:1,y:0,duration:.4,ease:"expo.ou
 tl.to(["#sur","#logo"],{{opacity:0,y:-60,duration:.22,ease:"power3.in"}},{w(1, 2) - 0.25:.3f});
 // products: the cut-outs follow the voice, then all of his pieces flicker (r1, r6)
 document.querySelectorAll(".cut").forEach(el=>{{ tl.set(el,{{opacity:1}},+el.dataset.a); tl.set(el,{{opacity:0}},+el.dataset.e); }});
-tl.fromTo("#prod",{{scale:.92}},E({{scale:1,duration:{FLEND - CATW[0]:.3f},ease:"none"}}),{CATW[0]:.3f});
+tl.fromTo("#prod",{{scale:.92}},E({{scale:1,duration:{FLEND - w(1, 10):.3f},ease:"none"}}),{w(1, 10):.3f});
 // the list of categories turns like r2's word wheel: the one said is large and dark
-tl.set("#list",{{opacity:1}},{CATW[0] - 0.3:.3f}); tl.set("#list",{{opacity:0}},{FLEND:.3f});
-tl.set("#dot",{{opacity:1}},{CATW[0] - 0.3:.3f}); tl.set("#dot",{{opacity:0}},{FLEND:.3f});
+tl.set("#list",{{opacity:1}},{w(1, 10) - 0.02:.3f}); tl.set("#list",{{opacity:0}},{FLEND:.3f});
+tl.set("#dot",{{opacity:1}},{w(1, 10) - 0.02:.3f}); tl.set("#dot",{{opacity:0}},{FLEND:.3f});
 const CW={json.dumps([round(x, 3) for x in CATW])};
 tl.set("#lw",{{y:140}},0);
 CW.forEach((a,i)=>{{ tl.to("#lw",{{y:140-i*140,duration:.32,ease:"power3.inOut"}},a-.18);
