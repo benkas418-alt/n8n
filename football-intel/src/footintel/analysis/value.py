@@ -119,17 +119,16 @@ def market_probabilities(pred: dict) -> list[dict]:
 
 
 def market_consensus(prices: list[tuple[str, str, float]]) -> dict | None:
-    """Fair 1X2 probabilities from several bookmakers: each one's margin removed in
-    proportion, then the mean. Also the best price offered for each selection."""
+    """Fair 1X2 probabilities from several bookmakers: each one's margin removed (power
+    method, D114), then the mean. Also the best price offered for each selection."""
+    from footintel.analysis.demargin import fair_probs
     books: dict[str, dict[str, float]] = {}
     for bookmaker, selection, price in prices:
         books.setdefault(bookmaker, {})[selection] = price
     fair = []
     for b in books.values():
-        if set(b) == {"H", "D", "A"}:
-            inv = {k: 1 / v for k, v in b.items()}
-            total = sum(inv.values())
-            fair.append({k: v / total for k, v in inv.items()})
+        if set(b) == {"H", "D", "A"} and (f := fair_probs([b["H"], b["D"], b["A"]])):
+            fair.append(dict(zip("HDA", f, strict=True)))
     if not fair:
         return None
     mean = {k: float(np.mean([f[k] for f in fair])) for k in ("H", "D", "A")}

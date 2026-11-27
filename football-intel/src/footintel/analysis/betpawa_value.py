@@ -31,11 +31,12 @@ SOURCES = [("pinnacle", "closing"), ("market_avg", "closing"), ("pinnacle", "pre
 
 
 def fair3(prices: dict) -> tuple | None:
-    if {"H", "D", "A"} - prices.keys() or min(prices.values()) <= 1:
+    from footintel.analysis.demargin import fair_probs
+
+    if {"H", "D", "A"} - prices.keys():
         return None
-    inv = {k: 1 / prices[k] for k in "HDA"}
-    s = sum(inv.values())
-    return tuple(inv[k] / s for k in "HDA")
+    f = fair_probs([prices[k] for k in "HDA"])  # D114: power method
+    return tuple(f) if f else None
 
 
 def market_1x2(conn, match_id: int) -> tuple[tuple | None, str]:
@@ -68,7 +69,9 @@ def market_over(conn, match_id: int) -> float | None:
     for label in ["closing", "pre_closing"] + sorted(by, reverse=True):
         p = by.get(label, {})
         if p.get("over", 0) > 1 and p.get("under", 0) > 1:
-            return (1 / p["over"]) / (1 / p["over"] + 1 / p["under"])
+            from footintel.analysis.demargin import fair_probs
+
+            return fair_probs([p["over"], p["under"]])[0]  # D114: power method
     return None
 
 

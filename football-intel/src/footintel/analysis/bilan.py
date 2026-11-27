@@ -152,10 +152,12 @@ def _market(conn, match_id: int) -> tuple[float, float, float] | None:
         by.setdefault((book, lab, src == "the_odds_api"), {})[sel] = price
 
     def fair(p):
-        if {"H", "D", "A"} - p.keys() or min(p.values()) <= 1:
+        from footintel.analysis.demargin import fair_probs
+
+        if {"H", "D", "A"} - p.keys():
             return None
-        inv = [1 / p[k] for k in "HDA"]
-        return tuple(x / sum(inv) for x in inv)
+        f = fair_probs([p[k] for k in "HDA"])  # D114: power method
+        return tuple(f) if f else None
 
     for want in (("pinnacle", "closing"), ("market_avg", "closing"), ("pinnacle", "pre_closing"),
                  ("market_avg", "pre_closing")):
