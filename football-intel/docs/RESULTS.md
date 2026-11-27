@@ -826,3 +826,18 @@ Test saison par saison (chaque saison jugée avec un ajustement appris sur les s
 - Contre la clôture (12 371 matchs, 2020-2025 jugées) : −0,463 millième (IC −0,890 ; +0,008), 1 saison sur 6.
 
 Lecture : la force réelle du onze est une information vraie, mais elle arrive avec les compositions, et la clôture l'intègre déjà. Elle explique environ un huitième du mouvement des prix entre le vendredi et la clôture dans ces championnats (D116).
+
+## betPawa contre Pinnacle dans les 90 dernières minutes (27/11/2026, D118)
+
+`scripts/betpawa_lag.py` (workflow « betPawa lag after line-ups », run 46031865115) : historique OddsPapi de betPawa Cameroun et de Pinnacle, chaque cote avec son heure, 1X2, marge retirée par la méthode puissance. Matchs joués des 5 grands championnats du 1er août au 27 novembre 2026 : 548 lus, 547 avec les deux bookmakers 90 minutes avant le coup d'envoi.
+
+| Mesure | Résultat |
+|---|---|
+| Changements de la cote 1X2 betPawa dans les 90 dernières minutes | 64 en médiane ; aucun match sans changement |
+| Matchs où Pinnacle bouge de 3 points ou plus | 61 |
+| Moment de la moitié du mouvement de Pinnacle | 52 minutes avant le coup d'envoi (médiane) |
+| Issue qui monte chez Pinnacle, cote betPawa 90 minutes avant | Espérance +6,1 % (IC +5,0 ; +7,6), au-dessus de la cote juste dans 98 % des cas |
+| Même issue, cote betPawa 5 minutes après le mouvement de Pinnacle | +0,25 % (IC −0,39 ; +0,91), au-dessus dans 54 % des cas |
+| Part du mouvement de Pinnacle faite par betPawa au coup d'envoi | 89 % (médiane) |
+
+Règle fixée avant (30 matchs ou plus, moyenne au-dessus de 0, intervalle au-dessus de 0) : pas de fenêtre. betPawa suit Pinnacle en quelques minutes. Les +6,1 % mesurent ce que vaut une nouvelle connue avant le marché ; on ne sait quelle issue jouer qu'après le mouvement.
