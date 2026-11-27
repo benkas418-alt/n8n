@@ -730,3 +730,21 @@ Règles fixées avant de regarder. Saisons 2016-2020, jamais utilisées pour D11
 | 2. Hermès a raison quand il donne 3 à 8 points de moins au domicile | Log loss Hermès < marché, IC sous 0 | 702 matchs : réel 30,3 %, Hermès 29,7 %, marché 33,8 % ; écart −0,0018 (IC −0,0092 ; +0,0055) | 30 matchs : réel 36,7 % ; écart +0,0219 | Non confirmée |
 
 Hermès donne toujours environ 1 point de plus que le marché à la victoire à domicile, mais rien ne montre que le marché ait raison ou tort sur ce point.
+
+## Calibration du vainqueur par tranches, Hermès et marché (28/11/2026, D113)
+
+17 936 matchs avec cotes, saisons 2016 à 2025, prédictions saison par saison (`scripts/calibration_1x2.py`). Chaque issue de chaque match compte (domicile, nul, extérieur). Intervalle de Wilson à 95 %.
+
+| Tranche | Hermès : n | annoncé | réel | Marché : n | annoncé | réel |
+|---|---|---|---|---|---|---|
+| 0-10 % | 2 808 | 7,4 % | 7,9 % | 1 862 | 7,4 % | 6,7 % |
+| 10-20 % | 9 559 | 15,4 % | 15,8 % | 7 961 | 15,7 % | 14,6 % (hors intervalle) |
+| 20-30 % | 16 381 | 25,6 % | 26,3 % (hors intervalle) | 20 184 | 25,8 % | 25,3 % |
+| 30-40 % | 10 439 | 33,7 % | 33,0 % | 9 099 | 34,2 % | 33,6 % |
+| 40-50 % | 4 936 | 44,7 % | 44,7 % | 5 748 | 44,7 % | 45,8 % |
+| 50-60 % | 3 648 | 54,9 % | 55,2 % | 4 088 | 54,8 % | 56,2 % |
+| 60-70 % | 2 782 | 64,7 % | 62,3 % (hors intervalle) | 2 623 | 64,7 % | 69,1 % (hors intervalle) |
+| 70-80 % | 2 124 | 74,7 % | 73,9 % | 1 638 | 74,5 % | 75,3 % |
+| 80-100 % | 1 131 | 84,0 % | 82,2 % | 605 | 83,9 % | 85,8 % |
+
+Plus grand écart : Hermès 2,4 points, marché 4,4 points. Le marché sans marge sous-estime les favoris à 60-70 % (annoncé 64,7 %, réel 69,1 %) et surestime les outsiders à 10-20 %. C'est le biais connu favori-outsider, accentué par notre façon de retirer la marge : la même proportion sur chaque issue. Hermès surestime un peu ses favoris à 60-70 % (64,7 % contre 62,3 %).
