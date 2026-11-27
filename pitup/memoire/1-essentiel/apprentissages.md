@@ -4,6 +4,10 @@ Tenu par la compétence `pitup-apprentissage`. Une entrée par retour du fondate
 Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce que j'en retiens · où c'est rangé.
 « (interprétation) » marque ce qui vient de moi et non de lui.
 
+## 2026-11-27
+
+- **Dépôts d'outils.** Il envoie 4 dépôts sans consigne, puis « Installé le 2 premier » (dicté). Ambigu (sa liste ou mon tableau) : j'ai installé les deux lectures (compétences ElevenLabs + cuelume, et p5.js ; video-shotcraft l'était déjà). Retenu : quand il envoie des dépôts, les étudier puis proposer ; quand sa réponse est ambiguë et que l'action est sans risque, faire les deux et le dire. Rangé : `3-atelier/outils.md`.
+
 ## 2026-11-26
 
 - **Bruitages de banque refusés.** « Le bruitage que tu utilises, il est nul… ça donne IA. Tu utilises des sons de cloche… on en a déjà parlé. » Cause : les vrais sons tirés de ses références (perdus avec la réinitialisation) remplacés en silence par des sons Mixkit (souffle 1491, carillon 2573). Retenu : jamais de son de banque à la place des sons de ses références ; s'ils manquent, ne mettre aucun bruitage et le lui dire. Rangé : `regles.md`.
@@ -13,10 +17,6 @@ Format : date · contexte · ce qu'il a dit (au plus près de ses mots) · ce qu
 - **Sons du film v5 bannis.** « Il faut des clics, les clics caméra pour passage à un autre plan… ce que tu as mis là, le bruit là, c'est pas ça… je le bannis. » Retenu : déclic photo réel sur chaque changement de plan ; plus aucun son fabriqué par code. Rangé : `regles.md`.
 - **Logo du geste : ralentir, centrer, suivre.** « Tu dois ralentir la vidéo… centrer le logo… il doit bien suivre la gestuelle des doigts. » Et : « les clics caméra, tu dois un peu les alterner, pas les mettre qui se suivent. » Retenu : un effet lié à un geste se cale image par image sur le geste (points relevés sur une grille), au ralenti si le geste est rapide ; déclic photo un changement de plan sur deux. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
 - **Le logo naît de l'écartement, pas avant.** « Il doit suivre l'agrandissement des mains, pas d'abord venir, il est petit quelque part… Quand les mains commencent à se séparer, le logo apparaît entre les deux doigts, il commence à grandir. » Retenu : un objet lié à un geste n'apparaît qu'au début du mouvement qui le crée ; sa taille suit l'écart des doigts ; il reste entre les bouts de doigts. Rangé : `regles.md`, `2-dossiers/presentateur-app.md`.
-
-## 2026-11-27
-
-- **Dépôts d'outils.** Il envoie 4 dépôts sans consigne, puis « Installé le 2 premier » (dicté). Ambigu (sa liste ou mon tableau) : j'ai installé les deux lectures (compétences ElevenLabs + cuelume, et p5.js ; video-shotcraft l'était déjà). Retenu : quand il envoie des dépôts, les étudier puis proposer ; quand sa réponse est ambiguë et que l'action est sans risque, faire les deux et le dire. Rangé : `3-atelier/outils.md`.
 
 ## 2026-11-25
 
