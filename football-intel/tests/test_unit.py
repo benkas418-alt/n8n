@@ -1411,10 +1411,11 @@ def test_value_ledger_margin_removal_and_ev_by_hand():
     from footintel.analysis.value_ledger import ev, fair_probs, overround
 
     p = fair_probs({"H": 2.0, "D": 3.5, "A": 4.0})
-    # 1/2 + 1/3.5 + 1/4 = 1.0357...: margin 3.57 %, home 0.5 / 1.0357 = 0.4828.
+    # 1/2 + 1/3.5 + 1/4 = 1.0357...: margin 3.57 %, proportional home 0.4828; the power method
+    # (D114) leaves more to the favourite: 0.4881.
     assert abs(overround({"H": 2.0, "D": 3.5, "A": 4.0}) - 0.035714) < 1e-5
-    assert abs(sum(p) - 1) < 1e-12 and abs(p[0] - 0.482759) < 1e-5
-    assert abs(ev(2.10, p[0]) - (2.10 * 0.482759 - 1)) < 1e-5
+    assert abs(sum(p) - 1) < 1e-12 and abs(p[0] - 0.488139) < 1e-5
+    assert abs(ev(2.10, p[0]) - (2.10 * 0.488139 - 1)) < 1e-5
     assert fair_probs({"H": 2.0, "D": 1.0, "A": 4.0}) is None and ev(2.0, None) is None
 
 
@@ -1627,3 +1628,18 @@ def test_minute_coverage_separates_complete_incomplete_and_absent():
     totals = {1: 2, 2: 3, 3: 1, 4: 0}
     found = {1: 2, 2: 1, 4: 0}  # match 3 has no minute at all; a 0-0 without minutes is complete
     assert minute_coverage(found, totals) == {"complete": 2, "incomplete": 1, "absent": 1}
+
+
+# ---- D114: power method for the bookmaker margin ----
+
+def test_power_margin_gives_more_to_favourites_than_proportional():
+    from footintel.analysis.demargin import fair_probs
+
+    prices = [1.45, 4.4, 7.0]  # a favourite, about 5 % margin
+    power = fair_probs(prices)
+    inv = [1 / p for p in prices]
+    prop = [x / sum(inv) for x in inv]
+    assert abs(sum(power) - 1) < 1e-9
+    assert power[0] > prop[0] and power[2] < prop[2]  # margin taken more from the outsider
+    assert fair_probs([2.0, 2.0]) == [0.5, 0.5]  # no margin: only normalised
+    assert fair_probs([1.0, 3.0]) is None and fair_probs([]) is None

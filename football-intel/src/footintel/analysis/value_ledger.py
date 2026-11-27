@@ -29,12 +29,12 @@ BANDS = ((1.0, 1.30, "moins de 1,30"), (1.30, 1.60, "1,30 à 1,59"), (1.60, 2.00
 
 
 def fair_probs(prices: dict[str, float]) -> tuple[float, ...] | None:
-    """Probabilities without the bookmaker's margin (proportional method), in the order of `prices`.
+    """Probabilities without the bookmaker's margin (power method, D114), in the order of `prices`.
     None when a price is missing or not above 1: no fair price rather than a wrong one."""
-    if not prices or any(p is None or p <= 1 for p in prices.values()):
-        return None
-    inv = [1 / p for p in prices.values()]
-    return tuple(x / sum(inv) for x in inv)
+    from footintel.analysis import demargin
+
+    f = demargin.fair_probs(list(prices.values())) if prices else None
+    return tuple(f) if f else None
 
 
 def overround(prices: dict[str, float]) -> float:

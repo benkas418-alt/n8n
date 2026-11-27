@@ -748,3 +748,15 @@ Hermès donne toujours environ 1 point de plus que le marché à la victoire à 
 | 80-100 % | 1 131 | 84,0 % | 82,2 % | 605 | 83,9 % | 85,8 % |
 
 Plus grand écart : Hermès 2,4 points, marché 4,4 points. Le marché sans marge sous-estime les favoris à 60-70 % (annoncé 64,7 %, réel 69,1 %) et surestime les outsiders à 10-20 %. C'est le biais connu favori-outsider, accentué par notre façon de retirer la marge : la même proportion sur chaque issue. Hermès surestime un peu ses favoris à 60-70 % (64,7 % contre 62,3 %).
+
+## Retrait de la marge : proportionnel, puissance, Shin (28/11/2026, D114)
+
+76 557 matchs 2016-2025, 2 075 matchs 2026-27, prix moyens avant le match (`scripts/margin_methods_check.py`).
+
+| Méthode | Écart de log loss 1X2 contre proportionnel (2016-2025) | 2026-27 | Favoris 60-70 % : annoncé / réel | Outsiders 10-20 % : annoncé / réel |
+|---|---|---|---|---|
+| Proportionnelle | — | — | 64,5 % / 67,8 % | 16,0 % / 14,4 % |
+| Puissance (retenue) | −0,00074 (IC −0,00097 ; −0,00054) | −0,00181 | 64,4 % / 64,9 % | 15,9 % / 15,5 % |
+| Shin | −0,00063 (IC −0,00078 ; −0,00049) | −0,00144 | 64,4 % / 65,7 % | 16,0 % / 15,2 % |
+
+Plus de 2,5 buts : puissance −0,00016 (IC −0,00028 ; −0,00005), 2026-27 −0,00090.

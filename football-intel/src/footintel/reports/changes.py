@@ -44,6 +44,10 @@ NEWS: list[tuple[str, str]] = [
                    "pour mieux estimer 1UP, 2UP et premier but : il n'apporte rien, rien n'est changé.")),
     ("2026-11-28", ("Dans l'onglet Moments du match, le site dit maintenant combien de matchs il a écartés parce "
                    "que les minutes des buts manquaient.")),
+    ("2026-11-28", ("Les cotes justes « marché » sont plus exactes : la marge des bookmakers est maintenant retirée "
+                   "davantage sur les outsiders que sur les favoris, comme ils la répartissent en réalité. Un "
+                   "favori à 1,50 environ a une cote juste un peu plus basse qu'avant ; un outsider, un peu plus "
+                   "haute. Testé sur 78 000 matchs.")),
 ]
 
 
