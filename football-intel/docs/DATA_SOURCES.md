@@ -67,10 +67,10 @@ Tout ce qui suit a été vérifié par de vrais appels les 2026-10-21 et 2026-10
 
 ### OddsPapi — cotes betPawa et Pinnacle (en préparation, D68)
 
-| Élément | Constat (2026-10-30, documentation et conditions lues ; pas encore de clé) |
+| Élément | Constat (2026-10-30 ; clé créée le 30/10, secret GitHub `ODDS_PAPI_KEY` ; revu le 27/11/2026) |
 |---|---|
 | Accès | `https://api.oddspapi.io/v4`, clé en variable d'environnement `ODDS_PAPI_KEY` (secret GitHub, jamais dans le dépôt). La clé passe dans l'URL. |
-| Quota | Offre gratuite : 250 requêtes par mois, 1 par appel quel que soit le contenu. `/v4/historical-odds` est gratuit et ne compte pas. Remise à zéro le 1er du mois. |
+| Quota | Offre gratuite : 250 requêtes par mois, 1 par appel quel que soit le contenu. `/v4/historical-odds` est gratuit et ne compte pas (un appel toutes les 5 secondes, 3 bookmakers au plus, matchs terminés seulement en gratuit). Historique depuis janvier 2026, chaque cote avec son heure (`createdAt`). Remise à zéro le 1er du mois. |
 | Couverture | betPawa Cameroun (`betpawa.cm`), pas la RD Congo ; Pinnacle. Marchés réels de betPawa à confirmer par la sonde `scripts/oddspapi_probe.py` (workflow « OddsPapi probe », 4 requêtes). |
 | Conditions | `oddspapi.io/en/legal/terms` : revente ou redistribution des données comme produit interdites ; clé personnelle. Usage personnel et calculs affichés aux invités du site : autorisés. |
 | Usage prévu | Comparer les cotes betPawa à la cote juste de Pinnacle sur des matchs joués (historique gratuit), puis avant les matchs. |
@@ -162,6 +162,7 @@ Vérifié le 27/11/2026 sur les pages des fournisseurs ; les offres gratuites ch
 | StatsBomb open data | Gratuit | Événements complets, xG | Saisons choisies (Bundesliga 2015-16 et 2023-24, Liga de Barcelone) | Non commercial, citation | Écartée : pas de saisons complètes récentes. |
 | StrikerAPI (vérifié le 27/11/2026, D117) | Gratuit : 500 crédits par mois ; une composition coûte 5 crédits, soit 100 matchs par mois | Compositions (titulaires, remplaçants, changements), événements, tirs, xG calculé par eux | Depuis 2001-02 (5 championnats, C1) | Stockage et modèles permis ; revente interdite. **Données reprises des pages publiques d'ESPN**, dont nous avons écarté la collecte directe (conditions ESPN) | Écartée pour l'instant : son historique double Transfermarkt (gratuit, sans limite) ; il faudrait 19 ans de crédits gratuits pour couvrir notre test ; aucune heure de publication des compositions. |
 | Soccer Data (vérifié le 27/11/2026, D117) | Gratuit : 50 requêtes par jour, saison en cours seulement | Composition probable, puis feuille de match officielle (environ 1 h avant), puis composition jouée, avec le type de chaque version | Saison en cours (gratuit) | Stockage permis tant que le compte est ouvert, à effacer ensuite | **Candidate pour l'étape 2** : donne le moment où la feuille officielle arrive. Demande un relevé près de chaque coup d'envoi, pas un seul passage le matin. |
+| OddsRelay (vérifié le 27/11/2026, D118) | Essai de 14 jours, 50 000 jetons, sans carte ; ensuite 49 £ par mois | Cotes **betPawa RD Congo** (`betpawa_cd`), avec chaque changement et son heure | Depuis le 16/11/2026 hors Royaume-Uni | Usage personnel seulement : rien de ce qui en sort ne peut être montré à d'autres (site, invités) | **Vérification ponctuelle** : comparer betPawa RD Congo à betPawa Cameroun sur les mêmes matchs. Essai à ouvrir quand on est prêt à tout lire, à la fin des 14 jours (l'historique grossit chaque jour). Pas de solution permanente (pas de carte). |
 | OddsPapi (D68) | Gratuit, 250 requêtes par mois ; historique gratuit | Cotes betPawa (Cameroun) et Pinnacle, avec l'heure | Historique | Clé personnelle | **Clé du test « betPawa tarde-t-il ? »** (voir plus bas). Clé pas encore créée. |
 | Understat, FBref, Sofascore, FotMob, ESPN | — | xG, compositions | — | Robots interdits ou accès bloqué (voir « Écartées ») | Toujours écartées. |
 
