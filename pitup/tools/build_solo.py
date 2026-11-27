@@ -22,7 +22,7 @@ BLOCKS = ["Tu fais encore le tour de toute la ville pour trouver tes habits\u00a
           "Sur PitUp, les boutiques de Lubumbashi sont dans ton téléphone\u00a0: des baskets, des pulls, des mocassins, des montres…",
           "Tu choisis, tu commandes, et on te livre. Et tu paies à la livraison.",
           "Allez, télécharge l'appli\u00a0!"]
-DISP = [b.split() for b in BLOCKS]
+DISP = [b.split(" ") for b in BLOCKS]                 # keep "habits\u00a0?" as one word
 def norm(s):
     s = unicodedata.normalize("NFD", s.lower()); s = "".join(c for c in s if unicodedata.category(c) != "Mn")
     return re.sub(r"[^a-z0-9]", "", s)
