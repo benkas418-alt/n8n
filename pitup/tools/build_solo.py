@@ -22,7 +22,7 @@ SFXD = f"{SP}/sfx/ref28"                            # sounds cut from his refere
 # ---- what is said (display spelling), per voice block
 BLOCKS = ["Le soleil, les embouteillages, boutique après boutique… tout ça pour une seule paire de baskets\u00a0?",
           "Ça, c'est fini. Avec PitUp, les boutiques de Lubumbashi viennent à toi.",
-          "Baskets, pulls, mocassins, montres… Tu choisis, tu commandes, on te livre.",
+          "Des baskets, des pulls, des mocassins, des montres… Tu choisis, tu commandes, on te livre.",
           "Et tu paies seulement à la livraison.",
           "Télécharge PitUp, et fais tes achats sans bouger de chez toi."]
 DISP = [b.split(" ") for b in BLOCKS]                 # keep "habits\u00a0?" as one word
@@ -66,11 +66,12 @@ mus = mus / (np.sqrt(np.mean(mus ** 2)) + 1e-9) * 0.12 * gain[:, None] * np.clip
 # ---- scenes (background: c = cream, b = PitUp blue)
 BLUE1 = w(1, 0) - 0.08                             # "Ça, c'est fini."
 CREAM2 = w(1, 3) - 0.10                            # "Avec PitUp, les boutiques de Lubumbashi viennent à toi."
-BLUE3 = w(2, 4) - 0.10                             # "Tu choisis, tu commandes, on te livre."
+BLUE3 = w(2, 8) - 0.10                             # "Tu choisis, tu commandes, on te livre."
 CREAM4 = w(3, 0) - 0.10                            # "Et tu paies seulement à la livraison."
 END = w(4, 0) - 0.10
 CUTS = [BLUE1, CREAM2, BLUE3, CREAM4, END]
-CATW = [w(2, 0), w(2, 1), w(2, 2), w(2, 3)]         # baskets, pulls, mocassins, montres
+CATW = [w(2, 1), w(2, 3), w(2, 5), w(2, 7)]         # baskets, pulls, mocassins, montres
+FIRSTP = w(2, 0)                                   # the first pair shows on "Des"
 
 # ---- sound design: real sounds from his references, one per precise moment (no sound on every word)
 fx = np.zeros(n, np.float32)
@@ -113,7 +114,7 @@ print("mix", out, "LUFS")
 CH = [(0, 0, 1, 144, "typed"), (0, 2, 3, 89, ""), (0, 4, 6, 144, ""), (0, 7, 9, 144, ""), (0, 10, 12, 144, ""), (0, 13, 14, 144, ""),
       (1, 0, 1, 144, "onb"), (1, 2, 2, 233, "onb"),
       (1, 5, 6, 144, ""), (1, 7, 8, 144, ""), (1, 9, 11, 144, ""),
-      (2, 4, 5, 144, "onb"), (2, 6, 7, 144, "onb"), (2, 8, 10, 144, "onb"),
+      (2, 8, 9, 144, "onb"), (2, 10, 11, 144, "onb"), (2, 12, 14, 144, "onb"),
       (3, 0, 2, 144, ""), (3, 3, 3, 144, ""), (3, 4, 6, 144, ""),
       (4, 6, 10, 55, "onb endl")]
 KEYW = {"embouteillages", "baskets", "fini", "lubumbashi", "toi", "commandes", "livre", "seulement", "livraison"}
@@ -125,7 +126,7 @@ def chunk_end(j):
         nb, na, *_ = CH[j + 1]
         return min(w(nb, na) + 0.02, we(b, z) + 1.4)   # the next words push these out: no empty frame
     return D
-SPECIAL_END = {7: CREAM2, 10: CATW[0] - 0.02, 13: CREAM4, 16: END, 17: D}
+SPECIAL_END = {7: CREAM2, 10: FIRSTP + 0.02, 13: CREAM4, 16: END, 17: D}
 html_chunks = []; js = []
 for j, (b, a, z, size, cls) in enumerate(CH):
     ws = W[b][a:z + 1]
@@ -146,12 +147,12 @@ CAT = [("baskets", ["am95gris", "samba", "nb9060", "am95corteiz", "nb1906"]),
 ALL = ["robe", "am95galets", "tees4", "pulls_rl2", "robes9", "nb9060", "cardigans", "samba", "rolex", "am95gris", "pull_rl", "mocassins_daim"]
 CUTI = []; seq = []
 for ci, (c, ps) in enumerate(CAT):
-    a = CATW[ci]; nx = CATW[ci + 1] if ci + 1 < len(CAT) else we(2, 3)
+    a = CATW[ci] if ci else FIRSTP; nx = CATW[ci + 1] if ci + 1 < len(CAT) else we(2, 7)
     step = min(0.16, (nx - a) / len(ps))
     for k, p in enumerate(ps):
         if ci == len(CAT) - 1 and k: break
         seq.append((p, a + k * step))
-fl0 = w(2, 3) + 0.35                              # the watch shows first, then all of his pieces flicker until the cut
+fl0 = w(2, 7) + 0.35                              # the watch shows first, then all of his pieces flicker until the cut
 fst = min(0.09, (BLUE3 - 0.04 - fl0) / len(ALL))
 for k, p in enumerate(ALL): seq.append((p, fl0 + k * fst))
 FLEND = fl0 + len(ALL) * fst
@@ -182,7 +183,7 @@ doc = f'''<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name=
 #trw{{right:64px;top:96px}} #blw{{left:64px;bottom:84px}} #brw{{right:64px;bottom:84px}}
 .ch{{position:absolute;left:40px;right:40px;top:50%;transform:translateY(-50%);text-align:center;font-weight:700;letter-spacing:-.055em;line-height:1.02;z-index:20;opacity:0}}
 .ch.top{{top:330px;transform:none}}
-.m{{display:inline-block;overflow:hidden;vertical-align:bottom;padding:0 .04em .08em}}
+.m{{display:inline-block;overflow:hidden;vertical-align:bottom;padding:0 .04em .22em;margin-bottom:-.14em}}   /* room for q, p, ç */
 .in{{display:inline-block}} .k{{color:#1f88c9}}
 .onb{{color:#fff}} .onb .k{{color:#bfe3ff}}
 .chip{{display:inline-block;width:0;height:.62em;border-radius:.31em;background-size:cover;background-position:center;vertical-align:.06em;margin:0 .06em}}
@@ -247,16 +248,15 @@ document.querySelectorAll(".ch").forEach(ch=>{{ const a=+ch.dataset.a, e=+ch.dat
 // the first words are typed with a blue cursor (r1, r2)
 (()=>{{ const ch=document.querySelector(".ch.typed"), ins=[...ch.querySelectorAll(".in")];
   const words=ins.map(el=>[el,el.textContent,+el.dataset.t]); const nx={W[0][2][1]:.3f};
-  words.forEach(([el,txt,t0],i)=>{{ const t1=i+1<words.length?words[i+1][2]:Math.min(nx-.1,t0+.4);
-    const o={{n:0}}; el.textContent="";
-    tl.fromTo(o,{{n:0}},E({{n:txt.length,duration:Math.max(.12,(t1-t0)*.85),ease:"none",
-      onUpdate:()=>{{ el.textContent=txt.slice(0,Math.round(o.n)); }}, modifiers:{{n:(v)=>{{ el.textContent=txt.slice(0,Math.round(+v)); return v; }}}}}}),t0);
-  }});
+  // typing and cursor are drawn together from the time, so the cursor never lags behind the letters
+  const typ=words.map(([el,txt,t0],i)=>{{ const t1=i+1<words.length?words[i+1][2]:Math.min(nx-.1,t0+.4);
+    el.textContent=""; return [el,txt,t0,Math.max(.12,(t1-t0)*.85)]; }});
   tl.set("#cur",{{opacity:1}},0); tl.set("#cur",{{opacity:0}},+ch.dataset.e);
-  const place=()=>{{ const r=ch.getBoundingClientRect(), last=ins.filter(x=>x.textContent).pop()||ins[0], q=last.getBoundingClientRect();
+  const place=(v)=>{{ typ.forEach(([el,txt,t0,du])=>{{ el.textContent=txt.slice(0,Math.round(Math.max(0,Math.min(1,(v-t0)/du))*txt.length)); }});
+    const r=ch.getBoundingClientRect(), last=ins.filter(x=>x.textContent).pop()||ins[0], q=last.getBoundingClientRect();
     const root=document.getElementById("root").getBoundingClientRect(), s=root.width/1080;
     gsap.set("#cur",{{left:(q.right-root.left)/s+8,top:(r.top-root.top)/s+(r.height/s-120)/2}}); }};
-  const ck={{t:0}}; tl.fromTo(ck,{{t:0}},{{t:1,duration:+ch.dataset.e,ease:"none",immediateRender:false,modifiers:{{t:(v)=>{{ place(); return v; }}}}}},0);
+  const ck={{t:0}}; tl.fromTo(ck,{{t:0}},{{t:+ch.dataset.e,duration:+ch.dataset.e,ease:"none",immediateRender:false,modifiers:{{t:(v)=>{{ place(+v); return v; }}}}}},0);
   for(let b=0;b<+ch.dataset.e;b+=.5) tl.set("#cur",{{autoAlpha:(Math.floor(b/.5)%2&&b>{W[0][1][2]:.3f})?0:1}},b);
 }})();
 // "Sur PitUp": the word, then the flat logo arrives in place of the name
@@ -265,10 +265,10 @@ tl.fromTo("#logo",{{opacity:0,y:40}},E({{opacity:1,y:0,duration:.4,ease:"expo.ou
 tl.to(["#sur","#logo"],{{opacity:0,y:-60,duration:.22,ease:"power3.in"}},{w(1, 5) - 0.25:.3f});
 // products: the cut-outs follow the voice, then all of his pieces flicker (r1, r6)
 document.querySelectorAll(".cut").forEach(el=>{{ tl.set(el,{{opacity:1}},+el.dataset.a); tl.set(el,{{opacity:0}},+el.dataset.e); }});
-tl.fromTo("#prod",{{scale:.92}},E({{scale:1,duration:{FLEND - CATW[0]:.3f},ease:"none"}}),{CATW[0]:.3f});
+tl.fromTo("#prod",{{scale:.92}},E({{scale:1,duration:{FLEND - FIRSTP:.3f},ease:"none"}}),{FIRSTP:.3f});
 // the list of categories turns like r2's word wheel: the one said is large and dark
-tl.set("#list",{{opacity:1}},{CATW[0] - 0.02:.3f}); tl.set("#list",{{opacity:0}},{FLEND:.3f});
-tl.set("#dot",{{opacity:1}},{CATW[0] - 0.02:.3f}); tl.set("#dot",{{opacity:0}},{FLEND:.3f});
+tl.set("#list",{{opacity:1}},{FIRSTP - 0.02:.3f}); tl.set("#list",{{opacity:0}},{FLEND:.3f});
+tl.set("#dot",{{opacity:1}},{FIRSTP - 0.02:.3f}); tl.set("#dot",{{opacity:0}},{FLEND:.3f});
 const CW={json.dumps([round(x, 3) for x in CATW])};
 tl.set("#lw",{{y:140}},0);
 CW.forEach((a,i)=>{{ tl.to("#lw",{{y:140-i*140,duration:.32,ease:"power3.inOut"}},a-.18);

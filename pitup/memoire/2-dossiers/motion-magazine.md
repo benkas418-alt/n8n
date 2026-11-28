@@ -99,3 +99,25 @@ Tiré de sa référence « I make things move » (une vraie feuille en 3D sous u
 - Son : musique à −20 dB sous la voix. Déclic 1432 sur les coupes qui tombent dans un silence (la première coupe tombait sur « habits »).
 - Détourages écartés : polos zippés (le blanc se perd), Timberland (boîte restée). Les Air Max grises gardent une ombre grise.
 - Mémoire : rembg (birefnet), VoxCPM et Whisper ne tiennent pas ensemble. Lancer un seul gros modèle à la fois ; rembg isnet en 1100 px passe seul.
+- Retour sur la v1 : « Travaille encore un peu mieux le texte de la fille. Niveau effets sonores ??? »
+- Bug trouvé : dans la v1, la ligne des déclics était devenue un commentaire (texte inséré après un `#`), donc la v1 n'avait **aucun** bruitage. Toujours vérifier la bande de bruitages (`sfx peak` affiché par le script).
+
+## Motion « solo » v2 (28 nov.)
+
+- Livré : `PitUp-Motion-solo-v2.mp4`, 24,0 s, charte 0 erreur (attention : 3e usage de « Raindance »), −13,9 LUFS.
+- Texte (sœur) :
+  - « Le soleil, les embouteillages, boutique après boutique… tout ça pour une seule paire de baskets ? »
+  - « Ça, c'est fini. Avec PitUp, les boutiques de Lubumbashi viennent à toi. »
+  - « Des baskets, des pulls, des mocassins, des montres… Tu choisis, tu commandes, on te livre. »
+  - « Et tu paies seulement à la livraison. »
+  - « Télécharge PitUp, et fais tes achats sans bouger de chez toi. »
+- Piège voix : sans article, « pulls » sort en « poules », « pulse » ou « pose » (4 prises sur 4) ; avec « des pulls », c'est bon. Prises retenues : b0_0 (question qui monte de 241 à 334 Hz), b1_3, b2_1, b3_0, b4_3.
+- Bruitages (extraits de ses références, `scratchpad/sfx/ref28/`, hors dépôt ; repérés avec `earshot timeline`, vérifiés avec `earshot describe`) :
+  - `key` : r2, 1,00–1,26 s, frappe de clavier ; une frappe par lettre sur « Le soleil, » tapé ;
+  - `whoosh` : r2, 2,00–2,32 s ; sur les passages crème → bleu ;
+  - `stab` : r5, 4,33–4,62 s, frappe sèche ; sur « fini. » et sous « livraison. » ;
+  - `riser` : r2, 20,55–21,34 s, montée inversée ; pendant le défilé de tous les articles, jusqu'à la coupe ;
+  - `sub` : r2, 30,40–31,30 s, coup grave sur fond silencieux ; sur la carte de fin ;
+  - plus le déclic 1432 à l'arrivée du logo et sur la coupe « Et tu paies » ; une petite frappe à chaque catégorie de la liste ;
+  - écarté : le « pop » de r4 (contient de la voix).
+- Correctifs d'image : frappe et curseur calculés ensemble à partir du temps (le curseur avait une image de retard) ; plus de marge sous les mots dans le masque (le « q » était coupé).

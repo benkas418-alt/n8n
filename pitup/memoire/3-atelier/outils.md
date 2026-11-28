@@ -120,3 +120,9 @@ Tous les scripts sont dans `pitup/tools/`. Chaque script porte son mode d'emploi
 - Profondeur CSS : `perspective` sur la scène, `transform-style: preserve-3d` sur les groupes, cartes placées par `rotateY(…) translateZ(…)`. Reflet : `-webkit-box-reflect: below 18px linear-gradient(transparent 72%, rgba(255,255,255,.22))`.
 - Une opacité < 1 (ou un `filter`) sur un groupe `preserve-3d` l'aplatit. Mettre l'opacité et le flou sur les éléments feuilles.
 - Un dessin image par image avec le « clock » GSAP (`modifiers`) passe avant les autres tweens du même instant. Calculer l'état directement à partir du temps (`gsap.parseEase(...)` sur une progression bornée), sans dépendre d'un autre tween.
+
+## Bruitages tirés des références (28 nov.)
+
+- Repérer : `/home/user/leonxlnx/earshot/.venv/bin/earshot timeline <video> --detail low`. Il liste les événements, avec leur étiquette et leur hauteur au-dessus de la musique. Garder ceux à +18 dB ou plus, dans un passage sans voix.
+- Découper avec ffmpeg (fondu de 5 ms au début, court fondu à la fin), puis vérifier avec `earshot describe <fichier>`. Écarter tout extrait où l'AudioSet entend « Speech ».
+- Banque actuelle : `scratchpad/sfx/ref28/` (key, whoosh, stab, riser, sub). Hors dépôt (sons de tiers).
